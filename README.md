@@ -9,5 +9,7 @@ It reuses bits and pieces from other projects:
   - a solver [PTC-Solver](https://github.com/echancrure/PTC-Solver) which uses Constraint Logic Programming (ECLiPSe flavour).
 The initial goal is to move towards tackling [Test-Comp benchmarks](https://test-comp.sosy-lab.org/) in an agile way.
 
+The goal is to keep the [Sikraken Development Guide Google Docs](https://docs.google.com/document/d/1uDLnlrFGWUNYyzsotZAZ_jFVrRSPEoixVMgw1UZZ0ug/edit?usp=sharing) uptodate and tidy. 
+
 ## Development Log
 **14 June 2024** Sikraken can handle RegressionTests/get_sign.c
