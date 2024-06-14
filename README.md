@@ -1,4 +1,5 @@
-# Sikraken: A Test Suites Generator for C Code
+
+# Sikraken: A Test Suites Generator for C Code ![A Kraken](/Documentation/kraken_attackin__by_captainnutmeg_ddp8r4y-pre-small.jpg)
 
 **Sikraken** is a new test data generator project for C code started in June 2024 by Dr Christophe Meudec, echancrure@gmail.com.
 It is developed as a side project in an agile way by a team of one, part time; so don't expect miracles.
