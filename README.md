@@ -14,5 +14,4 @@ The initial goal is to move towards tackling [Test-Comp benchmarks](https://test
 
 Another commitment is to keep the [Sikraken Development Guide Google Docs](https://docs.google.com/document/d/1uDLnlrFGWUNYyzsotZAZ_jFVrRSPEoixVMgw1UZZ0ug/edit?usp=sharing) useful, uptodate and tidy. 
 
-## Development Log
-**14 June 2024** Sikraken can handle RegressionTests/get_sign.c
+## [Development Log](https://docs.google.com/document/d/1Wsy-GWnGghqRTX3B-ti4ruvPUWDY1rv5MBn0aBH-QoY/edit?usp=sharing).
