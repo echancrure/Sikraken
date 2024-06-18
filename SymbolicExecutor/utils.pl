@@ -111,19 +111,16 @@ utils__assign_arguments_to_parameters([Argument | More_arguments], [declaration(
     utils__assignment(Parameter, Argument, _),
     utils__assign_arguments_to_parameters(More_arguments, More_parameters).
 
-%% utils__error_if_false/2
-%% utils__error_if_false(+Goal, +Error_message)
-%% This predicate takes a Goal and an Error_message as input. It evaluates the Goal and if it fails, it prints an error message and aborts the program.
-%% Parameters:
-%%  Goal: The goal to be evaluated.
-%%  Error_message: The error message to be printed if the Goal fails.
-utils__error_if_false(Goal, Error_message) :-
+%%%
+utils__assert(Goal, Message, Error_args) :-
     (Goal ->
         true
     ;
-        concat_string(["Error: ", Error_message], Error_message_complete),
-        writeln(Error_message_complete),
-        abort
+        (sprintf(Error_message, Message, Error_args),
+         printf(output, "Sikraken Symbolic Executor Fatal Error: %s\n", Error_message), %not sure which which default stream is best see https://eclipseclp.org/doc/bips/kernel/iostream/get_stream-2.html
+         flush(output),
+         abort
+        )
     ).
 
 %% utils__demotion/3
@@ -142,7 +139,7 @@ utils__error_if_false(Goal, Error_message) :-
 %% https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf
 %% ----------------------------------
 utils__demotion(Number_to_demote, Type, Result) :-
-    get_type_information(Type, _Byte_size, Min_bound, Max_bound),
+    c_type_decl(Type, _Byte_size, Min_bound, Max_bound),
     utils__demotion(Number_to_demote, Min_bound, Max_bound, Result).
 utils__demotion(Number_to_demote, Min_bound, Max_bound, Result) :-
     Range = Max_bound - Min_bound + 1,

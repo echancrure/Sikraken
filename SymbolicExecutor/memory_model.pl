@@ -4,9 +4,7 @@
 :- local reference(memory_model).
 
 initialise_memory_model :-
-    % A value holding the next free address in the memory model.
-    setval(free_address, 1000),
-
+    setval(free_address, 1000), %a value holding the next free address in the memory model.
     hash_create(Memory_model),
     setref(memory_model, Memory_model).
 
@@ -16,12 +14,12 @@ initialise_memory_model :-
 %% Parameters:
 %%   Value: The c_var to add to the memory model
 add_to_memory(Value) :-
-    (
-        c_var__is_pointer(Value) ->
-            get_type_information('pointer', Type_byte_size, _ , _)
-        ;
-            c_var__get_type(Value, Type),
-            get_type_information(Type, Type_byte_size, _ , _)
+    (c_var__is_pointer(Value) ->
+        c_type_decl('pointer', Type_byte_size, _ , _)
+    ;
+        (c_var__get_type(Value, Type),
+         c_type_decl(Type, Type_byte_size, _ , _)
+        )
     ),
     getref(memory_model, Memory_model),
     getval(free_address, Free_address),
@@ -48,10 +46,11 @@ get_from_memory(Address, Return_value_at_address) :-
     (hash_get(Memory_model, Use_address, Return_value_at_address) ->
         true
     ;
-        random(Random_value_at_address), % QUESTION: Will this work for floats?
-        % utils__demotion(Random_value_at_address, Type, Demoted_value),
-        c_var__create(int, Return_value_at_address, _, "__memory_model_junk__", Use_address, Return_value_at_address),
-        hash_set(Memory_model, Use_address, Random_value_at_address)
+        (random(Random_value_at_address), % QUESTION: Will this work for floats?
+         % utils__demotion(Random_value_at_address, Type, Demoted_value),
+         c_var__create(int, Return_value_at_address, _, "__memory_model_junk__", Use_address, Return_value_at_address),
+         hash_set(Memory_model, Use_address, Random_value_at_address)
+        )
     ).
 
 %% get_free_address/1
