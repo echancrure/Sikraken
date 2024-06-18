@@ -56,8 +56,7 @@ char* process_prototypes(char S1[], char S2[]);
 char* process_typedef(char base_type[], char identifier[]);
 
 
-void addvariables(char* declarator, int Param)
-{
+void addvariables(char* declarator, int Param) {
 	/*
 		This function is called from :
 			init_declarator
@@ -206,8 +205,7 @@ void addvariables(char* declarator, int Param)
 	if (strstr(declarator_copy, "function_prototype(") != NULL)
 	{
 		// FUNCTION_PROTOTYPES
-		// a function prototype has been declared  - release the Parameter Linked List
-		// and reset the parameter list flag
+		// a function prototype has been declared  - release the Parameter Linked List and reset the parameter list flag
 		strcpy(vardetails, "function_prototype");
 		DisposePList(P);
 		PListFirstUse = NO;
@@ -319,8 +317,7 @@ void addvariables(char* declarator, int Param)
 	free(vardetails);
 }
 
-void addvariablestolist(char varname[], char vardetails[], char varassign[], char varscope[])
-{
+void addvariablestolist(char varname[], char vardetails[], char varassign[], char varscope[]) {
 	/*
 		This function is called from:
 			void addvariables(char declarator[])
@@ -366,8 +363,7 @@ void addvariablestolist(char varname[], char vardetails[], char varassign[], cha
 	varnode->varnext = NULL;
 }
 
-void addvariabledetails(char varname[], char varconstant[])
-{
+void addvariabledetails(char varname[], char varconstant[]) {
 	/*
 		This function is called from :
 			init_declarator
@@ -681,9 +677,7 @@ void addvariabledetails(char varname[], char varconstant[])
 	free(variable_name);
 }
 
-
-char* findvariabledetails(char vartype[])
-{
+char* findvariabledetails(char vartype[]) {
 	/*
 	This function is called from:
 		declaration
@@ -704,8 +698,7 @@ char* findvariabledetails(char vartype[])
 	The declaration of the variable is appended to the output string, and following that the assignment
 	of that variable to its constant.
 	If the variable is a pointer, the string "pointer" is appended to vartype before output.
-	If the variable is of type array, the string "array_" is appended to the declaration string
-	before output.
+	If the variable is of type array, the string "array_" is appended to the declaration string before output.
 
 	E.g.vartype = "int"
 		variablename = "intptr"
@@ -717,8 +710,7 @@ char* findvariabledetails(char vartype[])
 		declaration(intpointer, intptr),
 		assignment(intptr, 56)
 
-	If the variable is of type function_prototype, the return type of the function is appended
-	to the function prototype string and returned.
+	If the variable is of type function_prototype, the return type of the function is appended to the function prototype string and returned.
 	*/
 
 	char* declstring[STRING_LIMIT];
@@ -767,9 +759,7 @@ char* findvariabledetails(char vartype[])
 				}
 			}
 			// CHECK ARRAY TYPES
-			else if (strstr(varnode->variabledetails, "multi") != NULL)
-			{
-				// MULTI-DIMENSIONAL ARRAY DECLARATION
+			else if (strstr(varnode->variabledetails, "multi") != NULL) { // MULTI-DIMENSIONAL ARRAY DECLARATION
 				strcat(declstring, "\narray_multideclaration(");
 				strcat(declstring, vartype);
 				strcat(declstring, " , ");
@@ -777,9 +767,7 @@ char* findvariabledetails(char vartype[])
 				strcat(declstring, "),");
 				strcat(declstring, varnode->assignstring);
 			}
-			else if (strstr(varnode->variabledetails, "array") != NULL)
-			{
-				// SINGLE-DIMENSIONAL ARRAY DECLARATION
+			else if (strstr(varnode->variabledetails, "array") != NULL) { // SINGLE-DIMENSIONAL ARRAY DECLARATION
 				strcat(declstring, "\narray_declaration(");
 				strcat(declstring, vartype);
 				strcat(declstring, " , ");
@@ -787,14 +775,9 @@ char* findvariabledetails(char vartype[])
 				strcat(declstring, "),");
 				strcat(declstring, varnode->assignstring);
 			}
-			else
-			{
-				// CHECK OTHER TYPES
-				if (strcmp(varnode->variabledetails, "function_prototype") == 0)
-				{
-					// FUNCTION PROTOTYPE DECLARATION
-					// Function prototypes are changed from "int f1(int x);" to
-					// "function_prototype(f1, [int X], int)"
+			else { // CHECK OTHER TYPES
+				if (strcmp(varnode->variabledetails, "function_prototype") == 0) { // FUNCTION PROTOTYPE DECLARATION
+					// Function prototypes are changed from "int f1(int x);" to "function_prototype(f1, [int X], int)"
 					i = 0;
 					lenvarname = strlen(varnode->variablename) - 4;
 					while (i < lenvarname)
@@ -805,21 +788,16 @@ char* findvariabledetails(char vartype[])
 					strcat(declstring, tempstring);
 					strcat(declstring, ", ");
 					strcat(declstring, vartype);
-					strcat(declstring, ").\n");
-
+					strcat(declstring, ")\n");	// was strcat(declstring, ").\n");
 				}
-				else if (strstr(vartype, "struct ") != NULL)
-				{
-					// STRUCTURE DECLARATION (WITH OR WITHOUT FIELDS)
-					if (vartype[lenstring] == ']')
-					{
+				else if (strstr(vartype, "struct ") != NULL) {	// STRUCTURE DECLARATION (WITH OR WITHOUT FIELDS)
+					if (vartype[lenstring] == ']') {
 						strcat(declstring, "\nrecord_declaration(");
 						strcat(declstring, vartype);
 						strcat(declstring, ", [");
 						strcat(declstring, varnode->variablename);
 					}
-					else
-					{
+					else {
 						strcat(declstring, "\nrecord_declaration_nofields(");
 						strcat(declstring, vartype);
 						strcat(declstring, ", [");
@@ -828,9 +806,7 @@ char* findvariabledetails(char vartype[])
 					strcat(declstring, "]),");
 					strcat(declstring, varnode->assignstring);
 				}
-				else if (strstr(vartype, "enum ") != NULL)
-				{
-					// ENUM DECLARATION (WITH OR WITHOUT FIELDS)
+				else if (strstr(vartype, "enum ") != NULL) {	// ENUM DECLARATION (WITH OR WITHOUT FIELDS)
 					if (vartype[lenstring] == ']')
 						strcat(declstring, "\nenum_declaration(");
 					else
@@ -841,9 +817,7 @@ char* findvariabledetails(char vartype[])
 					strcat(declstring, "]),");
 					strcat(declstring, varnode->assignstring);
 				}
-				else
-				{
-					// NORMAL VARIABLE DECLARATION
+				else { // NORMAL VARIABLE DECLARATION
 					strcat(declstring, "\ndeclaration(");
 					strcat(declstring, vartype);
 					strcat(declstring, ", [");
@@ -860,12 +834,11 @@ char* findvariabledetails(char vartype[])
 	}
 
 	char* retstring = (char*)malloc(strlen(declstring) + 1);
-	strcpy(retstring, declstring);
+	strcpy(retstring, declstring);			//15 June 2024 why do this?
 	return retstring;
 }
 
-char* removestar(char varname[])
-{
+char* removestar(char varname[]) {
 	/*
 		This function, used in this Header File, will take in a variable
 		of the form "*Varname" and will return the Varname minus the *.
@@ -883,8 +856,7 @@ char* removestar(char varname[])
 	// allocate space to the string variables used
 	strcpy(holdstr, initialisestring(holdstr, strlen(varname) + 1));
 
-	// Copy the characters of 'varname' to 'holdstr' provided they
-	// are not the character '*'.
+	// Copy the characters of 'varname' to 'holdstr' provided they are not the character '*'.
 	while (i <= strlen(varname))
 	{
 		if (varname[i] != '*')
@@ -905,8 +877,7 @@ char* removestar(char varname[])
 	return returnstr;
 }
 
-char* change_asterisk(char* str)
-{
+char* change_asterisk(char* str) {
 	/*
 		This function is called from the following places in GRAMMAR.Y
 			unary_expression
@@ -999,8 +970,7 @@ char* identifier_function(char identifier[])
 	return returnstr;
 }
 
-char* process_cast_unary_rule(char unary_op[], char cast_exp[])
-{
+char* process_cast_unary_rule(char unary_op[], char cast_exp[]) {
 	/*
 	This function is called from the following place in GRAMMAR.Y:
 		unary_expression
@@ -1050,8 +1020,8 @@ char* process_cast_unary_rule(char unary_op[], char cast_exp[])
 
 	return returnstr;
 }
-char* process_functions(char S1[], char S2[], char S3[])
-{
+
+char* process_functions(char S1[], char S2[], char S3[]) {
 	/*
 	This function is called from the following rule in GRAMMAR.Y:
 		function_definition
@@ -1139,78 +1109,6 @@ char* process_functions(char S1[], char S2[], char S3[])
 	strcat(returnstr, "),");
 
 	// successfully leaving the function
-	return returnstr;
-}
-
-char* process_prototypes(char S1[], char S2[])
-{
-	/*
-	This function is called from the following rule in GRAMMAR.Y:
-		function_definition
-			: declaration_specifiers declarator declaration_list compound_statement
-			| declaration_specifiers declarator compound_statement
-			| declarator declaration_list compound_statement
-			| declarator compound_statement
-									--  call strcpy($$, process_prototypes($1, $2));
-			;
-	If the function has already been defined with return types, parameters, statements
-	i.e. all required features -- then it will not go through this grammar rule
-	This function then formats the parameters in a format suitable for function
-	definitions and prototypes.
-	*/
-
-	char* returnstr = (char*)malloc(STRING_LIMIT);			// return string of the function
-
-	// If S1 contains a 'function_prototype', the function has the
-	// return type of void.
-	// Change "function_prototype" to "function_definition"
-	// Remove the extra ').' at the end of S1
-	// Add S2.
-	if (strstr(S1, "function_prototype(") != NULL)
-	{
-		// variable declarations and space allocation
-		char* newS1 = (char*)malloc(STRING_LIMIT);
-		int lenBracket;
-
-		// Build new return string
-		char* bracket_str = strstr(S1, "(");
-		lenBracket = strlen(bracket_str) - 3;
-		strcpy(newS1, "function_definition");
-		strncat(newS1, bracket_str, lenBracket);
-		strcat(newS1, "\0");
-		strcpy(returnstr, newS1);
-		strcpy(returnstr, " ");
-		strcpy(returnstr, S2);
-		strcat(returnstr, ", ");
-		strcat(returnstr, "void).\n");
-
-		free(newS1);
-	}
-	// Otherwise, S1 is a function name followed by ().
-	// Convert the name of the function to lower case.
-	// Enclose function statements (S2) in [ and ].
-	else
-	{
-		if (isupper(S1[0]))
-			S1[0] = convert_tolower(S1[0]);
-		strcpy(returnstr, "function_definition(");
-
-		char* function_name = (char*)malloc(STRING_LIMIT);
-		strncat(function_name, S1, strlen(S1) - 2);
-		strcat(function_name, "\0");
-		if (isupper(function_name[0]))
-			strcat(returnstr, "UC_");
-		else
-			strcat(returnstr, "LC_");
-
-		strcat(returnstr, function_name);
-		strcat(returnstr, ", [void], ");
-		strcat(returnstr, S2);
-		strcat(returnstr, ", void).");
-
-		free(function_name);
-	}
-
 	return returnstr;
 }
 

@@ -2,50 +2,52 @@
 // **************
 // Parse the file (.i file as preprocessed) passed as one of the
 // parameters to produce Prolog Terms File ( .PL)
-//
-// Notes
-// *****
-// The .i file is deleted after parsing is complete.
-// The .PL files are output to the path of the C program.
 
 #include <io.h>
 
-#include "Parser_Functions.h"
-// User defined header file containing all the functions used
-// in the parser
+#include "Parser_Functions.h"	// User defined header file containing all the functions used in the parser
 
 int main (int argc, char * argv[])
 {
 	char* filepath = (char*)malloc(STRINGLIMIT);	// path of the original C file -- where .pl
 	char* filename = (char*)malloc(STRINGLIMIT);	// name of the file to be parsed (less extension)
+	char* C_Filename = (char*)malloc(STRINGLIMIT);	// name of the C file with .c extension
 	char* relativepath = (char*)malloc(STRINGLIMIT);// path from where parser is called -- .i file in this path
 	char* ifile = (char*)malloc(STRINGLIMIT);		// path (relativepath) and name of the .i file
 
 	PLFile = (char*)malloc(STRINGLIMIT);
-                         
-	char* arguments[3];
-	arguments[0] = ".";
-	arguments[2] = ".";
+	strcpy(filepath, ".\\");
 
-	process_argument_flags(argc, argv, arguments);
-	char C_path[_MAX_PATH];
-	sprintf(C_path, "%s\\%s.c", arguments[0], arguments[1]);
-	if (_access(C_path, 0) != 0) {
-		printf(".c file '%s' does not exist at path: %s\n", arguments[1], arguments[0]);
-		exit(1);
+	for (int i = 1; i <= argc - 1; i++) {	//processing comand line arguments
+		if (argv[i][0] == '-') {
+			switch (argv[i][1]) {
+			case 'h':
+				printf("Usage: .\\sikraken_parser [OPTION]... [FILE]\nParse a C file to Prolog terms.\n\n-h\t Display help information\n-p\t Path to the .c/.i file (DEFAULT: Current Directory ('.'))\n\nExamples:\n\t.\\LilyParser -p\".\" get_sign \n\t.\\LilyParser get_sign \n\t.\\LilyParser -p\"C:/Parser/\" sign \n");
+				exit(0);
+			case 'p':	//path to the .i pre-processed input C file
+				if (_access(&argv[i][2], 0) == -1) {    //checks if it is a valid directory
+					fprintf(stderr, "Sikraken parser error: the indicated source path (via -p switch): %s , cannot be accessed\n", &argv[i][2]);
+					exit(1);
+				}
+				strcpy(filepath, &argv[i][2]);
+				break;
+			default:
+				fprintf(stderr, "Sikraken parser: Unsupported flag '-%c', ignoring.\n", argv[i]);
+			}
+		}
+		else {
+			argv[i][strlen(argv[i]) - 2] = '\0';	//cut the out ".c"
+			strcpy(filename, argv[i]);
+		}
 	}
+	//printf("DEBUG filename:%s, filepath:%s\n", filename, filepath);
+
 	char I_path[_MAX_PATH];
-	sprintf(I_path, "%s\\%s.c", arguments[2], arguments[1]);
+ 	sprintf(I_path, "%s%s.i", filepath, filename);
 	if (_access(I_path, 0) != 0) {
-		printf(".i file '%s' does not exist at path: %s\n", arguments[1], arguments[2]);
+		fprintf(stderr, ".i file could not be found: %s\n", I_path);
 		exit(1);
 	}
-
-	strcpy(filepath, arguments[0]);		// path of file
-	strcpy(filename, arguments[1]);		// name of file
-	strcpy(relativepath, arguments[2]);	// path from where parser is called
-
-	C_Filename = (char*)malloc(STRINGLIMIT);
 	strcpy(C_Filename, filename); 
 	strcat(C_Filename, ".c");
 
@@ -56,7 +58,7 @@ int main (int argc, char * argv[])
 	strcat(PLFile, ".pl");
 
 	// set up path (relativepath) & name of the .i file (ifile)
-	strcpy(ifile, relativepath);	
+	strcpy(ifile, filepath);
 	strcat(ifile, "\\\\");
 	strcat(ifile, filename);		
 	strcat(ifile, ".i");
@@ -74,8 +76,7 @@ int main (int argc, char * argv[])
 
 	print_end_of_parsed_predicate(PLFile);
 
-	// remove the preprocessed C code (.i file) as it is no longer required
-	remove(ifile);
-
+	//remove(ifile);
+	printf("Sikraken parser: success");
 	return 0;
 }

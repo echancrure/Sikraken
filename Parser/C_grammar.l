@@ -341,8 +341,6 @@ int check_type(char var[])
 	    If 'typename' is present, return the TYPE_NAME token,
 	    Otherwise, return the IDENTIFIER token.
 	*/
-
-
 	if (traverse_types(typename) == YES)
 	{
         if(struct_flag == YES) {

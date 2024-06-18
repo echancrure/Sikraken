@@ -58,63 +58,11 @@ void yyerror (const char *s);					// in built error reporting for yyparse()
 int print_dummy_dec(char * infile);				// prints the dummy declarations to PL file
 int print_start_of_parsed_predicate(char* infile); // prints "parsed([
 int print_end_of_parsed_predicate(char* infile); // prints "])."
-void process_argument_flags(int argc, char* argv[], char* arguments[]);		// Processes argument flags such as "-h"
-
-void process_argument_flags(int argc, char* argv[],char* arguments[]) {
-	for (int i = 1; i <= argc - 1; i++) {
-		if (argv[i][0] == '-')
-		{
-			switch (argv[i][1])
-			{
-				case 'h': // Print help information
-					printf("Usage: .\\LilyParser [OPTION]... [FILE]\nParse a C file to Prolog terms.\n\n-h\t Display help information\n-p\t Path to the .c/.i file (DEFAULT: Current Directory ('.'))\n\nExamples:\n\t.\\LilyParser -p\".\" get_sign \n\t.\\LilyParser get_sign \n\t.\\LilyParser -p\"C:/Parser/\" sign \n");
-					exit(1);
-				case 'p':
-					{
-						char* path = argv[i];
-						path += 2; // Remove -p
-						struct stat s;
-						if (_stat(path, &s) == -1 || !(s.st_mode & _S_IFDIR)) {
-							printf("The path '%s' is not valid\n", path);
-							exit(1);
-						}
-						arguments[0] = path;
-						arguments[2] = path;
-						break;
-					}
-/*				case 'd':
-					{
-						char* path = argv[i];
-						path += 2; // Remove -d
-						struct stat s;
-						if (_stat(path, &s) == -1 || !(s.st_mode & _S_IFDIR)) {
-							printf("The path '%s' is not valid\n", path);
-							exit(1);
-						}
-						arguments[2] = path;
-						break;
-					}
-*/
-				default:
-					printf("Unsupported flag '-%c', ignoring.", argv[i][1]);
-			}
-		}
-		else {
-			if (strchr(argv[i], '.') != NULL) {
-				printf("Filename '%s' must not have an extension\n", argv[i]);
-				exit(1);
-			}
-			arguments[1] = argv[i]; // No '-' means it is the filename 
-		}
-	}
-}
-
 
 int parser_error(char errorcode[])
 {
 	// 	When an error is encountered the errorcode passed as parameter
-	// 	to this function is output and execution is aborted by calling
-	// 	the exit() function from stdlib.h
+	// 	to this function is output and execution is aborted by calling the exit() function from stdlib.h
 
 	printf("%s\nEXECUTION ABORTED\n", errorcode);
 	getch();
@@ -165,7 +113,6 @@ int print_discontiguous(char * infile)
 	fputs(":- discontiguous(function_definition/4).\n", fp) ;
 	fputs(":- discontiguous(global_variables/2).\n", fp);
 
-	// close the file
 	fclose(fp);
 
 	return 0;

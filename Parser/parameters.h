@@ -36,9 +36,7 @@ struct PNode
 };
 
 int PListFirstUse = NO; // Indicates if Parameter Linked List is in Use
-
 PList P; 				// Linked List of Parameter Variable Names
-
 
 extern char* case_name(char* varname);
 	// Extern the function which converts variable names to their Prolog equivalent.
@@ -91,17 +89,13 @@ PList CreatePList(void)
 
 	// Create Parameters Linked List
 	PList P = malloc(sizeof(struct PNode));
-	if (P == NULL)
-		printf("ERROR: PARAMETERS LINKED LIST CAN NOT BE CREATED");
+	if (P == NULL) printf("ERROR: PARAMETERS LINKED LIST CAN NOT BE CREATED");
 	P->PNext = NULL;
 	MakeEmptyP(P);
-	
-	// Return NEW Parameters Linked List
 	return P;
 }
 
-void MakeEmptyP(PList P)
-{
+void MakeEmptyP(PList P) {
 	/*
 		This function is called from:
 			void DisposePList(PList P)

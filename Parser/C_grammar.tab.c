@@ -742,7 +742,7 @@ static const yytype_int16 yyrline[] =
     2295,  2301,  2307,  2313,  2319,  2325,  2334,  2343,  2352,  2363,
     2370,  2387,  2393,  2409,  2416,  2425,  2430,  2441,  2451,  2460,
     2472,  2481,  2490,  2500,  2511,  2512,  2516,  2524,  2529,  2534,
-    2539,  2550,  2556,  2567,  2575,  2592,  2604,  2618,  2624
+    2539,  2550,  2556,  2567,  2575,  2590,  2602,  2616,  2622
 };
 #endif
 
@@ -2263,7 +2263,7 @@ yyreduce:
   case 11: /* string: STRING_LITERAL  */
 #line 200 "C_grammar.y"
         {
-		(yyval.id) = (char*) malloc(strlen((yyvsp[0].id)) + 1);
+		(yyval.id) = (char*) malloc(strlen((yyvsp[0].id)) + 1);	//need to catch wide string literals such as L"bilinear_interpolation.c" here or in Flex
         strcpy((yyval.id), (yyvsp[0].id));
         free((yyvsp[0].id));
 	}
@@ -4330,7 +4330,7 @@ yyreduce:
 		/* 	function prototypes and definitions come through this rule.
 			in order to distinguish them later on from variables we
 			add the string "function_prototype" to $$
-			if this is the function defintion this will have to be stripped later.
+			if this is the function definition this will have to be stripped later.
 			if it is the function prototype it is left as it is.
 		*/
 		(yyval.id) = (char*) malloc(19 + strlen((yyvsp[-3].id)) + 2 + 1 + strlen((yyvsp[-1].id)) + 1 + 2 + 2 + 1);
@@ -4350,7 +4350,7 @@ yyreduce:
 		strcat((yyval.id), (yyvsp[-1].id));
 		strcat((yyval.id), "]");
 		strcat((yyval.id), ", ");
-		strcat((yyval.id), ").");
+		strcat((yyval.id), ")."); //15 Jun 2024 was strcat($$, ").") full stop removed then added again due to postprocessing mess
 		free((yyvsp[-3].id));
 		free((yyvsp[-1].id));
 	}
@@ -5374,19 +5374,17 @@ yyreduce:
 		int lenS1 = strlen((yyvsp[0].id)) - 1;
 		(yyval.id) = (char*) malloc(20 + strlen((yyvsp[0].id)) + 11 + 1);
 		strcpy((yyval.id), "\nglobal_variables([");
-		if((yyvsp[0].id)[lenS1] == ',')
-			(yyvsp[0].id)[lenS1] = ' ';
-
+		if((yyvsp[0].id)[lenS1] == ',') (yyvsp[0].id)[lenS1] = ' ';
 		strcat((yyval.id), (yyvsp[0].id));
 		strcat((yyval.id), "], void),\n");
 		printfunction((yyval.id));	// OUTPUT_FUNCTIONS.H
 		free((yyvsp[0].id));
 	}
-#line 5386 "C_grammar.tab.c"
+#line 5384 "C_grammar.tab.c"
     break;
 
   case 305: /* function_definition: declaration_specifiers declarator declaration_list compound_statement  */
-#line 2593 "C_grammar.y"
+#line 2591 "C_grammar.y"
         {
 		(yyval.id) = (char*) malloc(strlen((yyvsp[-3].id)) + strlen((yyvsp[-2].id)) + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1);
 		strcpy((yyval.id), (yyvsp[-3].id));
@@ -5398,11 +5396,11 @@ yyreduce:
 		free((yyvsp[-1].id));
 		free((yyvsp[0].id));
 	}
-#line 5402 "C_grammar.tab.c"
+#line 5400 "C_grammar.tab.c"
     break;
 
   case 306: /* function_definition: declaration_specifiers declarator compound_statement  */
-#line 2605 "C_grammar.y"
+#line 2603 "C_grammar.y"
         {
 		// Function Defintions
 		char* function = process_functions((yyvsp[-2].id), (yyvsp[-1].id), (yyvsp[0].id));
@@ -5413,21 +5411,21 @@ yyreduce:
 		free((yyvsp[-1].id));
 		free((yyvsp[0].id));
 	}
-#line 5417 "C_grammar.tab.c"
+#line 5415 "C_grammar.tab.c"
     break;
 
   case 307: /* declaration_list: declaration  */
-#line 2619 "C_grammar.y"
+#line 2617 "C_grammar.y"
         {
 		(yyval.id) = (char*) malloc(strlen((yyvsp[0].id)) + 1);
 		strcpy((yyval.id), (yyvsp[0].id));
 		free((yyvsp[0].id));
 	}
-#line 5427 "C_grammar.tab.c"
+#line 5425 "C_grammar.tab.c"
     break;
 
   case 308: /* declaration_list: declaration_list declaration  */
-#line 2625 "C_grammar.y"
+#line 2623 "C_grammar.y"
         {
 		(yyval.id) = (char*) malloc(strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1);
 		strcpy((yyval.id), (yyvsp[-1].id));
@@ -5435,11 +5433,11 @@ yyreduce:
 		free((yyvsp[-1].id));
 		free((yyvsp[0].id));
 	}
-#line 5439 "C_grammar.tab.c"
+#line 5437 "C_grammar.tab.c"
     break;
 
 
-#line 5443 "C_grammar.tab.c"
+#line 5441 "C_grammar.tab.c"
 
       default: break;
     }
@@ -5632,7 +5630,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 2634 "C_grammar.y"
+#line 2632 "C_grammar.y"
 
 #include <stdio.h>
 #include "lex.yy.c"

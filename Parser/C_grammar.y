@@ -198,7 +198,7 @@ enumeration_constant
 string
 	: STRING_LITERAL
 	{
-		$$ = (char*) malloc(strlen($1) + 1);
+		$$ = (char*) malloc(strlen($1) + 1);	//need to catch wide string literals such as L"bilinear_interpolation.c" here or in Flex
         strcpy($$, $1);
         free($1);
 	}
@@ -1784,7 +1784,7 @@ direct_declarator
 		/* 	function prototypes and definitions come through this rule.
 			in order to distinguish them later on from variables we
 			add the string "function_prototype" to $$
-			if this is the function defintion this will have to be stripped later.
+			if this is the function definition this will have to be stripped later.
 			if it is the function prototype it is left as it is.
 		*/
 		$$ = (char*) malloc(19 + strlen($1) + 2 + 1 + strlen($3) + 1 + 2 + 2 + 1);
@@ -1804,7 +1804,7 @@ direct_declarator
 		strcat($$, $3);
 		strcat($$, "]");
 		strcat($$, ", ");
-		strcat($$, ").");
+		strcat($$, ")."); //15 Jun 2024 was strcat($$, ").") full stop removed then added again due to postprocessing mess
 		free($1);
 		free($3);
 	}
@@ -2578,9 +2578,7 @@ external_declaration
 		int lenS1 = strlen($1) - 1;
 		$$ = (char*) malloc(20 + strlen($1) + 11 + 1);
 		strcpy($$, "\nglobal_variables([");
-		if($1[lenS1] == ',')
-			$1[lenS1] = ' ';
-
+		if($1[lenS1] == ',') $1[lenS1] = ' ';
 		strcat($$, $1);
 		strcat($$, "], void),\n");
 		printfunction($$);	// OUTPUT_FUNCTIONS.H

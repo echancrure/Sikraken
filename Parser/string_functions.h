@@ -165,7 +165,7 @@ int strstrcount(char *string, char *substring)
 	return (count);
 }
 
-
+// 15 June 2024 why is it needed to do this? Just a waste of time?
 char * initialisestring(char string[], int limit)
 {
 	/*	
