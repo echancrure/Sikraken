@@ -44,14 +44,13 @@ main(Function_name) :-
 %% Filename_without_extension: The name of the file without the .pl extension. This should be a string. E.g. "sign"
 %% Function_name: The entry function to be tested. This should be an atom. E.g. get_sign
 %% Path_to_C_file: The folder-path to the C file to be symbolically executed. This should be a string. E.g. "C:\\Users\\user\\Desktop"
-%% Override_globals: A boolean option if global variables should be overridden This should be either the atoms true or false. E.g. true
 main(Filename_without_extension, Function_name, Path_to_C_file, Override_globals, CreateTimeStampedDirectory) :-
     utils__assert(string(Filename_without_extension), "Filename must be a string", []),
     utils__assert(not string_contains(Filename_without_extension, ".pl"), "Filename should not contain an extension", []),
     utils__assert(atom(Function_name), "Function name must be an atom", []),
     utils__assert(string(Path_to_C_file), "Path to C file must be a string", []),
     utils__assert(get_file_info(Path_to_C_file, type, directory), "Path to C file is not a valid directory-path", []),
-    utils__assert(once member(Override_globals, [false, true]), "Override globals option must be an atom of a boolean ('true' or 'false')", []),
+    utils__assert(once member(Override_globals, [yes_ov, no_ov]), "Override globals option must be an atom of a boolean ('yes_ov' or 'no_ov')", []),
     (CreateTimeStampedDirectory == 'yes_ts' ->
         (get_flag(unix_time, Unix_time),
          local_time_string(Unix_time,"%y_%m_%d__%H_%M_%S", Date_string),     %built-in, Format: year_month_day__24Hours_Minutes_Seconds Eg: 24_06_18__13_22_05
@@ -146,8 +145,8 @@ declare_functions([function_definition(Function_info, Params, Body, Return_type)
 declare_functions([_ | More_terms], Function_name_to_be_found, Function_info) :-
     declare_functions(More_terms, Function_name_to_be_found, Function_info).
 
-override_globals(true, All_globals, [void], All_globals) :- !.
-override_globals(true, All_globals, Function_parameters, Parameters) :-
+override_globals(yes_ov, All_globals, [void], All_globals) :- !.
+override_globals(yes_ov, All_globals, Function_parameters, Parameters) :-
     append(All_globals, Function_parameters, Parameters).
-override_globals(false, _, Parameters, Parameters).
+override_globals(no_ov, _, Parameters, Parameters).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%     END   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
