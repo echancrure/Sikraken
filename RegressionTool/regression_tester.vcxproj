@@ -133,7 +133,8 @@
     <ClCompile Include="regression_tester.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\bin\regression_tester.bat" />
+    <None Include="..\bin\RunRegressionAtHome.bat" />
+    <None Include="..\bin\run_regression_tester.bat" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

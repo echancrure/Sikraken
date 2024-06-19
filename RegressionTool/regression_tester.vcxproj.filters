@@ -20,7 +20,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\bin\regression_tester.bat">
+    <None Include="..\bin\run_regression_tester.bat">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="..\bin\RunRegressionAtHome.bat">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>

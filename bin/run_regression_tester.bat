@@ -8,6 +8,9 @@ if "%~2"=="" (
 REM Assign parameters to variables
 set vcvarsall_path=%~1
 set installPath=%~2
+set optionalArgs=%3
+
+echo optionalarg is %optionalArgs%
 
 REM Navigate to the Visual Studio Build Directory
 cd /d "%vcvarsall_path%"
@@ -33,7 +36,7 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 REM Run the regression testing tool in the correct directory and with the MSVSC environment setup
-regression_tester.exe -M"%installPath%"
+regression_tester.exe -M"%installPath%" %optionalArgs%
 if %ERRORLEVEL% NEQ 0 (
     echo REGRESSION TESTS RUN FAILURE!!!!!!!!!!!!: Failed to execute regression_tester.exe
     exit /b 1
