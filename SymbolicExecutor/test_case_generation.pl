@@ -10,7 +10,7 @@ write_test_case(Filename, Function_name, Params, Return_value, Return_type) :-
     getval(test_folder_path, Path_to_test_directory),
     concat_string([Function_name, "_tests"], Test_suite_name),
     concat_string([Path_to_test_directory, Test_suite_name, ".c"], Test_suite_filepath),
-    (is_first_test(Test_suite_filepath) ->
+    (is_first_test(Test_suite_filepath) ->  %todo: change as awful way to check for first test
         (mkdir(Path_to_test_directory),
          open(Test_suite_filepath, append, testcase),
          printf(testcase, "#include <assert.h>\n", []),
@@ -91,9 +91,7 @@ is_first_test(Filename) :-
                 not string_contains(First_characters, "assert.h")
             )
         ;
-            (
                 true
-            )
     ).
 
 %% Check if a string contains a substring

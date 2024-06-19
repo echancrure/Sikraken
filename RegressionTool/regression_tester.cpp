@@ -92,12 +92,12 @@ int main(int argc, char* argv[]) {
                     preserveRegressionRun = 0;
                     break;
                 default:
-                    fprintf(stderr, "Regression Tester Warning: unknown option is ignored : %s\n", argv[i]);
+                    fprintf(stderr, "\nRegression Tester Warning: unknown option is ignored : %s\n", argv[i]);
             }
         }
     }
     if (!strcmp(installPath, "")) {
-        fprintf(stderr, "Regression Tester Error: the installation directory of Sikraken has not been set: use -M switch on the command line\n");
+        fprintf(stderr, "\nRegression Tester Error: the installation directory of Sikraken has not been set: use -M switch on the command line\n");
         exit(1);
     }
     char main_pl_path[MAX_PATH];
@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
 
     int nbCFiles = get_filenames(pathRegressionTests, C_Files);
     if (nbCFiles == 0) {
-        fprintf(stderr, "Regression Tester Error: no C files found in directory %s\n", pathRegressionTests);
+        fprintf(stderr, "\nRegression Tester Error: no C files found in directory %s\n", pathRegressionTests);
         exit(1);
     }
     printf("Starting regression testing of Sikraken on %i files\n", nbCFiles);
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
         sprintf_s(run_preprocessor, "cd \"%s\" && CL /EP /P /nologo %s.c > nul", pathRegressionTests, C_Files[i]);
         int return_code = system(run_preprocessor);
         if (return_code != 0) {
-            fprintf(stderr, "Regression Tester Error: preprocessor returned status code %d for %s.c\n", return_code, C_Files[i]);
+            fprintf(stderr, "\nRegression Tester Error: preprocessor returned status code %d for %s.c\n", return_code, C_Files[i]);
             exit(1);
         }
         printf("Pre-processing OK");
@@ -126,23 +126,37 @@ int main(int argc, char* argv[]) {
         sprintf_s(run_parser, "cd \"%s\" && .\\..\\bin\\sikraken_parser.exe %s.c", pathRegressionTests, C_Files[i]);
         return_code = system(run_parser);
         if (return_code != 0) {
-            fprintf(stderr, "Regression Tester Error: parser returned status code %d for %s.c\n", return_code, C_Files[i]);
+            fprintf(stderr, "\nRegression Tester Error: parser returned status code %d for %s.c\n", return_code, C_Files[i]);
             exit(1);
         }
         printf(";Parsing OK");
+        char* function_name = NULL;
+        char regressionSpecFilename[MAX_PATH];
+        sprintf_s(regressionSpecFilename, "%s\\%s.sik", pathRegressionTests, C_Files[i]);
+        FILE* regressionSpecFile;
+        if (fopen_s(&regressionSpecFile, regressionSpecFilename, "r") == 0) {   //a Sikraken regression testing file exists for this C file
+            char buffer[MAX_PATH];
+            while (fgets(buffer, sizeof(buffer), regressionSpecFile) != NULL) {
+                function_name = buffer;     //very basic for now: only considering the last line and can only contain the function name to test
+            }
+            fclose(regressionSpecFile);
+        }
+        else {
+            function_name = C_Files[i]; //assume default: the function_name to generate tests for has the same name as the C file
+        }
         char run_eclipse[MAX_PATH*2];
         //Options for ECLiPSe command line: -f file: compile the file (main.pl); -e goal: execute the goal
-        sprintf_s(run_eclipse, "cd \"%s\" && eclipse -f \"%s\" -e \"main(\\\"%s\\\", %s, \\\".\\\", yes_ov, yes_ts)\" > nul", pathRegressionTests, main_pl_path, C_Files[i], C_Files[i]);   //see diary 19/06/2024
+        sprintf_s(run_eclipse, "cd \"%s\" && eclipse -f \"%s\" -e \"main(\\\"%s\\\", %s, \\\".\\\", yes_ov, yes_ts)\" > nul", pathRegressionTests, main_pl_path, C_Files[i], function_name);   //see diary 19/06/2024
         printf("ECLiPSe call is: %s\n", run_eclipse);
         return_code = system(run_eclipse);        // Run ECLiPSe Prolog
         if (return_code != 0) {
-            fprintf(stderr, "Regression Tester Error: symbolic executor returned status code %d for %s\n", return_code, C_Files[i]);
+            fprintf(stderr, "\nRegression Tester Error: symbolic executor returned status code %d for %s\n", return_code, C_Files[i]);
             exit(1);
         }
         printf(";Test Suite Generation OK");
         char* test_folder_name = find_folder_by_prefix(pathRegressionTests, C_Files[i]);    //find the directory name where the test suite drivers are e.g. is_even_24_06_18__16_39_59
         if (test_folder_name == NULL) {
-            fprintf(stderr, "Regression Tester Error: Folder-prefix search unable to find folder for %s\n", C_Files[i]);
+            fprintf(stderr, "\nRegression Tester Error: Folder-prefix search unable to find folder for %s\n", C_Files[i]);
             exit(1);
         }
         char test_folder_path[MAX_PATH*2];
@@ -151,7 +165,7 @@ int main(int argc, char* argv[]) {
         sprintf_s(compile_test_case, "cd \"%s\" && cl /nologo %s_tests_main.c /Fe:a.exe > nul", test_folder_path, C_Files[i]);
         return_code = system(compile_test_case);    // Compile the generated test-cases
         if (return_code != 0) {
-            fprintf(stderr, "Regression Tester Error: Test Suite compilation returned %d for compilation of %s_tests_main.c\n", return_code, C_Files[i]);
+            fprintf(stderr, "\nRegression Tester Error: Test Suite compilation returned %d for compilation of %s_tests_main.c\n", return_code, C_Files[i]);
             exit(1);
         }
         printf(";Test Suite compilation OK");
@@ -159,7 +173,7 @@ int main(int argc, char* argv[]) {
         sprintf_s(run_test_case, "cd \"%s\" && a.exe", test_folder_path);
         return_code = system(run_test_case);        // Run the generated test-cases
         if (return_code != 0) {
-            fprintf(stderr, "Regression Tester Error: Test Suite run returned %d failed tests for %s\n", return_code, C_Files[i]);
+            fprintf(stderr, "\nRegression Tester Error: Test Suite run returned %d failed tests for %s\n", return_code, C_Files[i]);
             exit(1);
         }
         printf(";Test Suite execution OK\n");
@@ -173,6 +187,6 @@ int main(int argc, char* argv[]) {
             }
         }
     }
-    printf("***SUCCESSFUL regression tests run\n");
+    printf("\n***SUCCESSFUL regression tests run\n");
     return 0;
 }
