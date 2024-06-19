@@ -27,16 +27,8 @@
 %% Prolog Global References (getref/2, setref/2):
 %%  memory_model (hash -- key: integer(getval(free_address)), value: c_var): Global memory model (In the form of a hash table)
 
-% A shortcut predicate to main/3 outputting to the Prolog directory
-% Useful for development. This is not called in code, only by the regression testing tool.
-regression_main(Function_name) :-
-    atom(Function_name),
-    atom_codes(Function_name, Codes),
-    string_codes(Filename_string, Codes),
-    main(Filename_string, Function_name, "./", false, 'yes_ts').
 
-% A shortcut predicate to main/3 outputting to the Prolog directory
-% Useful for development. This is not called in code, only by a developer
+% A shortcut predicate to main/3 outputting to the Prolog directory Useful for development. This is not called in code, only by a developer
 main(Function_name) :-
     main("sign", Function_name, "./", false, 'yes_ts').
 
@@ -50,7 +42,7 @@ main(Filename_without_extension, Function_name, Path_to_C_file, Override_globals
     utils__assert(atom(Function_name), "Function name must be an atom", []),
     utils__assert(string(Path_to_C_file), "Path to C file must be a string", []),
     utils__assert(get_file_info(Path_to_C_file, type, directory), "Path to C file is not a valid directory-path", []),
-    utils__assert(once member(Override_globals, [yes_ov, no_ov]), "Override globals option must be an atom of a boolean ('yes_ov' or 'no_ov')", []),
+    utils__assert(once member(Override_globals, ['yes_ov', 'no_ov']), "Override globals option must be an atom of a boolean ('yes_ov' or 'no_ov')", []),
     (CreateTimeStampedDirectory == 'yes_ts' ->
         (get_flag(unix_time, Unix_time),
          local_time_string(Unix_time,"%y_%m_%d__%H_%M_%S", Date_string),     %built-in, Format: year_month_day__24Hours_Minutes_Seconds Eg: 24_06_18__13_22_05

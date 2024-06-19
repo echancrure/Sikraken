@@ -128,14 +128,17 @@ int main(int argc, char* argv[]) {
         printf(";Parsing OK");
         char run_eclipse[MAX_PATH*2];
         //Options for eclipse command line: -f file: compile the file (main.pl); -e goal: execute the goal
-        sprintf_s(run_eclipse, "cd \"%s\" && eclipse -f \"%s\" -e \"regression_main('%s').\" > nul", pathRegressionTests, main_pl_path, C_Files[i]);
+//        sprintf_s(run_eclipse, "cd \"%s\" && eclipse -f \"%s\" -e \"regression_main('%s').\" > nul", pathRegressionTests, main_pl_path, C_Files[i]);
+//        sprintf_s(run_eclipse, "cd \"%s\" && eclipse -f \"%s\" -e \"main(\\\"%s\\\", %s, \\\"C:\\\\Users\\\\Chris2\\\\GoogleDrive\\\\Sikraken\\\\RegressionTests\\\", yes_ov, yes_ts)\" > nul", pathRegressionTests, main_pl_path, C_Files[i], C_Files[i]);
+          sprintf_s(run_eclipse, "cd \"%s\" && eclipse -f \"%s\" -e \"main(\\\"%s\\\", %s, \\\".\\\", yes_ov, yes_ts)\" > nul", pathRegressionTests, main_pl_path, C_Files[i], C_Files[i]);
+        printf("ECLiPSe call is: %s\n", run_eclipse);
         return_code = system(run_eclipse);        // Run ECLiPSe Prolog
         if (return_code != 0) {
             fprintf(stderr, "Regression Tester Error: symbolic executor returned status code %d for %s\n", return_code, C_Files[i]);
             exit(1);
         }
         printf(";Test Suite Generation OK");
-        char* test_folder_name = find_folder_by_prefix(pathRegressionTests, C_Files[i]);    //what's this?
+        char* test_folder_name = find_folder_by_prefix(pathRegressionTests, C_Files[i]);    //find the directory name where the test results are e.g. is_even_24_06_18__16_39_59
         if (test_folder_name == NULL) {
             fprintf(stderr, "Regression Tester Error: Folder-prefix search unable to find folder for %s\n", C_Files[i]);
             exit(1);
