@@ -7,6 +7,7 @@ Prolog terms to the .PL file
 
 #include <stdarg.h>
 
+extern FILE* pl_file;
 char* case_name(char* varname);
 char* scope_details(char* varname, int param);
 void printfunction(char inputstring[]);
@@ -82,13 +83,13 @@ void printfunction(char inputstring[])
 		predicates.
 	*/
 
-	FILE* file_ptr;				// file pointer
+	//FILE* file_ptr;				// file pointer
 	char* Prologterms = (char*)malloc(strlen(inputstring) + 1);
 	strcpy(Prologterms, inputstring);
 
 	// Open file and append to
-	file_ptr = fopen(PLFile, "a");
-	fprintf(file_ptr, "%s\n", Prologterms);
+	//file_ptr = fopen(PLFile, "a");
+	fprintf(pl_file, "%s\n", Prologterms);
 	free(Prologterms);
-	fclose(file_ptr);
+	//fclose(file_ptr);
 }

@@ -385,8 +385,7 @@ int ScopeLineNumber(void)
 		If it is empty it returns 0.
 	*/
 	struct Stack *FirstNode;
-	if (IsEmpty() != 1)
-	{
+	if (IsEmpty() != 1) {
 		FirstNode = Head.NextLevel;
 		return FirstNode->linenumber;
 	}

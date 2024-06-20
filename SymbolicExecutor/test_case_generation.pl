@@ -1,5 +1,5 @@
 :- use_module(c_var).
-
+%todo this entire module is weird and probably needs rewriting entirely 
 %% Generate multiple test cases through failing backtrack
 write_test_case_all(Filename, Function_name, Params, Return_value, Return_type) :-
     write_test_case(Filename, Function_name, Params, Return_value, Return_type),
@@ -22,6 +22,7 @@ write_test_case(Filename, Function_name, Params, Return_value, Return_type) :-
         )
     ),
     create_declaration_section(Params, Declaration_section),
+    startTrace,
     once create_assert(Function_name, Params, Return_value, Return_type, Assert),
     get_test_name(Test_name),
     printf(testcase, "void %s(void) {\n%s%s}\n", [Test_name, Declaration_section, Assert]),
@@ -124,7 +125,7 @@ get_test_name(Test_name) :-
 %%  -> All_variable_names = "x,y"
 var_names_as_parameters([], Variable_name_accumulator, All_variable_names) :-
     utils__strip_right_comma(Variable_name_accumulator, All_variable_names).
-var_names_as_parameters([declaration(_, [Variable], []) | More_variables], Variable_name_accumulator, All_variable_names) :-
+var_names_as_parameters([declaration(_, [Variable], _) | More_variables], Variable_name_accumulator, All_variable_names) :-
     c_var__is_variable(Variable),
     !,
     c_var__get_name(Variable, Var_name),

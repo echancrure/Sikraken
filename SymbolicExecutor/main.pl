@@ -17,6 +17,10 @@
 % Used in regression_main/1 to convert an atom to a string
 :- import atom_codes/2 from iso_light.
 
+startTrace. %insert in Prolog code or in foo.pl [use Leap in ECLiPse debugger]
+:- spy startTrace/0.
+
+
 % Prolog Global values (getval/2, setval/2):
 %  test_folder_path (String): The path to the folder where the test-cases are generated
 %  test_id (integer, default: 1): This is an Id used to identify test cases generated
@@ -36,7 +40,7 @@ main(Function_name) :-
 %% Filename_without_extension: The name of the file without the .pl extension. This should be a string. E.g. "sign"
 %% Function_name: The entry function to be tested. This should be an atom. E.g. get_sign
 %% Path_to_C_file: The folder-path to the C file to be symbolically executed. This should be a string. E.g. "C:\\Users\\user\\Desktop"
-main(Filename_without_extension, Function_name, Path_to_C_file, Path_to_test_drivers, Override_globals, CreateTimeStampedDirectory) :-
+main(Filename_without_extension, Function_name, Path_to_C_file, Path_to_test_drivers, Override_globals, Create_time_stamped_directory) :-
     utils__assert(string(Filename_without_extension), "Filename must be a string", []),
     utils__assert(not string_contains(Filename_without_extension, ".pl"), "Filename should not contain an extension", []),
     utils__assert(atom(Function_name), "Function name must be an atom", []),
@@ -44,16 +48,16 @@ main(Filename_without_extension, Function_name, Path_to_C_file, Path_to_test_dri
     utils__assert(get_file_info(Path_to_C_file, type, directory), "Path to C file is not a valid directory-path", []),
     utils__assert(string(Path_to_test_drivers), "Path to test drivers must be a string", []),
     utils__assert(once member(Override_globals, ['yes_ov', 'no_ov']), "Override globals option must be an atom of a boolean ('yes_ov' or 'no_ov')", []),
-    (CreateTimeStampedDirectory == 'yes_ts' ->
+    (Create_time_stamped_directory == 'yes_ts' ->
         (get_flag(unix_time, Unix_time),
          local_time_string(Unix_time,"%y_%m_%d__%H_%M_%S", Date_string),     %built-in, Format: year_month_day__24Hours_Minutes_Seconds Eg: 24_06_18__13_22_05
          concat_string([Path_to_test_drivers, "/", Function_name, "_tests_", Date_string, "/"], Test_folder_path)
         )
     ;
-     CreateTimeStampedDirectory == 'no_ts' ->
+    Create_time_stamped_directory == 'no_ts' ->
         concat_string([Path_to_test_drivers, "/", Function_name, "_tests/"], Test_folder_path)
     ;
-        utils__assert(fail, "CreateTimeStampedDirectory must be 'yes_ts' or 'no_ts' instead of %s", [CreateTimeStampedDirectory])
+        utils__assert(fail, "Create_time_stamped_directory must be 'yes_ts' or 'no_ts' instead of %s", [Create_time_stamped_directory])
     ),
     setval(test_folder_path, Test_folder_path),       %output directory for the generated test suites test drivers
     setval(test_id, 1),     %initial Id used to identify test cases generated. Used in test_generation.pl
@@ -66,11 +70,10 @@ main(Filename_without_extension, Function_name, Path_to_C_file, Path_to_test_dri
     close(Stream),
     Parsed_terms = parsed(Terms),
     process_global_variables(Terms, All_globals),   %execute all globals
-    declare_functions(Terms, Function_name, Function_info), 
-    sprintf(Error_message, "The entry function '%a' cannot be found", [Function_name]),
-    utils__assert(not free(Function_info), Error_message, []),
+    declare_functions(Terms, Function_name, Function_info),
+    utils__assert(not free(Function_info), "The entry function '%a' cannot be found", [Function_name]),
     function_info__get_clean_function(Function_info, _, Parameters, Body, Return_type),
-    utils__assert(Return_type \= void, "No unit tests to generate for a void-returning function", []),
+    utils__assert(Return_type \= void, "No unit tests to generate for a void-returning function", []),  %todo this is obviously wrong
     declare_static_variables(Body),
     override_globals(Override_globals, All_globals, Parameters, Processed_parameters),
 

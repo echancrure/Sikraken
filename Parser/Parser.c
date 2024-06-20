@@ -6,7 +6,7 @@
 #include <io.h>
 
 #include "Parser_Functions.h"	// User defined header file containing all the functions used in the parser
-
+FILE* pl_file;
 int main (int argc, char * argv[])
 {
 	char* filepath = (char*)malloc(STRINGLIMIT);	// path of the original C file -- where .pl
@@ -63,18 +63,20 @@ int main (int argc, char * argv[])
 	strcat(ifile, filename);		
 	strcat(ifile, ".i");
 
-	// print the discontiguous statements -- to PLFile
-	//print_discontiguous(PLFile);
+	if ((pl_file = fopen(PLFile, "w")) == NULL) return parser_error(ERROR2);
+	fprintf(pl_file, "parsed([\n");
 
-	print_start_of_parsed_predicate(PLFile);
+	//// PARSE the input file	-- parse .i file (ifile)
+	FILE* i_file;			
+	if ((i_file = fopen(ifile, "r")) == NULL) return parser_error(ERROR3);
+	yyin = i_file;
+	if ((yyparse())) 	// parse the .i file
+	   return parser_error(ERROR5);
+	fclose(i_file);
 
-	// PARSE the input file	-- parse .i file (ifile)
-	parse_file(ifile);
-
-	// print the dummy declarations	 -- to PLFile
-	print_dummy_dec(PLFile);
-
-	print_end_of_parsed_predicate(PLFile);
+	fprintf(pl_file, "\nglobal_variables(999, 999)\n");		// print out the dummy declaration for global declarations
+	fprintf(pl_file, "\n]).");
+	fclose(pl_file);
 
 	//remove(ifile);
 	printf("Sikraken parser: success");
