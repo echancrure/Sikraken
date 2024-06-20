@@ -5336,9 +5336,9 @@ yyreduce:
   case 301: /* translation_unit: external_declaration  */
 #line 2551 "C_grammar.y"
         {
-		(yyval.id) = (char*) malloc(strlen((yyvsp[0].id)) + 1);
-		strcpy((yyval.id), (yyvsp[0].id));
-		free((yyvsp[0].id));
+		//$$ = (char*) malloc(strlen($1) + 1);
+		//strcpy($$, $1);
+		//free($1);
 	}
 #line 5344 "C_grammar.tab.c"
     break;
@@ -5346,11 +5346,11 @@ yyreduce:
   case 302: /* translation_unit: translation_unit external_declaration  */
 #line 2557 "C_grammar.y"
         {
-		(yyval.id) = (char*) malloc(strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1);
-		strcpy((yyval.id), (yyvsp[-1].id));
-		strcat((yyval.id), (yyvsp[0].id));
-		free((yyvsp[-1].id));
-		free((yyvsp[0].id));
+		//$$ = (char*) malloc(strlen($1) + strlen($2) + 1);
+		//strcpy($$, $1);
+		//strcat($$, $2);
+		//free($1);
+		//free($2);
 	}
 #line 5356 "C_grammar.tab.c"
     break;
@@ -5358,9 +5358,9 @@ yyreduce:
   case 303: /* external_declaration: function_definition  */
 #line 2568 "C_grammar.y"
         {
-		(yyval.id) = (char*) malloc(strlen((yyvsp[0].id)) + 1);
-		strcpy((yyval.id), (yyvsp[0].id));
-		printfunction((yyval.id)); 	// OUTPUT_FUNCTIONS.H
+		//$$ = (char*) malloc(strlen($1) + 1);
+		//strcpy($$, $1);
+		fprintf(pl_file, "%s\n", (yyvsp[0].id));
 		free((yyvsp[0].id));
 		struct_flag = NO;
 	}
@@ -5377,7 +5377,7 @@ yyreduce:
 		if((yyvsp[0].id)[lenS1] == ',') (yyvsp[0].id)[lenS1] = ' ';
 		strcat((yyval.id), (yyvsp[0].id));
 		strcat((yyval.id), "], void),\n");
-		printfunction((yyval.id));	// OUTPUT_FUNCTIONS.H
+		fprintf(pl_file, "%s\n", (yyval.id));
 		free((yyvsp[0].id));
 	}
 #line 5384 "C_grammar.tab.c"

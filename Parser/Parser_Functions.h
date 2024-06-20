@@ -27,7 +27,7 @@
 #include <sys/stat.h>
 
 
-#include "grammar.tab.c"	
+#include "C_grammar.tab.c"	
 				// The parser file generated using AYACC.
 				// This file also contains the lexical analyser 
 				// generated using ALex.

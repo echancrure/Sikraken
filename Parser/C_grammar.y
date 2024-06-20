@@ -2549,26 +2549,26 @@ jump_statement
 translation_unit
 	: external_declaration
 	{
-		$$ = (char*) malloc(strlen($1) + 1);
-		strcpy($$, $1);
-		free($1);
+		//$$ = (char*) malloc(strlen($1) + 1);
+		//strcpy($$, $1);
+		//free($1);
 	}
 	| translation_unit external_declaration
 	{
-		$$ = (char*) malloc(strlen($1) + strlen($2) + 1);
-		strcpy($$, $1);
-		strcat($$, $2);
-		free($1);
-		free($2);
+		//$$ = (char*) malloc(strlen($1) + strlen($2) + 1);
+		//strcpy($$, $1);
+		//strcat($$, $2);
+		//free($1);
+		//free($2);
 	}
 	;
 
 external_declaration
 	: function_definition
 	{
-		$$ = (char*) malloc(strlen($1) + 1);
-		strcpy($$, $1);
-		printfunction($$); 	// OUTPUT_FUNCTIONS.H
+		//$$ = (char*) malloc(strlen($1) + 1);
+		//strcpy($$, $1);
+		fprintf(pl_file, "%s\n", $1);
 		free($1);
 		struct_flag = NO;
 	}
@@ -2581,7 +2581,7 @@ external_declaration
 		if($1[lenS1] == ',') $1[lenS1] = ' ';
 		strcat($$, $1);
 		strcat($$, "], void),\n");
-		printfunction($$);	// OUTPUT_FUNCTIONS.H
+		fprintf(pl_file, "%s\n", $$);
 		free($1);
 	}
 	;

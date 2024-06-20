@@ -68,28 +68,6 @@ char* scope_details(char* varname, int param)
 
 void printfunction(char inputstring[])
 {
-	/*
-		The printfunction() function is called from the following
-		places in GRAMMAR.Y
+	//fprintf(pl_file, "%s\n", inputstring);
 
-		external_declaration
-			: function_definition	-- call printfunction()
-			| declaration			-- call printfunction()
-			;
-
-		This function is called to print the contents of the pseudo-variable
-		$$ to the Prolog terms file, denoted by the extern variable PLFile.
-		The information is appended to the PLFile as it may already contain
-		predicates.
-	*/
-
-	//FILE* file_ptr;				// file pointer
-	char* Prologterms = (char*)malloc(strlen(inputstring) + 1);
-	strcpy(Prologterms, inputstring);
-
-	// Open file and append to
-	//file_ptr = fopen(PLFile, "a");
-	fprintf(pl_file, "%s\n", Prologterms);
-	free(Prologterms);
-	//fclose(file_ptr);
 }
