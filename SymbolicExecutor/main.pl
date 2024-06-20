@@ -36,21 +36,22 @@ main(Function_name) :-
 %% Filename_without_extension: The name of the file without the .pl extension. This should be a string. E.g. "sign"
 %% Function_name: The entry function to be tested. This should be an atom. E.g. get_sign
 %% Path_to_C_file: The folder-path to the C file to be symbolically executed. This should be a string. E.g. "C:\\Users\\user\\Desktop"
-main(Filename_without_extension, Function_name, Path_to_C_file, Override_globals, CreateTimeStampedDirectory) :-
+main(Filename_without_extension, Function_name, Path_to_C_file, Path_to_test_drivers, Override_globals, CreateTimeStampedDirectory) :-
     utils__assert(string(Filename_without_extension), "Filename must be a string", []),
     utils__assert(not string_contains(Filename_without_extension, ".pl"), "Filename should not contain an extension", []),
     utils__assert(atom(Function_name), "Function name must be an atom", []),
     utils__assert(string(Path_to_C_file), "Path to C file must be a string", []),
     utils__assert(get_file_info(Path_to_C_file, type, directory), "Path to C file is not a valid directory-path", []),
+    utils__assert(string(Path_to_test_drivers), "Path to test drivers must be a string", []),
     utils__assert(once member(Override_globals, ['yes_ov', 'no_ov']), "Override globals option must be an atom of a boolean ('yes_ov' or 'no_ov')", []),
     (CreateTimeStampedDirectory == 'yes_ts' ->
         (get_flag(unix_time, Unix_time),
          local_time_string(Unix_time,"%y_%m_%d__%H_%M_%S", Date_string),     %built-in, Format: year_month_day__24Hours_Minutes_Seconds Eg: 24_06_18__13_22_05
-         concat_string([Path_to_C_file, "/", Function_name, "_tests_", Date_string, "/"], Test_folder_path)
+         concat_string([Path_to_test_drivers, "/", Function_name, "_tests_", Date_string, "/"], Test_folder_path)
         )
     ;
      CreateTimeStampedDirectory == 'no_ts' ->
-        concat_string([Path_to_C_file, "/", Function_name, "_tests/"], Test_folder_path)
+        concat_string([Path_to_test_drivers, "/", Function_name, "_tests/"], Test_folder_path)
     ;
         utils__assert(fail, "CreateTimeStampedDirectory must be 'yes_ts' or 'no_ts' instead of %s", [CreateTimeStampedDirectory])
     ),

@@ -14,7 +14,7 @@ write_test_case(Filename, Function_name, Params, Return_value, Return_type) :-
         (mkdir(Path_to_test_directory),
          open(Test_suite_filepath, append, testcase),
          printf(testcase, "#include <assert.h>\n", []),
-         printf(testcase, "#include \"../%s.c\"\n\n", [Filename])
+         printf(testcase, "#include \"%s.c\"\n\n", [Filename])
         )
     ;
         (open(Test_suite_filepath, append, testcase),
