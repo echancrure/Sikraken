@@ -61,6 +61,18 @@ int traverse_types(char typedefname[]);
 void set_typedef_flag(void);
 char* change_typedef(char* s);
 
+int find_first_non_star(char* str) {
+	int index = 0;
+
+	while (str[index] != '\0') {
+		if (str[index] != '*') {
+			return index;
+		}
+		index++;
+	}
+	return -1;	// If all characters are '*', or the string is empty, return -1.
+}
+
 void add_typedefs(char typedefname[])
 {
 	/*	

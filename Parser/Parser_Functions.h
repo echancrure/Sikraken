@@ -1,39 +1,12 @@
-// This header file is included in the PARSER.C file.
-// It contains the functions and definitions that are required
-// to cause the parsing of the preprocessed version (.I file) of 
-// the C program under analysis.
-////////////////////////////////////////////////////////////////
-// Functionality
-// **************
-// Parse the file (.i file as preprocessed) passed as one of the
-// parameters to produce Prolog Terms File ( .PL)
-//
-// Input
-// *****
-// 4 parameters -- 	name of parser,
-//				--  path of C file -- this is where .PL 
-//					are output to
-//				--	the name of file to be parsed (less extension)
-//				--  the path to the .i file - relative path
-// Notes
-// *****
-// The .i file is deleted after parsing is complete.
-// The .PL file is output to the path of the C program.
-//
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <conio.h>
-#include <sys/stat.h>
+
 
 
 #include "C_grammar.tab.c"	
-				// The parser file generated using AYACC.
-				// This file also contains the lexical analyser 
-				// generated using ALex.
 
 #define STRINGLIMIT 1000
-// limit of the size of the filenames input to function
 
 #define ERROR1 	"PARSER -- NUMBER OF INPUT ARGUMENTS IS NOT CORRECT"
 #define ERROR2 	"PARSER -- CANNOT CREATE FILE"
@@ -44,7 +17,7 @@
 // execution is aborted if any of these errors are encountered.
 
 char* C_Filename;
-char * PLFile;
+char* PLFile;
 
 int yyparse(void);								// extern function yyparse() to parse the file
 int parser_error(char errorcode[]);				// prints errors to screen & causes parsing to abort
@@ -62,6 +35,6 @@ int parser_error(char errorcode[])
 }
 
 // in built error reporting function for ayacc -- cannot be changed
-void yyerror (const char *s) {
+void yyerror (const char* s) {
 	   fprintf(stderr, "SYNTAX ERROR %s AT LINE NUMBER %d\n", s, yylineno);
 }

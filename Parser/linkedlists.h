@@ -127,8 +127,7 @@ List CreateList(void)
 	return L;
 }
 
-void MakeEmpty(List L)
-{
+void MakeEmpty(List L) {
 	/*
 		Empty the linked list passed as parameter.
 	*/
@@ -139,8 +138,7 @@ void MakeEmpty(List L)
 			PopList(L);
 }
 
-void DisposeList(List L)
-{
+void DisposeList(List L) {
 	/*
 		Dispose of the Linked list L, free up any allocated memory.
 	*/
@@ -148,8 +146,7 @@ void DisposeList(List L)
 	free(L);
 }
 
-void PushList(int X, List L)
-{
+void PushList(int X, List L) {
 	/*
 		Push the number X onto the linked list L
 	*/
@@ -166,8 +163,7 @@ void PushList(int X, List L)
 	}
 }
 
-char * PopList(List L)
-{
+char * PopList(List L) {
 	/*
 		This function finds the element that is at the top of the list passed as parameter
 		and returns this number as a string. The node is popped from the linked list and
@@ -197,8 +193,7 @@ char * PopList(List L)
 	return elem_str;
 }
 
-char * BottomList(List L)
-{
+char * BottomList(List L) {
 	/*
 		This function finds the element that is at the bottom of the list passed as parameter
 		and returns this number as a string. The node is popped from the linked list and
@@ -234,20 +229,13 @@ char * BottomList(List L)
 	return elem_str;
 }
 
-int CountList(List L)
-{
-	/*
-		This function counts the number of nodes in the linked list L
-	*/
-	List Temp;
+int CountList(List L) {	//counts the number of nodes in the linked list L
+	List Temp = L;
 	int counter = 0;
-	Temp = L;
 
-	while (Temp->Next)
-	{
+	while (Temp->Next) {
 		counter++;
 		Temp = Temp->Next;
 	}
 	return counter;
 }
-

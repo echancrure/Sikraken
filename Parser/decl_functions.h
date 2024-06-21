@@ -56,6 +56,51 @@ char* process_prototypes(char S1[], char S2[]);
 char* process_typedef(char base_type[], char identifier[]);
 
 
+void strip_last_comma(char* str) {
+	size_t length = strlen(str);
+
+	if (length == 0) {
+		return; // Empty string, nothing to strip
+	}
+
+	// Start from the end of the string and find the last comma
+	size_t i = length - 1;
+	while (i > 0 && str[i] != ',') {
+		i--;
+	}
+
+	if (str[i] == ',') {
+		str[i] = '\0'; // Replace the last comma with a null terminator
+	}
+}
+
+char* scope_details(char* varname, int param)
+{
+	/*
+		Find the scoping details of the variable passed as
+		parameter 'varname'. The variable 'param' is either YES or NO. If it
+		is YES, then a parameter variable is not being declared, therefore
+		scoping information must be addded to 'varname' and returned
+		Otherwise, a parameter variable is being declared and NO scoping
+		information is added. The variable is returned unchanged.
+	*/
+
+	int linenumber = ScopeLineNumber();	// get the current scope linenumber	- SCOPES.H
+	int number_str_size = snprintf(NULL, 0, "%d", linenumber); // Calculate size needed for number_str
+	char* number_str = (char*)malloc(number_str_size + 1 + 1);
+	snprintf(number_str, number_str_size + 1, "%d", linenumber); // Write linenumber to number_str
+
+	char* name = (char*)malloc(strlen(varname) + 1 + strlen(number_str) + 1);
+
+	strcpy(name, varname);
+	strcat(name, "_");
+	strcat(name, number_str);
+
+	free(number_str);
+
+	return name;
+}
+
 void addvariables(char* declarator, int Param) {
 	/*
 		This function is called from :
@@ -223,7 +268,7 @@ void addvariables(char* declarator, int Param) {
 		char* declarator_without_star = removestar(declarator_copy); // remove the '*' from declarator
 		char* declarator_name = case_name(declarator_without_star);
 		PushVar(declarator_name, Param);					// push onto stack (scopes.h)
-		char* declarator_with_scope_details = scope_details(declarator_name, Param); // OUTPUT_FUNCTIONS.H
+		char* declarator_with_scope_details = scope_details(declarator_name, Param);
 		strcpy(declarator_copy, declarator_with_scope_details); // add prolog scope details
 
 		free(declarator_without_star);
@@ -240,7 +285,7 @@ void addvariables(char* declarator, int Param) {
 		strcpy(declarator_copy, case_name(declarator_copy)); 		// add prolog terms to declarator - OUTPUT_FUNCTIONS.H
 		PushVar(create_arrayname(declarator_copy), Param);	// push array onto Stack (SCOPES.H) and ARRAY_FUNCTIONS.H
 		char* array_name = create_arrayname(declarator_copy); // create the name of array	- ARRAY_FUNCTIONS.H
-		char* array_p_name = scope_details(array_name, Param); // add prolog scope details-  OUTPUT_FUNCTIONS.H
+		char* array_p_name = scope_details(array_name, Param);
 		free(array_name);
 
 		// SINGLE DIMENSIONAL ARRAY
@@ -294,7 +339,7 @@ void addvariables(char* declarator, int Param) {
 		strcpy(vardetails, "other");	// store the variable details
 		char* varname_with_Lc_Uc_prefix = case_name(declarator_copy); 	// change to prolog terms - OUTPUT_FUNCTIONS.H
 		PushVar(varname_with_Lc_Uc_prefix, YES);	 // push onto Stack (SCOPES.H)
-		char* full_variable_name = scope_details(varname_with_Lc_Uc_prefix, YES); // add scope details - OUTPUT_FUNCTIONS.H
+		char* full_variable_name = scope_details(varname_with_Lc_Uc_prefix, YES);
 		strcpy(declarator_copy, full_variable_name);
 
 		free(full_variable_name);
@@ -556,7 +601,7 @@ void addvariabledetails(char varname[], char varconstant[]) {
 		strcpy(variable_name, case_name(variable_name));	// add prolog terms "LC_" or "UC_" - OUTPUT_FUNCTIONS.H
 		PushVar(variable_name, NO);	// Push onto Stack, not a parameter variable (NO)
 		// from SCOPES.H
-		strcpy(variable_name, scope_details(variable_name, NO));// append scope number if applicable - OUTPUT_FUNCTIONS.H
+		strcpy(variable_name, scope_details(variable_name, NO));
 		strcpy(assigndetails, "\nassignment(");	// build assignment string
 		strcat(assigndetails, variable_name);
 		strcat(assigndetails, " , ");
@@ -573,7 +618,7 @@ void addvariabledetails(char varname[], char varconstant[]) {
 		strcpy(arrayname, case_name(arrayname));	// find prolog version "LC_" or "UC_" - OUTPUT_FUNCTIONS.H
 		PushVar(arrayname, NO);						// Push onto Stack, not a parameter variable (NO)
 		// from SCOPES.H
-		strcpy(arrayname, scope_details(arrayname, NO)); // append scope if applicable - OUTPUT_FUNCTIONS.H
+		strcpy(arrayname, scope_details(arrayname, NO));
 		strcpy(finalvarname, "(");					// build final array name - "("
 		strcat(finalvarname, arrayname);			// array name
 		strcat(finalvarname, ", ");					// comma -- dimensions follow
@@ -640,7 +685,7 @@ void addvariabledetails(char varname[], char varconstant[]) {
 			strcpy(variable_name, case_name(variable_name));	// apply prolog case rules "LC_" or "UC_" - OUTPUT_FUNCTIONS.H
 			PushVar(variable_name, NO);					// Push onto Stack, not a parameter variable (NO)
 			// from SCOPES.H
-			strcpy(variable_name, scope_details(variable_name, NO));// append scope if applicable - OUTPUT_FUNCTIONS.H
+			strcpy(variable_name, scope_details(variable_name, NO));
 			strcpy(vardetails, "struct");				// store vardetails
 
 			strcpy(assigndetails, "\ninit_record(");	// begin assigndetails init_record/2
@@ -655,7 +700,7 @@ void addvariabledetails(char varname[], char varconstant[]) {
 			strcpy(variable_name, case_name(variable_name));// apply prolog case rules "LC_" or "UC_" - OUTPUT_FUNCTIONS.H
 			PushVar(variable_name, NO);				// Push onto Stack, not a parameter variable (NO)
 			// from SCOPES.H
-			strcpy(variable_name, scope_details(variable_name, NO));// append scope if applicable - OUTPUT_FUNCTIONS.H
+			strcpy(variable_name, scope_details(variable_name, NO));
 			strcpy(vardetails, "other");				// store vardetails
 
 			strcpy(assigndetails, "\nassignment(");		// build assigndetails

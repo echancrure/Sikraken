@@ -109,25 +109,25 @@ DECIMAL (ASCII)		CHAR	NAME	OTHER		HEX		OCTAL
 	127				DEL
 */
 
+#define	SINGLEQUOTE		39	// 39 is the ascii value of the ' character
+#define CARET			94	// 94 is the ascii value of the ^ character	
+#define ESCAPE			92	// 92 is the ascii value of the \ escape charcater
 char * ascii_function(char inputconstant[]);
 char * convertascii(char inputconstant[]);
 char * specialascii(char inputconstant[]);
 char * controlascii(char inputconstant[]);
 char * escapeascii(char inputconstant[]);
 
-char* ascii_function(char inputconstant[])
-{
+char* ascii_function(char inputconstant[]) {
 	/*
-		This function will call the appropriate function that will convert characters
-		to their decimal (ascii) equivalent and return this number as a string so
+		Convert characters to their decimal (ascii) equivalent and return this number as a string so
 		that it can be appended to pseudo-variable $$.
 	*/
 
 	// If the first character if inputconstant begins with a "'",
 	// process the character to return its decimal equivalent,
 	// otherwise, return inputconstant unchanged
-	if (inputconstant[0] == SINGLEQUOTE)
-	{
+	if (inputconstant[0] == SINGLEQUOTE) {
 		// Process a normal character string, e.g. 'a'
 		if (strlen(inputconstant) == 3)
 			strcpy(inputconstant, convertascii(inputconstant));
@@ -365,13 +365,11 @@ char * controlascii(char inputconstant[])
 	return inputconstant;
 }
 
-char * escapeascii(char inputconstant[])
-{
+char * escapeascii(char inputconstant[]) {
 	/*	
 		Given an inputconstant, this function will return the ascii value of the inputconstant
 		as a string. In this function the ascii values for '^\\' is coded.
 	*/
-	strcpy(inputconstant, "28");	//FS 
-	// successfully leaving the function		
+	strcpy(inputconstant, "28");	//FS 		
 	return inputconstant;
 }

@@ -49,11 +49,8 @@ a '[' and ']', this must be done in the functions defined in this header file.
 
 */
 
-
 char * if_statement(char expression[], char statement[]);
 char * ifelse_statement(char expression[], char if_stmt[], char else_stmt[]);
-
-
 
 char * if_statement(char expression[], char statement[])
 {
@@ -71,7 +68,6 @@ char * if_statement(char expression[], char statement[])
 	char * returnstr;			// return string of the function
 	// allocate space to the string variables used
 	returnstr = (char*)malloc(STRING_LIMIT);
-
 
 	strcpy(returnstr, "\nif_statement(");
 
@@ -95,13 +91,11 @@ char * if_statement(char expression[], char statement[])
 
 	// IF STMTS
 	lenstring = strlen(statement) - 1; // less one for the NULL character
-	for (counter = 0; counter < strlen(statement); counter++)
-	{
+	for (counter = 0; counter < strlen(statement); counter++) {
 		if (statement[counter] != '\0')
 			blank = 1;
 	}
-	// Statement parameter is NOT empty
-	if (blank == 1)
+	if (blank == 1) // Statement parameter is NOT empty
 	{
 		if (statement[0] != '[')
 			strcat(returnstr, "[");	
@@ -109,20 +103,15 @@ char * if_statement(char expression[], char statement[])
 		if (statement[lenstring] != ']')
 			strcat(returnstr, "]");		
 	}
-	// Statement parameter is empty
-	else 
+	else // Statement parameter is empty
 	{
 		strcat(returnstr, "[]");
 	}
-	
-	// ELSE STMTS
-	strcat(returnstr, ", [])");		
-	
-	// successfully leaving the if_statement() function
+	strcat(returnstr, ", [])");	// ELSE STMTS
 	return returnstr;
 }
 
-char * ifelse_statement(char expression[], char if_stmt[], char else_stmt[])
+char* ifelse_statement(char expression[], char if_stmt[], char else_stmt[])
 ////////////////////////////////////////////////////////////////
 /* 
 The if statement in C is parsed to its equivalent in Prolog 
@@ -134,11 +123,8 @@ This is the if function which does have a corresponding else.
 {
 	int lenstringif;			// length of if_stmt
 	int lenstringelse;			// length of else_stmt
-	char * returnstr;			// return string of the function
-	// allocate space to the string variables used
-	returnstr = (char*)malloc(STRING_LIMIT);
+	char* returnstr = (char*)malloc(STRING_LIMIT);
 
-	// PREDICATE
 	strcpy(returnstr, "\nif_statement(");
 	
 	// LINENUMBER

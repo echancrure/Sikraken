@@ -3,19 +3,21 @@
 	used to manipulate strings. These functions are used throughout 
 	the header files and grammar files, for string manipulation.
 */
-				
+#define UPPER_START 	65		// upper case letters begin at ascii value 65	
+#define UPPER_END   	90		// upper case letters end at ascii value 90		
+#define LOWER_START 	97		// lower case letters begin at ascii value 97	
+#define LOWER_END		122		// lower case letters end at ascii value 122	
+#define ASCII_DIFF		32		// there is a difference of 32 between upper and lower case ascii letters e.g. A = 65 a = 97
+
 char* upper(char string[]);
-char* lower(char string[]);
 char convert_tolower(char ch);
-char convert_toupper(char ch);
 char* last_strstr(char* s1, char* s2);
 int mystrstrcount(char* string, char substring);
 int strstrcount(char* string, char* substring);
 char* initialisestring(char string[], int limit);
 char* copystring(char* source, int begin, int howmany);
-int find_first_non_star(char* string);
 
-char * upper(char string[])
+char* upper(char string[])
 {
 	/* 	
 		This function takes as parameter a string and converts that its to
@@ -43,37 +45,8 @@ char * upper(char string[])
    	return returnstr;			
 }
 
-char * lower(char string[])
-{
-	/* 	
-		This function takes as parameter a string and converts that its to
-		its lowercase equivalent.
-	*/
-	
-	unsigned int i = 0;					// control variable of the while loop
-	char* newstring = (char*)malloc(strlen(string) + 1 + 1);	// temporary holding string	
 
-  	strcpy(newstring, initialisestring(newstring, strlen(string) + 1));
-	
-
-	// Convert the string to LOWER CASE
-	while (i < strlen(string))
-	{
-		if (string[i] >= UPPER_START && string[i] <= UPPER_END)
-			newstring[i] = (char)(string[i] - ASCII_DIFF);
-		else
-			newstring[i] = string[i];
-		i++;
-	}
-	
-	char* returnstr = (char*)malloc(strlen(newstring) + 1);
-	strcpy(returnstr, newstring);
-	free(newstring);
-   	return returnstr;			
-}
-
-char convert_tolower(char ch)
-{
+char convert_tolower(char ch) {
 	/* 	
 		This function takes as parameter a char and converts this char to its lowercase
 		equivalent if it is upper case, otherwise it will be unchanged.
@@ -85,22 +58,6 @@ char convert_tolower(char ch)
 	*/
    	if (ch >= UPPER_START && ch <= UPPER_END)
    		ch = (char)(ch + ASCII_DIFF);
-   	return ch;
-}
-
-char convert_toupper(char ch)
-{
-	/* 	
-		This function takes as parameter a char and converts this char to its uppercase
-		equivalent if it is lower case, otherwise it will be unchanged.
-		There is a pre-existing C function called toupper() that will perform the same
-		task but this function results in the following warning:
-			Conversion may lose significant digits
-		This is because the parameter and return of this function is of type int and for
-		the purposes of this program we need to convert characters.
-	*/
-	if (ch >= LOWER_START && ch <= LOWER_END)
-   		ch = (char)(ch - ASCII_DIFF);
    	return ch;
 }
 
@@ -126,8 +83,7 @@ char* last_strstr(char * s1, char * s2)
 }
 
 
-int mystrstrcount(char *string, char substring)
-{
+int mystrstrcount(char *string, char substring) {
 	/* 	
 		This function takes as parameter one string string and one substring, 
 		which is a single character. It counts the number of occurances of substring in string
@@ -166,7 +122,7 @@ int strstrcount(char *string, char *substring)
 }
 
 // 15 June 2024 why is it needed to do this? Just a waste of time?
-char * initialisestring(char string[], int limit)
+char* initialisestring(char string[], int limit)
 {
 	/*	
 		This function takes as parameter a character array (string) and the amount of
@@ -210,36 +166,4 @@ char* copystring(char* source, int begin, int howmany)
 	strcpy(returnstr, holdstr);
 	free(holdstr);
 	return returnstr;
-}
-
-int find_first_non_star(char* str) {
-	int index = 0;
-
-	while (str[index] != '\0') {
-		if (str[index] != '*') {
-			return index;
-		}
-		index++;
-	}
-
-	// If all characters are '*', or the string is empty, return -1.
-	return -1;
-}
-
-void strip_last_comma(char* str) {
-	size_t length = strlen(str);
-
-	if (length == 0) {
-		return; // Empty string, nothing to strip
-	}
-
-	// Start from the end of the string and find the last comma
-	size_t i = length - 1;
-	while (i > 0 && str[i] != ',') {
-		i--;
-	}
-
-	if (str[i] == ',') {
-		str[i] = '\0'; // Replace the last comma with a null terminator
-	}
 }

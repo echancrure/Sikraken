@@ -405,7 +405,7 @@ int subtotal_dims(char * dimlist)
 	}
 	free(dimstr);
 	free(singledim);
-	return total;	// return total of the dimensions
+	return total;
 }
 
 int total_dims(char * dimlist)

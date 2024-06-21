@@ -7,11 +7,10 @@ file GRAMMAR.Y
 
 int struct_flag = NO;
 
-
-char * process_records(char postfix_expression[], char identifier[]);
-char * seperate_fields(char vartype[], char varlist[]);
-char * strip_struct(char struct_string[]);
-char * struct_declaration(char decl_specifier[]);
+char* process_records(char postfix_expression[], char identifier[]);
+char* seperate_fields(char vartype[], char varlist[]);
+char* strip_struct(char struct_string[]);
+char* struct_declaration(char decl_specifier[]);
 
 char * process_records(char postfix_expression[], char identifier[])
 {
@@ -297,24 +296,16 @@ char * struct_declaration(char decl_specifier[])
 	lenstring = strlen(decl_specifier) - 1;	// minus 1 for NULL character
 
 	// Assign the correct Prolog Predicate to the return string
-	if (strstr(decl_specifier, "struct ") != NULL)
-	{	
-		// Struct declarations	
+	if (strstr(decl_specifier, "struct ") != NULL) {			// Struct declarations	
 		strcpy(returnstr, "\nrecord_declaration");
 	}
-	else if (strstr(decl_specifier, "enum ") != NULL)
-	{	
-		// Enum declarations							
+	else if (strstr(decl_specifier, "enum ") != NULL) {			// Enum declarations							
 		strcpy(returnstr, "\nenum_declaration");
 	}
-	else if (strstr(decl_specifier, "typedef") != NULL)
-	{	
-		// Typedef declarations	
+	else if (strstr(decl_specifier, "typedef") != NULL) {		// Typedef declarations	
 		strcpy(returnstr, "\ntypedef_declaration");
 	}
-	else
-	{	
-		// Normal variable declarations	
+	else {														// Normal variable declarations	
 		strcpy(returnstr, "declaration(");
 	}
 

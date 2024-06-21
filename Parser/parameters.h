@@ -38,8 +38,7 @@ struct PNode
 int PListFirstUse = NO; // Indicates if Parameter Linked List is in Use
 PList P; 				// Linked List of Parameter Variable Names
 
-extern char* case_name(char* varname);
-	// Extern the function which converts variable names to their Prolog equivalent.
+extern char* case_name(char* varname);	// Extern the function which converts variable names to their Prolog equivalent.
 int IsEmptyPList(PList P);
 PList CreatePList(void);
 void MakeEmptyP(PList P);
@@ -111,8 +110,7 @@ void MakeEmptyP(PList P) {
 			free(PopPList(P));
 }
 
-void DisposePList(PList P)
-{
+void DisposePList(PList P) {
 	/*
 		This function is called from the following places:
 
@@ -131,7 +129,6 @@ void DisposePList(PList P)
 		// Freeing resets the address to be non-NULL
 		P->PNext = NULL;
 	}
-	//free(P);
 }
 
 void PushPList(char X[], PList P)
@@ -154,8 +151,7 @@ void PushPList(char X[], PList P)
 	TmpCell = malloc(sizeof(struct PNode));
 	if (TmpCell == NULL)
 		printf("ERROR: OUT OF SPACE - MALLOC FAILED");
-	else
-	{
+	else {
 		// Add the details of the Parameter Variable to the Parameters Linked List
 		// Use the case_name() function to convert X to its Prolog Name equivalent.
 		char* X_with_lc_uc = case_name(X);
@@ -194,15 +190,10 @@ char* PopPList(PList P)
 
 	PtrToPNode FirstCell;
 	char* elem_str;
-
-	// If Parameters Linked List is EMPTY, return empty string
-	if( IsEmptyPList(P) )
-	{
+	if(IsEmptyPList(P)) {	// If Parameters Linked List is EMPTY, return empty string
 		elem_str = (char*)malloc(1 + 1);
 		strcpy(elem_str, "");
-	}
-	else
-	{	
+	} else {	
 		// If Parameters Linked List is NOT l, return the Parameter Variable
 		// which is at the top of the Linked List. Discard the top Node.
 		FirstCell = P->PNext;

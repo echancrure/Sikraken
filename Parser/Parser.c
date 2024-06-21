@@ -32,7 +32,7 @@ int main (int argc, char * argv[])
 				strcpy(filepath, &argv[i][2]);
 				break;
 			default:
-				fprintf(stderr, "Sikraken parser: Unsupported flag '-%c', ignoring.\n", argv[i]);
+				fprintf(stderr, "Sikraken parser: Unsupported flag '-%s', ignoring.\n", argv[i]);
 			}
 		}
 		else {

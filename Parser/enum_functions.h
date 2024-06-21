@@ -15,15 +15,12 @@ used to reset the counter for enumeration literals when the
 enum definition is finished.
 */
 
+int enum_counter = 0; // counter for the enumeration literals of an enum type
 
-int enum_counter = 0;
-			// counter for the enumeration literals of an enum type
-
-struct ListOfEnums
-{
+struct ListOfEnums {
 	char enum_name[STRING_LIMIT];	// name of enumeration literal
 	int enum_value;						// initialization value if any
-	struct ListOfEnums *enumnext;		// pointer to next Enum node
+	struct ListOfEnums* enumnext;		// pointer to next Enum node
 } 
 enumstart, *enumnode;
 /*
@@ -37,9 +34,8 @@ and is accessed in function:
 
 void add_enums(char enumname[], int value);
 int traverse_enums(char enumname[]);
-char * change_enum(char * s);
+char* change_enum(char* s);
 void reset_enumcounter(void);
-
 
 
 void add_enums(char enumname[], int value)
@@ -77,13 +73,11 @@ void add_enums(char enumname[], int value)
 	strcpy(enumnode->enum_name, enumname);							
 	enumnode->enum_value = enum_counter;
 	enumnode->enumnext = NULL;
-	// update the enum_counter variable
 	enum_counter++;
 }
 
 
-int traverse_enums(char enumname[])
-{
+int traverse_enums(char enumname[]) {
 	/*	
 		This function is called from the following place in the grammar file:
 			primary_expression
@@ -118,12 +112,10 @@ int traverse_enums(char enumname[])
 		enumnode = enumnode->enumnext;
 		free(enumstring);
 	}
-
 	return enum_value;
 }
 
-char* change_enum(char * s)
-{
+char* change_enum(char * s) {
 	/*
 		This function is called from the following places in GRAMMAR.Y:
 		enum_specifier
@@ -143,7 +135,6 @@ char* change_enum(char * s)
 		enumerator
 	*/
 
-	// variable declaration and allocation of space
 	char* returnstr = (char*)malloc(3 + strlen(s) + 1);
 	
 	// Precede the return string by "lc_" or "uc_"	
@@ -156,16 +147,6 @@ char* change_enum(char * s)
 	return returnstr;
 }
 
-void reset_enumcounter(void)
-{
-	/*
-		This function re-sets the enum_counter variable back to zero.
-		This function is called from the following places in GRAMMAR.Y:
-		enum_specifier
-			: ENUM '{' enumerator_list '}'				-- called here
-			| ENUM IDENTIFIER '{' enumerator_list '}' 	-- called here
-			| ENUM IDENTIFIER							
-			;
-	*/
+void reset_enumcounter(void) {
 	enum_counter = 0;
 }

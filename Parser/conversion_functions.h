@@ -15,6 +15,10 @@ header file, to convert the constant to its decimal equivalent.
 The reason they are converted is that only decimal numbers can be passed
 to the PTC SOLVER, and it is easier to convert them at parsing stage.
 */
+#define HEX 	16		// hexadecimal numbers have base 16
+#define OCTAL 	8		// octal numbers have the base 8
+#define HEX_LENGTH 2	// length of "0x" is 2
+#define OCTAL_LENGTH 1	// length of "0" is 1
 
 char* check_number(char constant[]);
 char* hex_to_decimal(char constant[]);

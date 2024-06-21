@@ -24,20 +24,19 @@ labeled_statement
 			{ strcpy($$, default_statement($3));  }	 
 	;
 */
+#define CASE_STRING 	"case("	// used to find case statements
+#define DEFAULT_STRING 	"default("	// used to find default statements
+#define COMMA_STRING	","	// used to find commas
 
 // FUNCTIONS FOR PROCESSING SWITCH STATEMENTS
-char * switch_statement(char S3[], char S5[]); 
-char * unreachablecode(char switchstring[]);	
-char * process_default(char switchstmt[]);
-char * insertswitch(char switchstmt[], char switchexpression[]); 
-// FUNCTIONS FOR PROCESSING CASE STATEMENTS
-char * case_statement(char S2[], char S4[]);
-char * analyze_case(char casestmt[]);
-// FUNCTIONS FOR PROCESSING DEFAULT STATEMENTS
-char * default_statement(char S3[]);
+char* switch_statement(char S3[], char S5[]); 
+char* unreachablecode(char switchstring[]);	
+char* process_default(char switchstmt[]);
+char* insertswitch(char switchstmt[], char switchexpression[]); 
+char* case_statement(char S2[], char S4[]);
+char* default_statement(char S3[]);
 
-char * switch_statement(char S3[], char S5[])
-{ 	
+char * switch_statement(char S3[], char S5[]){ 	
 	/*
 		This function is called at the switch statement on $5 in grammar.y at:
 		selection_statement
@@ -92,12 +91,10 @@ char * switch_statement(char S3[], char S5[])
 	// LINE NUMBER -- ERROR REPORTING PURPOSES
 	char* popped_value = PopList(Switch); // LINKEDLISTS.H 
 	
-	if (IsEmptyList(Switch))		// LINKEDLISTS.H 
-	{
+	if (IsEmptyList(Switch)) {
 		DisposeList(Switch);		// LINKEDLISTS.H 
 		SwitchListUsed = NO;		// LINKEDLISTS.H 
 	}
-	
 	
 	// SWITCH STATEMENTS
 		
@@ -111,7 +108,6 @@ char * switch_statement(char S3[], char S5[])
 		
 		free(unreachable_code);
 		free(switch_statement_str);
-
 		
 		if (S5[lenstring] != ']') 
 		{	
@@ -120,8 +116,6 @@ char * switch_statement(char S3[], char S5[])
 			strcat(S5, "]");
 		}			
 	}
-
-
 
 	///////////////////////////
 
@@ -140,9 +134,7 @@ char * switch_statement(char S3[], char S5[])
 	strcat(SS, "), ");
 
 	if (switch_statement_processed != NULL) {
-
-		if (S5[0] != '[')
-		{	// if there is no '[' at beginning of S5 insert one
+		if (S5[0] != '[') {	// if there is no '[' at beginning of S5 insert one
 			// to ensure else if part is a prolog list
 			strcat(SS, "[");
 		}
@@ -153,15 +145,11 @@ char * switch_statement(char S3[], char S5[])
 		strcat(SS, "[]");
 	}
 	strcat(SS, ")"); // finish with a closing bracket
-
-
 	free(popped_value);
-
 	return SS;
 }
 
-char * unreachablecode(char switchstring[])
-{
+char * unreachablecode(char switchstring[]) {
 	/*
 		This function is called from:
 			char * switch_statement(char S3[], char S5[])
@@ -195,14 +183,12 @@ char * unreachablecode(char switchstring[])
 	//					switch statement, if present.
 	// 	caseref		--	position of case, if present	
 	
-	if (strstr(tempstring, DEFAULT_STRING) != NULL)
-	{
+	if (strstr(tempstring, DEFAULT_STRING) != NULL) {
 		defaultptr = strstr(tempstring, DEFAULT_STRING);
 		defaultref = strlen(tempstring) - strlen(defaultptr);
 	}
 
-	if (strstr(tempstring, CASE_STRING) != NULL)
-	{
+	if (strstr(tempstring, CASE_STRING) != NULL) {
 		caseptr = strstr(tempstring, CASE_STRING);
 		caseref = strlen(tempstring) - strlen(caseptr);
 	}
@@ -218,9 +204,7 @@ char * unreachablecode(char switchstring[])
 
 	char* selected_ptr = NULL;
 
-
-	if (caseptr != NULL && defaultptr != NULL)
-	{
+	if (caseptr != NULL && defaultptr != NULL) {
 		selected_ptr = (caseref < defaultref) ? caseptr : defaultptr;
 	}
 	else if (caseptr != NULL) {
@@ -230,13 +214,11 @@ char * unreachablecode(char switchstring[])
 		selected_ptr = defaultptr;
 	}
 
-
 	if (selected_ptr != NULL) {
 		returnstring = (char*)malloc(3 + strlen(selected_ptr) + 1);
 		if (tempstring[0] == '[')
 			strcpy(returnstring, "[");
 		strcat(returnstring, "\n");
-
 		strcat(returnstring, selected_ptr);
 	}
 	else {
@@ -245,7 +227,6 @@ char * unreachablecode(char switchstring[])
 		if (tempstring[0] == '[')
 			strcpy(returnstring, "[");
 		strcat(returnstring, "\n");
-
 		strcat(returnstring, "]");
 	}
 
@@ -254,8 +235,7 @@ char * unreachablecode(char switchstring[])
 	return returnstring;
 }
 
-char * process_default(char switchstmt[])
-{
+char * process_default(char switchstmt[]) {
 	/*
 		This function is called from:
 			char * switch_statement(char S3[], char S5[])
@@ -304,8 +284,7 @@ char * process_default(char switchstmt[])
 	return returnstring;
 }
 
-char * insertswitch(char switchstmt[], char switchexpression[])
-{
+char * insertswitch(char switchstmt[], char switchexpression[]) {
 	/*
 		This function is called from:
 			char * switch_statement(char S3[], char S5[])
@@ -344,9 +323,7 @@ char * insertswitch(char switchstmt[], char switchexpression[])
 	// Number of case statements in the input string.
 	count = strstrcount(holdstring, CASE_STRING);
 
-	if (count > 0)
-	{	
-
+	if (count > 0) {	
 		char* temp;
 		char* copy;
 		char* workstring = copystring(holdstring, 0, (strlen(holdstring) - strlen(strstr(holdstring, CASE_STRING)) - 1));
@@ -382,8 +359,8 @@ char * insertswitch(char switchstmt[], char switchexpression[])
 			free(copy);
 			
 		}	
-		// Process that last case statement
-		if (loopcounter == count)
+
+		if (loopcounter == count)		// Process that last case statement
 		{
 			char* caseptr = strstr(holdstring, CASE_STRING);
 			char* commaptr = strstr(caseptr, COMMA_STRING);
@@ -405,22 +382,16 @@ char * insertswitch(char switchstmt[], char switchexpression[])
 		strcpy(returnstring, workstring);
 		free(workstring);
 	}
-	else
-	{	
-		// no cases found - return the statement as it was
+	else {	// no cases found - return the statement as it was
 		returnstring = (char*)malloc(strlen(switchstmt) + 1);
 		strcpy(returnstring, switchstmt);
 	}	
-	
 	free(expression);
-	
 	free(holdstring);
-
 	return returnstring;
 }
 
-char * case_statement(char S2[], char S4[])
-{
+char* case_statement(char S2[], char S4[]) {
 	/*
 		This function parses Case statements to their equivalent in Prolog 
 		terms, which has the following format:
@@ -453,8 +424,7 @@ char * case_statement(char S2[], char S4[])
 
 	// LINENUMBER	
 	strcat(returnstr, PopList(Case));	// LINKEDLISTS.H
-	if (IsEmptyList(Case))				// LINKEDLISTS.H
-	{
+	if (IsEmptyList(Case)) {
 		DisposeList(Case);				// LINKEDLISTS.H
 		CaseListUsed = NO;				// LINKEDLISTS.H
 	}
@@ -466,14 +436,10 @@ char * case_statement(char S2[], char S4[])
 	
 	// CASE STATEMENTS	
 
-	if (strstr(S4, "case(") != NULL)
-	{
-		// NESTED CASE - DO NOT CARRY FORWARD, APPEND NESTED CASE
+	if (strstr(S4, "case(") != NULL) {	// NESTED CASE - DO NOT CARRY FORWARD, APPEND NESTED CASE
 		strcat(returnstr, "[]), "); strcat(returnstr, S4);
 	}
-	else
-	{
-		// NO NESTED CASE - PROCESS AS PROLOG LIST
+	else {	// NO NESTED CASE - PROCESS AS PROLOG LIST
 		if (S4[0] != '[')			
 			strcat(returnstr, "[");	
 		strcat(returnstr, S4);
@@ -481,12 +447,10 @@ char * case_statement(char S2[], char S4[])
 			strcat(returnstr, "]");	
 		strcat(returnstr, ")");	
 	}
-
 	return returnstr;		
 }
 
-char* default_statement(char S3[])
-{
+char* default_statement(char S3[]) {
 	/*
 		This function parses Default statements to their equivalent in Prolog 
 		terms, which has the following format:
@@ -514,15 +478,13 @@ char* default_statement(char S3[])
 	char* line_number = PopList(Default); 	// LINKEDLISTS.H
 	strcat(returnstr, line_number);
 	free(line_number);
-	if (IsEmptyList(Default))				// LINKEDLISTS.H
-	{
+	if (IsEmptyList(Default)) {
 		DisposeList(Default);				// LINKEDLISTS.H
 		DefaultListUsed = NO;				// LINKEDLISTS.H
 	}
 	strcat(returnstr, ", ");
 	
-	// DEFAULT STATEMENTS			
-	if (S3[0] != '[')			
+	if (S3[0] != '[')		// DEFAULT STATEMENTS				
 		strcat(returnstr, "[");	
 	strcat(returnstr, S3);
 	if (S3[lenstring] != ']')
