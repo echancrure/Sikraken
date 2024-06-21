@@ -196,9 +196,9 @@ enumeration_constant
 	;
 
 string
-	: STRING_LITERAL
+	: STRING_LITERAL		//"blah" or wide_string("blah") see lexer
 	{
-		$$ = (char*) malloc(strlen($1) + 1);	//need to catch wide string literals such as L"bilinear_interpolation.c" here or in Flex
+		$$ = (char*) malloc(strlen($1) + 1);	
         strcpy($$, $1);
         free($1);
 	}

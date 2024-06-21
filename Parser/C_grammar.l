@@ -25,7 +25,8 @@ ES  (\\(['"\?\\abfnrtv]|[0-7]{1,3}|x[a-fA-F0-9]+))
 WS  [ \t\v\n\f]
 
 %{
-/* https://www.quut.com/c/ANSI-C-grammar-l-2011.html */
+// https://www.quut.com/c/ANSI-C-grammar-l-2011.html
+// Flex Patterns documentation: https://westes.github.io/flex/manual/Patterns.html#Patterns
 #include <stdio.h>
 
 extern void yyerror(const char *);  /* prints grammar violation message */
@@ -35,8 +36,6 @@ extern int sym_type(const char *);  /* returns type from symbol table */
 #define sym_type(identifier) IDENTIFIER /* with no symbol table, fake it */
 
 static void comment(void);
-// static int check_type(void);
-
 void AddToScopeList(void);
 void discard(void);
 int check_type(char var[]);
@@ -49,14 +48,12 @@ int check_type(char var[]);
 
 "auto"					{  return(AUTO); }
 "break"					{  return(BREAK); }
-"case"					{
-                            if (CaseListUsed == NO)
-                            {
+"case"					{ if (CaseListUsed == NO) {
                                 Case = CreateList();	// LINKEDLISTS.H
                                 CaseListUsed = YES;	// LINKEDLISTS.H
-                            }
-                            PushList(yylineno, Case);	// LINKEDLISTS.H
-                            return(CASE);
+                          }
+                          PushList(yylineno, Case);	// LINKEDLISTS.H
+                          return(CASE);
                         }
 "char"					{  return(CHAR); }
 "wchar_t"				{  return(WCHAR_T); }
@@ -184,10 +181,18 @@ int check_type(char var[]);
 {HP}{H}*"."{H}+{P}{FS}?			{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return F_CONSTANT; }
 {HP}{H}+"."{P}{FS}?			{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return F_CONSTANT; }
 
-({SP}?\"([^"\\\n]|{ES})*\"{WS}*)+	{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return STRING_LITERAL; }
+({SP}?\"([^"\\\n]|{ES})*\"{WS}*)+	    {if (yytext[0] == 'L') { //a wide string constant
+                                            yylval.id = malloc(strlen(yytext)+strlen("wide_string()")+1);
+                                            sprintf(yylval.id, "wide_string(%s)", &yytext[1]);      //copy from yytext[1] to removing 'L' prefix 
+                                         } else {
+                                            yylval.id = malloc(strlen(yytext)+1);
+                                            strcpy(yylval.id, yytext);
+                                         }
+                                         return STRING_LITERAL;
+                                        }
 
-"#"			            {  discard(); 	 }
-"#include"		        { discard();  }
+"#"			            { discard(); }
+"#include"		        { discard(); }
 
 "..."					{  return ELLIPSIS; }
 ">>="					{  return RIGHT_ASSIGN; }

@@ -2263,7 +2263,7 @@ yyreduce:
   case 11: /* string: STRING_LITERAL  */
 #line 200 "C_grammar.y"
         {
-		(yyval.id) = (char*) malloc(strlen((yyvsp[0].id)) + 1);	//need to catch wide string literals such as L"bilinear_interpolation.c" here or in Flex
+		(yyval.id) = (char*) malloc(strlen((yyvsp[0].id)) + 1);	
         strcpy((yyval.id), (yyvsp[0].id));
         free((yyvsp[0].id));
 	}
