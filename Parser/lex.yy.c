@@ -1634,8 +1634,8 @@ case 80:
 YY_RULE_SETUP
 #line 184 "C_grammar.l"
 {if (yytext[0] == 'L') { //a wide string constant
-                                            yylval.id = malloc(strlen(yytext)+strlen("wide_string()")+1);
-                                            sprintf(yylval.id, "wide_string(%s)", &yytext[1]);      //copy from yytext[1] to removing 'L' prefix 
+                                            yylval.id = malloc(strlen(yytext) + strlen("wide_string()") + 1);
+                                            sprintf(yylval.id, "wide_string(%s)", &yytext[1]);      //copy from yytext[1] to remove 'L' prefix 
                                          } else {
                                             yylval.id = malloc(strlen(yytext)+1);
                                             strcpy(yylval.id, yytext);

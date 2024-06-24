@@ -7,75 +7,11 @@ file GRAMMAR.Y
 
 int struct_flag = NO;
 
-char* process_records(char postfix_expression[], char identifier[]);
 char* seperate_fields(char vartype[], char varlist[]);
 char* strip_struct(char struct_string[]);
 char* struct_declaration(char decl_specifier[]);
 
-char * process_records(char postfix_expression[], char identifier[])
-{
-	/*
-		This function is called from the following place in GRAMMAR.Y:
-		postfix_expression
-			: primary_expression
-			| postfix_expression '[' expression ']'
-			| postfix_expression '(' ')'
-			| postfix_expression '(' argument_expression_list ')'
-			| postfix_expression '.' IDENTIFIER	 		-- call process_records()
-			| postfix_expression PTR_OP IDENTIFIER
-			| postfix_expression INC_OP
-			| postfix_expression DEC_OP
-			;
-		It is called when a reference is made to a record and its field(s).
-
-		The record is processed to produce the following predicate:
-
-			rec(RecordName, FieldName)
-
-		RecordName
-		----------
-		The name of the record as parsed. This is the parameter 'postfix_expression'
-
-		FieldName
-		---------
-		The name of the field must be provided to the symbolic executor, beginning
-		with a lower case letter. The first letter of the parameter 'identifier' is
-		changed to lower case and appended to the return string.
-
-		Example:
-		--------
-
-		For the structure definition:
-			struct point
-			{
-				int x;
-				int y;
-			} maxpt;
-			int area;
-
-		The line :
-			area = maxpt.x;
-		is parsed as 
-			assignment(Area, rec(Maxpt, x))
-	*/
-
-	// The first letter of the fields of the record (identifer) must 
-	// be a lower case letter in the Prolog terms.
-	identifier[0] = convert_tolower(identifier[0]);
-
-	// Build the return string
-	char* returnstr = (char*)malloc(4 + strlen(postfix_expression) + 2 + strlen(identifier) + 1 + 1);
-	strcpy(returnstr, "rec(");
-	strcat(returnstr, postfix_expression);
-	strcat(returnstr, ", ");
-	strcat(returnstr, identifier);
-	strcat(returnstr, ")");
-
-	return returnstr;				
-}
-
-
-char * seperate_fields(char vartype[], char varlist[])
+char * seperate_fields(char vartype[], char varlist[])	//only called once
 {
 	/*
 	This function is called from the following place in GRAMMAR.Y:
@@ -193,7 +129,7 @@ char * seperate_fields(char vartype[], char varlist[])
 	return returnstr;		
 }
 
-char* strip_struct(char struct_string[])
+char* strip_struct(char struct_string[])	//only called once
 {
 	/*
 		This function is called from the following place in GRAMMAR.Y:
@@ -214,25 +150,21 @@ char* strip_struct(char struct_string[])
 	// from the parameter.
 	// Example: struct_string = "struct, mystruct"
 	//			returnstr = "mystruct"
-	if(strstr(struct_string, ",") != NULL)	
-	{
+	if(strstr(struct_string, ",") != NULL)	{
 		commastring = strstr(struct_string, ",");
 		char* substring = copystring(commastring, 1, strlen(commastring));
 		returnstr = (char*)malloc(strlen(substring) + 1);
 		strcpy(returnstr, substring);
 		free(substring);
 	}
-	else
-	{
-		// No processing required	
+	else {// No processing required	
 		returnstr = (char*)malloc(strlen(struct_string) + 1);
 		strcpy(returnstr, struct_string);
 	}
-
 	return returnstr;	
 }
 
-char * struct_declaration(char decl_specifier[])
+char * struct_declaration(char decl_specifier[])	//only call once
 {
 	/*
 		This function is called from the following place in GRAMMAR.Y:

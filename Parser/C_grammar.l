@@ -172,18 +172,18 @@ int check_type(char var[]);
 {HP}{H}+{IS}?				{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return I_CONSTANT; }
 {NZ}{D}*{IS}?				{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return I_CONSTANT; }
 "0"{O}*{IS}?				{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return I_CONSTANT; }
-{CP}?"'"([^'\\\n]|{ES})+"'"		{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return I_CONSTANT; }
+{CP}?"'"([^'\\\n]|{ES})+"'"	{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return I_CONSTANT; }
 
 {D}+{E}{FS}?				{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return F_CONSTANT; }
-{D}*"."{D}+{E}?{FS}?			{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return F_CONSTANT; }
+{D}*"."{D}+{E}?{FS}?		{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return F_CONSTANT; }
 {D}+"."{E}?{FS}?			{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return F_CONSTANT; }
 {HP}{H}+{P}{FS}?			{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return F_CONSTANT; }
-{HP}{H}*"."{H}+{P}{FS}?			{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return F_CONSTANT; }
+{HP}{H}*"."{H}+{P}{FS}?		{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return F_CONSTANT; }
 {HP}{H}+"."{P}{FS}?			{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return F_CONSTANT; }
 
 ({SP}?\"([^"\\\n]|{ES})*\"{WS}*)+	    {if (yytext[0] == 'L') { //a wide string constant
-                                            yylval.id = malloc(strlen(yytext)+strlen("wide_string()")+1);
-                                            sprintf(yylval.id, "wide_string(%s)", &yytext[1]);      //copy from yytext[1] to removing 'L' prefix 
+                                            yylval.id = malloc(strlen(yytext) + strlen("wide_string()") + 1);
+                                            sprintf(yylval.id, "wide_string(%s)", &yytext[1]);      //copy from yytext[1] to remove 'L' prefix 
                                          } else {
                                             yylval.id = malloc(strlen(yytext)+1);
                                             strcpy(yylval.id, yytext);

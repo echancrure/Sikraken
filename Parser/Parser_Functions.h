@@ -23,13 +23,8 @@ int yyparse(void);								// extern function yyparse() to parse the file
 int parser_error(char errorcode[]);				// prints errors to screen & causes parsing to abort
 void yyerror (const char *s);					// in built error reporting for yyparse()
 
-int parser_error(char errorcode[])
-{
-	// 	When an error is encountered the errorcode passed as parameter
-	// 	to this function is output and execution is aborted by calling the exit() function from stdlib.h
-
+int parser_error(char errorcode[]) {
 	printf("%s\nEXECUTION ABORTED\n", errorcode);
-	getch();
 	exit(1);	// abort execution
    	return 1;	// denotes erronous termination
 }

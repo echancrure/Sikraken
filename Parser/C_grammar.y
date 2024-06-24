@@ -296,13 +296,11 @@ postfix_expression
         free($1);
         free($3);
 	}
-	| postfix_expression '.' IDENTIFIER
+	| postfix_expression '.' IDENTIFIER	// structure member access
 	{
-		// Process records/structures
-		char* record = process_records($1, $3); // STRUCTURES.H
-        $$ = (char*) malloc(strlen(record) + 1);
-		strcpy($$, record);
-		free(record);
+		$3[0] = convert_tolower($3[0]);
+		$$ = (char*) malloc(strlen($1) + strlen($3) + strlen("struct_access(, )")+ 1);
+		sprintf($$, "struct_access(%s, %s)", $1, $3);
 		free($1);
 		free($3);
 	}
@@ -535,10 +533,9 @@ multiplicative_expression
 	}
 	| multiplicative_expression '*' cast_expression
 	{
-		// Process * - change '*' to multiply to avoid confusion with
-		// the pointer dereference '*'
+		// Process * - change '*' to multiply to avoid confusion with the pointer dereference '*'
 		$$ = (char*) malloc(9 + strlen($1) + 2 + strlen($3) + 1 + 1);
-		strcpy($$, "multiply(");
+		strcpy($$, "multiply(");		//should not have to do this at all
 		strcat($$, $1);
 		strcat($$, ", ");
 		strcat($$, $3);
@@ -1415,20 +1412,16 @@ struct_declaration_list
 	;
 
 struct_declaration
-	: specifier_qualifier_list ';'	/* for anonymous struct/union */
+	: specifier_qualifier_list ';'
 	| specifier_qualifier_list struct_declarator_list ';'
 	{
-		// Many variables declared in $2, they must be separated.
-		if (strstr($2, ",") != NULL)
-		{
+		if (strstr($2, ",") != NULL) {	// Many variables declared in $2, they must be separated.
 			char* struct_definition_string = seperate_fields($1, $2); // STRUCTURES.H
 			$$ = (char*) malloc(strlen(struct_definition_string) + 1);
 			strcpy($$, struct_definition_string);
 			free(struct_definition_string);
 		}
-		else
-		// Build the structure list, removing the 'struct' keyword if present
-		{
+		else {	// Build the structure list, removing the 'struct' keyword if present
 			char* struct_definition_string = strip_struct($1); // STRUCTURES.H
 			$$ = (char*) malloc(2 + strlen($2) + 3 + strlen(struct_definition_string) + 1 + 1);
 			strcpy($$, "([");
@@ -1437,7 +1430,6 @@ struct_declaration
 			strcpy($1, struct_definition_string);
 			strcat($$, $1);
 			strcat($$, ")");
-
 			free(struct_definition_string);
 		}
 		free($1);
@@ -1448,7 +1440,7 @@ struct_declaration
 	| static_assert_declaration
 	;
 
-specifier_qualifier_list
+specifier_qualifier_list	//note the repeating of the rules: weird, but part of the grammar...
 	: type_specifier specifier_qualifier_list
 	{
 		$$ = (char*) malloc(strlen($1) + strlen($2) + 1);
@@ -1932,7 +1924,6 @@ type_qualifier_list
 		free($2);
 	}
 	;
-
 
 parameter_type_list
 	: parameter_list ',' ELLIPSIS
