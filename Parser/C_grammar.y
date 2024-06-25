@@ -941,6 +941,7 @@ declaration
 		if(typedef_flag == YES) {
 			typedef_flag = NO;
 			char* declaration = process_typedef($1, $2);
+
 			$$ = (char*) malloc(strlen(declaration) + 1);
 			strcpy($$, declaration);	// STRUCTURES.H
 			free(declaration);
@@ -1124,7 +1125,7 @@ storage_class_specifier
 	{
 		$$ = (char*) malloc(7 + 1);
 		strcpy($$, "typedef");
-		set_typedef_flag();	// TYPEDEF_FUNCTIONS.H
+		typedef_flag = YES;
 	}
 	| EXTERN
 	{
@@ -1440,7 +1441,7 @@ struct_declaration
 	| static_assert_declaration
 	;
 
-specifier_qualifier_list	//note the repeating of the rules: weird, but part of the grammar...
+specifier_qualifier_list
 	: type_specifier specifier_qualifier_list
 	{
 		$$ = (char*) malloc(strlen($1) + strlen($2) + 1);
@@ -1723,7 +1724,7 @@ direct_declarator
 	{
 		if(typedef_flag == YES) {
 			typedef_flag = NO;
-			char* declaration_cleaned = change_typedef($2); // TYPEDEF_FUNCTIONS.H
+			char *declaration_cleaned = change_typedef($2); // TYPEDEF_FUNCTIONS.H
 			add_typedefs(declaration_cleaned); // TYPEDEF_FUNCTIONS.H
 			free(declaration_cleaned);
 		}
@@ -1782,7 +1783,7 @@ direct_declarator
 		$$ = (char*) malloc(19 + strlen($1) + 2 + 1 + strlen($3) + 1 + 2 + 2 + 1);
 
 		if(typedef_flag == YES) {
-			char* declaration_cleaned = change_typedef($1); // TYPEDEF_FUNCTIONS.H
+			char *declaration_cleaned = change_typedef($1); // TYPEDEF_FUNCTIONS.H
 			add_typedefs(declaration_cleaned); // TYPEDEF_FUNCTIONS.H
 			free(declaration_cleaned);
 			typedef_flag = NO;
@@ -1832,7 +1833,7 @@ direct_declarator
 	{
 		if(typedef_flag == YES) {
 			typedef_flag = NO;
-			char* type_definition = change_typedef($3); // TYPEDEF_FUNCTIONS.H
+			char *type_definition = change_typedef($3); // TYPEDEF_FUNCTIONS.H
 			add_typedefs(type_definition); // TYPEDEF_FUNCTIONS.H
 			free(type_definition);
 		}
@@ -1880,8 +1881,8 @@ vc_specific_modifier
 pointer
 	: '*' type_qualifier_list pointer
 	{
-		$$ = (char*) malloc(1 + strlen($2) + strlen($3) + 1);
-		strcpy($$, "*");
+		$$ = (char*) malloc(11 + strlen($2) + strlen($3) + 1);
+		strcpy($$, "mypointer, ");
 		strcat($$, $2);
 		strcat($$, $3);
 		free($2);
@@ -1889,22 +1890,22 @@ pointer
 	}
 	| '*' type_qualifier_list
 	{
-		$$ = (char*) malloc(1 + strlen($2) + 1);
-		strcpy($$, "*");
+		$$ = (char*) malloc(11 + strlen($2) + 1);
+		strcpy($$, "mypointer, ");
 		strcat($$, $2);
 		free($2);
 	}
 	| '*' pointer
 	{
-		$$ = (char*) malloc(1 + strlen($2) + 1);
-		strcpy($$, "*");
+		$$ = (char*) malloc(11 + strlen($2) + 1);
+		strcpy($$, "mypointer, ");
 		strcat($$, $2);
 		free($2);
 	}
 	| '*'
 	{
-		$$ = (char*) malloc(1 + 1);
-		strcpy($$, "*");
+		$$ = (char*) malloc(9 + 1);
+		strcpy($$, "mypointer");
 	}
 	;
 
@@ -1924,6 +1925,7 @@ type_qualifier_list
 		free($2);
 	}
 	;
+
 
 parameter_type_list
 	: parameter_list ',' ELLIPSIS

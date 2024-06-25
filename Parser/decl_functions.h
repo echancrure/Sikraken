@@ -352,7 +352,6 @@ void addvariables(char* declarator, int Param) {
 	else
 		strcpy(varscope, "local");
 
-
 	char varassign[] = "";
 
 	// For all variables - add the variables just declared to the linked list
@@ -383,14 +382,12 @@ void addvariablestolist(char varname[], char vardetails[], char varassign[], cha
 		The varname, vardetails and varassign are added to the linked list ListOfVars
 	*/
 
-	if (FirstUseList == NO)
-	{
+	if (FirstUseList == NO) {
 		varstart.varnext = NULL;
 		FirstUseList = YES;
 	}
 	varnode = &varstart;
-	while (varnode->varnext)
-	{
+	while (varnode->varnext) {
 		varnode = varnode->varnext;
 	}
 	varnode->varnext = (struct ListOfVars*)malloc(sizeof(struct ListOfVars));
@@ -403,7 +400,7 @@ void addvariablestolist(char varname[], char vardetails[], char varassign[], cha
 	strcpy(varnode->variablename, varname);
 	strcpy(varnode->variabledetails, vardetails);
 	strcpy(varnode->assignstring, varassign);
-	strcpy(varnode->varscope, varscope);
+	strcpy(varnode->varscope, varscope);			//does not appear to be used
 	varnode->vardeclared = NO;
 	varnode->varnext = NULL;
 }
@@ -722,7 +719,7 @@ void addvariabledetails(char varname[], char varconstant[]) {
 	free(variable_name);
 }
 
-char* findvariabledetails(char vartype[]) {
+char* findvariabledetails(char vartype[]) { //pure syntactic sugar
 	/*
 	This function is called from:
 		declaration
@@ -770,7 +767,7 @@ char* findvariabledetails(char vartype[]) {
 
 	// Begin searching the linked list, starting at the beginning.
 	varnode = varstart.varnext;
-	while (varnode)
+	while (varnode)		//I don't even understand how this works: check the entire list????
 	{
 		if (varnode->vardeclared == NO)
 		{
@@ -902,16 +899,13 @@ char* removestar(char varname[]) {
 	strcpy(holdstr, initialisestring(holdstr, strlen(varname) + 1));
 
 	// Copy the characters of 'varname' to 'holdstr' provided they are not the character '*'.
-	while (i <= strlen(varname))
-	{
-		if (varname[i] != '*')
-		{
+	while (i <= strlen(varname)){
+		if (varname[i] != '*') {
 			holdstr[j] = varname[i];
 			i++;
 			j++;
 		}
-		else
-		{
+		else {
 			i++;
 		}
 	}
@@ -998,14 +992,11 @@ char* identifier_function(char identifier[])
 		itoa(i, istr, RADIX);
 		strcpy(returnstr, istr);
 	}
-	// Not an enumeration variable - process as normal variable name
-	else
-	{
+	else {	// Not an enumeration variable - process as normal variable name
 		strcpy(returnstr, case_name(identifier));	// OUTPUT_FUNCTIONS.H
 		parameterscope = ParameterSearch(returnstr);// SCOPES.H
 		linenumber = ScopeSearch(returnstr);		// SCOPES.H
-		if (parameterscope == NO)
-		{
+		if (parameterscope == NO) {
 			strcat(returnstr, "_");
 			itoa(linenumber, istr, RADIX);
 			strcat(returnstr, istr);

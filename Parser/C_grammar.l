@@ -167,7 +167,7 @@ int check_type(char var[]);
 "_Thread_local"         {  return THREAD_LOCAL; }
 "__func__"              {  return FUNC_NAME; }
 
-{L}{A}*					{  return check_type(yytext); }
+{L}{A}*					{      yylval.id = (char*) malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return check_type(yytext); }
 
 {HP}{H}+{IS}?				{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return I_CONSTANT; }
 {NZ}{D}*{IS}?				{  yylval.id = malloc(strlen(yytext)+1); strcpy(yylval.id, yytext); return I_CONSTANT; }
@@ -314,8 +314,7 @@ void AddToScopeList(void)
 	}
 }
 
-void discard(void)
-{
+void discard(void) {
     /*
         This removes any lines beginning with the character '#'
         from the underlying C code file. Lines beginning with '#' may
@@ -327,9 +326,8 @@ void discard(void)
 	while ((c = (char)(input())) != '\n' && c != 0)	;
 }
 
-int check_type(char var[])
-{
-    char* typename = (char *) malloc(3 + strlen(var) + 1);
+int check_type(char var[]) {
+    char *typename = (char *) malloc(3 + strlen(var) + 1);
 	/* Change var to its typename equivalent */
 	if (isupper(var[0]))
 		strcpy(typename, "uc_");
@@ -337,28 +335,22 @@ int check_type(char var[])
 		strcpy(typename, "lc_");
 	strcat(typename, var);
 
-    yylval.id = (char*) malloc(strlen(yytext)+1);
-	strcpy(yylval.id, yytext);
-
 	/*
         Search the Typedef Linked list for instance of 'typename'
 	    using functions defined in TYPEDEF_FUNCTIONS.H
 	    If 'typename' is present, return the TYPE_NAME token,
 	    Otherwise, return the IDENTIFIER token.
 	*/
-	if (traverse_types(typename) == YES)
-	{
+	if (traverse_types(typename) == YES) {
         if(struct_flag == YES) {
             struct_flag = NO;
             free(typename);
         	return IDENTIFIER;
         }
-   
         free(typename);
 		return TYPEDEF_NAME;
 	}
-	else
-	{
+	else {
         free(typename);
 		return IDENTIFIER;
 	}

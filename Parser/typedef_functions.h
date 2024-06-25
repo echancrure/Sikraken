@@ -58,7 +58,6 @@ struct ListOfTypes
 			
 void add_typedefs(char typedefname[]);
 int traverse_types(char typedefname[]);
-void set_typedef_flag(void);
 char* change_typedef(char* s);
 
 int find_first_non_star(char* str) {
@@ -73,8 +72,7 @@ int find_first_non_star(char* str) {
 	return -1;	// If all characters are '*', or the string is empty, return -1.
 }
 
-void add_typedefs(char typedefname[])
-{
+void add_typedefs(char typedefname[]) {
 	/*	
 		This function adds the parameter 'typedefname' to the linked list
 		of TYPEDEFs. The 'typedefname' will only be added to the linked
@@ -84,8 +82,7 @@ void add_typedefs(char typedefname[])
 
 	// Push the 'typedefname' parameter onto the linked list
 	// if it is not already stored there.
-	if (traverse_types(typedefname) == NO)
-	{	
+	if (traverse_types(typedefname) == NO) {	
 		// Create a new node and add the 'typedefname' parameter to it
 		typenode = &typestart;
 		while(typenode->typenext)
@@ -99,8 +96,7 @@ void add_typedefs(char typedefname[])
 }
 
 
-int traverse_types(char typedefname[])
-{
+int traverse_types(char typedefname[]) {
 	/*	
 		This function is called with the parameter 'typedefname'.
 		If 'typedefname' exists in the linked list of typedefs, YES (1) is returned;
@@ -127,22 +123,10 @@ int traverse_types(char typedefname[])
 		free(linkedlist_string);
 	}
 	free(param_string);
-	
 	return result;		
 }
 
-
-void set_typedef_flag(void)
-{
-	/*
-		This function SETS the typedef_flag if it is NO.
-	*/
-	typedef_flag = YES;
-}
-
-
-char * change_typedef(char* typedefname)
-{
+char * change_typedef(char* typedefname) {
 	/*
 		If the string 's' passed as parameter begins with a lowercase letter, 
 		"lc_" is added to the beginning of the string, otherwise "uc_" is added 
@@ -158,7 +142,7 @@ char * change_typedef(char* typedefname)
 	
 	char* returnstr = (char*)malloc(3 + strlen(typedefname) + 1);
 
-	int index = find_first_non_star(typedefname);
+	int index = find_first_non_star(typedefname);	//why?
 
 	char* type_name = copystring(typedefname, index, strlen(typedefname));
 	
@@ -172,4 +156,3 @@ char * change_typedef(char* typedefname)
 	free(type_name);
 	return returnstr;
 }
-

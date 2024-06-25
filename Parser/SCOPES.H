@@ -136,8 +136,7 @@ void PushVar(char variablename[], int Param)
 		to this level.
 	*/
 	Param = NO;
-    if (IsEmpty() == 1)
-    {	
+    if (IsEmpty() == 1) {	
     	/* 
 			Stack is empty.
     		This indicates that a global variable is being declared
@@ -155,9 +154,7 @@ void PushVar(char variablename[], int Param)
 		struct VarList *VarNode;		
 		FirstNode = Head.NextLevel;
 
-		if (FirstNode->NextVar == NULL)
-		{
-			// First entry in the nested linked list
+		if (FirstNode->NextVar == NULL) {	// First entry in the nested linked list
 			VarNode = (struct VarList*)malloc(sizeof(struct VarList));
 			VarNode->VarName = (char*)malloc(strlen(variablename) + 8 + 1); // +8 for the string "_Amended" which can be added 
 			strcpy(VarNode->VarName, variablename);
@@ -165,8 +162,7 @@ void PushVar(char variablename[], int Param)
 			VarNode->Next = NULL;
 			FirstNode->NextVar = VarNode;
 		}
-		else
-		{
+		else {
 			// 	Not the first entry in the nested linked list
 			//	Need to get to the end and then append node	
 		 	VarNode = FirstNode->NextVar;
@@ -215,8 +211,7 @@ void Pop(void)
 	node at the top of the stack is popped and all memory allocated to such is freed.
 	*/
 
-   	if (IsEmpty() == 1)
-   	{	
+   	if (IsEmpty() == 1) {	
    		// Stack is already empty so we cannot perform a Pop operation 
    	}
    	else
@@ -224,24 +219,17 @@ void Pop(void)
    		// Stack is NOT empty   	
 		struct Stack *FirstNode;			
 		FirstNode = Head.NextLevel;			
-		if (FirstNode->NextVar == NULL)
-		{	
-   			// Empty Stack  			
+		if (FirstNode->NextVar == NULL) {	// Empty Stack  			
 		}
-		else if (FirstNode->linenumber == GLOBAL_SCOPE_NUMBER)
-		{	
-			// Only scope left on the stack - do not Pop
+		else if (FirstNode->linenumber == GLOBAL_SCOPE_NUMBER) {	// Only scope left on the stack - do not Pop
 		}
-		else
-		{
-   			// Perform Pop operation 	
+		else {	// Perform Pop operation 	
       		Head.NextLevel = FirstNode->NextLevel;
 			free(FirstNode->NextVar->VarName);
 			free(FirstNode->NextVar);
   			free(FirstNode);
 
-  			if (IsEmpty() == 1)
-  			{
+  			if (IsEmpty() == 1) {
   				StackUsed = NO;
   				Head.NextLevel = NULL;
   			}
@@ -309,11 +297,9 @@ int ScopeSearch(char variablename[])
 	StackNode = Head.NextLevel;
 	
 	// Start at the top of the stack and work downwards - exit when correct result found
-	while(StackNode)
-	{
+	while(StackNode) {
 			VarNode = StackNode->NextVar;
-			while(VarNode)
-			{
+			while(VarNode) {
 				if (strcmp(VarNode->VarName, variablename) == 0)
 					return StackNode->linenumber;
 				else
@@ -328,8 +314,7 @@ int ScopeSearch(char variablename[])
 
 }
 
-int ParameterSearch(char variablename[])
-{
+int ParameterSearch(char variablename[]) {
 	/*
 	This function is called from:
 
@@ -377,8 +362,7 @@ int ParameterSearch(char variablename[])
 }
 
 
-int ScopeLineNumber(void)
-{
+int ScopeLineNumber(void) {
 	/*
 		This function is called from functions in DECL_FUNCTIONS.H
 		It returns the linenumber of the current scope as long as the Stack is not empty. 
