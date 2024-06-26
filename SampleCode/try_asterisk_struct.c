@@ -20,6 +20,7 @@ struct point{
 };
 
 void main() {
+    typedef long Money;
     struct point pt = {320, 200};
     int tot = pt.x + pt.y;
     if (tot > 42) {
