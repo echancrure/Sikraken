@@ -324,31 +324,29 @@ storage_class_specifier
 		{simple_str_lit_copy(&$$, "typedef");
          typedef_flag = 1;
 	    }
-| EXTERN{ simple_str_lit_copy(&$$, "extern"); }
-| STATIC{ simple_str_lit_copy(&$$, "static"); }
-| THREAD_LOCAL{ simple_str_lit_copy(&$$, "thread_local"); }
-| AUTO{ simple_str_lit_copy(&$$, "auto"); }
-| REGISTER{ simple_str_lit_copy(&$$, "register"); }
+	| EXTERN{ simple_str_lit_copy(&$$, "extern"); }
+	| STATIC{ simple_str_lit_copy(&$$, "static"); }
+	| THREAD_LOCAL{ simple_str_lit_copy(&$$, "thread_local"); }
+	| AUTO{ simple_str_lit_copy(&$$, "auto"); }
+	| REGISTER{ simple_str_lit_copy(&$$, "register"); }
 	;
 
 type_specifier
-	: VOID{ simple_str_lit_copy(&$$, "void"); }
-	| CHAR
-{ simple_str_lit_copy(&$$, "char"); }
-| SHORT{ simple_str_lit_copy(&$$, "short"); }
-| INT
- { simple_str_lit_copy(&$$, "int"); }
-| LONG{ simple_str_lit_copy(&$$, "long"); }
-| FLOAT{ simple_str_lit_copy(&$$, "float"); }
-| DOUBLE{ simple_str_lit_copy(&$$, "double"); }
-| SIGNED{ simple_str_lit_copy(&$$, "signed"); }
-| UNSIGNED{ simple_str_lit_copy(&$$, "unsigned"); }
-| BOOL{ simple_str_lit_copy(&$$, "bool"); }
-| COMPLEX{ simple_str_lit_copy(&$$, "complex"); }
-| IMAGINARY{ simple_str_lit_copy(&$$, "imaginary"); } 	/* non-mandated extension */
-| atomic_type_specifier{ simple_str_lit_copy(&$$, "atomic_type_specifier"); }
-| struct_or_union_specifier{ simple_str_lit_copy(&$$, "struct_or_union_specifier"); }
-| enum_specifier{ simple_str_lit_copy(&$$, "enum_specifier"); }
+	: VOID					{ simple_str_lit_copy(&$$, "void"); }
+	| CHAR					{ simple_str_lit_copy(&$$, "char"); }
+	| SHORT						{ simple_str_lit_copy(&$$, "short"); }
+	| INT						{ simple_str_lit_copy(&$$, "int"); }
+	| LONG					{ simple_str_lit_copy(&$$, "long"); }
+	| FLOAT					{ simple_str_lit_copy(&$$, "float"); }
+	| DOUBLE{ simple_str_lit_copy(&$$, "double"); }
+	| SIGNED{ simple_str_lit_copy(&$$, "signed"); }
+	| UNSIGNED{ simple_str_lit_copy(&$$, "unsigned"); }
+	| BOOL{ simple_str_lit_copy(&$$, "bool"); }
+	| COMPLEX{ simple_str_lit_copy(&$$, "complex"); }
+	| IMAGINARY{ simple_str_lit_copy(&$$, "imaginary"); } 	/* non-mandated extension */
+	| atomic_type_specifier{ simple_str_lit_copy(&$$, "atomic_type_specifier"); }
+	| struct_or_union_specifier{ simple_str_lit_copy(&$$, "struct_or_union_specifier"); }
+	| enum_specifier{ simple_str_lit_copy(&$$, "enum_specifier"); }
 	| TYPEDEF_NAME				/* after it has been defined as such */
 		{size_t const size = strlen($1) + 1;
 		 $$ = (char*)malloc(size);
@@ -670,7 +668,7 @@ jump_statement
 
 translation_unit
 	: external_declaration
-	| translation_unit external_declaration
+	| translation_unit { fprintf(pl_file, ", "); } external_declaration
 	;
 
 external_declaration
