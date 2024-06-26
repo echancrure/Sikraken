@@ -30,15 +30,15 @@ int debugMode = 0;				//flag to indicate if we are in debug mode set by by -d co
 	char* id;
 }
 
-%token <id> IDENTIFIER 
+%token <id> IDENTIFIER TYPEDEF_NAME
 %token I_CONSTANT F_CONSTANT STRING_LITERAL FUNC_NAME SIZEOF
 %token	PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
 %token	AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
 %token	SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
 %token	XOR_ASSIGN OR_ASSIGN
-%token	TYPEDEF_NAME ENUMERATION_CONSTANT
+%token	ENUMERATION_CONSTANT
 
-%token <id> TYPEDEF 
+%token  TYPEDEF 
 %token  EXTERN STATIC AUTO REGISTER INLINE
 %token	CONST RESTRICT VOLATILE
 %token	BOOL CHAR SHORT INT LONG SIGNED UNSIGNED FLOAT DOUBLE VOID
@@ -49,7 +49,8 @@ int debugMode = 0;				//flag to indicate if we are in debug mode set by by -d co
 
 %token	ALIGNAS ALIGNOF ATOMIC GENERIC NORETURN STATIC_ASSERT THREAD_LOCAL
 
-%type <id> storage_class_specifier declarator init_declarator initializer
+%type <id> storage_class_specifier declarator init_declarator initializer direct_declarator pointer type_qualifier type_qualifier_list init_declarator_list declaration_specifiers
+%type <id> type_specifier
 
 %start translation_unit
 %%
@@ -226,30 +227,77 @@ constant_expression
 
 declaration
 	: declaration_specifiers ';'
+		{fprintf(pl_file, "declaration([%s])\n", $1);
+		 free($1);
+		}
 	| declaration_specifiers init_declarator_list ';' 
 	  {if (typedef_flag == 1) {	//we were processing typedef declarations
 	     typedef_flag = 0;
 	   }
+	   fprintf(pl_file, "declaration([%s], [%s])\n", $1, $2);
+	   free($1);
+	   free($2);
 	  }
 	| static_assert_declaration
+		{fprintf(pl_file, "static_assert_declaration\n");
+		}
 	;
 
 declaration_specifiers
 	: storage_class_specifier declaration_specifiers
+		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "%s, %s", $1, $2);
+		 free($1);
+		 free($2);
+		}
 	| storage_class_specifier
+		{size_t const size = strlen($1) + 1;
+		 $$ = (char*)malloc(size);
+		 strcpy_s($$, size, $1);
+		 free($1);
+		}
 	| type_specifier declaration_specifiers
+		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "%s, %s", $1, $2);
+		 free($1);
+		 free($2);
+		}
 	| type_specifier
+		{size_t const size = strlen($1) + 1;
+		 $$ = (char*)malloc(size);
+		 strcpy_s($$, size, $1);
+		 free($1);
+		}
 	| type_qualifier declaration_specifiers
+{ simple_str_lit_copy(&$$, "type_qualifier declaration_specifiers"); }
 	| type_qualifier
+{ simple_str_lit_copy(&$$, "type_qualifier"); }
 	| function_specifier declaration_specifiers
+{ simple_str_lit_copy(&$$, "function_specifier declaration_specifiers"); }
 	| function_specifier
+{ simple_str_lit_copy(&$$, "function_specifier"); }
 	| alignment_specifier declaration_specifiers
+{ simple_str_lit_copy(&$$, "alignment_specifier declaration_specifiers"); }
 	| alignment_specifier
+{ simple_str_lit_copy(&$$, "alignment_specifier"); }
 	;
 
 init_declarator_list
 	: init_declarator
+		{size_t const size = strlen($1) + 1;
+		 $$ = (char*)malloc(size);
+	     strcpy_s($$, size, $1);
+         free($1);
+		}
 	| init_declarator_list ',' init_declarator
+		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
+	     $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "%s, %s", $1, $3);
+	     free($1);
+	     free($3);
+		}
 	;
 
 init_declarator
@@ -258,13 +306,13 @@ init_declarator
 	   $$ = (char*)malloc(size);
 	   sprintf_s($$, size, "initialised(%s, %s)", $1, $3);
 	   free($1);
-	   free($3);
+	   //free($3);
 	  }
 	| declarator
 	  {if (typedef_flag == 1) {// we are parsing one typedef declaration
 		 add_typedef_name($1);
 	   }
-       size_t const size = strlen($1) + 1;
+	   size_t const size = strlen($1) + 1;
 	   $$ = (char*)malloc(size);
 	   strcpy_s($$, size, $1);
 	   free($1);
@@ -273,35 +321,40 @@ init_declarator
 
 storage_class_specifier
 	: TYPEDEF	/* identifiers must be flagged as TYPEDEF_NAME */
-      {size_t const size = strlen("typedef") + 1;
-	   $$ = (char*)malloc(size);
-	   strcpy_s($$, size, "typedef");
-	   typedef_flag = 1;
-	  }
-	| EXTERN
-	| STATIC
-	| THREAD_LOCAL
-	| AUTO
-	| REGISTER
+		{simple_str_lit_copy(&$$, "typedef");
+         typedef_flag = 1;
+	    }
+| EXTERN{ simple_str_lit_copy(&$$, "extern"); }
+| STATIC{ simple_str_lit_copy(&$$, "static"); }
+| THREAD_LOCAL{ simple_str_lit_copy(&$$, "thread_local"); }
+| AUTO{ simple_str_lit_copy(&$$, "auto"); }
+| REGISTER{ simple_str_lit_copy(&$$, "register"); }
 	;
 
 type_specifier
-	: VOID
+	: VOID{ simple_str_lit_copy(&$$, "void"); }
 	| CHAR
-	| SHORT
-	| INT
-	| LONG
-	| FLOAT
-	| DOUBLE
-	| SIGNED
-	| UNSIGNED
-	| BOOL
-	| COMPLEX
-	| IMAGINARY	  	/* non-mandated extension */
-	| atomic_type_specifier
-	| struct_or_union_specifier
-	| enum_specifier
-	| TYPEDEF_NAME		/* after it has been defined as such */
+{ simple_str_lit_copy(&$$, "char"); }
+| SHORT{ simple_str_lit_copy(&$$, "short"); }
+| INT
+ { simple_str_lit_copy(&$$, "int"); }
+| LONG{ simple_str_lit_copy(&$$, "long"); }
+| FLOAT{ simple_str_lit_copy(&$$, "float"); }
+| DOUBLE{ simple_str_lit_copy(&$$, "double"); }
+| SIGNED{ simple_str_lit_copy(&$$, "signed"); }
+| UNSIGNED{ simple_str_lit_copy(&$$, "unsigned"); }
+| BOOL{ simple_str_lit_copy(&$$, "bool"); }
+| COMPLEX{ simple_str_lit_copy(&$$, "complex"); }
+| IMAGINARY{ simple_str_lit_copy(&$$, "imaginary"); } 	/* non-mandated extension */
+| atomic_type_specifier{ simple_str_lit_copy(&$$, "atomic_type_specifier"); }
+| struct_or_union_specifier{ simple_str_lit_copy(&$$, "struct_or_union_specifier"); }
+| enum_specifier{ simple_str_lit_copy(&$$, "enum_specifier"); }
+	| TYPEDEF_NAME				/* after it has been defined as such */
+		{size_t const size = strlen($1) + 1;
+		 $$ = (char*)malloc(size);
+		 strcpy_s($$, size, $1);
+		 free($1);
+		};
 	;
 
 struct_or_union_specifier
@@ -368,9 +421,17 @@ atomic_type_specifier		// new in C11 for atomic operation: used in concurrency
 
 type_qualifier
 	: CONST
+		{simple_str_lit_copy(&$$, "const");
+		}
 	| RESTRICT
+		{simple_str_lit_copy(&$$, "restrict");
+		}
 	| VOLATILE
+		{simple_str_lit_copy(&$$, "volatile");
+		}
 	| ATOMIC
+		{ simple_str_lit_copy(&$$, "atomic");
+		}
 	;
 
 function_specifier
@@ -385,38 +446,82 @@ alignment_specifier
 
 declarator
 	: pointer direct_declarator
+	  {size_t const size = strlen("()") + strlen($1) + strlen($2) + 1;
+       $$ = (char*)malloc(size);
+       sprintf_s($$, size, "%s(%s)", $1, $2);
+	   free($1);
+	   free($2);
+      }
 	| direct_declarator
+	  {size_t const size = strlen($1) + 1;
+       $$ = (char*)malloc(size);
+       strcpy_s($$, size, $1);
+       free($1);
+      }
 	;
 
 direct_declarator
 	: IDENTIFIER
-	| '(' declarator ')'
-	| direct_declarator '[' ']'
-	| direct_declarator '[' '*' ']'
-	| direct_declarator '[' STATIC type_qualifier_list assignment_expression ']'
-	| direct_declarator '[' STATIC assignment_expression ']'
-	| direct_declarator '[' type_qualifier_list '*' ']'
-	| direct_declarator '[' type_qualifier_list STATIC assignment_expression ']'
-	| direct_declarator '[' type_qualifier_list assignment_expression ']'
-	| direct_declarator '[' type_qualifier_list ']'
-	| direct_declarator '[' assignment_expression ']'
-	| direct_declarator '(' parameter_type_list ')'
-	| direct_declarator '(' ')'
-	| direct_declarator '(' identifier_list ')'
+		{size_t const size = strlen($1) + 1;
+	     $$ = (char*)malloc(size);
+		 strcpy_s($$, size, $1);
+	     free($1);
+		}
+	| '(' declarator ')'			{simple_str_lit_copy(&$$, "D1");}
+	| direct_declarator '[' ']'		{simple_str_lit_copy(&$$, "D2"); }
+	| direct_declarator '[' '*' ']'	{simple_str_lit_copy(&$$, "D3"); }
+	| direct_declarator '[' STATIC type_qualifier_list assignment_expression ']' {simple_str_lit_copy(&$$, "D4"); }
+	| direct_declarator '[' STATIC assignment_expression ']'{simple_str_lit_copy(&$$, "D5"); }
+	| direct_declarator '[' type_qualifier_list '*' ']'{simple_str_lit_copy(&$$, "D6"); }
+	| direct_declarator '[' type_qualifier_list STATIC assignment_expression ']'{simple_str_lit_copy(&$$, "D7"); }
+	| direct_declarator '[' type_qualifier_list assignment_expression ']'{simple_str_lit_copy(&$$, "D8"); }
+	| direct_declarator '[' type_qualifier_list ']'{simple_str_lit_copy(&$$, "D9"); }
+	| direct_declarator '[' assignment_expression ']'{simple_str_lit_copy(&$$, "D10"); }
+	| direct_declarator '(' parameter_type_list ')'{simple_str_lit_copy(&$$, "D11"); }
+	| direct_declarator '(' ')'{simple_str_lit_copy(&$$, "D12"); }
+	| direct_declarator '(' identifier_list ')'{simple_str_lit_copy(&$$, "D13"); }
 	;
 
 pointer
 	: '*' type_qualifier_list pointer
+		{size_t const size = strlen("pointer???(, )") + strlen($2) + strlen($3) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_s($$, size, "pointer???(%s, %s)", $2, $3);
+		 free($2);
+		 free($3);
+		}
 	| '*' type_qualifier_list
+		{size_t const size = strlen("pointer()") + strlen($2) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_s($$, size, "pointer(%s)", $2);
+	     free($2);
+		}
 	| '*' pointer
+		{size_t const size = strlen("pointer()") + strlen($2) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "pointer(%s)", $2);
+		 free($2);
+		}
 	| '*'
+		{simple_str_lit_copy(&$$, "pointer"); 
+		}
 	;
 
 type_qualifier_list
 	: type_qualifier
+		{size_t const size = strlen($1) + 1;
+		 $$ = (char*)malloc(size);
+		 strcpy_s($$, size, $1);
+		 free($1);
+		}
 	| type_qualifier_list type_qualifier
+		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_s($$, size, "%s, %s", $1, $2);
+	     free($1);
+		 free($2);
+		}
 	;
-
 
 parameter_type_list
 	: parameter_list ',' ELLIPSIS
@@ -649,5 +754,6 @@ void my_exit(int exit_code) {			//exits and performs some tidying up if not in d
     if (pl_file) fclose(pl_file);
     if (_access(pl_file_uri, 0) != -1) remove(pl_file_uri);
   }
+  if (exit_code == EXIT_SUCCESS) fprintf(stderr, "Sikraken parsing success, wrote %s", pl_file_uri);
   exit(exit_code);
 }

@@ -15,15 +15,12 @@ list_node *typedef_list = NULL;
 
 
 void add_typedef_name(char* id) {
-	list_node* current = typedef_list;
-	while (current) {
-		current = current->next;
-	}
 	list_node* new_node = (list_node *)safe_malloc(sizeof(list_node));
 	new_node->typedef_name = (char*)safe_malloc(strlen(id) + 1);
 	strcpy_s(new_node->typedef_name, strlen(id) + 1, id);
-	new_node->next = NULL;
-	current = new_node;
+	if (typedef_list != NULL) new_node->next = typedef_list;
+	else new_node->next = NULL;
+	typedef_list = new_node;
 }
 
 int is_typedef_name(char* id) {

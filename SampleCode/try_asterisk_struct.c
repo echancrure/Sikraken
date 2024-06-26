@@ -1,6 +1,8 @@
 //21 June 2024 testing parser for pointer as a member of a structure
 typedef int Money;
+Money mo1;
 typedef char *String;
+int i, j, k;
 unsigned short const *aa;
 struct b_struct {
     unsigned short const *a;

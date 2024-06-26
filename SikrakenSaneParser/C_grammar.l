@@ -93,7 +93,7 @@ WS  [ \t\v\n\f]
 "_Thread_local"                         { return THREAD_LOCAL; }
 "__func__"                              { return FUNC_NAME; }
 
-{L}{A}* {
+{L}{A}*                     {
                               size_t size = strlen(yytext) + 1;
                               yylval.id = (char*)malloc(size); 
                               strcpy_s(yylval.id, size, yytext);
