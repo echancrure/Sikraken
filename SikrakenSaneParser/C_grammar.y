@@ -51,8 +51,10 @@ int debugMode = 0;				//flag to indicate if we are in debug mode set by by -d co
 
 %type <id> storage_class_specifier declarator init_declarator initializer direct_declarator pointer type_qualifier type_qualifier_list init_declarator_list declaration_specifiers
 %type <id> type_specifier
-%type <id> function_specifier expression constant_expression assignment_expression conditional_expression unary_expression assignment_operator
-%type <id> logical_or_expression logical_and_expression
+%type <id> function_specifier expression constant_expression assignment_expression conditional_expression assignment_operator
+%type <id> logical_or_expression logical_and_expression inclusive_or_expression exclusive_or_expression and_expression equality_expression equality_expression_op relational_expression relational_expression_operator shift_expression shift_expression_op additive_expression additive_expression_op
+%type <id> multiplicative_expression multiplicative_expression_op cast_expression unary_expression unary_operator unary_inc_dec postfix_expression 
+%type <id> type_name
 
 %start translation_unit
 %%
@@ -95,16 +97,16 @@ generic_association
 	;
 
 postfix_expression
-	: primary_expression
-	| postfix_expression '[' expression ']'
-	| postfix_expression '(' ')'
-	| postfix_expression '(' argument_expression_list ')'
-	| postfix_expression '.' IDENTIFIER
-	| postfix_expression PTR_OP IDENTIFIER
-	| postfix_expression INC_OP
-	| postfix_expression DEC_OP
-	| '(' type_name ')' '{' initializer_list '}'
-	| '(' type_name ')' '{' initializer_list ',' '}'
+	: primary_expression	{simple_str_lit_copy(&$$, "dum1");}
+	| postfix_expression '[' expression ']'	{simple_str_lit_copy(&$$, "dum2");}
+	| postfix_expression '(' ')'			{simple_str_lit_copy(&$$, "dum3");}
+	| postfix_expression '(' argument_expression_list ')'	{simple_str_lit_copy(&$$, "dum4");}
+	| postfix_expression '.' IDENTIFIER			{simple_str_lit_copy(&$$, "dum5");}
+	| postfix_expression PTR_OP IDENTIFIER		{simple_str_lit_copy(&$$, "dum6");}
+	| postfix_expression INC_OP					{simple_str_lit_copy(&$$, "dum7");}
+	| postfix_expression DEC_OP					{simple_str_lit_copy(&$$, "dum8");}
+	| '(' type_name ')' '{' initializer_list '}'		{simple_str_lit_copy(&$$, "dum9");}
+	| '(' type_name ')' '{' initializer_list ',' '}'	{simple_str_lit_copy(&$$, "dum10");}
 	;
 
 argument_expression_list
@@ -113,80 +115,197 @@ argument_expression_list
 	;
 
 unary_expression
-	: postfix_expression
-	| INC_OP unary_expression
-	| DEC_OP unary_expression
+	: postfix_expression		{simple_str_copy(&$$, $1);}
+	| unary_inc_dec unary_expression
+		{size_t const size = strlen("()") + strlen($1) + strlen($2) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "%s(%s)", $1, $2);
+		 free($1);
+		 free($2);
+		}
 	| unary_operator cast_expression
+		{size_t const size = strlen("()") + strlen($1) + strlen($2) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "%s(%s)", $1, $2);
+		 free($1);
+		 free($2);
+		}
 	| SIZEOF unary_expression
+		{size_t const size = strlen("size_of_exp()") + strlen($2) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "size_of_exp(%s)", $2);
+		 free($2);
+		}
 	| SIZEOF '(' type_name ')'
+		{size_t const size = strlen("size_of_type()") + strlen($3) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "size_of_type(%s)", $3);
+		 free($3);
+		}
 	| ALIGNOF '(' type_name ')'
+		{size_t const size = strlen("align_of()") + strlen($3) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "align_of(%s)", $3);
+		 free($3);
+		}
+	;
+
+unary_inc_dec
+	: INC_OP	{simple_str_lit_copy(&$$, "prefix_inc_op");}
+	| DEC_OP	{simple_str_lit_copy(&$$, "prefix_dec_op");}
 	;
 
 unary_operator
-	: '&'
-	| '*'
-	| '+'
-	| '-'
-	| '~'
-	| '!'
+	: '&'	{simple_str_lit_copy(&$$, "address_of_op");}
+	| '*'	{simple_str_lit_copy(&$$, "dereference_op");}
+	| '+'	{simple_str_lit_copy(&$$, "plus_op");}
+	| '-'	{simple_str_lit_copy(&$$, "minus_op");}
+	| '~'	{simple_str_lit_copy(&$$, "one_comp_op");}
+	| '!'	{simple_str_lit_copy(&$$, "not_op");}
 	;
 
 cast_expression
-	: unary_expression
+	: unary_expression	{simple_str_copy(&$$, $1);}
 	| '(' type_name ')' cast_expression
+		{size_t const size = strlen("cast(, )") + strlen($2) + strlen($4) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "cast(%s, %s)", $2, $4);
+		 free($2);
+		 free($4);
+		}
 	;
 
 multiplicative_expression
-	: cast_expression
-	| multiplicative_expression '*' cast_expression
-	| multiplicative_expression '/' cast_expression
-	| multiplicative_expression '%' cast_expression
+	: cast_expression	{simple_str_copy(&$$, $1);}
+	| multiplicative_expression multiplicative_expression_op cast_expression
+		{size_t const size = strlen("(, )") + strlen($1) + strlen($2) + strlen($3) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "%s(%s, %s)", $2, $1, $3);
+		 free($1);
+		 free($2);
+		 free($3);
+		}
+	;
+
+multiplicative_expression_op
+	: '*'	{simple_str_lit_copy(&$$, "multiply_op");}
+	| '/'	{simple_str_lit_copy(&$$, "div_op");}
+	| '%'	{simple_str_lit_copy(&$$, "mod_op");}
 	;
 
 additive_expression
-	: multiplicative_expression
-	| additive_expression '+' multiplicative_expression
-	| additive_expression '-' multiplicative_expression
+	: multiplicative_expression	{simple_str_copy(&$$, $1);}
+	| additive_expression additive_expression_op multiplicative_expression
+		{size_t const size = strlen("(, )") + strlen($1) + strlen($2) + strlen($3) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "%s(%s, %s)", $2, $1, $3);
+		 free($1);
+		 free($2);
+		 free($3);
+		}
+	;
+
+additive_expression_op
+	: '+'		{simple_str_lit_copy(&$$, "plus_op");}
+	| '-'		{simple_str_lit_copy(&$$, "minus_op");}
 	;
 
 shift_expression
-	: additive_expression
-	| shift_expression LEFT_OP additive_expression
-	| shift_expression RIGHT_OP additive_expression
+	: additive_expression	{simple_str_copy(&$$, $1);}
+	| shift_expression shift_expression_op additive_expression
+		{size_t const size = strlen("(, )") + strlen($1) + strlen($2) + strlen($3) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "%s(%s, %s)", $2, $1, $3);
+		 free($1);
+		 free($2);
+		 free($3);
+		}
+	;
+
+shift_expression_op
+	: LEFT_OP		{simple_str_lit_copy(&$$, "left_shift_op");}
+	| RIGHT_OP		{simple_str_lit_copy(&$$, "right_shift_op");}
 	;
 
 relational_expression
-	: shift_expression
-	| relational_expression '<' shift_expression
-	| relational_expression '>' shift_expression
-	| relational_expression LE_OP shift_expression
-	| relational_expression GE_OP shift_expression
+	: shift_expression	{simple_str_copy(&$$, $1);}
+	| relational_expression relational_expression_operator shift_expression
+		{size_t const size = strlen("(, )") + strlen($1) + strlen($2) + strlen($3) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "%s(%s, %s)", $2, $1, $3);
+		 free($1);
+		 free($2);
+		 free($3);
+		}
 	;
 
+relational_expression_operator
+	: '<' 		{simple_str_lit_copy(&$$, "less_op");}
+	| '>'		{simple_str_lit_copy(&$$, "greater_op");}
+	| LE_OP		{simple_str_lit_copy(&$$, "less_or_eq_op");}
+	| GE_OP		{simple_str_lit_copy(&$$, "greater_or_eq_op");}
+	;
+
+
 equality_expression
-	: relational_expression
-	| equality_expression EQ_OP relational_expression
-	| equality_expression NE_OP relational_expression
+	: relational_expression	{simple_str_copy(&$$, $1);}
+	| equality_expression equality_expression_op relational_expression
+		{size_t const size = strlen("(, )") + strlen($1) + strlen($2) + strlen($3) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "%s(%s, %s)", $2, $1, $3);
+		 free($1);
+		 free($2);
+		 free($3);
+		}
+	; 
+
+equality_expression_op
+	: EQ_OP		{simple_str_lit_copy(&$$, "equal_op");}
+	| NE_OP		{simple_str_lit_copy(&$$, "not_equal_op");}
 	;
 
 and_expression
-	: equality_expression
+	: equality_expression	{simple_str_copy(&$$, $1);}
 	| and_expression '&' equality_expression
+		{size_t const size = strlen("bitw_and(, )") + strlen($1) + strlen($3) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "bitw_and(%s, %s)", $1, $3);
+		 free($1);
+		 free($3);
+		}
 	;
 
 exclusive_or_expression
-	: and_expression
+	: and_expression	{simple_str_copy(&$$, $1);}
 	| exclusive_or_expression '^' and_expression
+		{size_t const size = strlen("bitw_excl_or_op(, )") + strlen($1) + strlen($3) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "bitw_excl_or_op(%s, %s)", $1, $3);
+		 free($1);
+		 free($3);
+		}
 	;
 
 inclusive_or_expression
-	: exclusive_or_expression
+	: exclusive_or_expression	{simple_str_copy(&$$, $1);}
 	| inclusive_or_expression '|' exclusive_or_expression
+		{size_t const size = strlen("bitw_incl_or_op(, )") + strlen($1) + strlen($3) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "bitw_incl_or_op(%s, %s)", $1, $3);
+		 free($1);
+		 free($3);
+		}
 	;
 
 logical_and_expression
-	: inclusive_or_expression	{simple_str_lit_copy(&$$, "andxxx");}
-	| logical_and_expression AND_OP inclusive_or_expression {simple_str_lit_copy(&$$, "andxxx");}
+	: inclusive_or_expression	{simple_str_copy(&$$, $1);}
+	| logical_and_expression AND_OP inclusive_or_expression
+		{size_t const size = strlen("and_op(, )") + strlen($1) + strlen($3) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "and_op(%s, %s)", $1, $3);
+		 free($1);
+		 free($3);
+		}
 	;
 
 logical_or_expression
@@ -530,8 +649,8 @@ identifier_list
 	;
 
 type_name
-	: specifier_qualifier_list abstract_declarator
-	| specifier_qualifier_list
+	: specifier_qualifier_list abstract_declarator	{simple_str_lit_copy(&$$, "typenamedummy1");}
+	| specifier_qualifier_list						{simple_str_lit_copy(&$$, "typenamedummy2");}
 	;
 
 abstract_declarator
