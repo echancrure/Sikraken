@@ -51,6 +51,7 @@ int debugMode = 0;				//flag to indicate if we are in debug mode set by by -d co
 
 %type <id> storage_class_specifier declarator init_declarator initializer direct_declarator pointer type_qualifier type_qualifier_list init_declarator_list declaration_specifiers
 %type <id> type_specifier
+%type <id> function_specifier expression constant_expression
 
 %start translation_unit
 %%
@@ -218,11 +219,14 @@ assignment_operator
 
 expression
 	: assignment_expression
+		{ simple_str_lit_copy(&$$, "expression"); }
 	| expression ',' assignment_expression
+		{ simple_str_lit_copy(&$$, "expression"); }
 	;
 
 constant_expression
 	: conditional_expression	/* with constraints */
+		{ simple_str_lit_copy(&$$, "constant_expression"); }
 	;
 
 declaration
@@ -324,29 +328,29 @@ storage_class_specifier
 		{simple_str_lit_copy(&$$, "typedef");
          typedef_flag = 1;
 	    }
-	| EXTERN{ simple_str_lit_copy(&$$, "extern"); }
-	| STATIC{ simple_str_lit_copy(&$$, "static"); }
-	| THREAD_LOCAL{ simple_str_lit_copy(&$$, "thread_local"); }
-	| AUTO{ simple_str_lit_copy(&$$, "auto"); }
-	| REGISTER{ simple_str_lit_copy(&$$, "register"); }
+	| EXTERN		{ simple_str_lit_copy(&$$, "extern"); }
+	| STATIC		{ simple_str_lit_copy(&$$, "static"); }
+	| THREAD_LOCAL	{ simple_str_lit_copy(&$$, "thread_local"); }
+	| AUTO			{ simple_str_lit_copy(&$$, "auto"); }
+	| REGISTER		{ simple_str_lit_copy(&$$, "register"); }
 	;
 
 type_specifier
 	: VOID					{ simple_str_lit_copy(&$$, "void"); }
 	| CHAR					{ simple_str_lit_copy(&$$, "char"); }
-	| SHORT						{ simple_str_lit_copy(&$$, "short"); }
-	| INT						{ simple_str_lit_copy(&$$, "int"); }
+	| SHORT					{ simple_str_lit_copy(&$$, "short"); }
+	| INT					{ simple_str_lit_copy(&$$, "int"); }
 	| LONG					{ simple_str_lit_copy(&$$, "long"); }
 	| FLOAT					{ simple_str_lit_copy(&$$, "float"); }
-	| DOUBLE{ simple_str_lit_copy(&$$, "double"); }
-	| SIGNED{ simple_str_lit_copy(&$$, "signed"); }
-	| UNSIGNED{ simple_str_lit_copy(&$$, "unsigned"); }
-	| BOOL{ simple_str_lit_copy(&$$, "bool"); }
-	| COMPLEX{ simple_str_lit_copy(&$$, "complex"); }
-	| IMAGINARY{ simple_str_lit_copy(&$$, "imaginary"); } 	/* non-mandated extension */
-	| atomic_type_specifier{ simple_str_lit_copy(&$$, "atomic_type_specifier"); }
-	| struct_or_union_specifier{ simple_str_lit_copy(&$$, "struct_or_union_specifier"); }
-	| enum_specifier{ simple_str_lit_copy(&$$, "enum_specifier"); }
+	| DOUBLE				{ simple_str_lit_copy(&$$, "double"); }
+	| SIGNED				{ simple_str_lit_copy(&$$, "signed"); }
+	| UNSIGNED				{ simple_str_lit_copy(&$$, "unsigned"); }
+	| BOOL					{ simple_str_lit_copy(&$$, "bool"); }
+	| COMPLEX				{ simple_str_lit_copy(&$$, "complex"); }
+	| IMAGINARY				{ simple_str_lit_copy(&$$, "imaginary"); } 	/* non-mandated extension */
+	| atomic_type_specifier	{ simple_str_lit_copy(&$$, "atomic_type_specifier"); }
+	| struct_or_union_specifier	{ simple_str_lit_copy(&$$, "struct_or_union_specifier"); }
+	| enum_specifier		{ simple_str_lit_copy(&$$, "enum_specifier"); }
 	| TYPEDEF_NAME				/* after it has been defined as such */
 		{size_t const size = strlen($1) + 1;
 		 $$ = (char*)malloc(size);
@@ -418,23 +422,15 @@ atomic_type_specifier		// new in C11 for atomic operation: used in concurrency
 	;
 
 type_qualifier
-	: CONST
-		{simple_str_lit_copy(&$$, "const");
-		}
-	| RESTRICT
-		{simple_str_lit_copy(&$$, "restrict");
-		}
-	| VOLATILE
-		{simple_str_lit_copy(&$$, "volatile");
-		}
-	| ATOMIC
-		{ simple_str_lit_copy(&$$, "atomic");
-		}
+	: CONST		{simple_str_lit_copy(&$$, "const");}
+	| RESTRICT	{simple_str_lit_copy(&$$, "restrict");}
+	| VOLATILE	{simple_str_lit_copy(&$$, "volatile");}
+	| ATOMIC	{simple_str_lit_copy(&$$, "atomic");}
 	;
 
 function_specifier
-	: INLINE
-	| NORETURN
+	: INLINE	{simple_str_lit_copy(&$$, "inline");}
+	| NORETURN	{simple_str_lit_copy(&$$, "noreturn");}
 	;
 
 alignment_specifier
@@ -608,62 +604,72 @@ static_assert_declaration
 	: STATIC_ASSERT '(' constant_expression ',' STRING_LITERAL ')' ';'
 	;
 
-statement
-	: labeled_statement
-	| compound_statement
-	| expression_statement
-	| selection_statement
+statement	//printed out
+	: labeled_statement		//printed out already
+	| compound_statement	//printed out already
+	| expression_statement	//printed out already
+	| selection_statement	//printed out already
 	| iteration_statement
-	| jump_statement
+	| jump_statement		//printed out already
 	;
 
-labeled_statement
-	: IDENTIFIER ':' statement
-	| CASE constant_expression ':' statement
-	| DEFAULT ':' statement
+labeled_statement	//printed out
+	: IDENTIFIER ':' {fprintf(pl_file, "label_stmt($1, "); free($1);} statement {fprintf(pl_file, ")");}
+	| CASE constant_expression ':' {fprintf(pl_file, "case_stmt($2, "); free($2);} statement {fprintf(pl_file, ")");}
+	| DEFAULT ':' {fprintf(pl_file, "default_stmt(");} statement {fprintf(pl_file, ")");}
 	;
 
-compound_statement
+compound_statement	//printed out
 	: '{' '}'
-	| '{'  block_item_list '}'
+		{fprintf(pl_file, "cmp_stmts([])");}
+	| '{' {fprintf(pl_file, "cmp_stmts([");} block_item_list '}' {fprintf(pl_file, "]");}
 	;
 
-block_item_list
-	: block_item
-	| block_item_list block_item
+block_item_list		//printed out
+	: block_item	//printed out already
+	| block_item_list {fprintf(pl_file, ",\n");} block_item
 	;
 
-block_item
-	: declaration
-	| statement
+block_item			//printed out
+	: declaration	//printed out already
+	| statement		//printed out already
 	;
 
-expression_statement
-	: ';'
-	| expression ';'
+expression_statement	//printed out
+	: ';'				{fprintf(pl_file, "exp_stmt()");}
+	| expression ';'	{fprintf(pl_file, "exp_stmt(%s)", $1); free($1);}
 	;
 
-selection_statement
-	: IF '(' expression ')' statement ELSE statement
-	| IF '(' expression ')' statement
-	| SWITCH '(' expression ')' statement
+selection_statement		//printed out
+	: IF '(' expression ')' {fprintf(pl_file, "if_stmt(%s, ", $3); free($3);} statement else_opt {fprintf(pl_file, ")");}
+	| SWITCH '(' expression ')' {fprintf(pl_file, "switch_stmt(%s, ", $3); free($3);} statement	{fprintf(pl_file, ")");}
 	;
 
-iteration_statement
-	: WHILE '(' expression ')' statement
-	| DO statement WHILE '(' expression ')' ';'
-	| FOR '(' expression_statement expression_statement ')' statement
-	| FOR '(' expression_statement expression_statement expression ')' statement
-	| FOR '(' declaration expression_statement ')' statement
-	| FOR '(' declaration expression_statement expression ')' statement
+else_opt	//printed out
+	:	/* empty */
+	| ELSE {fprintf(pl_file, ", ");} statement
+
+iteration_statement	//printed out
+	: WHILE '(' expression ')' {fprintf(pl_file, "while_stmt(%s, ", $3); free($3);} statement {fprintf(pl_file, ")");}
+	| DO {fprintf(pl_file, "do_while_stmt(");} statement WHILE '(' expression ')' ';' {fprintf(pl_file, ", %s)", $6); free($6);}
+	| FOR '(' {fprintf(pl_file, "for_stmt(");} for_stmt_type ')' {fprintf(pl_file, ", ");} statement {fprintf(pl_file, ")");}
 	;
 
-jump_statement
-	: GOTO IDENTIFIER ';'
-	| CONTINUE ';'
-	| BREAK ';'
-	| RETURN ';'
-	| RETURN expression ';'
+for_stmt_type 	//printed out
+	: expression_statement {fprintf(pl_file, ", ");} expression_statement expression_opt
+	| declaration {fprintf(pl_file, ", ");} expression_statement expression_opt
+	;
+
+expression_opt 	//printed out
+	: /* empty */
+	| expression {fprintf(pl_file, ", %s", $1); free($1);}
+
+jump_statement	//printed out
+	: GOTO IDENTIFIER ';'	{fprintf(pl_file, "goto_stmt(%s)\n", $2); free($2);}
+	| CONTINUE ';'			{fprintf(pl_file, "continue_stmt\n");}
+	| BREAK ';'				{fprintf(pl_file, "break_stmt\n");}
+	| RETURN ';'			{fprintf(pl_file, "return_stmt\n");}
+	| RETURN expression ';'	{fprintf(pl_file, "return_stmt(%s)\n", $2); free($2);}
 	;
 
 translation_unit
@@ -673,7 +679,7 @@ translation_unit
 
 external_declaration
 	: function_definition
-	| declaration
+	| declaration		//already printed out
 	;
 
 function_definition
