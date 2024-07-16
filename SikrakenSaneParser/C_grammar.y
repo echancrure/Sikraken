@@ -51,7 +51,8 @@ int debugMode = 0;				//flag to indicate if we are in debug mode set by by -d co
 
 %type <id> storage_class_specifier declarator init_declarator initializer direct_declarator pointer type_qualifier type_qualifier_list init_declarator_list declaration_specifiers
 %type <id> type_specifier
-%type <id> function_specifier expression constant_expression
+%type <id> function_specifier expression constant_expression assignment_expression conditional_expression unary_expression assignment_operator
+%type <id> logical_or_expression logical_and_expression
 
 %start translation_unit
 %%
@@ -184,49 +185,72 @@ inclusive_or_expression
 	;
 
 logical_and_expression
-	: inclusive_or_expression
-	| logical_and_expression AND_OP inclusive_or_expression
+	: inclusive_or_expression	{simple_str_lit_copy(&$$, "andxxx");}
+	| logical_and_expression AND_OP inclusive_or_expression {simple_str_lit_copy(&$$, "andxxx");}
 	;
 
 logical_or_expression
-	: logical_and_expression
+	: logical_and_expression	{simple_str_copy(&$$, $1);}
 	| logical_or_expression OR_OP logical_and_expression
+		{size_t const size = strlen("or_op(, )") + strlen($1) + strlen($3) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "or_op(%s, %s)", $1, $3);
+		 free($1);
+		 free($3);
+		}
 	;
 
 conditional_expression
-	: logical_or_expression
-	| logical_or_expression '?' expression ':' conditional_expression
+	: logical_or_expression		{simple_str_copy(&$$, $1);}
+	| logical_or_expression '?' expression ':' conditional_expression 
+		{size_t const size = strlen("cond_exp(, , )") + strlen($1) + strlen($3) + strlen($5) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "cond_exp(%s, %s, %s)", $1, $3, $5);
+		 free($1);
+		 free($3);
+		 free($5);
+		}
 	;
 
 assignment_expression
-	: conditional_expression
+	: conditional_expression	{simple_str_copy(&$$, $1);}
 	| unary_expression assignment_operator assignment_expression
+		{size_t const size = strlen("%s(%s, %s)") + strlen($1) + strlen($2) + strlen($3) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "%s(%s, %s)", $2, $1, $3);
+		 free($1);
+		 free($2);
+		 free($3);
+		}
 	;
 
 assignment_operator
-	: '='
-	| MUL_ASSIGN
-	| DIV_ASSIGN
-	| MOD_ASSIGN
-	| ADD_ASSIGN
-	| SUB_ASSIGN
-	| LEFT_ASSIGN
-	| RIGHT_ASSIGN
-	| AND_ASSIGN
-	| XOR_ASSIGN
-	| OR_ASSIGN
+	: '='			{simple_str_lit_copy(&$$, "assign");}
+	| MUL_ASSIGN	{simple_str_lit_copy(&$$, "mul_assign");}
+	| DIV_ASSIGN	{simple_str_lit_copy(&$$, "div_assign");}
+	| MOD_ASSIGN	{simple_str_lit_copy(&$$, "mod_assign");}
+	| ADD_ASSIGN	{simple_str_lit_copy(&$$, "add_assign");}
+	| SUB_ASSIGN	{simple_str_lit_copy(&$$, "sub_assign");}
+	| LEFT_ASSIGN	{simple_str_lit_copy(&$$, "left_assign");}
+	| RIGHT_ASSIGN	{simple_str_lit_copy(&$$, "right_assign");}
+	| AND_ASSIGN	{simple_str_lit_copy(&$$, "and_assign");}
+	| XOR_ASSIGN	{simple_str_lit_copy(&$$, "xor_assign");}
+	| OR_ASSIGN		{simple_str_lit_copy(&$$, "or_assign");}
 	;
 
 expression
-	: assignment_expression
-		{ simple_str_lit_copy(&$$, "expression"); }
+	: assignment_expression	{simple_str_copy(&$$, $1);}
 	| expression ',' assignment_expression
-		{ simple_str_lit_copy(&$$, "expression"); }
+		{size_t const size = strlen("comma_op(, )") + strlen($1) + strlen($3) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "comma_op(%s, %s)", $1, $3);
+		 free($1);
+		 free($3);
+		}
 	;
 
 constant_expression
-	: conditional_expression	/* with constraints */
-		{ simple_str_lit_copy(&$$, "constant_expression"); }
+	: conditional_expression	/* with constraints */ 	{simple_str_copy(&$$, $1);}
 	;
 
 declaration
@@ -255,12 +279,7 @@ declaration_specifiers
 		 free($1);
 		 free($2);
 		}
-	| storage_class_specifier
-		{size_t const size = strlen($1) + 1;
-		 $$ = (char*)malloc(size);
-		 strcpy_s($$, size, $1);
-		 free($1);
-		}
+	| storage_class_specifier	{simple_str_copy(&$$, $1);}
 	| type_specifier declaration_specifiers
 		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
@@ -268,12 +287,7 @@ declaration_specifiers
 		 free($1);
 		 free($2);
 		}
-	| type_specifier
-		{size_t const size = strlen($1) + 1;
-		 $$ = (char*)malloc(size);
-		 strcpy_s($$, size, $1);
-		 free($1);
-		}
+	| type_specifier	{simple_str_copy(&$$, $1);}
 	| type_qualifier declaration_specifiers
 { simple_str_lit_copy(&$$, "type_qualifier declaration_specifiers"); }
 	| type_qualifier
@@ -289,12 +303,7 @@ declaration_specifiers
 	;
 
 init_declarator_list
-	: init_declarator
-		{size_t const size = strlen($1) + 1;
-		 $$ = (char*)malloc(size);
-	     strcpy_s($$, size, $1);
-         free($1);
-		}
+	: init_declarator	{simple_str_copy(&$$, $1);}
 	| init_declarator_list ',' init_declarator
 		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
@@ -313,13 +322,10 @@ init_declarator
 	   //free($3);
 	  }
 	| declarator
-	  {if (typedef_flag == 1) {// we are parsing one typedef declaration
+	  {if (typedef_flag == 1) {	// we are parsing one typedef declaration
 		 add_typedef_name($1);
 	   }
-	   size_t const size = strlen($1) + 1;
-	   $$ = (char*)malloc(size);
-	   strcpy_s($$, size, $1);
-	   free($1);
+	   simple_str_copy(&$$, $1);
 	  }
 	;
 
@@ -352,11 +358,7 @@ type_specifier
 	| struct_or_union_specifier	{ simple_str_lit_copy(&$$, "struct_or_union_specifier"); }
 	| enum_specifier		{ simple_str_lit_copy(&$$, "enum_specifier"); }
 	| TYPEDEF_NAME				/* after it has been defined as such */
-		{size_t const size = strlen($1) + 1;
-		 $$ = (char*)malloc(size);
-		 strcpy_s($$, size, $1);
-		 free($1);
-		};
+			{simple_str_copy(&$$, $1);}
 	;
 
 struct_or_union_specifier
@@ -455,12 +457,7 @@ declarator
 	;
 
 direct_declarator
-	: IDENTIFIER
-		{size_t const size = strlen($1) + 1;
-	     $$ = (char*)malloc(size);
-		 strcpy_s($$, size, $1);
-	     free($1);
-		}
+	: IDENTIFIER	{simple_str_copy(&$$, $1);}
 	| '(' declarator ')'			{simple_str_lit_copy(&$$, "D1");}
 	| direct_declarator '[' ']'		{simple_str_lit_copy(&$$, "D2"); }
 	| direct_declarator '[' '*' ']'	{simple_str_lit_copy(&$$, "D3"); }
@@ -497,17 +494,11 @@ pointer
 		 free($2);
 		}
 	| '*'
-		{simple_str_lit_copy(&$$, "pointer"); 
-		}
+		{simple_str_lit_copy(&$$, "pointer");}
 	;
 
 type_qualifier_list
-	: type_qualifier
-		{size_t const size = strlen($1) + 1;
-		 $$ = (char*)malloc(size);
-		 strcpy_s($$, size, $1);
-		 free($1);
-		}
+	: type_qualifier	{simple_str_copy(&$$, $1);}
 	| type_qualifier_list type_qualifier
 		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
@@ -605,12 +596,12 @@ static_assert_declaration
 	;
 
 statement	//printed out
-	: labeled_statement		//printed out already
-	| compound_statement	//printed out already
-	| expression_statement	//printed out already
-	| selection_statement	//printed out already
-	| iteration_statement
-	| jump_statement		//printed out already
+	: labeled_statement		//already printed out
+	| compound_statement	//already printed out
+	| expression_statement	//already printed out
+	| selection_statement	//already printed out
+	| iteration_statement	//already printed out
+	| jump_statement		//already printed out
 	;
 
 labeled_statement	//printed out
@@ -620,14 +611,13 @@ labeled_statement	//printed out
 	;
 
 compound_statement	//printed out
-	: '{' '}'
-		{fprintf(pl_file, "cmp_stmts([])");}
-	| '{' {fprintf(pl_file, "cmp_stmts([");} block_item_list '}' {fprintf(pl_file, "]");}
+	: '{' '}' {fprintf(pl_file, "cmp_stmts([])");}
+	| '{' {fprintf(pl_file, "cmp_stmts([");} block_item_list '}' {fprintf(pl_file, "])");}
 	;
 
 block_item_list		//printed out
 	: block_item	//printed out already
-	| block_item_list {fprintf(pl_file, ",\n");} block_item
+	| block_item_list {fprintf(pl_file, ", ");} block_item
 	;
 
 block_item			//printed out
@@ -655,16 +645,16 @@ iteration_statement	//printed out
 	| FOR '(' {fprintf(pl_file, "for_stmt(");} for_stmt_type ')' {fprintf(pl_file, ", ");} statement {fprintf(pl_file, ")");}
 	;
 
-for_stmt_type 	//printed out
+for_stmt_type 		//printed out
 	: expression_statement {fprintf(pl_file, ", ");} expression_statement expression_opt
 	| declaration {fprintf(pl_file, ", ");} expression_statement expression_opt
 	;
 
-expression_opt 	//printed out
+expression_opt 		//printed out
 	: /* empty */
 	| expression {fprintf(pl_file, ", %s", $1); free($1);}
 
-jump_statement	//printed out
+jump_statement		//printed out
 	: GOTO IDENTIFIER ';'	{fprintf(pl_file, "goto_stmt(%s)\n", $2); free($2);}
 	| CONTINUE ';'			{fprintf(pl_file, "continue_stmt\n");}
 	| BREAK ';'				{fprintf(pl_file, "break_stmt\n");}
@@ -672,24 +662,28 @@ jump_statement	//printed out
 	| RETURN expression ';'	{fprintf(pl_file, "return_stmt(%s)\n", $2); free($2);}
 	;
 
-translation_unit
+translation_unit 	//printed out
 	: external_declaration
 	| translation_unit { fprintf(pl_file, ", "); } external_declaration
 	;
 
-external_declaration
-	: function_definition
-	| declaration		//already printed out
+external_declaration	//printed out
+	: function_definition	//already printed out
+	| declaration			//already printed out
 	;
 
-function_definition
-	: declaration_specifiers declarator declaration_list compound_statement
-	| declaration_specifiers declarator compound_statement
+function_definition	//printed out
+	: declaration_specifiers declarator {fprintf(pl_file, "function(%s, %s, [", $1, $2); free($1); free($2);} declaration_list_opt {fprintf(pl_file, "], ");} compound_statement {fprintf(pl_file, ")");}
 	;
 
-declaration_list
-	: declaration
-	| declaration_list declaration
+declaration_list_opt	//printed out
+	: /* empty */
+	| declaration_list	//already printed out
+	;
+
+declaration_list	//printed out
+	: declaration	//already printed out
+	| declaration_list {fprintf(pl_file, ", ");} declaration
 	;
 
 %%
