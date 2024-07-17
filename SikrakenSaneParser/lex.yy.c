@@ -1307,10 +1307,7 @@ YY_RULE_SETUP
 case 48:
 YY_RULE_SETUP
 #line 97 "C_grammar.l"
-{
-                              size_t size = strlen(yytext) + 1;
-                              yylval.id = (char*)malloc(size); 
-                              strcpy_s(yylval.id, size, yytext);
+{yylval.id = _strdup(yytext);
                               if (is_typedef_name(yylval.id)) {
                                   return TYPEDEF_NAME;
                               }
@@ -1319,307 +1316,315 @@ YY_RULE_SETUP
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 107 "C_grammar.l"
-{ return I_CONSTANT; }
+#line 104 "C_grammar.l"
+{yylval.id = _strdup(yytext); return I_CONSTANT;}
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 108 "C_grammar.l"
-{ return I_CONSTANT; }
+#line 105 "C_grammar.l"
+{yylval.id = _strdup(yytext); return I_CONSTANT;}
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 109 "C_grammar.l"
-{ return I_CONSTANT; }
+#line 106 "C_grammar.l"
+{yylval.id = _strdup(yytext); return I_CONSTANT;}
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 110 "C_grammar.l"
-{ return I_CONSTANT; }
+#line 107 "C_grammar.l"
+{yylval.id = _strdup(yytext); return I_CONSTANT;}
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 112 "C_grammar.l"
-{ return F_CONSTANT; }
+#line 109 "C_grammar.l"
+{yylval.id = _strdup(yytext); return F_CONSTANT;}
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 113 "C_grammar.l"
-{ return F_CONSTANT; }
+#line 110 "C_grammar.l"
+{yylval.id = _strdup(yytext); return F_CONSTANT;}
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 114 "C_grammar.l"
-{ return F_CONSTANT; }
+#line 111 "C_grammar.l"
+{yylval.id = _strdup(yytext); return F_CONSTANT;}
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 115 "C_grammar.l"
-{ return F_CONSTANT; }
+#line 112 "C_grammar.l"
+{yylval.id = _strdup(yytext); return F_CONSTANT;}
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 116 "C_grammar.l"
-{ return F_CONSTANT; }
+#line 113 "C_grammar.l"
+{yylval.id = _strdup(yytext); return F_CONSTANT;}
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 117 "C_grammar.l"
-{ return F_CONSTANT; }
+#line 114 "C_grammar.l"
+{yylval.id = _strdup(yytext); return F_CONSTANT;}
 	YY_BREAK
 case 59:
 /* rule 59 can match eol */
 YY_RULE_SETUP
-#line 119 "C_grammar.l"
-{ return STRING_LITERAL; }
+#line 116 "C_grammar.l"
+{if (yytext[0] == 'L') { //a wide string constant
+                                        size_t const size = strlen("wide_string()") + strlen(yytext) - 1 + 1;
+                                        yylval.id = (char*)malloc(size);
+                                        sprintf_s(yylval.id, size, "wide_string(%s)", &yytext[1]);      //copy from yytext[1] to remove 'L' prefix 
+                                     } else {
+                                        yylval.id = _strdup(yytext);
+                                     }
+                                     return STRING_LITERAL;
+                                    }
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 121 "C_grammar.l"
+#line 126 "C_grammar.l"
 { return ELLIPSIS; }
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 122 "C_grammar.l"
+#line 127 "C_grammar.l"
 { return RIGHT_ASSIGN; }
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 123 "C_grammar.l"
+#line 128 "C_grammar.l"
 { return LEFT_ASSIGN; }
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 124 "C_grammar.l"
+#line 129 "C_grammar.l"
 { return ADD_ASSIGN; }
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 125 "C_grammar.l"
+#line 130 "C_grammar.l"
 { return SUB_ASSIGN; }
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 126 "C_grammar.l"
+#line 131 "C_grammar.l"
 { return MUL_ASSIGN; }
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 127 "C_grammar.l"
+#line 132 "C_grammar.l"
 { return DIV_ASSIGN; }
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 128 "C_grammar.l"
+#line 133 "C_grammar.l"
 { return MOD_ASSIGN; }
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 129 "C_grammar.l"
+#line 134 "C_grammar.l"
 { return AND_ASSIGN; }
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 130 "C_grammar.l"
+#line 135 "C_grammar.l"
 { return XOR_ASSIGN; }
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 131 "C_grammar.l"
+#line 136 "C_grammar.l"
 { return OR_ASSIGN; }
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 132 "C_grammar.l"
+#line 137 "C_grammar.l"
 { return RIGHT_OP; }
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 133 "C_grammar.l"
+#line 138 "C_grammar.l"
 { return LEFT_OP; }
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 134 "C_grammar.l"
+#line 139 "C_grammar.l"
 { return INC_OP; }
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 135 "C_grammar.l"
+#line 140 "C_grammar.l"
 { return DEC_OP; }
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-#line 136 "C_grammar.l"
+#line 141 "C_grammar.l"
 { return PTR_OP; }
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-#line 137 "C_grammar.l"
+#line 142 "C_grammar.l"
 { return AND_OP; }
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 138 "C_grammar.l"
+#line 143 "C_grammar.l"
 { return OR_OP; }
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 139 "C_grammar.l"
+#line 144 "C_grammar.l"
 { return LE_OP; }
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 140 "C_grammar.l"
+#line 145 "C_grammar.l"
 { return GE_OP; }
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
-#line 141 "C_grammar.l"
+#line 146 "C_grammar.l"
 { return EQ_OP; }
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 142 "C_grammar.l"
+#line 147 "C_grammar.l"
 { return NE_OP; }
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
-#line 143 "C_grammar.l"
+#line 148 "C_grammar.l"
 { return ';'; }
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
-#line 144 "C_grammar.l"
+#line 149 "C_grammar.l"
 { return '{'; }
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 145 "C_grammar.l"
+#line 150 "C_grammar.l"
 { return '}'; }
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
-#line 146 "C_grammar.l"
+#line 151 "C_grammar.l"
 { return ','; }
 	YY_BREAK
 case 86:
 YY_RULE_SETUP
-#line 147 "C_grammar.l"
+#line 152 "C_grammar.l"
 { return ':'; }
 	YY_BREAK
 case 87:
 YY_RULE_SETUP
-#line 148 "C_grammar.l"
+#line 153 "C_grammar.l"
 { return '='; }
 	YY_BREAK
 case 88:
 YY_RULE_SETUP
-#line 149 "C_grammar.l"
+#line 154 "C_grammar.l"
 { return '('; }
 	YY_BREAK
 case 89:
 YY_RULE_SETUP
-#line 150 "C_grammar.l"
+#line 155 "C_grammar.l"
 { return ')'; }
 	YY_BREAK
 case 90:
 YY_RULE_SETUP
-#line 151 "C_grammar.l"
+#line 156 "C_grammar.l"
 { return '['; }
 	YY_BREAK
 case 91:
 YY_RULE_SETUP
-#line 152 "C_grammar.l"
+#line 157 "C_grammar.l"
 { return ']'; }
 	YY_BREAK
 case 92:
 YY_RULE_SETUP
-#line 153 "C_grammar.l"
+#line 158 "C_grammar.l"
 { return '.'; }
 	YY_BREAK
 case 93:
 YY_RULE_SETUP
-#line 154 "C_grammar.l"
+#line 159 "C_grammar.l"
 { return '&'; }
 	YY_BREAK
 case 94:
 YY_RULE_SETUP
-#line 155 "C_grammar.l"
+#line 160 "C_grammar.l"
 { return '!'; }
 	YY_BREAK
 case 95:
 YY_RULE_SETUP
-#line 156 "C_grammar.l"
+#line 161 "C_grammar.l"
 { return '~'; }
 	YY_BREAK
 case 96:
 YY_RULE_SETUP
-#line 157 "C_grammar.l"
+#line 162 "C_grammar.l"
 { return '-'; }
 	YY_BREAK
 case 97:
 YY_RULE_SETUP
-#line 158 "C_grammar.l"
+#line 163 "C_grammar.l"
 { return '+'; }
 	YY_BREAK
 case 98:
 YY_RULE_SETUP
-#line 159 "C_grammar.l"
+#line 164 "C_grammar.l"
 { return '*'; }
 	YY_BREAK
 case 99:
 YY_RULE_SETUP
-#line 160 "C_grammar.l"
+#line 165 "C_grammar.l"
 { return '/'; }
 	YY_BREAK
 case 100:
 YY_RULE_SETUP
-#line 161 "C_grammar.l"
+#line 166 "C_grammar.l"
 { return '%'; }
 	YY_BREAK
 case 101:
 YY_RULE_SETUP
-#line 162 "C_grammar.l"
+#line 167 "C_grammar.l"
 { return '<'; }
 	YY_BREAK
 case 102:
 YY_RULE_SETUP
-#line 163 "C_grammar.l"
+#line 168 "C_grammar.l"
 { return '>'; }
 	YY_BREAK
 case 103:
 YY_RULE_SETUP
-#line 164 "C_grammar.l"
+#line 169 "C_grammar.l"
 { return '^'; }
 	YY_BREAK
 case 104:
 YY_RULE_SETUP
-#line 165 "C_grammar.l"
+#line 170 "C_grammar.l"
 { return '|'; }
 	YY_BREAK
 case 105:
 YY_RULE_SETUP
-#line 166 "C_grammar.l"
+#line 171 "C_grammar.l"
 { return '?'; }
 	YY_BREAK
 case 106:
 /* rule 106 can match eol */
 YY_RULE_SETUP
-#line 168 "C_grammar.l"
+#line 173 "C_grammar.l"
 { /* whitespace separates tokens */ }
 	YY_BREAK
 case 107:
 YY_RULE_SETUP
-#line 169 "C_grammar.l"
+#line 174 "C_grammar.l"
 { /* discard bad characters */ }
 	YY_BREAK
 case 108:
 YY_RULE_SETUP
-#line 171 "C_grammar.l"
+#line 176 "C_grammar.l"
 ECHO;
 	YY_BREAK
-#line 1622 "lex.yy.c"
+#line 1627 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2636,7 +2641,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 171 "C_grammar.l"
+#line 176 "C_grammar.l"
 
 /* user code section */
 int yywrap(void)        /* called at end of input */

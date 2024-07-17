@@ -93,29 +93,34 @@ WS  [ \t\v\n\f]
 "_Thread_local"                         { return THREAD_LOCAL; }
 "__func__"                              { return FUNC_NAME; }
 
-{L}{A}*                     {
-                              size_t size = strlen(yytext) + 1;
-                              yylval.id = (char*)malloc(size); 
-                              strcpy_s(yylval.id, size, yytext);
+{L}{A}*                     {yylval.id = _strdup(yytext);
                               if (is_typedef_name(yylval.id)) {
                                   return TYPEDEF_NAME;
                               }
                               return IDENTIFIER;
                             }
 
-{HP}{H}+{IS}?				{ return I_CONSTANT; }
-{NZ}{D}*{IS}?				{ return I_CONSTANT; }
-"0"{O}*{IS}?				{ return I_CONSTANT; }
-{CP}?"'"([^'\\\n]|{ES})+"'"		{ return I_CONSTANT; }
+{HP}{H}+{IS}?				{yylval.id = _strdup(yytext); return I_CONSTANT;}
+{NZ}{D}*{IS}?				{yylval.id = _strdup(yytext); return I_CONSTANT;}
+"0"{O}*{IS}?				{yylval.id = _strdup(yytext); return I_CONSTANT;}
+{CP}?"'"([^'\\\n]|{ES})+"'"	{yylval.id = _strdup(yytext); return I_CONSTANT;}
 
-{D}+{E}{FS}?				{ return F_CONSTANT; }
-{D}*"."{D}+{E}?{FS}?			{ return F_CONSTANT; }
-{D}+"."{E}?{FS}?			{ return F_CONSTANT; }
-{HP}{H}+{P}{FS}?			{ return F_CONSTANT; }
-{HP}{H}*"."{H}+{P}{FS}?			{ return F_CONSTANT; }
-{HP}{H}+"."{P}{FS}?			{ return F_CONSTANT; }
+{D}+{E}{FS}?				{yylval.id = _strdup(yytext); return F_CONSTANT;}
+{D}*"."{D}+{E}?{FS}?		{yylval.id = _strdup(yytext); return F_CONSTANT;}
+{D}+"."{E}?{FS}?			{yylval.id = _strdup(yytext); return F_CONSTANT;}
+{HP}{H}+{P}{FS}?			{yylval.id = _strdup(yytext); return F_CONSTANT;}
+{HP}{H}*"."{H}+{P}{FS}?		{yylval.id = _strdup(yytext); return F_CONSTANT;}
+{HP}{H}+"."{P}{FS}?			{yylval.id = _strdup(yytext); return F_CONSTANT;}
 
-({SP}?\"([^"\\\n]|{ES})*\"{WS}*)+	{ return STRING_LITERAL; }
+({SP}?\"([^"\\\n]|{ES})*\"{WS}*)+	{if (yytext[0] == 'L') { //a wide string constant
+                                        size_t const size = strlen("wide_string()") + strlen(yytext) - 1 + 1;
+                                        yylval.id = (char*)malloc(size);
+                                        sprintf_s(yylval.id, size, "wide_string(%s)", &yytext[1]);      //copy from yytext[1] to remove 'L' prefix 
+                                     } else {
+                                        yylval.id = _strdup(yytext);
+                                     }
+                                     return STRING_LITERAL;
+                                    }
 
 "..."					{ return ELLIPSIS; }
 ">>="					{ return RIGHT_ASSIGN; }

@@ -30,13 +30,12 @@ int debugMode = 0;				//flag to indicate if we are in debug mode set by by -d co
 	char* id;
 }
 
-%token <id> IDENTIFIER TYPEDEF_NAME
-%token I_CONSTANT F_CONSTANT STRING_LITERAL FUNC_NAME SIZEOF
+%token <id> IDENTIFIER TYPEDEF_NAME I_CONSTANT F_CONSTANT ENUMERATION_CONSTANT STRING_LITERAL
+%token  FUNC_NAME SIZEOF
 %token	PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
 %token	AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
 %token	SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
 %token	XOR_ASSIGN OR_ASSIGN
-%token	ENUMERATION_CONSTANT
 
 %token  TYPEDEF 
 %token  EXTERN STATIC AUTO REGISTER INLINE
@@ -54,64 +53,122 @@ int debugMode = 0;				//flag to indicate if we are in debug mode set by by -d co
 %type <id> function_specifier expression constant_expression assignment_expression conditional_expression assignment_operator
 %type <id> logical_or_expression logical_and_expression inclusive_or_expression exclusive_or_expression and_expression equality_expression equality_expression_op relational_expression relational_expression_operator shift_expression shift_expression_op additive_expression additive_expression_op
 %type <id> multiplicative_expression multiplicative_expression_op cast_expression unary_expression unary_operator unary_inc_dec postfix_expression 
-%type <id> type_name
+%type <id> type_name argument_expression_list primary_expression constant string enumeration_constant
+%type <id> initializer_list
 
 %start translation_unit
 %%
 
 primary_expression
-	: IDENTIFIER
-	| constant
-	| string
-	| '(' expression ')'
-	| generic_selection
+	: IDENTIFIER	{simple_str_copy(&$$, $1);}
+	| constant		{simple_str_copy(&$$, $1);}
+	| string		{simple_str_copy(&$$, $1);}
+	| '(' expression ')'	{simple_str_lit_copy(&$$, "prim4");}
+	| generic_selection		{simple_str_lit_copy(&$$, "generic_selection");}
 	;
 
 constant
-	: I_CONSTANT		/* includes character_constant */
-	| F_CONSTANT
-	| ENUMERATION_CONSTANT	/* after it has been defined as such */
+	: I_CONSTANT	{simple_str_copy(&$$, $1);}	/* includes character_constant */
+	| F_CONSTANT	{simple_str_copy(&$$, $1);}
+	| ENUMERATION_CONSTANT	{simple_str_copy(&$$, $1);} /* after it has been defined as such */
 	;
 
 enumeration_constant		/* before it has been defined as such */
-	: IDENTIFIER
+	: IDENTIFIER	{simple_str_copy(&$$, $1);}
 	;
 
 string
-	: STRING_LITERAL
-	| FUNC_NAME
+	: STRING_LITERAL	{simple_str_copy(&$$, $1);}	//"blah" or wide_string("blah") see lexer
+	| FUNC_NAME			{simple_str_lit_copy(&$$, "thisFunctionName");}
 	;
 
-generic_selection
+generic_selection	/* to do */
 	: GENERIC '(' assignment_expression ',' generic_assoc_list ')'
 	;
 
-generic_assoc_list
+generic_assoc_list	/* to do */
 	: generic_association
 	| generic_assoc_list ',' generic_association
 	;
 
-generic_association
+generic_association	/* to do */
 	: type_name ':' assignment_expression
 	| DEFAULT ':' assignment_expression
 	;
 
 postfix_expression
-	: primary_expression	{simple_str_lit_copy(&$$, "dum1");}
-	| postfix_expression '[' expression ']'	{simple_str_lit_copy(&$$, "dum2");}
-	| postfix_expression '(' ')'			{simple_str_lit_copy(&$$, "dum3");}
-	| postfix_expression '(' argument_expression_list ')'	{simple_str_lit_copy(&$$, "dum4");}
-	| postfix_expression '.' IDENTIFIER			{simple_str_lit_copy(&$$, "dum5");}
-	| postfix_expression PTR_OP IDENTIFIER		{simple_str_lit_copy(&$$, "dum6");}
-	| postfix_expression INC_OP					{simple_str_lit_copy(&$$, "dum7");}
-	| postfix_expression DEC_OP					{simple_str_lit_copy(&$$, "dum8");}
-	| '(' type_name ')' '{' initializer_list '}'		{simple_str_lit_copy(&$$, "dum9");}
-	| '(' type_name ')' '{' initializer_list ',' '}'	{simple_str_lit_copy(&$$, "dum10");}
+	: primary_expression	{simple_str_copy(&$$, $1);}
+	| postfix_expression '[' expression ']'
+		{size_t const size = strlen("index(, )") + strlen($1) + strlen($3) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "index(%s, %s)", $1, $3);
+		 free($1);
+		 free($3);
+		}
+	| postfix_expression '(' ')'
+		{size_t const size = strlen("([])") + strlen($1) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "%s([])", $1);
+		 free($1);
+		}
+	| postfix_expression '(' argument_expression_list ')'	/* functyion call */
+		{size_t const size = strlen("([])") + strlen($1) + strlen($3) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "%s([%s])", $1, $3);
+		 free($1);
+		 free($3);
+		}
+	| postfix_expression '.' IDENTIFIER
+		{size_t const size = strlen("select(, )") + strlen($1) + strlen($3) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "select(%s, %s)", $1, $3);
+		 free($1);
+		 free($3);
+		}
+	| postfix_expression PTR_OP IDENTIFIER
+		{size_t const size = strlen("struct_pointer(, )") + strlen($1) + strlen($3) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "struct_pointer(%s, %s)", $1, $3);
+		 free($1);
+		 free($3);
+		}
+	| postfix_expression INC_OP
+		{size_t const size = strlen("postfix_inc_op()") + strlen($1) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "postfix_inc_op(%s)", $1);
+		 free($1);
+		}
+	| postfix_expression DEC_OP
+		{size_t const size = strlen("postfix_dec_op()") + strlen($1) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "postfix_dec_op(%s)", $1);
+		 free($1);
+		}
+	| '(' type_name ')' '{' initializer_list '}'
+		{size_t const size = strlen("compound_literal(, )") + strlen($2) + strlen($5) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "compound_literal(%s, %s)", $2, $5);
+		 free($2);
+		 free($5);
+		}
+	| '(' type_name ')' '{' initializer_list ',' '}'
+		{size_t const size = strlen("trailing_comma_compound_literal(, )") + strlen($2) + strlen($5) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "trailing_comma_compound_literal(%s, %s)", $2, $5);
+		 free($2);
+		 free($5);
+		}
 	;
 
 argument_expression_list
-	: assignment_expression
+	: assignment_expression	{simple_str_copy(&$$, $1);}
 	| argument_expression_list ',' assignment_expression
+		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_s($$, size, "%s, %s", $1, $3);
+		 free($1);
+		 free($3);
+		}
 	;
 
 unary_expression
@@ -690,10 +747,10 @@ initializer
 	;
 
 initializer_list
-	: designation initializer
-	| initializer
-	| initializer_list ',' designation initializer
-	| initializer_list ',' initializer
+	: designation initializer	{simple_str_lit_copy(&$$, "initl1");}
+	| initializer				{simple_str_lit_copy(&$$, "initl2");}
+	| initializer_list ',' designation initializer	{simple_str_lit_copy(&$$, "initl3");}
+	| initializer_list ',' initializer				{simple_str_lit_copy(&$$, "initl4");}
 	;
 
 designation
