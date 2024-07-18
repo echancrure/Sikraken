@@ -55,6 +55,7 @@ int debugMode = 0;				//flag to indicate if we are in debug mode set by by -d co
 %type <id> multiplicative_expression multiplicative_expression_op cast_expression unary_expression unary_operator unary_inc_dec postfix_expression 
 %type <id> type_name argument_expression_list primary_expression constant string enumeration_constant
 %type <id> initializer_list
+%type <id> struct_or_union_specifier struct_or_union struct_declaration_list struct_declaration
 
 %start translation_unit
 %%
@@ -531,32 +532,58 @@ type_specifier
 	| COMPLEX				{ simple_str_lit_copy(&$$, "complex"); }
 	| IMAGINARY				{ simple_str_lit_copy(&$$, "imaginary"); } 	/* non-mandated extension */
 	| atomic_type_specifier	{ simple_str_lit_copy(&$$, "atomic_type_specifier"); }
-	| struct_or_union_specifier	{ simple_str_lit_copy(&$$, "struct_or_union_specifier"); }
+	| struct_or_union_specifier	{simple_str_copy(&$$, $1);}
 	| enum_specifier		{ simple_str_lit_copy(&$$, "enum_specifier"); }
-	| TYPEDEF_NAME				/* after it has been defined as such */
-			{simple_str_copy(&$$, $1);}
+	| TYPEDEF_NAME			{simple_str_copy(&$$, $1);}	/* after it has been defined as such */
 	;
 
 struct_or_union_specifier
 	: struct_or_union '{' struct_declaration_list '}'
+		{size_t const size = strlen("([])") + strlen($1) + strlen($3) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_s($$, size, "%s([%s])", $1, $3);
+	     free($1);
+	     free($3);
+	    }
 	| struct_or_union IDENTIFIER '{' struct_declaration_list '}'
+		{size_t const size = strlen("(, [])") + strlen($1) + strlen($2) + strlen($4) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_s($$, size, "%s(%s, [%s])", $1, $2, $4);
+	     free($1);
+	     free($2);
+		 free($4);
+	    }
 	| struct_or_union IDENTIFIER
+		{size_t const size = strlen("()") + strlen($1) + strlen($2) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_s($$, size, "%s(%s)", $1, $2);
+	     free($1);
+	     free($2);
+	    }
 	;
 
 struct_or_union
-	: STRUCT
-	| UNION
+	: STRUCT	{simple_str_lit_copy(&$$, "struct");}
+	| UNION		{simple_str_lit_copy(&$$, "union");}
 	;
 
 struct_declaration_list
-	: struct_declaration
+	: struct_declaration	{simple_str_copy(&$$, $1);}
 	| struct_declaration_list struct_declaration
+		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_s($$, size, "%s, %s", $1, $2);
+	     free($1);
+	     free($2);
+	    }
 	;
 
 struct_declaration
 	: specifier_qualifier_list ';'	/* for anonymous struct/union */
+		{simple_str_lit_copy(&$$, "struct_decl1");}
 	| specifier_qualifier_list struct_declarator_list ';'
-	| static_assert_declaration
+		{simple_str_lit_copy(&$$, "struct_decl2");}
+	| static_assert_declaration	{simple_str_lit_copy(&$$, "struct_decl3");}
 	;
 
 specifier_qualifier_list
