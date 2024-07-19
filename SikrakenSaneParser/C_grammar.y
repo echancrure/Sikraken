@@ -46,7 +46,7 @@ int debugMode = 0;				//flag to indicate if we are in debug mode set by by -d co
 
 %token	CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
-%token	ALIGNAS ALIGNOF ATOMIC GENERIC NORETURN STATIC_ASSERT THREAD_LOCAL
+%token ALIGNAS ALIGNOF ATOMIC GENERIC NORETURN STATIC_ASSERT THREAD_LOCAL
 
 %type <id> storage_class_specifier declarator init_declarator initializer direct_declarator pointer type_qualifier type_qualifier_list init_declarator_list declaration_specifiers
 %type <id> type_specifier
@@ -55,7 +55,8 @@ int debugMode = 0;				//flag to indicate if we are in debug mode set by by -d co
 %type <id> multiplicative_expression multiplicative_expression_op cast_expression unary_expression unary_operator unary_inc_dec postfix_expression 
 %type <id> type_name argument_expression_list primary_expression constant string enumeration_constant
 %type <id> initializer_list designation designator_list designator
-%type <id> struct_or_union_specifier struct_or_union struct_declaration_list struct_declaration
+%type <id> struct_or_union_specifier struct_or_union struct_declaration_list struct_declaration specifier_qualifier_list struct_declarator_list struct_declarator
+%type <id> static_assert_declaration
 
 %start translation_unit
 %%
@@ -436,15 +437,16 @@ declaration
 		 free($1);
 		}
 	| declaration_specifiers init_declarator_list ';' 
-	  {if (typedef_flag == 1) {	//we were processing typedef declarations
-	     typedef_flag = 0;
-	   }
-	   fprintf(pl_file, "declaration([%s], [%s])\n", $1, $2);
-	   free($1);
-	   free($2);
+	  	{if (typedef_flag == 1) {	//we were processing typedef declarations
+	    	typedef_flag = 0;
+	   	 }
+	     fprintf(pl_file, "declaration([%s], [%s])\n", $1, $2);
+	     free($1);
+	     free($2);
 	  }
 	| static_assert_declaration
-		{fprintf(pl_file, "static_assert_declaration\n");
+		{fprintf(pl_file, "%s\n", $1);
+		 free($1);
 		}
 	;
 
@@ -568,7 +570,8 @@ struct_or_union
 	;
 
 struct_declaration_list
-	: struct_declaration	{simple_str_copy(&$$, $1);}
+	: struct_declaration	
+		{simple_str_copy(&$$, $1);}
 	| struct_declaration_list struct_declaration
 		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
@@ -580,28 +583,71 @@ struct_declaration_list
 
 struct_declaration
 	: specifier_qualifier_list ';'	/* for anonymous struct/union */
-		{simple_str_lit_copy(&$$, "struct_decl1");}
+		{size_t const size = strlen("struct_decl_anonymous()") + strlen($1) + 1;
+       	 $$ = (char*)malloc(size);
+         sprintf_s($$, size, "struct_decl_anonymous(%s)", $1);
+	   	 free($1);
+        }
 	| specifier_qualifier_list struct_declarator_list ';'
-		{simple_str_lit_copy(&$$, "struct_decl2");}
-	| static_assert_declaration	{simple_str_lit_copy(&$$, "struct_decl3");}
+		{size_t const size = strlen("struct_decl([], )") + strlen($1) + strlen($2) + 1;
+       	 $$ = (char*)malloc(size);
+         sprintf_s($$, size, "struct_decl([%s], %s)", $1, $2);
+	   	 free($1);
+		 free($2);
+        }
+	| static_assert_declaration
+		{simple_str_copy(&$$, $1);}
 	;
 
 specifier_qualifier_list
 	: type_specifier specifier_qualifier_list
+		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
+       	 $$ = (char*)malloc(size);
+         sprintf_s($$, size, "%s, %s", $1, $2);
+	   	 free($1);
+	     free($2);
+        }
 	| type_specifier
+		{simple_str_copy(&$$, $1);}
 	| type_qualifier specifier_qualifier_list
+		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
+       	 $$ = (char*)malloc(size);
+         sprintf_s($$, size, "%s, %s", $1, $2);
+	   	 free($1);
+	     free($2);
+        }
 	| type_qualifier
+		{simple_str_copy(&$$, $1);}
 	;
 
 struct_declarator_list
 	: struct_declarator
+		{simple_str_copy(&$$, $1);}
 	| struct_declarator_list ',' struct_declarator
+		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
+       	 $$ = (char*)malloc(size);
+         sprintf_s($$, size, "%s, %s)", $1, $3);
+	   	 free($1);
+	     free($3);
+        }
 	;
 
 struct_declarator
 	: ':' constant_expression
+		{size_t const size = strlen("struct_declarator()") + strlen($2) + 1;
+       	 $$ = (char*)malloc(size);
+         sprintf_s($$, size, "struct_declarator(%s)", $2);
+	   	 free($2);
+        }
 	| declarator ':' constant_expression
+		{size_t const size = strlen("struct_declarator(, )") + strlen($1) + strlen($3) + 1;
+       	 $$ = (char*)malloc(size);
+         sprintf_s($$, size, "struct_declarator(%s, %s)", $1, $3);
+	   	 free($1);
+	     free($3);
+        }
 	| declarator
+		{simple_str_copy(&$$, $1);}
 	;
 
 enum_specifier
@@ -841,6 +887,12 @@ designator
 
 static_assert_declaration
 	: STATIC_ASSERT '(' constant_expression ',' STRING_LITERAL ')' ';'
+		{size_t const size = strlen("static_assert(, )") + strlen($3) + strlen($5) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_s($$, size, "static_assert(%s, %s)", $3, $5);
+		 free($3);
+		 free($5);
+		}
 	;
 
 statement	//printed out
