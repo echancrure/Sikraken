@@ -964,7 +964,7 @@ jump_statement		//printed out
 
 translation_unit 	//printed out
 	: external_declaration
-	| translation_unit { fprintf(pl_file, ", "); } external_declaration
+	| translation_unit {fprintf(pl_file, ", ");} external_declaration
 	;
 
 external_declaration	//printed out
@@ -1030,10 +1030,12 @@ int main(int argc, char *argv[]) {			//argc is the total number of strings in th
 		fprintf(stderr, ".pl file could created for write at: %s\n", pl_file_uri);
 		exit(EXIT_FAILURE);
 	}
+	fprintf(pl_file, "prolog_c([");	//opening predicate
 	if (yyparse() != 0) {
 		fprintf(stderr, "Parsing failed.\n");
 		exit(EXIT_FAILURE);
 	}
+	fprintf(pl_file, "\n]).");	//closing predicate
 	fclose(pl_file);
 	fclose(i_file);
 	my_exit(EXIT_SUCCESS);

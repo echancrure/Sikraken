@@ -18,13 +18,14 @@ typedef struct try_struct { //try_struct is structure here
 
 struct point{
     int X;
+    int x;
     int y;
 };
 
 void main() {
     typedef long Money;
-    struct point pt = {320, 200};
-    int tot = pt.x + pt.y;
+    struct point pt = {320, 200, 200};
+    int tot = pt.X + pt.y + pt.x;
     if (tot > 42) {
         int tot = -1;
         tot = tot + 1;
