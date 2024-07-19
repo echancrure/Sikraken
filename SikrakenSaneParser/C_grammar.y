@@ -54,7 +54,7 @@ int debugMode = 0;				//flag to indicate if we are in debug mode set by by -d co
 %type <id> logical_or_expression logical_and_expression inclusive_or_expression exclusive_or_expression and_expression equality_expression equality_expression_op relational_expression relational_expression_operator shift_expression shift_expression_op additive_expression additive_expression_op
 %type <id> multiplicative_expression multiplicative_expression_op cast_expression unary_expression unary_operator unary_inc_dec postfix_expression 
 %type <id> type_name argument_expression_list primary_expression constant string enumeration_constant
-%type <id> initializer_list
+%type <id> initializer_list designation designator_list designator
 %type <id> struct_or_union_specifier struct_or_union struct_declaration_list struct_declaration
 
 %start translation_unit
@@ -652,11 +652,7 @@ declarator
 	   free($2);
       }
 	| direct_declarator
-	  {size_t const size = strlen($1) + 1;
-       $$ = (char*)malloc(size);
-       strcpy_s($$, size, $1);
-       free($1);
-      }
+	  {simple_str_copy(&$$, $1);}
 	;
 
 direct_declarator
@@ -769,29 +765,78 @@ direct_abstract_declarator
 
 initializer
 	: '{' initializer_list '}'
+		{size_t const size = strlen("initializer([])") + strlen($2) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_s($$, size, "initializer([%s])", $2);
+	     free($2);
+		}
 	| '{' initializer_list ',' '}'
+		{size_t const size = strlen("[]") + strlen($2) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_s($$, size, "trailing_comma_initializer([%s])", $2);
+	     free($2);
+		}
 	| assignment_expression
+		{simple_str_copy(&$$, $1);}
 	;
 
 initializer_list
-	: designation initializer	{simple_str_lit_copy(&$$, "initl1");}
-	| initializer				{simple_str_lit_copy(&$$, "initl2");}
-	| initializer_list ',' designation initializer	{simple_str_lit_copy(&$$, "initl3");}
-	| initializer_list ',' initializer				{simple_str_lit_copy(&$$, "initl4");}
+	: designation initializer
+		{size_t const size = strlen("init(, )") + strlen($1) + strlen($2) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_s($$, size, "init(%s, %s)", $1, $2);
+	     free($1);
+		 free($2);
+		}
+	| initializer				
+		{simple_str_copy(&$$, $1);}
+	| initializer_list ',' designation initializer
+		{size_t const size = strlen(", init(, )") + strlen($1) + strlen($3) + strlen($4) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_s($$, size, "%s, init(%s, %s)", $1, $3, $4);
+	     free($1);
+		 free($3);
+		 free($4);
+		}
+	| initializer_list ',' initializer
+		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_s($$, size, "%s, %s", $1, $3);
+	     free($1);
+		 free($3);
+		}
 	;
 
 designation
 	: designator_list '='
+		{size_t const size = strlen("[]") + strlen($1) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_s($$, size, "[%s]", $1);
+	     free($1);
+		}
 	;
 
 designator_list
-	: designator
+	: designator	
+		{simple_str_copy(&$$, $1);}
 	| designator_list designator
+		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_s($$, size, "%s, %s", $1, $2);
+	     free($1);
+		 free($2);
+		}
 	;
 
 designator
 	: '[' constant_expression ']'
+		{simple_str_copy(&$$, $2);}
 	| '.' IDENTIFIER
+		{size_t const size = strlen("select()") + strlen($2) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_s($$, size, "select(%s)", $2);
+		 free($2);
+		}
 	;
 
 static_assert_declaration
