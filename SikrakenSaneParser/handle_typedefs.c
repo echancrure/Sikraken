@@ -4,8 +4,6 @@
 
 extern void* safe_malloc(size_t);
 
-int typedef_flag = 0;	//indicates that we are within a typedef declaration
-
 typedef struct node {
 	char* typedef_name;
 	struct node* next;

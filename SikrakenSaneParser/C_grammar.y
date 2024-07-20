@@ -15,10 +15,12 @@ extern int yylineno;
 
 extern FILE *yyin;
 extern char *yytext;
-extern int typedef_flag;
 
-char pl_file_uri[_MAX_PATH];
-FILE* pl_file;
+FILE* pl_file;				//the file of containing the Prolog predicated after parsing the target C file
+char pl_file_uri[_MAX_PATH];	//the full path to the Pl_file
+char id_names[1000];		//string to hold Prolog var names and their details e.g. a(I_407, 'ch8_1.adb:39:7:i')
+int id_counter = 1;			//used to generate unique Prolog var names e.g. I_1, I_2, I_3 etc.
+int in_member_decl_flag = 0;	//indicate that we are parsing struct or union declarations and that the ids are part of the members namespace
 
 void yyerror(const char*);
 void my_exit(int);				//attempts to close handles and delete generated files prior to caling exit(int);
@@ -76,7 +78,8 @@ constant
 	;
 
 enumeration_constant		/* before it has been defined as such */
-	: IDENTIFIER	{simple_str_copy(&$$, $1);}
+	: IDENTIFIER	//Ordinary Id declaration
+		{simple_str_copy(&$$, $1);}
 	;
 
 string
@@ -547,7 +550,7 @@ struct_or_union_specifier
 	     free($1);
 	     free($3);
 	    }
-	| struct_or_union IDENTIFIER '{' struct_declaration_list '}'
+	| struct_or_union IDENTIFIER '{' struct_declaration_list '}'	//Tag Id declaration
 		{size_t const size = strlen("(, [])") + strlen($1) + strlen($2) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_s($$, size, "%s(%s, [%s])", $1, $2, $4);
@@ -555,7 +558,7 @@ struct_or_union_specifier
 	     free($2);
 		 free($4);
 	    }
-	| struct_or_union IDENTIFIER
+	| struct_or_union IDENTIFIER	//Tag Id declaration
 		{size_t const size = strlen("()") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_s($$, size, "%s(%s)", $1, $2);
@@ -588,12 +591,13 @@ struct_declaration
          sprintf_s($$, size, "struct_decl_anonymous(%s)", $1);
 	   	 free($1);
         }
-	| specifier_qualifier_list struct_declarator_list ';'
-		{size_t const size = strlen("struct_decl([], )") + strlen($1) + strlen($2) + 1;
+	| specifier_qualifier_list {in_member_decl_flag = 1;} struct_declarator_list ';'
+		{in_member_decl_flag = 0;
+		 size_t const size = strlen("struct_decl([], )") + strlen($1) + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_s($$, size, "struct_decl([%s], %s)", $1, $2);
+         sprintf_s($$, size, "struct_decl([%s], %s)", $1, $3);
 	   	 free($1);
-		 free($2);
+		 free($3);
         }
 	| static_assert_declaration
 		{simple_str_copy(&$$, $1);}
@@ -634,15 +638,15 @@ struct_declarator_list
 
 struct_declarator
 	: ':' constant_expression
-		{size_t const size = strlen("struct_declarator()") + strlen($2) + 1;
+		{size_t const size = strlen("anonymous_bit_field()") + strlen($2) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_s($$, size, "struct_declarator(%s)", $2);
+         sprintf_s($$, size, "anonymous_bit_field(%s)", $2);
 	   	 free($2);
         }
 	| declarator ':' constant_expression
-		{size_t const size = strlen("struct_declarator(, )") + strlen($1) + strlen($3) + 1;
+		{size_t const size = strlen("bit_field(, )") + strlen($1) + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_s($$, size, "struct_declarator(%s, %s)", $1, $3);
+         sprintf_s($$, size, "bit_field(%s, %s)", $1, $3);
 	   	 free($1);
 	     free($3);
         }
@@ -653,9 +657,9 @@ struct_declarator
 enum_specifier
 	: ENUM '{' enumerator_list '}'
 	| ENUM '{' enumerator_list ',' '}'
-	| ENUM IDENTIFIER '{' enumerator_list '}'
-	| ENUM IDENTIFIER '{' enumerator_list ',' '}'
-	| ENUM IDENTIFIER
+	| ENUM IDENTIFIER '{' enumerator_list '}'	//Tag namespace Id declaration
+	| ENUM IDENTIFIER '{' enumerator_list ',' '}'	//Tag namespace Id declaration
+	| ENUM IDENTIFIER	//Tag namespace Id declaration
 	;
 
 enumerator_list
@@ -702,7 +706,7 @@ declarator
 	;
 
 direct_declarator
-	: IDENTIFIER	{simple_str_copy(&$$, $1);}
+	: IDENTIFIER	{simple_str_copy(&$$, $1);} //Ordinary namespace id declaration unless within a struct declaration in which case it isa Member namespace id
 	| '(' declarator ')'			{simple_str_lit_copy(&$$, "D1");}
 	| direct_declarator '[' ']'		{simple_str_lit_copy(&$$, "D2"); }
 	| direct_declarator '[' '*' ']'	{simple_str_lit_copy(&$$, "D3"); }
@@ -770,8 +774,8 @@ parameter_declaration
 	;
 
 identifier_list
-	: IDENTIFIER
-	| identifier_list ',' IDENTIFIER
+	: IDENTIFIER		//Ordinary Id declaration
+	| identifier_list ',' IDENTIFIER	//Ordinary Id declaration
 	;
 
 type_name
@@ -905,7 +909,8 @@ statement	//printed out
 	;
 
 labeled_statement	//printed out
-	: IDENTIFIER ':' {fprintf(pl_file, "label_stmt($1, "); free($1);} statement {fprintf(pl_file, ")");}
+	: IDENTIFIER ':' 	//Label Id declaration
+		{fprintf(pl_file, "label_stmt($1, "); free($1);} statement {fprintf(pl_file, ")");}
 	| CASE constant_expression ':' {fprintf(pl_file, "case_stmt($2, "); free($2);} statement {fprintf(pl_file, ")");}
 	| DEFAULT ':' {fprintf(pl_file, "default_stmt(");} statement {fprintf(pl_file, ")");}
 	;
