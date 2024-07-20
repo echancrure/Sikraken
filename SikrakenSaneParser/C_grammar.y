@@ -59,6 +59,7 @@ int debugMode = 0;				//flag to indicate if we are in debug mode set by by -d co
 %type <id> initializer_list designation designator_list designator
 %type <id> struct_or_union_specifier struct_or_union struct_declaration_list struct_declaration specifier_qualifier_list struct_declarator_list struct_declarator
 %type <id> static_assert_declaration
+%type <id> enum_specifier enumerator_list enumerator
 
 %start translation_unit
 %%
@@ -78,7 +79,7 @@ constant
 	;
 
 enumeration_constant		/* before it has been defined as such */
-	: IDENTIFIER	//Ordinary Id declaration
+	: IDENTIFIER		//Ordinary namespace Id declaration
 		{simple_str_copy(&$$, $1);}
 	;
 
@@ -538,7 +539,7 @@ type_specifier
 	| IMAGINARY				{ simple_str_lit_copy(&$$, "imaginary"); } 	/* non-mandated extension */
 	| atomic_type_specifier	{ simple_str_lit_copy(&$$, "atomic_type_specifier"); }
 	| struct_or_union_specifier	{simple_str_copy(&$$, $1);}
-	| enum_specifier		{ simple_str_lit_copy(&$$, "enum_specifier"); }
+	| enum_specifier		{simple_str_copy(&$$, $1);}
 	| TYPEDEF_NAME			{simple_str_copy(&$$, $1);}	/* after it has been defined as such */
 	;
 
@@ -550,7 +551,7 @@ struct_or_union_specifier
 	     free($1);
 	     free($3);
 	    }
-	| struct_or_union IDENTIFIER '{' struct_declaration_list '}'	//Tag Id declaration
+	| struct_or_union IDENTIFIER '{' struct_declaration_list '}'	//Tag namespace Id declaration
 		{size_t const size = strlen("(, [])") + strlen($1) + strlen($2) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_s($$, size, "%s(%s, [%s])", $1, $2, $4);
@@ -558,7 +559,7 @@ struct_or_union_specifier
 	     free($2);
 		 free($4);
 	    }
-	| struct_or_union IDENTIFIER	//Tag Id declaration
+	| struct_or_union IDENTIFIER	//Tag namespace Id declaration
 		{size_t const size = strlen("()") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_s($$, size, "%s(%s)", $1, $2);
@@ -656,20 +657,61 @@ struct_declarator
 
 enum_specifier
 	: ENUM '{' enumerator_list '}'
+		{size_t const size = strlen("anonymous_enum([])") + strlen($3) + 1;
+       	 $$ = (char*)malloc(size);
+         sprintf_s($$, size, "anonymous_enum([%s])", $3);
+	     free($3);
+        }
 	| ENUM '{' enumerator_list ',' '}'
+		{size_t const size = strlen("trailing_comma_anonymous_enum([])") + strlen($3) + 1;
+       	 $$ = (char*)malloc(size);
+         sprintf_s($$, size, "trailing_comma_anonymous_enum([%s])", $3);
+	     free($3);
+        }
 	| ENUM IDENTIFIER '{' enumerator_list '}'	//Tag namespace Id declaration
+		{size_t const size = strlen("enum(, [])") + strlen($2) + strlen($4) + 1;
+       	 $$ = (char*)malloc(size);
+         sprintf_s($$, size, "enum(%s, [%s])", $2, $4);
+	     free($2);
+		 free($4);
+        }
 	| ENUM IDENTIFIER '{' enumerator_list ',' '}'	//Tag namespace Id declaration
+		{size_t const size = strlen("trailing_comma_enum(, [])") + strlen($2) + strlen($4) + 1;
+       	 $$ = (char*)malloc(size);
+         sprintf_s($$, size, "trailing_comma_enum(%s, [%s])", $2, $4);
+	     free($2);
+		 free($4);
+        }
 	| ENUM IDENTIFIER	//Tag namespace Id declaration
+		{size_t const size = strlen("forward_enum()") + strlen($2) + 1;
+       	 $$ = (char*)malloc(size);
+         sprintf_s($$, size, "forward_enum(%s)", $2);
+	     free($2);
+        }
 	;
 
 enumerator_list
 	: enumerator
+		{simple_str_copy(&$$, $1);}
 	| enumerator_list ',' enumerator
+		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
+       	 $$ = (char*)malloc(size);
+         sprintf_s($$, size, "%s, %s", $1, $3);
+	   	 free($1);
+	     free($3);
+        }
 	;
 
 enumerator	/* identifiers must be flagged as ENUMERATION_CONSTANT */
 	: enumeration_constant '=' constant_expression
+		{size_t const size = strlen("init_enum(, )") + strlen($1) + strlen($3) + 1;
+       	 $$ = (char*)malloc(size);
+         sprintf_s($$, size, "init_enum(%s, %s)", $1, $3);
+	   	 free($1);
+	     free($3);
+        }
 	| enumeration_constant
+		{simple_str_copy(&$$, $1);}
 	;
 
 atomic_type_specifier		// new in C11 for atomic operation: used in concurrency
@@ -706,20 +748,34 @@ declarator
 	;
 
 direct_declarator
-	: IDENTIFIER	{simple_str_copy(&$$, $1);} //Ordinary namespace id declaration unless within a struct declaration in which case it isa Member namespace id
-	| '(' declarator ')'			{simple_str_lit_copy(&$$, "D1");}
-	| direct_declarator '[' ']'		{simple_str_lit_copy(&$$, "D2"); }
-	| direct_declarator '[' '*' ']'	{simple_str_lit_copy(&$$, "D3"); }
-	| direct_declarator '[' STATIC type_qualifier_list assignment_expression ']' {simple_str_lit_copy(&$$, "D4"); }
-	| direct_declarator '[' STATIC assignment_expression ']'{simple_str_lit_copy(&$$, "D5"); }
-	| direct_declarator '[' type_qualifier_list '*' ']'{simple_str_lit_copy(&$$, "D6"); }
-	| direct_declarator '[' type_qualifier_list STATIC assignment_expression ']'{simple_str_lit_copy(&$$, "D7"); }
-	| direct_declarator '[' type_qualifier_list assignment_expression ']'{simple_str_lit_copy(&$$, "D8"); }
-	| direct_declarator '[' type_qualifier_list ']'{simple_str_lit_copy(&$$, "D9"); }
-	| direct_declarator '[' assignment_expression ']'{simple_str_lit_copy(&$$, "D10"); }
-	| direct_declarator '(' parameter_type_list ')'{simple_str_lit_copy(&$$, "D11"); }
-	| direct_declarator '(' ')'{simple_str_lit_copy(&$$, "D12"); }
-	| direct_declarator '(' identifier_list ')'{simple_str_lit_copy(&$$, "D13"); }
+	: IDENTIFIER	
+		{simple_str_copy(&$$, $1);} //Ordinary namespace id declaration unless within a struct declaration in which case it isa Member namespace id
+	| '(' declarator ')'			
+		{simple_str_lit_copy(&$$, "D1");}
+	| direct_declarator '[' ']'		
+		{simple_str_lit_copy(&$$, "D2");}
+	| direct_declarator '[' '*' ']'	
+		{simple_str_lit_copy(&$$, "D3");}
+	| direct_declarator '[' STATIC type_qualifier_list assignment_expression ']' 
+		{simple_str_lit_copy(&$$, "D4");}
+	| direct_declarator '[' STATIC assignment_expression ']'
+		{simple_str_lit_copy(&$$, "D5");}
+	| direct_declarator '[' type_qualifier_list '*' ']'
+		{simple_str_lit_copy(&$$, "D6");}
+	| direct_declarator '[' type_qualifier_list STATIC assignment_expression ']'
+		{simple_str_lit_copy(&$$, "D7");}
+	| direct_declarator '[' type_qualifier_list assignment_expression ']'
+		{simple_str_lit_copy(&$$, "D8");}
+	| direct_declarator '[' type_qualifier_list ']'
+		{simple_str_lit_copy(&$$, "D9");}
+	| direct_declarator '[' assignment_expression ']'
+		{simple_str_lit_copy(&$$, "D10");}
+	| direct_declarator '(' parameter_type_list ')'
+		{simple_str_lit_copy(&$$, "D11");}
+	| direct_declarator '(' ')'
+		{simple_str_lit_copy(&$$, "D12");}
+	| direct_declarator '(' identifier_list ')'
+		{simple_str_lit_copy(&$$, "D13");}
 	;
 
 pointer
@@ -747,7 +803,8 @@ pointer
 	;
 
 type_qualifier_list
-	: type_qualifier	{simple_str_copy(&$$, $1);}
+	: type_qualifier	
+		{simple_str_copy(&$$, $1);}
 	| type_qualifier_list type_qualifier
 		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
@@ -910,7 +967,11 @@ statement	//printed out
 
 labeled_statement	//printed out
 	: IDENTIFIER ':' 	//Label Id declaration
-		{fprintf(pl_file, "label_stmt($1, "); free($1);} statement {fprintf(pl_file, ")");}
+		{fprintf(pl_file, "label_stmt($1, "); 
+		 free($1);
+		} 
+		statement 
+		{fprintf(pl_file, ")");}
 	| CASE constant_expression ':' {fprintf(pl_file, "case_stmt($2, "); free($2);} statement {fprintf(pl_file, ")");}
 	| DEFAULT ':' {fprintf(pl_file, "default_stmt(");} statement {fprintf(pl_file, ")");}
 	;

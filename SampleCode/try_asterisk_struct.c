@@ -10,6 +10,11 @@ struct b_struct {
     unsigned int *c;
 };
 
+enum day {
+     mon, 
+     tue
+    };
+
 typedef struct try_struct { //try_struct is structure here
     unsigned short const *a;
     Money b;
@@ -30,6 +35,5 @@ void main() {
         int tot = -1;
         tot = tot + 1;
     }
-    tot = tot +1;    
-
+    tot = tot +1;
 }

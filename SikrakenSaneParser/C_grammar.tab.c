@@ -721,37 +721,37 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,    67,    67,    68,    69,    70,    71,    75,    76,    77,
-      81,    86,    87,    91,    95,    96,   100,   101,   105,   106,
-     113,   119,   126,   133,   140,   146,   152,   159,   169,   170,
-     180,   181,   188,   195,   201,   207,   216,   217,   221,   222,
-     223,   224,   225,   226,   230,   231,   241,   242,   253,   254,
-     255,   259,   260,   271,   272,   276,   277,   288,   289,   293,
-     294,   305,   306,   307,   308,   313,   314,   325,   326,   330,
-     331,   341,   342,   352,   353,   363,   364,   374,   375,   385,
-     386,   397,   398,   409,   410,   411,   412,   413,   414,   415,
-     416,   417,   418,   419,   423,   424,   434,   438,   442,   450,
-     457,   464,   465,   472,   473,   475,   477,   479,   481,   483,
-     488,   489,   499,   506,   515,   519,   520,   521,   522,   523,
-     527,   528,   529,   530,   531,   532,   533,   534,   535,   536,
-     537,   538,   539,   540,   541,   542,   546,   553,   561,   571,
-     572,   576,   578,   588,   594,   594,   602,   607,   614,   616,
-     623,   628,   630,   640,   646,   653,   658,   659,   660,   661,
-     662,   666,   667,   671,   672,   676,   680,   681,   682,   683,
-     687,   688,   692,   693,   697,   704,   709,   710,   711,   712,
-     713,   714,   715,   716,   717,   718,   719,   720,   721,   722,
-     726,   733,   739,   745,   750,   751,   761,   762,   766,   767,
-     771,   772,   773,   777,   778,   782,   783,   787,   788,   789,
-     793,   794,   795,   796,   797,   798,   799,   800,   801,   802,
-     803,   804,   805,   806,   807,   808,   809,   810,   811,   812,
-     813,   817,   823,   829,   834,   841,   843,   851,   861,   870,
-     872,   882,   884,   893,   903,   904,   905,   906,   907,   908,
-     913,   912,   914,   914,   915,   915,   919,   920,   920,   924,
-     925,   925,   929,   930,   934,   935,   939,   939,   940,   940,
-     944,   945,   945,   948,   948,   949,   949,   950,   950,   950,
-     954,   954,   955,   955,   959,   960,   963,   964,   965,   966,
-     967,   971,   972,   972,   976,   977,   981,   981,   981,   985,
-     986,   990,   991,   991
+       0,    68,    68,    69,    70,    71,    72,    76,    77,    78,
+      82,    87,    88,    92,    96,    97,   101,   102,   106,   107,
+     114,   120,   127,   134,   141,   147,   153,   160,   170,   171,
+     181,   182,   189,   196,   202,   208,   217,   218,   222,   223,
+     224,   225,   226,   227,   231,   232,   242,   243,   254,   255,
+     256,   260,   261,   272,   273,   277,   278,   289,   290,   294,
+     295,   306,   307,   308,   309,   314,   315,   326,   327,   331,
+     332,   342,   343,   353,   354,   364,   365,   375,   376,   386,
+     387,   398,   399,   410,   411,   412,   413,   414,   415,   416,
+     417,   418,   419,   420,   424,   425,   435,   439,   443,   451,
+     458,   465,   466,   473,   474,   476,   478,   480,   482,   484,
+     489,   490,   500,   507,   516,   520,   521,   522,   523,   524,
+     528,   529,   530,   531,   532,   533,   534,   535,   536,   537,
+     538,   539,   540,   541,   542,   543,   547,   554,   562,   572,
+     573,   577,   579,   589,   595,   595,   603,   608,   615,   617,
+     624,   629,   631,   641,   647,   654,   659,   665,   671,   678,
+     685,   694,   696,   706,   713,   718,   722,   723,   724,   725,
+     729,   730,   734,   735,   739,   746,   751,   752,   753,   754,
+     755,   756,   757,   758,   759,   760,   761,   762,   763,   764,
+     768,   775,   781,   787,   792,   793,   803,   804,   808,   809,
+     813,   814,   815,   819,   820,   824,   825,   829,   830,   831,
+     835,   836,   837,   838,   839,   840,   841,   842,   843,   844,
+     845,   846,   847,   848,   849,   850,   851,   852,   853,   854,
+     855,   859,   865,   871,   876,   883,   885,   893,   903,   912,
+     914,   924,   926,   935,   945,   946,   947,   948,   949,   950,
+     955,   954,   956,   956,   957,   957,   961,   962,   962,   966,
+     967,   967,   971,   972,   976,   977,   981,   981,   982,   982,
+     986,   987,   987,   990,   990,   991,   991,   992,   992,   992,
+     996,   996,   997,   997,  1001,  1002,  1005,  1006,  1007,  1008,
+    1009,  1013,  1014,  1014,  1018,  1019,  1023,  1023,  1023,  1027,
+    1028,  1032,  1033,  1033
 };
 #endif
 
@@ -1998,79 +1998,79 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* primary_expression: IDENTIFIER  */
-#line 67 "C_grammar.y"
+#line 68 "C_grammar.y"
                         {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2004 "C_grammar.tab.c"
     break;
 
   case 3: /* primary_expression: constant  */
-#line 68 "C_grammar.y"
+#line 69 "C_grammar.y"
                                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2010 "C_grammar.tab.c"
     break;
 
   case 4: /* primary_expression: string  */
-#line 69 "C_grammar.y"
+#line 70 "C_grammar.y"
                                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2016 "C_grammar.tab.c"
     break;
 
   case 5: /* primary_expression: '(' expression ')'  */
-#line 70 "C_grammar.y"
+#line 71 "C_grammar.y"
                                 {simple_str_lit_copy(&(yyval.id), "prim4");}
 #line 2022 "C_grammar.tab.c"
     break;
 
   case 6: /* primary_expression: generic_selection  */
-#line 71 "C_grammar.y"
+#line 72 "C_grammar.y"
                                         {simple_str_lit_copy(&(yyval.id), "generic_selection");}
 #line 2028 "C_grammar.tab.c"
     break;
 
   case 7: /* constant: I_CONSTANT  */
-#line 75 "C_grammar.y"
+#line 76 "C_grammar.y"
                         {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2034 "C_grammar.tab.c"
     break;
 
   case 8: /* constant: F_CONSTANT  */
-#line 76 "C_grammar.y"
+#line 77 "C_grammar.y"
                         {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2040 "C_grammar.tab.c"
     break;
 
   case 9: /* constant: ENUMERATION_CONSTANT  */
-#line 77 "C_grammar.y"
+#line 78 "C_grammar.y"
                                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2046 "C_grammar.tab.c"
     break;
 
   case 10: /* enumeration_constant: IDENTIFIER  */
-#line 82 "C_grammar.y"
+#line 83 "C_grammar.y"
                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2052 "C_grammar.tab.c"
     break;
 
   case 11: /* string: STRING_LITERAL  */
-#line 86 "C_grammar.y"
+#line 87 "C_grammar.y"
                                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2058 "C_grammar.tab.c"
     break;
 
   case 12: /* string: FUNC_NAME  */
-#line 87 "C_grammar.y"
+#line 88 "C_grammar.y"
                                         {simple_str_lit_copy(&(yyval.id), "thisFunctionName");}
 #line 2064 "C_grammar.tab.c"
     break;
 
   case 18: /* postfix_expression: primary_expression  */
-#line 105 "C_grammar.y"
+#line 106 "C_grammar.y"
                                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2070 "C_grammar.tab.c"
     break;
 
   case 19: /* postfix_expression: postfix_expression '[' expression ']'  */
-#line 107 "C_grammar.y"
+#line 108 "C_grammar.y"
                 {size_t const size = strlen("index(, )") + strlen((yyvsp[-3].id)) + strlen((yyvsp[-1].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "index(%s, %s)", (yyvsp[-3].id), (yyvsp[-1].id));
@@ -2081,7 +2081,7 @@ yyreduce:
     break;
 
   case 20: /* postfix_expression: postfix_expression '(' ')'  */
-#line 114 "C_grammar.y"
+#line 115 "C_grammar.y"
                 {size_t const size = strlen("([])") + strlen((yyvsp[-2].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "%s([])", (yyvsp[-2].id));
@@ -2091,7 +2091,7 @@ yyreduce:
     break;
 
   case 21: /* postfix_expression: postfix_expression '(' argument_expression_list ')'  */
-#line 120 "C_grammar.y"
+#line 121 "C_grammar.y"
                 {size_t const size = strlen("([])") + strlen((yyvsp[-3].id)) + strlen((yyvsp[-1].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "%s([%s])", (yyvsp[-3].id), (yyvsp[-1].id));
@@ -2102,7 +2102,7 @@ yyreduce:
     break;
 
   case 22: /* postfix_expression: postfix_expression '.' IDENTIFIER  */
-#line 127 "C_grammar.y"
+#line 128 "C_grammar.y"
                 {size_t const size = strlen("select(, )") + strlen((yyvsp[-2].id)) + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "select(%s, %s)", (yyvsp[-2].id), (yyvsp[0].id));
@@ -2113,7 +2113,7 @@ yyreduce:
     break;
 
   case 23: /* postfix_expression: postfix_expression PTR_OP IDENTIFIER  */
-#line 134 "C_grammar.y"
+#line 135 "C_grammar.y"
                 {size_t const size = strlen("struct_pointer(, )") + strlen((yyvsp[-2].id)) + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "struct_pointer(%s, %s)", (yyvsp[-2].id), (yyvsp[0].id));
@@ -2124,7 +2124,7 @@ yyreduce:
     break;
 
   case 24: /* postfix_expression: postfix_expression INC_OP  */
-#line 141 "C_grammar.y"
+#line 142 "C_grammar.y"
                 {size_t const size = strlen("postfix_inc_op()") + strlen((yyvsp[-1].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "postfix_inc_op(%s)", (yyvsp[-1].id));
@@ -2134,7 +2134,7 @@ yyreduce:
     break;
 
   case 25: /* postfix_expression: postfix_expression DEC_OP  */
-#line 147 "C_grammar.y"
+#line 148 "C_grammar.y"
                 {size_t const size = strlen("postfix_dec_op()") + strlen((yyvsp[-1].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "postfix_dec_op(%s)", (yyvsp[-1].id));
@@ -2144,7 +2144,7 @@ yyreduce:
     break;
 
   case 26: /* postfix_expression: '(' type_name ')' '{' initializer_list '}'  */
-#line 153 "C_grammar.y"
+#line 154 "C_grammar.y"
                 {size_t const size = strlen("compound_literal(, )") + strlen((yyvsp[-4].id)) + strlen((yyvsp[-1].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "compound_literal(%s, %s)", (yyvsp[-4].id), (yyvsp[-1].id));
@@ -2155,7 +2155,7 @@ yyreduce:
     break;
 
   case 27: /* postfix_expression: '(' type_name ')' '{' initializer_list ',' '}'  */
-#line 160 "C_grammar.y"
+#line 161 "C_grammar.y"
                 {size_t const size = strlen("trailing_comma_compound_literal(, )") + strlen((yyvsp[-5].id)) + strlen((yyvsp[-2].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "trailing_comma_compound_literal(%s, %s)", (yyvsp[-5].id), (yyvsp[-2].id));
@@ -2166,13 +2166,13 @@ yyreduce:
     break;
 
   case 28: /* argument_expression_list: assignment_expression  */
-#line 169 "C_grammar.y"
+#line 170 "C_grammar.y"
                                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2172 "C_grammar.tab.c"
     break;
 
   case 29: /* argument_expression_list: argument_expression_list ',' assignment_expression  */
-#line 171 "C_grammar.y"
+#line 172 "C_grammar.y"
                 {size_t const size = strlen(", ") + strlen((yyvsp[-2].id)) + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "%s, %s", (yyvsp[-2].id), (yyvsp[0].id));
@@ -2183,13 +2183,13 @@ yyreduce:
     break;
 
   case 30: /* unary_expression: postfix_expression  */
-#line 180 "C_grammar.y"
+#line 181 "C_grammar.y"
                                         {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2189 "C_grammar.tab.c"
     break;
 
   case 31: /* unary_expression: unary_inc_dec unary_expression  */
-#line 182 "C_grammar.y"
+#line 183 "C_grammar.y"
                 {size_t const size = strlen("()") + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "%s(%s)", (yyvsp[-1].id), (yyvsp[0].id));
@@ -2200,7 +2200,7 @@ yyreduce:
     break;
 
   case 32: /* unary_expression: unary_operator cast_expression  */
-#line 189 "C_grammar.y"
+#line 190 "C_grammar.y"
                 {size_t const size = strlen("()") + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "%s(%s)", (yyvsp[-1].id), (yyvsp[0].id));
@@ -2211,7 +2211,7 @@ yyreduce:
     break;
 
   case 33: /* unary_expression: SIZEOF unary_expression  */
-#line 196 "C_grammar.y"
+#line 197 "C_grammar.y"
                 {size_t const size = strlen("size_of_exp()") + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "size_of_exp(%s)", (yyvsp[0].id));
@@ -2221,7 +2221,7 @@ yyreduce:
     break;
 
   case 34: /* unary_expression: SIZEOF '(' type_name ')'  */
-#line 202 "C_grammar.y"
+#line 203 "C_grammar.y"
                 {size_t const size = strlen("size_of_type()") + strlen((yyvsp[-1].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "size_of_type(%s)", (yyvsp[-1].id));
@@ -2231,7 +2231,7 @@ yyreduce:
     break;
 
   case 35: /* unary_expression: ALIGNOF '(' type_name ')'  */
-#line 208 "C_grammar.y"
+#line 209 "C_grammar.y"
                 {size_t const size = strlen("align_of()") + strlen((yyvsp[-1].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "align_of(%s)", (yyvsp[-1].id));
@@ -2241,61 +2241,61 @@ yyreduce:
     break;
 
   case 36: /* unary_inc_dec: INC_OP  */
-#line 216 "C_grammar.y"
+#line 217 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "prefix_inc_op");}
 #line 2247 "C_grammar.tab.c"
     break;
 
   case 37: /* unary_inc_dec: DEC_OP  */
-#line 217 "C_grammar.y"
+#line 218 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "prefix_dec_op");}
 #line 2253 "C_grammar.tab.c"
     break;
 
   case 38: /* unary_operator: '&'  */
-#line 221 "C_grammar.y"
+#line 222 "C_grammar.y"
                 {simple_str_lit_copy(&(yyval.id), "address_of_op");}
 #line 2259 "C_grammar.tab.c"
     break;
 
   case 39: /* unary_operator: '*'  */
-#line 222 "C_grammar.y"
+#line 223 "C_grammar.y"
                 {simple_str_lit_copy(&(yyval.id), "dereference_op");}
 #line 2265 "C_grammar.tab.c"
     break;
 
   case 40: /* unary_operator: '+'  */
-#line 223 "C_grammar.y"
+#line 224 "C_grammar.y"
                 {simple_str_lit_copy(&(yyval.id), "plus_op");}
 #line 2271 "C_grammar.tab.c"
     break;
 
   case 41: /* unary_operator: '-'  */
-#line 224 "C_grammar.y"
+#line 225 "C_grammar.y"
                 {simple_str_lit_copy(&(yyval.id), "minus_op");}
 #line 2277 "C_grammar.tab.c"
     break;
 
   case 42: /* unary_operator: '~'  */
-#line 225 "C_grammar.y"
+#line 226 "C_grammar.y"
                 {simple_str_lit_copy(&(yyval.id), "one_comp_op");}
 #line 2283 "C_grammar.tab.c"
     break;
 
   case 43: /* unary_operator: '!'  */
-#line 226 "C_grammar.y"
+#line 227 "C_grammar.y"
                 {simple_str_lit_copy(&(yyval.id), "not_op");}
 #line 2289 "C_grammar.tab.c"
     break;
 
   case 44: /* cast_expression: unary_expression  */
-#line 230 "C_grammar.y"
+#line 231 "C_grammar.y"
                                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2295 "C_grammar.tab.c"
     break;
 
   case 45: /* cast_expression: '(' type_name ')' cast_expression  */
-#line 232 "C_grammar.y"
+#line 233 "C_grammar.y"
                 {size_t const size = strlen("cast(, )") + strlen((yyvsp[-2].id)) + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "cast(%s, %s)", (yyvsp[-2].id), (yyvsp[0].id));
@@ -2306,13 +2306,13 @@ yyreduce:
     break;
 
   case 46: /* multiplicative_expression: cast_expression  */
-#line 241 "C_grammar.y"
+#line 242 "C_grammar.y"
                                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2312 "C_grammar.tab.c"
     break;
 
   case 47: /* multiplicative_expression: multiplicative_expression multiplicative_expression_op cast_expression  */
-#line 243 "C_grammar.y"
+#line 244 "C_grammar.y"
                 {size_t const size = strlen("(, )") + strlen((yyvsp[-2].id)) + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "%s(%s, %s)", (yyvsp[-1].id), (yyvsp[-2].id), (yyvsp[0].id));
@@ -2324,31 +2324,31 @@ yyreduce:
     break;
 
   case 48: /* multiplicative_expression_op: '*'  */
-#line 253 "C_grammar.y"
+#line 254 "C_grammar.y"
                 {simple_str_lit_copy(&(yyval.id), "multiply_op");}
 #line 2330 "C_grammar.tab.c"
     break;
 
   case 49: /* multiplicative_expression_op: '/'  */
-#line 254 "C_grammar.y"
+#line 255 "C_grammar.y"
                 {simple_str_lit_copy(&(yyval.id), "div_op");}
 #line 2336 "C_grammar.tab.c"
     break;
 
   case 50: /* multiplicative_expression_op: '%'  */
-#line 255 "C_grammar.y"
+#line 256 "C_grammar.y"
                 {simple_str_lit_copy(&(yyval.id), "mod_op");}
 #line 2342 "C_grammar.tab.c"
     break;
 
   case 51: /* additive_expression: multiplicative_expression  */
-#line 259 "C_grammar.y"
+#line 260 "C_grammar.y"
                                         {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2348 "C_grammar.tab.c"
     break;
 
   case 52: /* additive_expression: additive_expression additive_expression_op multiplicative_expression  */
-#line 261 "C_grammar.y"
+#line 262 "C_grammar.y"
                 {size_t const size = strlen("(, )") + strlen((yyvsp[-2].id)) + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "%s(%s, %s)", (yyvsp[-1].id), (yyvsp[-2].id), (yyvsp[0].id));
@@ -2360,25 +2360,25 @@ yyreduce:
     break;
 
   case 53: /* additive_expression_op: '+'  */
-#line 271 "C_grammar.y"
+#line 272 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "plus_op");}
 #line 2366 "C_grammar.tab.c"
     break;
 
   case 54: /* additive_expression_op: '-'  */
-#line 272 "C_grammar.y"
+#line 273 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "minus_op");}
 #line 2372 "C_grammar.tab.c"
     break;
 
   case 55: /* shift_expression: additive_expression  */
-#line 276 "C_grammar.y"
+#line 277 "C_grammar.y"
                                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2378 "C_grammar.tab.c"
     break;
 
   case 56: /* shift_expression: shift_expression shift_expression_op additive_expression  */
-#line 278 "C_grammar.y"
+#line 279 "C_grammar.y"
                 {size_t const size = strlen("(, )") + strlen((yyvsp[-2].id)) + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "%s(%s, %s)", (yyvsp[-1].id), (yyvsp[-2].id), (yyvsp[0].id));
@@ -2390,25 +2390,25 @@ yyreduce:
     break;
 
   case 57: /* shift_expression_op: LEFT_OP  */
-#line 288 "C_grammar.y"
+#line 289 "C_grammar.y"
                                 {simple_str_lit_copy(&(yyval.id), "left_shift_op");}
 #line 2396 "C_grammar.tab.c"
     break;
 
   case 58: /* shift_expression_op: RIGHT_OP  */
-#line 289 "C_grammar.y"
+#line 290 "C_grammar.y"
                                 {simple_str_lit_copy(&(yyval.id), "right_shift_op");}
 #line 2402 "C_grammar.tab.c"
     break;
 
   case 59: /* relational_expression: shift_expression  */
-#line 293 "C_grammar.y"
+#line 294 "C_grammar.y"
                                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2408 "C_grammar.tab.c"
     break;
 
   case 60: /* relational_expression: relational_expression relational_expression_operator shift_expression  */
-#line 295 "C_grammar.y"
+#line 296 "C_grammar.y"
                 {size_t const size = strlen("(, )") + strlen((yyvsp[-2].id)) + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "%s(%s, %s)", (yyvsp[-1].id), (yyvsp[-2].id), (yyvsp[0].id));
@@ -2420,37 +2420,37 @@ yyreduce:
     break;
 
   case 61: /* relational_expression_operator: '<'  */
-#line 305 "C_grammar.y"
+#line 306 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "less_op");}
 #line 2426 "C_grammar.tab.c"
     break;
 
   case 62: /* relational_expression_operator: '>'  */
-#line 306 "C_grammar.y"
+#line 307 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "greater_op");}
 #line 2432 "C_grammar.tab.c"
     break;
 
   case 63: /* relational_expression_operator: LE_OP  */
-#line 307 "C_grammar.y"
+#line 308 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "less_or_eq_op");}
 #line 2438 "C_grammar.tab.c"
     break;
 
   case 64: /* relational_expression_operator: GE_OP  */
-#line 308 "C_grammar.y"
+#line 309 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "greater_or_eq_op");}
 #line 2444 "C_grammar.tab.c"
     break;
 
   case 65: /* equality_expression: relational_expression  */
-#line 313 "C_grammar.y"
+#line 314 "C_grammar.y"
                                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2450 "C_grammar.tab.c"
     break;
 
   case 66: /* equality_expression: equality_expression equality_expression_op relational_expression  */
-#line 315 "C_grammar.y"
+#line 316 "C_grammar.y"
                 {size_t const size = strlen("(, )") + strlen((yyvsp[-2].id)) + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "%s(%s, %s)", (yyvsp[-1].id), (yyvsp[-2].id), (yyvsp[0].id));
@@ -2462,25 +2462,25 @@ yyreduce:
     break;
 
   case 67: /* equality_expression_op: EQ_OP  */
-#line 325 "C_grammar.y"
+#line 326 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "equal_op");}
 #line 2468 "C_grammar.tab.c"
     break;
 
   case 68: /* equality_expression_op: NE_OP  */
-#line 326 "C_grammar.y"
+#line 327 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "not_equal_op");}
 #line 2474 "C_grammar.tab.c"
     break;
 
   case 69: /* and_expression: equality_expression  */
-#line 330 "C_grammar.y"
+#line 331 "C_grammar.y"
                                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2480 "C_grammar.tab.c"
     break;
 
   case 70: /* and_expression: and_expression '&' equality_expression  */
-#line 332 "C_grammar.y"
+#line 333 "C_grammar.y"
                 {size_t const size = strlen("bitw_and(, )") + strlen((yyvsp[-2].id)) + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "bitw_and(%s, %s)", (yyvsp[-2].id), (yyvsp[0].id));
@@ -2491,13 +2491,13 @@ yyreduce:
     break;
 
   case 71: /* exclusive_or_expression: and_expression  */
-#line 341 "C_grammar.y"
+#line 342 "C_grammar.y"
                                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2497 "C_grammar.tab.c"
     break;
 
   case 72: /* exclusive_or_expression: exclusive_or_expression '^' and_expression  */
-#line 343 "C_grammar.y"
+#line 344 "C_grammar.y"
                 {size_t const size = strlen("bitw_excl_or_op(, )") + strlen((yyvsp[-2].id)) + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "bitw_excl_or_op(%s, %s)", (yyvsp[-2].id), (yyvsp[0].id));
@@ -2508,13 +2508,13 @@ yyreduce:
     break;
 
   case 73: /* inclusive_or_expression: exclusive_or_expression  */
-#line 352 "C_grammar.y"
+#line 353 "C_grammar.y"
                                         {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2514 "C_grammar.tab.c"
     break;
 
   case 74: /* inclusive_or_expression: inclusive_or_expression '|' exclusive_or_expression  */
-#line 354 "C_grammar.y"
+#line 355 "C_grammar.y"
                 {size_t const size = strlen("bitw_incl_or_op(, )") + strlen((yyvsp[-2].id)) + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "bitw_incl_or_op(%s, %s)", (yyvsp[-2].id), (yyvsp[0].id));
@@ -2525,13 +2525,13 @@ yyreduce:
     break;
 
   case 75: /* logical_and_expression: inclusive_or_expression  */
-#line 363 "C_grammar.y"
+#line 364 "C_grammar.y"
                                         {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2531 "C_grammar.tab.c"
     break;
 
   case 76: /* logical_and_expression: logical_and_expression AND_OP inclusive_or_expression  */
-#line 365 "C_grammar.y"
+#line 366 "C_grammar.y"
                 {size_t const size = strlen("and_op(, )") + strlen((yyvsp[-2].id)) + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "and_op(%s, %s)", (yyvsp[-2].id), (yyvsp[0].id));
@@ -2542,13 +2542,13 @@ yyreduce:
     break;
 
   case 77: /* logical_or_expression: logical_and_expression  */
-#line 374 "C_grammar.y"
+#line 375 "C_grammar.y"
                                         {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2548 "C_grammar.tab.c"
     break;
 
   case 78: /* logical_or_expression: logical_or_expression OR_OP logical_and_expression  */
-#line 376 "C_grammar.y"
+#line 377 "C_grammar.y"
                 {size_t const size = strlen("or_op(, )") + strlen((yyvsp[-2].id)) + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "or_op(%s, %s)", (yyvsp[-2].id), (yyvsp[0].id));
@@ -2559,13 +2559,13 @@ yyreduce:
     break;
 
   case 79: /* conditional_expression: logical_or_expression  */
-#line 385 "C_grammar.y"
+#line 386 "C_grammar.y"
                                         {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2565 "C_grammar.tab.c"
     break;
 
   case 80: /* conditional_expression: logical_or_expression '?' expression ':' conditional_expression  */
-#line 387 "C_grammar.y"
+#line 388 "C_grammar.y"
                 {size_t const size = strlen("cond_exp(, , )") + strlen((yyvsp[-4].id)) + strlen((yyvsp[-2].id)) + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "cond_exp(%s, %s, %s)", (yyvsp[-4].id), (yyvsp[-2].id), (yyvsp[0].id));
@@ -2577,13 +2577,13 @@ yyreduce:
     break;
 
   case 81: /* assignment_expression: conditional_expression  */
-#line 397 "C_grammar.y"
+#line 398 "C_grammar.y"
                                         {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2583 "C_grammar.tab.c"
     break;
 
   case 82: /* assignment_expression: unary_expression assignment_operator assignment_expression  */
-#line 399 "C_grammar.y"
+#line 400 "C_grammar.y"
                 {size_t const size = strlen("%s(%s, %s)") + strlen((yyvsp[-2].id)) + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "%s(%s, %s)", (yyvsp[-1].id), (yyvsp[-2].id), (yyvsp[0].id));
@@ -2595,79 +2595,79 @@ yyreduce:
     break;
 
   case 83: /* assignment_operator: '='  */
-#line 409 "C_grammar.y"
+#line 410 "C_grammar.y"
                                 {simple_str_lit_copy(&(yyval.id), "assign");}
 #line 2601 "C_grammar.tab.c"
     break;
 
   case 84: /* assignment_operator: MUL_ASSIGN  */
-#line 410 "C_grammar.y"
+#line 411 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "mul_assign");}
 #line 2607 "C_grammar.tab.c"
     break;
 
   case 85: /* assignment_operator: DIV_ASSIGN  */
-#line 411 "C_grammar.y"
+#line 412 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "div_assign");}
 #line 2613 "C_grammar.tab.c"
     break;
 
   case 86: /* assignment_operator: MOD_ASSIGN  */
-#line 412 "C_grammar.y"
+#line 413 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "mod_assign");}
 #line 2619 "C_grammar.tab.c"
     break;
 
   case 87: /* assignment_operator: ADD_ASSIGN  */
-#line 413 "C_grammar.y"
+#line 414 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "add_assign");}
 #line 2625 "C_grammar.tab.c"
     break;
 
   case 88: /* assignment_operator: SUB_ASSIGN  */
-#line 414 "C_grammar.y"
+#line 415 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "sub_assign");}
 #line 2631 "C_grammar.tab.c"
     break;
 
   case 89: /* assignment_operator: LEFT_ASSIGN  */
-#line 415 "C_grammar.y"
+#line 416 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "left_assign");}
 #line 2637 "C_grammar.tab.c"
     break;
 
   case 90: /* assignment_operator: RIGHT_ASSIGN  */
-#line 416 "C_grammar.y"
+#line 417 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "right_assign");}
 #line 2643 "C_grammar.tab.c"
     break;
 
   case 91: /* assignment_operator: AND_ASSIGN  */
-#line 417 "C_grammar.y"
+#line 418 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "and_assign");}
 #line 2649 "C_grammar.tab.c"
     break;
 
   case 92: /* assignment_operator: XOR_ASSIGN  */
-#line 418 "C_grammar.y"
+#line 419 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "xor_assign");}
 #line 2655 "C_grammar.tab.c"
     break;
 
   case 93: /* assignment_operator: OR_ASSIGN  */
-#line 419 "C_grammar.y"
+#line 420 "C_grammar.y"
                                 {simple_str_lit_copy(&(yyval.id), "or_assign");}
 #line 2661 "C_grammar.tab.c"
     break;
 
   case 94: /* expression: assignment_expression  */
-#line 423 "C_grammar.y"
+#line 424 "C_grammar.y"
                                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2667 "C_grammar.tab.c"
     break;
 
   case 95: /* expression: expression ',' assignment_expression  */
-#line 425 "C_grammar.y"
+#line 426 "C_grammar.y"
                 {size_t const size = strlen("comma_op(, )") + strlen((yyvsp[-2].id)) + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "comma_op(%s, %s)", (yyvsp[-2].id), (yyvsp[0].id));
@@ -2678,13 +2678,13 @@ yyreduce:
     break;
 
   case 96: /* constant_expression: conditional_expression  */
-#line 434 "C_grammar.y"
+#line 435 "C_grammar.y"
                                                                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2684 "C_grammar.tab.c"
     break;
 
   case 97: /* declaration: declaration_specifiers ';'  */
-#line 439 "C_grammar.y"
+#line 440 "C_grammar.y"
                 {fprintf(pl_file, "declaration([%s])\n", (yyvsp[-1].id));
 		 free((yyvsp[-1].id));
 		}
@@ -2692,7 +2692,7 @@ yyreduce:
     break;
 
   case 98: /* declaration: declaration_specifiers init_declarator_list ';'  */
-#line 443 "C_grammar.y"
+#line 444 "C_grammar.y"
                 {if (typedef_flag == 1) {	//we were processing typedef declarations
 	    	typedef_flag = 0;
 	   	 }
@@ -2704,7 +2704,7 @@ yyreduce:
     break;
 
   case 99: /* declaration: static_assert_declaration  */
-#line 451 "C_grammar.y"
+#line 452 "C_grammar.y"
                 {fprintf(pl_file, "%s\n", (yyvsp[0].id));
 		 free((yyvsp[0].id));
 		}
@@ -2712,7 +2712,7 @@ yyreduce:
     break;
 
   case 100: /* declaration_specifiers: storage_class_specifier declaration_specifiers  */
-#line 458 "C_grammar.y"
+#line 459 "C_grammar.y"
                 {size_t const size = strlen(", ") + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "%s, %s", (yyvsp[-1].id), (yyvsp[0].id));
@@ -2723,13 +2723,13 @@ yyreduce:
     break;
 
   case 101: /* declaration_specifiers: storage_class_specifier  */
-#line 464 "C_grammar.y"
+#line 465 "C_grammar.y"
                                         {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2729 "C_grammar.tab.c"
     break;
 
   case 102: /* declaration_specifiers: type_specifier declaration_specifiers  */
-#line 466 "C_grammar.y"
+#line 467 "C_grammar.y"
                 {size_t const size = strlen(", ") + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "%s, %s", (yyvsp[-1].id), (yyvsp[0].id));
@@ -2740,55 +2740,55 @@ yyreduce:
     break;
 
   case 103: /* declaration_specifiers: type_specifier  */
-#line 472 "C_grammar.y"
+#line 473 "C_grammar.y"
                                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2746 "C_grammar.tab.c"
     break;
 
   case 104: /* declaration_specifiers: type_qualifier declaration_specifiers  */
-#line 474 "C_grammar.y"
+#line 475 "C_grammar.y"
 { simple_str_lit_copy(&(yyval.id), "type_qualifier declaration_specifiers"); }
 #line 2752 "C_grammar.tab.c"
     break;
 
   case 105: /* declaration_specifiers: type_qualifier  */
-#line 476 "C_grammar.y"
+#line 477 "C_grammar.y"
 { simple_str_lit_copy(&(yyval.id), "type_qualifier"); }
 #line 2758 "C_grammar.tab.c"
     break;
 
   case 106: /* declaration_specifiers: function_specifier declaration_specifiers  */
-#line 478 "C_grammar.y"
+#line 479 "C_grammar.y"
 { simple_str_lit_copy(&(yyval.id), "function_specifier declaration_specifiers"); }
 #line 2764 "C_grammar.tab.c"
     break;
 
   case 107: /* declaration_specifiers: function_specifier  */
-#line 480 "C_grammar.y"
+#line 481 "C_grammar.y"
 { simple_str_lit_copy(&(yyval.id), "function_specifier"); }
 #line 2770 "C_grammar.tab.c"
     break;
 
   case 108: /* declaration_specifiers: alignment_specifier declaration_specifiers  */
-#line 482 "C_grammar.y"
+#line 483 "C_grammar.y"
 { simple_str_lit_copy(&(yyval.id), "alignment_specifier declaration_specifiers"); }
 #line 2776 "C_grammar.tab.c"
     break;
 
   case 109: /* declaration_specifiers: alignment_specifier  */
-#line 484 "C_grammar.y"
+#line 485 "C_grammar.y"
 { simple_str_lit_copy(&(yyval.id), "alignment_specifier"); }
 #line 2782 "C_grammar.tab.c"
     break;
 
   case 110: /* init_declarator_list: init_declarator  */
-#line 488 "C_grammar.y"
+#line 489 "C_grammar.y"
                                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2788 "C_grammar.tab.c"
     break;
 
   case 111: /* init_declarator_list: init_declarator_list ',' init_declarator  */
-#line 490 "C_grammar.y"
+#line 491 "C_grammar.y"
                 {size_t const size = strlen(", ") + strlen((yyvsp[-2].id)) + strlen((yyvsp[0].id)) + 1;
 	     (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "%s, %s", (yyvsp[-2].id), (yyvsp[0].id));
@@ -2799,7 +2799,7 @@ yyreduce:
     break;
 
   case 112: /* init_declarator: declarator '=' initializer  */
-#line 500 "C_grammar.y"
+#line 501 "C_grammar.y"
           {size_t const size = strlen("initialised(, )") + strlen((yyvsp[-2].id)) + strlen((yyvsp[0].id)) + 1;
 	   (yyval.id) = (char*)malloc(size);
 	   sprintf_s((yyval.id), size, "initialised(%s, %s)", (yyvsp[-2].id), (yyvsp[0].id));
@@ -2810,7 +2810,7 @@ yyreduce:
     break;
 
   case 113: /* init_declarator: declarator  */
-#line 507 "C_grammar.y"
+#line 508 "C_grammar.y"
           {if (typedef_flag == 1) {	// we are parsing one typedef declaration
 		 add_typedef_name((yyvsp[0].id));
 	   }
@@ -2820,7 +2820,7 @@ yyreduce:
     break;
 
   case 114: /* storage_class_specifier: TYPEDEF  */
-#line 516 "C_grammar.y"
+#line 517 "C_grammar.y"
                 {simple_str_lit_copy(&(yyval.id), "typedef");
          typedef_flag = 1;
 	    }
@@ -2828,133 +2828,133 @@ yyreduce:
     break;
 
   case 115: /* storage_class_specifier: EXTERN  */
-#line 519 "C_grammar.y"
+#line 520 "C_grammar.y"
                                 { simple_str_lit_copy(&(yyval.id), "extern"); }
 #line 2834 "C_grammar.tab.c"
     break;
 
   case 116: /* storage_class_specifier: STATIC  */
-#line 520 "C_grammar.y"
+#line 521 "C_grammar.y"
                                 { simple_str_lit_copy(&(yyval.id), "static"); }
 #line 2840 "C_grammar.tab.c"
     break;
 
   case 117: /* storage_class_specifier: THREAD_LOCAL  */
-#line 521 "C_grammar.y"
+#line 522 "C_grammar.y"
                         { simple_str_lit_copy(&(yyval.id), "thread_local"); }
 #line 2846 "C_grammar.tab.c"
     break;
 
   case 118: /* storage_class_specifier: AUTO  */
-#line 522 "C_grammar.y"
+#line 523 "C_grammar.y"
                                 { simple_str_lit_copy(&(yyval.id), "auto"); }
 #line 2852 "C_grammar.tab.c"
     break;
 
   case 119: /* storage_class_specifier: REGISTER  */
-#line 523 "C_grammar.y"
+#line 524 "C_grammar.y"
                                 { simple_str_lit_copy(&(yyval.id), "register"); }
 #line 2858 "C_grammar.tab.c"
     break;
 
   case 120: /* type_specifier: VOID  */
-#line 527 "C_grammar.y"
+#line 528 "C_grammar.y"
                                                 { simple_str_lit_copy(&(yyval.id), "void"); }
 #line 2864 "C_grammar.tab.c"
     break;
 
   case 121: /* type_specifier: CHAR  */
-#line 528 "C_grammar.y"
+#line 529 "C_grammar.y"
                                                 { simple_str_lit_copy(&(yyval.id), "char"); }
 #line 2870 "C_grammar.tab.c"
     break;
 
   case 122: /* type_specifier: SHORT  */
-#line 529 "C_grammar.y"
+#line 530 "C_grammar.y"
                                                 { simple_str_lit_copy(&(yyval.id), "short"); }
 #line 2876 "C_grammar.tab.c"
     break;
 
   case 123: /* type_specifier: INT  */
-#line 530 "C_grammar.y"
+#line 531 "C_grammar.y"
                                                 { simple_str_lit_copy(&(yyval.id), "int"); }
 #line 2882 "C_grammar.tab.c"
     break;
 
   case 124: /* type_specifier: LONG  */
-#line 531 "C_grammar.y"
+#line 532 "C_grammar.y"
                                                 { simple_str_lit_copy(&(yyval.id), "long"); }
 #line 2888 "C_grammar.tab.c"
     break;
 
   case 125: /* type_specifier: FLOAT  */
-#line 532 "C_grammar.y"
+#line 533 "C_grammar.y"
                                                 { simple_str_lit_copy(&(yyval.id), "float"); }
 #line 2894 "C_grammar.tab.c"
     break;
 
   case 126: /* type_specifier: DOUBLE  */
-#line 533 "C_grammar.y"
+#line 534 "C_grammar.y"
                                                 { simple_str_lit_copy(&(yyval.id), "double"); }
 #line 2900 "C_grammar.tab.c"
     break;
 
   case 127: /* type_specifier: SIGNED  */
-#line 534 "C_grammar.y"
+#line 535 "C_grammar.y"
                                                 { simple_str_lit_copy(&(yyval.id), "signed"); }
 #line 2906 "C_grammar.tab.c"
     break;
 
   case 128: /* type_specifier: UNSIGNED  */
-#line 535 "C_grammar.y"
+#line 536 "C_grammar.y"
                                                 { simple_str_lit_copy(&(yyval.id), "unsigned"); }
 #line 2912 "C_grammar.tab.c"
     break;
 
   case 129: /* type_specifier: BOOL  */
-#line 536 "C_grammar.y"
+#line 537 "C_grammar.y"
                                                 { simple_str_lit_copy(&(yyval.id), "bool"); }
 #line 2918 "C_grammar.tab.c"
     break;
 
   case 130: /* type_specifier: COMPLEX  */
-#line 537 "C_grammar.y"
+#line 538 "C_grammar.y"
                                                 { simple_str_lit_copy(&(yyval.id), "complex"); }
 #line 2924 "C_grammar.tab.c"
     break;
 
   case 131: /* type_specifier: IMAGINARY  */
-#line 538 "C_grammar.y"
+#line 539 "C_grammar.y"
                                                 { simple_str_lit_copy(&(yyval.id), "imaginary"); }
 #line 2930 "C_grammar.tab.c"
     break;
 
   case 132: /* type_specifier: atomic_type_specifier  */
-#line 539 "C_grammar.y"
+#line 540 "C_grammar.y"
                                 { simple_str_lit_copy(&(yyval.id), "atomic_type_specifier"); }
 #line 2936 "C_grammar.tab.c"
     break;
 
   case 133: /* type_specifier: struct_or_union_specifier  */
-#line 540 "C_grammar.y"
+#line 541 "C_grammar.y"
                                         {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2942 "C_grammar.tab.c"
     break;
 
   case 134: /* type_specifier: enum_specifier  */
-#line 541 "C_grammar.y"
-                                        { simple_str_lit_copy(&(yyval.id), "enum_specifier"); }
+#line 542 "C_grammar.y"
+                                        {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2948 "C_grammar.tab.c"
     break;
 
   case 135: /* type_specifier: TYPEDEF_NAME  */
-#line 542 "C_grammar.y"
+#line 543 "C_grammar.y"
                                         {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 2954 "C_grammar.tab.c"
     break;
 
   case 136: /* struct_or_union_specifier: struct_or_union '{' struct_declaration_list '}'  */
-#line 547 "C_grammar.y"
+#line 548 "C_grammar.y"
                 {size_t const size = strlen("([])") + strlen((yyvsp[-3].id)) + strlen((yyvsp[-1].id)) + 1;
 	     (yyval.id) = (char*)malloc(size);
 	     sprintf_s((yyval.id), size, "%s([%s])", (yyvsp[-3].id), (yyvsp[-1].id));
@@ -2965,7 +2965,7 @@ yyreduce:
     break;
 
   case 137: /* struct_or_union_specifier: struct_or_union IDENTIFIER '{' struct_declaration_list '}'  */
-#line 554 "C_grammar.y"
+#line 555 "C_grammar.y"
                 {size_t const size = strlen("(, [])") + strlen((yyvsp[-4].id)) + strlen((yyvsp[-3].id)) + strlen((yyvsp[-1].id)) + 1;
 	     (yyval.id) = (char*)malloc(size);
 	     sprintf_s((yyval.id), size, "%s(%s, [%s])", (yyvsp[-4].id), (yyvsp[-3].id), (yyvsp[-1].id));
@@ -2977,7 +2977,7 @@ yyreduce:
     break;
 
   case 138: /* struct_or_union_specifier: struct_or_union IDENTIFIER  */
-#line 562 "C_grammar.y"
+#line 563 "C_grammar.y"
                 {size_t const size = strlen("()") + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1;
 	     (yyval.id) = (char*)malloc(size);
 	     sprintf_s((yyval.id), size, "%s(%s)", (yyvsp[-1].id), (yyvsp[0].id));
@@ -2988,25 +2988,25 @@ yyreduce:
     break;
 
   case 139: /* struct_or_union: STRUCT  */
-#line 571 "C_grammar.y"
+#line 572 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "struct");}
 #line 2994 "C_grammar.tab.c"
     break;
 
   case 140: /* struct_or_union: UNION  */
-#line 572 "C_grammar.y"
+#line 573 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "union");}
 #line 3000 "C_grammar.tab.c"
     break;
 
   case 141: /* struct_declaration_list: struct_declaration  */
-#line 577 "C_grammar.y"
+#line 578 "C_grammar.y"
                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 3006 "C_grammar.tab.c"
     break;
 
   case 142: /* struct_declaration_list: struct_declaration_list struct_declaration  */
-#line 579 "C_grammar.y"
+#line 580 "C_grammar.y"
                 {size_t const size = strlen(", ") + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1;
 	     (yyval.id) = (char*)malloc(size);
 	     sprintf_s((yyval.id), size, "%s, %s", (yyvsp[-1].id), (yyvsp[0].id));
@@ -3017,7 +3017,7 @@ yyreduce:
     break;
 
   case 143: /* struct_declaration: specifier_qualifier_list ';'  */
-#line 589 "C_grammar.y"
+#line 590 "C_grammar.y"
                 {size_t const size = strlen("struct_decl_anonymous()") + strlen((yyvsp[-1].id)) + 1;
        	 (yyval.id) = (char*)malloc(size);
          sprintf_s((yyval.id), size, "struct_decl_anonymous(%s)", (yyvsp[-1].id));
@@ -3027,13 +3027,13 @@ yyreduce:
     break;
 
   case 144: /* $@1: %empty  */
-#line 594 "C_grammar.y"
+#line 595 "C_grammar.y"
                                    {in_member_decl_flag = 1;}
 #line 3033 "C_grammar.tab.c"
     break;
 
   case 145: /* struct_declaration: specifier_qualifier_list $@1 struct_declarator_list ';'  */
-#line 595 "C_grammar.y"
+#line 596 "C_grammar.y"
                 {in_member_decl_flag = 0;
 		 size_t const size = strlen("struct_decl([], )") + strlen((yyvsp[-3].id)) + strlen((yyvsp[-1].id)) + 1;
        	 (yyval.id) = (char*)malloc(size);
@@ -3045,13 +3045,13 @@ yyreduce:
     break;
 
   case 146: /* struct_declaration: static_assert_declaration  */
-#line 603 "C_grammar.y"
+#line 604 "C_grammar.y"
                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 3051 "C_grammar.tab.c"
     break;
 
   case 147: /* specifier_qualifier_list: type_specifier specifier_qualifier_list  */
-#line 608 "C_grammar.y"
+#line 609 "C_grammar.y"
                 {size_t const size = strlen(", ") + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1;
        	 (yyval.id) = (char*)malloc(size);
          sprintf_s((yyval.id), size, "%s, %s", (yyvsp[-1].id), (yyvsp[0].id));
@@ -3062,13 +3062,13 @@ yyreduce:
     break;
 
   case 148: /* specifier_qualifier_list: type_specifier  */
-#line 615 "C_grammar.y"
+#line 616 "C_grammar.y"
                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 3068 "C_grammar.tab.c"
     break;
 
   case 149: /* specifier_qualifier_list: type_qualifier specifier_qualifier_list  */
-#line 617 "C_grammar.y"
+#line 618 "C_grammar.y"
                 {size_t const size = strlen(", ") + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1;
        	 (yyval.id) = (char*)malloc(size);
          sprintf_s((yyval.id), size, "%s, %s", (yyvsp[-1].id), (yyvsp[0].id));
@@ -3079,19 +3079,19 @@ yyreduce:
     break;
 
   case 150: /* specifier_qualifier_list: type_qualifier  */
-#line 624 "C_grammar.y"
+#line 625 "C_grammar.y"
                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 3085 "C_grammar.tab.c"
     break;
 
   case 151: /* struct_declarator_list: struct_declarator  */
-#line 629 "C_grammar.y"
+#line 630 "C_grammar.y"
                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 3091 "C_grammar.tab.c"
     break;
 
   case 152: /* struct_declarator_list: struct_declarator_list ',' struct_declarator  */
-#line 631 "C_grammar.y"
+#line 632 "C_grammar.y"
                 {size_t const size = strlen(", ") + strlen((yyvsp[-2].id)) + strlen((yyvsp[0].id)) + 1;
        	 (yyval.id) = (char*)malloc(size);
          sprintf_s((yyval.id), size, "%s, %s)", (yyvsp[-2].id), (yyvsp[0].id));
@@ -3102,7 +3102,7 @@ yyreduce:
     break;
 
   case 153: /* struct_declarator: ':' constant_expression  */
-#line 641 "C_grammar.y"
+#line 642 "C_grammar.y"
                 {size_t const size = strlen("anonymous_bit_field()") + strlen((yyvsp[0].id)) + 1;
        	 (yyval.id) = (char*)malloc(size);
          sprintf_s((yyval.id), size, "anonymous_bit_field(%s)", (yyvsp[0].id));
@@ -3112,7 +3112,7 @@ yyreduce:
     break;
 
   case 154: /* struct_declarator: declarator ':' constant_expression  */
-#line 647 "C_grammar.y"
+#line 648 "C_grammar.y"
                 {size_t const size = strlen("bit_field(, )") + strlen((yyvsp[-2].id)) + strlen((yyvsp[0].id)) + 1;
        	 (yyval.id) = (char*)malloc(size);
          sprintf_s((yyval.id), size, "bit_field(%s, %s)", (yyvsp[-2].id), (yyvsp[0].id));
@@ -3123,259 +3123,345 @@ yyreduce:
     break;
 
   case 155: /* struct_declarator: declarator  */
-#line 654 "C_grammar.y"
+#line 655 "C_grammar.y"
                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
 #line 3129 "C_grammar.tab.c"
     break;
 
+  case 156: /* enum_specifier: ENUM '{' enumerator_list '}'  */
+#line 660 "C_grammar.y"
+                {size_t const size = strlen("anonymous_enum([])") + strlen((yyvsp[-1].id)) + 1;
+       	 (yyval.id) = (char*)malloc(size);
+         sprintf_s((yyval.id), size, "anonymous_enum([%s])", (yyvsp[-1].id));
+	     free((yyvsp[-1].id));
+        }
+#line 3139 "C_grammar.tab.c"
+    break;
+
+  case 157: /* enum_specifier: ENUM '{' enumerator_list ',' '}'  */
+#line 666 "C_grammar.y"
+                {size_t const size = strlen("trailing_comma_anonymous_enum([])") + strlen((yyvsp[-2].id)) + 1;
+       	 (yyval.id) = (char*)malloc(size);
+         sprintf_s((yyval.id), size, "trailing_comma_anonymous_enum([%s])", (yyvsp[-2].id));
+	     free((yyvsp[-2].id));
+        }
+#line 3149 "C_grammar.tab.c"
+    break;
+
+  case 158: /* enum_specifier: ENUM IDENTIFIER '{' enumerator_list '}'  */
+#line 672 "C_grammar.y"
+                {size_t const size = strlen("enum(, [])") + strlen((yyvsp[-3].id)) + strlen((yyvsp[-1].id)) + 1;
+       	 (yyval.id) = (char*)malloc(size);
+         sprintf_s((yyval.id), size, "enum(%s, [%s])", (yyvsp[-3].id), (yyvsp[-1].id));
+	     free((yyvsp[-3].id));
+		 free((yyvsp[-1].id));
+        }
+#line 3160 "C_grammar.tab.c"
+    break;
+
+  case 159: /* enum_specifier: ENUM IDENTIFIER '{' enumerator_list ',' '}'  */
+#line 679 "C_grammar.y"
+                {size_t const size = strlen("trailing_comma_enum(, [])") + strlen((yyvsp[-4].id)) + strlen((yyvsp[-2].id)) + 1;
+       	 (yyval.id) = (char*)malloc(size);
+         sprintf_s((yyval.id), size, "trailing_comma_enum(%s, [%s])", (yyvsp[-4].id), (yyvsp[-2].id));
+	     free((yyvsp[-4].id));
+		 free((yyvsp[-2].id));
+        }
+#line 3171 "C_grammar.tab.c"
+    break;
+
+  case 160: /* enum_specifier: ENUM IDENTIFIER  */
+#line 686 "C_grammar.y"
+                {size_t const size = strlen("forward_enum()") + strlen((yyvsp[0].id)) + 1;
+       	 (yyval.id) = (char*)malloc(size);
+         sprintf_s((yyval.id), size, "forward_enum(%s)", (yyvsp[0].id));
+	     free((yyvsp[0].id));
+        }
+#line 3181 "C_grammar.tab.c"
+    break;
+
+  case 161: /* enumerator_list: enumerator  */
+#line 695 "C_grammar.y"
+                {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
+#line 3187 "C_grammar.tab.c"
+    break;
+
+  case 162: /* enumerator_list: enumerator_list ',' enumerator  */
+#line 697 "C_grammar.y"
+                {size_t const size = strlen(", ") + strlen((yyvsp[-2].id)) + strlen((yyvsp[0].id)) + 1;
+       	 (yyval.id) = (char*)malloc(size);
+         sprintf_s((yyval.id), size, "%s, %s", (yyvsp[-2].id), (yyvsp[0].id));
+	   	 free((yyvsp[-2].id));
+	     free((yyvsp[0].id));
+        }
+#line 3198 "C_grammar.tab.c"
+    break;
+
+  case 163: /* enumerator: enumeration_constant '=' constant_expression  */
+#line 707 "C_grammar.y"
+                {size_t const size = strlen("init_enum(, )") + strlen((yyvsp[-2].id)) + strlen((yyvsp[0].id)) + 1;
+       	 (yyval.id) = (char*)malloc(size);
+         sprintf_s((yyval.id), size, "init_enum(%s, %s)", (yyvsp[-2].id), (yyvsp[0].id));
+	   	 free((yyvsp[-2].id));
+	     free((yyvsp[0].id));
+        }
+#line 3209 "C_grammar.tab.c"
+    break;
+
+  case 164: /* enumerator: enumeration_constant  */
+#line 714 "C_grammar.y"
+                {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
+#line 3215 "C_grammar.tab.c"
+    break;
+
   case 166: /* type_qualifier: CONST  */
-#line 680 "C_grammar.y"
+#line 722 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "const");}
-#line 3135 "C_grammar.tab.c"
+#line 3221 "C_grammar.tab.c"
     break;
 
   case 167: /* type_qualifier: RESTRICT  */
-#line 681 "C_grammar.y"
+#line 723 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "restrict");}
-#line 3141 "C_grammar.tab.c"
+#line 3227 "C_grammar.tab.c"
     break;
 
   case 168: /* type_qualifier: VOLATILE  */
-#line 682 "C_grammar.y"
+#line 724 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "volatile");}
-#line 3147 "C_grammar.tab.c"
+#line 3233 "C_grammar.tab.c"
     break;
 
   case 169: /* type_qualifier: ATOMIC  */
-#line 683 "C_grammar.y"
+#line 725 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "atomic");}
-#line 3153 "C_grammar.tab.c"
+#line 3239 "C_grammar.tab.c"
     break;
 
   case 170: /* function_specifier: INLINE  */
-#line 687 "C_grammar.y"
+#line 729 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "inline");}
-#line 3159 "C_grammar.tab.c"
+#line 3245 "C_grammar.tab.c"
     break;
 
   case 171: /* function_specifier: NORETURN  */
-#line 688 "C_grammar.y"
+#line 730 "C_grammar.y"
                         {simple_str_lit_copy(&(yyval.id), "noreturn");}
-#line 3165 "C_grammar.tab.c"
+#line 3251 "C_grammar.tab.c"
     break;
 
   case 174: /* declarator: pointer direct_declarator  */
-#line 698 "C_grammar.y"
+#line 740 "C_grammar.y"
           {size_t const size = strlen("()") + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1;
        (yyval.id) = (char*)malloc(size);
        sprintf_s((yyval.id), size, "%s(%s)", (yyvsp[-1].id), (yyvsp[0].id));
 	   free((yyvsp[-1].id));
 	   free((yyvsp[0].id));
       }
-#line 3176 "C_grammar.tab.c"
+#line 3262 "C_grammar.tab.c"
     break;
 
   case 175: /* declarator: direct_declarator  */
-#line 705 "C_grammar.y"
+#line 747 "C_grammar.y"
           {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
-#line 3182 "C_grammar.tab.c"
+#line 3268 "C_grammar.tab.c"
     break;
 
   case 176: /* direct_declarator: IDENTIFIER  */
-#line 709 "C_grammar.y"
+#line 751 "C_grammar.y"
                         {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
-#line 3188 "C_grammar.tab.c"
+#line 3274 "C_grammar.tab.c"
     break;
 
   case 177: /* direct_declarator: '(' declarator ')'  */
-#line 710 "C_grammar.y"
+#line 752 "C_grammar.y"
                                                 {simple_str_lit_copy(&(yyval.id), "D1");}
-#line 3194 "C_grammar.tab.c"
+#line 3280 "C_grammar.tab.c"
     break;
 
   case 178: /* direct_declarator: direct_declarator '[' ']'  */
-#line 711 "C_grammar.y"
+#line 753 "C_grammar.y"
                                                 {simple_str_lit_copy(&(yyval.id), "D2"); }
-#line 3200 "C_grammar.tab.c"
+#line 3286 "C_grammar.tab.c"
     break;
 
   case 179: /* direct_declarator: direct_declarator '[' '*' ']'  */
-#line 712 "C_grammar.y"
+#line 754 "C_grammar.y"
                                         {simple_str_lit_copy(&(yyval.id), "D3"); }
-#line 3206 "C_grammar.tab.c"
+#line 3292 "C_grammar.tab.c"
     break;
 
   case 180: /* direct_declarator: direct_declarator '[' STATIC type_qualifier_list assignment_expression ']'  */
-#line 713 "C_grammar.y"
+#line 755 "C_grammar.y"
                                                                                      {simple_str_lit_copy(&(yyval.id), "D4"); }
-#line 3212 "C_grammar.tab.c"
+#line 3298 "C_grammar.tab.c"
     break;
 
   case 181: /* direct_declarator: direct_declarator '[' STATIC assignment_expression ']'  */
-#line 714 "C_grammar.y"
+#line 756 "C_grammar.y"
                                                                 {simple_str_lit_copy(&(yyval.id), "D5"); }
-#line 3218 "C_grammar.tab.c"
+#line 3304 "C_grammar.tab.c"
     break;
 
   case 182: /* direct_declarator: direct_declarator '[' type_qualifier_list '*' ']'  */
-#line 715 "C_grammar.y"
+#line 757 "C_grammar.y"
                                                            {simple_str_lit_copy(&(yyval.id), "D6"); }
-#line 3224 "C_grammar.tab.c"
+#line 3310 "C_grammar.tab.c"
     break;
 
   case 183: /* direct_declarator: direct_declarator '[' type_qualifier_list STATIC assignment_expression ']'  */
-#line 716 "C_grammar.y"
+#line 758 "C_grammar.y"
                                                                                     {simple_str_lit_copy(&(yyval.id), "D7"); }
-#line 3230 "C_grammar.tab.c"
+#line 3316 "C_grammar.tab.c"
     break;
 
   case 184: /* direct_declarator: direct_declarator '[' type_qualifier_list assignment_expression ']'  */
-#line 717 "C_grammar.y"
+#line 759 "C_grammar.y"
                                                                              {simple_str_lit_copy(&(yyval.id), "D8"); }
-#line 3236 "C_grammar.tab.c"
+#line 3322 "C_grammar.tab.c"
     break;
 
   case 185: /* direct_declarator: direct_declarator '[' type_qualifier_list ']'  */
-#line 718 "C_grammar.y"
+#line 760 "C_grammar.y"
                                                        {simple_str_lit_copy(&(yyval.id), "D9"); }
-#line 3242 "C_grammar.tab.c"
+#line 3328 "C_grammar.tab.c"
     break;
 
   case 186: /* direct_declarator: direct_declarator '[' assignment_expression ']'  */
-#line 719 "C_grammar.y"
+#line 761 "C_grammar.y"
                                                          {simple_str_lit_copy(&(yyval.id), "D10"); }
-#line 3248 "C_grammar.tab.c"
+#line 3334 "C_grammar.tab.c"
     break;
 
   case 187: /* direct_declarator: direct_declarator '(' parameter_type_list ')'  */
-#line 720 "C_grammar.y"
+#line 762 "C_grammar.y"
                                                        {simple_str_lit_copy(&(yyval.id), "D11"); }
-#line 3254 "C_grammar.tab.c"
+#line 3340 "C_grammar.tab.c"
     break;
 
   case 188: /* direct_declarator: direct_declarator '(' ')'  */
-#line 721 "C_grammar.y"
+#line 763 "C_grammar.y"
                                    {simple_str_lit_copy(&(yyval.id), "D12"); }
-#line 3260 "C_grammar.tab.c"
+#line 3346 "C_grammar.tab.c"
     break;
 
   case 189: /* direct_declarator: direct_declarator '(' identifier_list ')'  */
-#line 722 "C_grammar.y"
+#line 764 "C_grammar.y"
                                                    {simple_str_lit_copy(&(yyval.id), "D13"); }
-#line 3266 "C_grammar.tab.c"
+#line 3352 "C_grammar.tab.c"
     break;
 
   case 190: /* pointer: '*' type_qualifier_list pointer  */
-#line 727 "C_grammar.y"
+#line 769 "C_grammar.y"
                 {size_t const size = strlen("pointer???(, )") + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1;
 	     (yyval.id) = (char*)malloc(size);
 	     sprintf_s((yyval.id), size, "pointer???(%s, %s)", (yyvsp[-1].id), (yyvsp[0].id));
 		 free((yyvsp[-1].id));
 		 free((yyvsp[0].id));
 		}
-#line 3277 "C_grammar.tab.c"
+#line 3363 "C_grammar.tab.c"
     break;
 
   case 191: /* pointer: '*' type_qualifier_list  */
-#line 734 "C_grammar.y"
+#line 776 "C_grammar.y"
                 {size_t const size = strlen("pointer()") + strlen((yyvsp[0].id)) + 1;
 	     (yyval.id) = (char*)malloc(size);
 	     sprintf_s((yyval.id), size, "pointer(%s)", (yyvsp[0].id));
 	     free((yyvsp[0].id));
 		}
-#line 3287 "C_grammar.tab.c"
+#line 3373 "C_grammar.tab.c"
     break;
 
   case 192: /* pointer: '*' pointer  */
-#line 740 "C_grammar.y"
+#line 782 "C_grammar.y"
                 {size_t const size = strlen("pointer()") + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
 		 sprintf_s((yyval.id), size, "pointer(%s)", (yyvsp[0].id));
 		 free((yyvsp[0].id));
 		}
-#line 3297 "C_grammar.tab.c"
+#line 3383 "C_grammar.tab.c"
     break;
 
   case 193: /* pointer: '*'  */
-#line 746 "C_grammar.y"
+#line 788 "C_grammar.y"
                 {simple_str_lit_copy(&(yyval.id), "pointer");}
-#line 3303 "C_grammar.tab.c"
+#line 3389 "C_grammar.tab.c"
     break;
 
   case 194: /* type_qualifier_list: type_qualifier  */
-#line 750 "C_grammar.y"
+#line 792 "C_grammar.y"
                                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
-#line 3309 "C_grammar.tab.c"
+#line 3395 "C_grammar.tab.c"
     break;
 
   case 195: /* type_qualifier_list: type_qualifier_list type_qualifier  */
-#line 752 "C_grammar.y"
+#line 794 "C_grammar.y"
                 {size_t const size = strlen(", ") + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1;
 	     (yyval.id) = (char*)malloc(size);
 	     sprintf_s((yyval.id), size, "%s, %s", (yyvsp[-1].id), (yyvsp[0].id));
 	     free((yyvsp[-1].id));
 		 free((yyvsp[0].id));
 		}
-#line 3320 "C_grammar.tab.c"
+#line 3406 "C_grammar.tab.c"
     break;
 
   case 205: /* type_name: specifier_qualifier_list abstract_declarator  */
-#line 782 "C_grammar.y"
+#line 824 "C_grammar.y"
                                                         {simple_str_lit_copy(&(yyval.id), "typenamedummy1");}
-#line 3326 "C_grammar.tab.c"
+#line 3412 "C_grammar.tab.c"
     break;
 
   case 206: /* type_name: specifier_qualifier_list  */
-#line 783 "C_grammar.y"
+#line 825 "C_grammar.y"
                                                                                 {simple_str_lit_copy(&(yyval.id), "typenamedummy2");}
-#line 3332 "C_grammar.tab.c"
+#line 3418 "C_grammar.tab.c"
     break;
 
   case 231: /* initializer: '{' initializer_list '}'  */
-#line 818 "C_grammar.y"
+#line 860 "C_grammar.y"
                 {size_t const size = strlen("initializer([])") + strlen((yyvsp[-1].id)) + 1;
 	     (yyval.id) = (char*)malloc(size);
 	     sprintf_s((yyval.id), size, "initializer([%s])", (yyvsp[-1].id));
 	     free((yyvsp[-1].id));
 		}
-#line 3342 "C_grammar.tab.c"
+#line 3428 "C_grammar.tab.c"
     break;
 
   case 232: /* initializer: '{' initializer_list ',' '}'  */
-#line 824 "C_grammar.y"
+#line 866 "C_grammar.y"
                 {size_t const size = strlen("[]") + strlen((yyvsp[-2].id)) + 1;
 	     (yyval.id) = (char*)malloc(size);
 	     sprintf_s((yyval.id), size, "trailing_comma_initializer([%s])", (yyvsp[-2].id));
 	     free((yyvsp[-2].id));
 		}
-#line 3352 "C_grammar.tab.c"
+#line 3438 "C_grammar.tab.c"
     break;
 
   case 233: /* initializer: assignment_expression  */
-#line 830 "C_grammar.y"
+#line 872 "C_grammar.y"
                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
-#line 3358 "C_grammar.tab.c"
+#line 3444 "C_grammar.tab.c"
     break;
 
   case 234: /* initializer_list: designation initializer  */
-#line 835 "C_grammar.y"
+#line 877 "C_grammar.y"
                 {size_t const size = strlen("init(, )") + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1;
 	     (yyval.id) = (char*)malloc(size);
 	     sprintf_s((yyval.id), size, "init(%s, %s)", (yyvsp[-1].id), (yyvsp[0].id));
 	     free((yyvsp[-1].id));
 		 free((yyvsp[0].id));
 		}
-#line 3369 "C_grammar.tab.c"
+#line 3455 "C_grammar.tab.c"
     break;
 
   case 235: /* initializer_list: initializer  */
-#line 842 "C_grammar.y"
+#line 884 "C_grammar.y"
                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
-#line 3375 "C_grammar.tab.c"
+#line 3461 "C_grammar.tab.c"
     break;
 
   case 236: /* initializer_list: initializer_list ',' designation initializer  */
-#line 844 "C_grammar.y"
+#line 886 "C_grammar.y"
                 {size_t const size = strlen(", init(, )") + strlen((yyvsp[-3].id)) + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1;
 	     (yyval.id) = (char*)malloc(size);
 	     sprintf_s((yyval.id), size, "%s, init(%s, %s)", (yyvsp[-3].id), (yyvsp[-1].id), (yyvsp[0].id));
@@ -3383,298 +3469,298 @@ yyreduce:
 		 free((yyvsp[-1].id));
 		 free((yyvsp[0].id));
 		}
-#line 3387 "C_grammar.tab.c"
+#line 3473 "C_grammar.tab.c"
     break;
 
   case 237: /* initializer_list: initializer_list ',' initializer  */
-#line 852 "C_grammar.y"
+#line 894 "C_grammar.y"
                 {size_t const size = strlen(", ") + strlen((yyvsp[-2].id)) + strlen((yyvsp[0].id)) + 1;
 	     (yyval.id) = (char*)malloc(size);
 	     sprintf_s((yyval.id), size, "%s, %s", (yyvsp[-2].id), (yyvsp[0].id));
 	     free((yyvsp[-2].id));
 		 free((yyvsp[0].id));
 		}
-#line 3398 "C_grammar.tab.c"
+#line 3484 "C_grammar.tab.c"
     break;
 
   case 238: /* designation: designator_list '='  */
-#line 862 "C_grammar.y"
+#line 904 "C_grammar.y"
                 {size_t const size = strlen("[]") + strlen((yyvsp[-1].id)) + 1;
 	     (yyval.id) = (char*)malloc(size);
 	     sprintf_s((yyval.id), size, "[%s]", (yyvsp[-1].id));
 	     free((yyvsp[-1].id));
 		}
-#line 3408 "C_grammar.tab.c"
+#line 3494 "C_grammar.tab.c"
     break;
 
   case 239: /* designator_list: designator  */
-#line 871 "C_grammar.y"
+#line 913 "C_grammar.y"
                 {simple_str_copy(&(yyval.id), (yyvsp[0].id));}
-#line 3414 "C_grammar.tab.c"
+#line 3500 "C_grammar.tab.c"
     break;
 
   case 240: /* designator_list: designator_list designator  */
-#line 873 "C_grammar.y"
+#line 915 "C_grammar.y"
                 {size_t const size = strlen(", ") + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1;
 	     (yyval.id) = (char*)malloc(size);
 	     sprintf_s((yyval.id), size, "%s, %s", (yyvsp[-1].id), (yyvsp[0].id));
 	     free((yyvsp[-1].id));
 		 free((yyvsp[0].id));
 		}
-#line 3425 "C_grammar.tab.c"
+#line 3511 "C_grammar.tab.c"
     break;
 
   case 241: /* designator: '[' constant_expression ']'  */
-#line 883 "C_grammar.y"
+#line 925 "C_grammar.y"
                 {simple_str_copy(&(yyval.id), (yyvsp[-1].id));}
-#line 3431 "C_grammar.tab.c"
+#line 3517 "C_grammar.tab.c"
     break;
 
   case 242: /* designator: '.' IDENTIFIER  */
-#line 885 "C_grammar.y"
+#line 927 "C_grammar.y"
                 {size_t const size = strlen("select()") + strlen((yyvsp[0].id)) + 1;
 	     (yyval.id) = (char*)malloc(size);
 	     sprintf_s((yyval.id), size, "select(%s)", (yyvsp[0].id));
 		 free((yyvsp[0].id));
 		}
-#line 3441 "C_grammar.tab.c"
+#line 3527 "C_grammar.tab.c"
     break;
 
   case 243: /* static_assert_declaration: STATIC_ASSERT '(' constant_expression ',' STRING_LITERAL ')' ';'  */
-#line 894 "C_grammar.y"
+#line 936 "C_grammar.y"
                 {size_t const size = strlen("static_assert(, )") + strlen((yyvsp[-4].id)) + strlen((yyvsp[-2].id)) + 1;
 	     (yyval.id) = (char*)malloc(size);
 	     sprintf_s((yyval.id), size, "static_assert(%s, %s)", (yyvsp[-4].id), (yyvsp[-2].id));
 		 free((yyvsp[-4].id));
 		 free((yyvsp[-2].id));
 		}
-#line 3452 "C_grammar.tab.c"
+#line 3538 "C_grammar.tab.c"
     break;
 
   case 250: /* $@2: %empty  */
-#line 913 "C_grammar.y"
+#line 955 "C_grammar.y"
                 {fprintf(pl_file, "label_stmt($1, "); free((yyvsp[-1].id));}
-#line 3458 "C_grammar.tab.c"
+#line 3544 "C_grammar.tab.c"
     break;
 
   case 251: /* labeled_statement: IDENTIFIER ':' $@2 statement  */
-#line 913 "C_grammar.y"
+#line 955 "C_grammar.y"
                                                                            {fprintf(pl_file, ")");}
-#line 3464 "C_grammar.tab.c"
+#line 3550 "C_grammar.tab.c"
     break;
 
   case 252: /* $@3: %empty  */
-#line 914 "C_grammar.y"
+#line 956 "C_grammar.y"
                                        {fprintf(pl_file, "case_stmt($2, "); free((yyvsp[-1].id));}
-#line 3470 "C_grammar.tab.c"
+#line 3556 "C_grammar.tab.c"
     break;
 
   case 253: /* labeled_statement: CASE constant_expression ':' $@3 statement  */
-#line 914 "C_grammar.y"
+#line 956 "C_grammar.y"
                                                                                                  {fprintf(pl_file, ")");}
-#line 3476 "C_grammar.tab.c"
+#line 3562 "C_grammar.tab.c"
     break;
 
   case 254: /* $@4: %empty  */
-#line 915 "C_grammar.y"
+#line 957 "C_grammar.y"
                       {fprintf(pl_file, "default_stmt(");}
-#line 3482 "C_grammar.tab.c"
+#line 3568 "C_grammar.tab.c"
     break;
 
   case 255: /* labeled_statement: DEFAULT ':' $@4 statement  */
-#line 915 "C_grammar.y"
+#line 957 "C_grammar.y"
                                                                      {fprintf(pl_file, ")");}
-#line 3488 "C_grammar.tab.c"
+#line 3574 "C_grammar.tab.c"
     break;
 
   case 256: /* compound_statement: '{' '}'  */
-#line 919 "C_grammar.y"
+#line 961 "C_grammar.y"
                   {fprintf(pl_file, "cmp_stmts([])");}
-#line 3494 "C_grammar.tab.c"
+#line 3580 "C_grammar.tab.c"
     break;
 
   case 257: /* $@5: %empty  */
-#line 920 "C_grammar.y"
+#line 962 "C_grammar.y"
               {fprintf(pl_file, "cmp_stmts([");}
-#line 3500 "C_grammar.tab.c"
+#line 3586 "C_grammar.tab.c"
     break;
 
   case 258: /* compound_statement: '{' $@5 block_item_list '}'  */
-#line 920 "C_grammar.y"
+#line 962 "C_grammar.y"
                                                                      {fprintf(pl_file, "])");}
-#line 3506 "C_grammar.tab.c"
+#line 3592 "C_grammar.tab.c"
     break;
 
   case 260: /* $@6: %empty  */
-#line 925 "C_grammar.y"
+#line 967 "C_grammar.y"
                           {fprintf(pl_file, ", ");}
-#line 3512 "C_grammar.tab.c"
+#line 3598 "C_grammar.tab.c"
     break;
 
   case 264: /* expression_statement: ';'  */
-#line 934 "C_grammar.y"
+#line 976 "C_grammar.y"
                                         {fprintf(pl_file, "exp_stmt()");}
-#line 3518 "C_grammar.tab.c"
+#line 3604 "C_grammar.tab.c"
     break;
 
   case 265: /* expression_statement: expression ';'  */
-#line 935 "C_grammar.y"
+#line 977 "C_grammar.y"
                                 {fprintf(pl_file, "exp_stmt(%s)", (yyvsp[-1].id)); free((yyvsp[-1].id));}
-#line 3524 "C_grammar.tab.c"
+#line 3610 "C_grammar.tab.c"
     break;
 
   case 266: /* $@7: %empty  */
-#line 939 "C_grammar.y"
+#line 981 "C_grammar.y"
                                 {fprintf(pl_file, "if_stmt(%s, ", (yyvsp[-1].id)); free((yyvsp[-1].id));}
-#line 3530 "C_grammar.tab.c"
+#line 3616 "C_grammar.tab.c"
     break;
 
   case 267: /* selection_statement: IF '(' expression ')' $@7 statement else_opt  */
-#line 939 "C_grammar.y"
+#line 981 "C_grammar.y"
                                                                                                      {fprintf(pl_file, ")");}
-#line 3536 "C_grammar.tab.c"
+#line 3622 "C_grammar.tab.c"
     break;
 
   case 268: /* $@8: %empty  */
-#line 940 "C_grammar.y"
+#line 982 "C_grammar.y"
                                     {fprintf(pl_file, "switch_stmt(%s, ", (yyvsp[-1].id)); free((yyvsp[-1].id));}
-#line 3542 "C_grammar.tab.c"
+#line 3628 "C_grammar.tab.c"
     break;
 
   case 269: /* selection_statement: SWITCH '(' expression ')' $@8 statement  */
-#line 940 "C_grammar.y"
+#line 982 "C_grammar.y"
                                                                                                         {fprintf(pl_file, ")");}
-#line 3548 "C_grammar.tab.c"
+#line 3634 "C_grammar.tab.c"
     break;
 
   case 271: /* $@9: %empty  */
-#line 945 "C_grammar.y"
+#line 987 "C_grammar.y"
                {fprintf(pl_file, ", ");}
-#line 3554 "C_grammar.tab.c"
+#line 3640 "C_grammar.tab.c"
     break;
 
   case 273: /* $@10: %empty  */
-#line 948 "C_grammar.y"
+#line 990 "C_grammar.y"
                                    {fprintf(pl_file, "while_stmt(%s, ", (yyvsp[-1].id)); free((yyvsp[-1].id));}
-#line 3560 "C_grammar.tab.c"
+#line 3646 "C_grammar.tab.c"
     break;
 
   case 274: /* iteration_statement: WHILE '(' expression ')' $@10 statement  */
-#line 948 "C_grammar.y"
+#line 990 "C_grammar.y"
                                                                                                   {fprintf(pl_file, ")");}
-#line 3566 "C_grammar.tab.c"
+#line 3652 "C_grammar.tab.c"
     break;
 
   case 275: /* $@11: %empty  */
-#line 949 "C_grammar.y"
+#line 991 "C_grammar.y"
              {fprintf(pl_file, "do_while_stmt(");}
-#line 3572 "C_grammar.tab.c"
+#line 3658 "C_grammar.tab.c"
     break;
 
   case 276: /* iteration_statement: DO $@11 statement WHILE '(' expression ')' ';'  */
-#line 949 "C_grammar.y"
+#line 991 "C_grammar.y"
                                                                                           {fprintf(pl_file, ", %s)", (yyvsp[-2].id)); free((yyvsp[-2].id));}
-#line 3578 "C_grammar.tab.c"
+#line 3664 "C_grammar.tab.c"
     break;
 
   case 277: /* $@12: %empty  */
-#line 950 "C_grammar.y"
+#line 992 "C_grammar.y"
                   {fprintf(pl_file, "for_stmt(");}
-#line 3584 "C_grammar.tab.c"
+#line 3670 "C_grammar.tab.c"
     break;
 
   case 278: /* $@13: %empty  */
-#line 950 "C_grammar.y"
+#line 992 "C_grammar.y"
                                                                      {fprintf(pl_file, ", ");}
-#line 3590 "C_grammar.tab.c"
+#line 3676 "C_grammar.tab.c"
     break;
 
   case 279: /* iteration_statement: FOR '(' $@12 for_stmt_type ')' $@13 statement  */
-#line 950 "C_grammar.y"
+#line 992 "C_grammar.y"
                                                                                                          {fprintf(pl_file, ")");}
-#line 3596 "C_grammar.tab.c"
+#line 3682 "C_grammar.tab.c"
     break;
 
   case 280: /* $@14: %empty  */
-#line 954 "C_grammar.y"
+#line 996 "C_grammar.y"
                                {fprintf(pl_file, ", ");}
-#line 3602 "C_grammar.tab.c"
+#line 3688 "C_grammar.tab.c"
     break;
 
   case 282: /* $@15: %empty  */
-#line 955 "C_grammar.y"
+#line 997 "C_grammar.y"
                       {fprintf(pl_file, ", ");}
-#line 3608 "C_grammar.tab.c"
+#line 3694 "C_grammar.tab.c"
     break;
 
   case 285: /* expression_opt: expression  */
-#line 960 "C_grammar.y"
+#line 1002 "C_grammar.y"
                      {fprintf(pl_file, ", %s", (yyvsp[0].id)); free((yyvsp[0].id));}
-#line 3614 "C_grammar.tab.c"
+#line 3700 "C_grammar.tab.c"
     break;
 
   case 286: /* jump_statement: GOTO IDENTIFIER ';'  */
-#line 963 "C_grammar.y"
+#line 1005 "C_grammar.y"
                                 {fprintf(pl_file, "goto_stmt(%s)\n", (yyvsp[-1].id)); free((yyvsp[-1].id));}
-#line 3620 "C_grammar.tab.c"
+#line 3706 "C_grammar.tab.c"
     break;
 
   case 287: /* jump_statement: CONTINUE ';'  */
-#line 964 "C_grammar.y"
+#line 1006 "C_grammar.y"
                                         {fprintf(pl_file, "continue_stmt\n");}
-#line 3626 "C_grammar.tab.c"
+#line 3712 "C_grammar.tab.c"
     break;
 
   case 288: /* jump_statement: BREAK ';'  */
-#line 965 "C_grammar.y"
+#line 1007 "C_grammar.y"
                                                 {fprintf(pl_file, "break_stmt\n");}
-#line 3632 "C_grammar.tab.c"
+#line 3718 "C_grammar.tab.c"
     break;
 
   case 289: /* jump_statement: RETURN ';'  */
-#line 966 "C_grammar.y"
+#line 1008 "C_grammar.y"
                                         {fprintf(pl_file, "return_stmt\n");}
-#line 3638 "C_grammar.tab.c"
+#line 3724 "C_grammar.tab.c"
     break;
 
   case 290: /* jump_statement: RETURN expression ';'  */
-#line 967 "C_grammar.y"
+#line 1009 "C_grammar.y"
                                 {fprintf(pl_file, "return_stmt(%s)\n", (yyvsp[-1].id)); free((yyvsp[-1].id));}
-#line 3644 "C_grammar.tab.c"
+#line 3730 "C_grammar.tab.c"
     break;
 
   case 292: /* $@16: %empty  */
-#line 972 "C_grammar.y"
+#line 1014 "C_grammar.y"
                            {fprintf(pl_file, ", ");}
-#line 3650 "C_grammar.tab.c"
+#line 3736 "C_grammar.tab.c"
     break;
 
   case 296: /* $@17: %empty  */
-#line 981 "C_grammar.y"
+#line 1023 "C_grammar.y"
                                             {fprintf(pl_file, "function(%s, %s, [", (yyvsp[-1].id), (yyvsp[0].id)); free((yyvsp[-1].id)); free((yyvsp[0].id));}
-#line 3656 "C_grammar.tab.c"
+#line 3742 "C_grammar.tab.c"
     break;
 
   case 297: /* $@18: %empty  */
-#line 981 "C_grammar.y"
+#line 1023 "C_grammar.y"
                                                                                                                                        {fprintf(pl_file, "], ");}
-#line 3662 "C_grammar.tab.c"
+#line 3748 "C_grammar.tab.c"
     break;
 
   case 298: /* function_definition: declaration_specifiers declarator $@17 declaration_list_opt $@18 compound_statement  */
-#line 981 "C_grammar.y"
+#line 1023 "C_grammar.y"
                                                                                                                                                                                      {fprintf(pl_file, ")");}
-#line 3668 "C_grammar.tab.c"
+#line 3754 "C_grammar.tab.c"
     break;
 
   case 302: /* $@19: %empty  */
-#line 991 "C_grammar.y"
+#line 1033 "C_grammar.y"
                            {fprintf(pl_file, ", ");}
-#line 3674 "C_grammar.tab.c"
+#line 3760 "C_grammar.tab.c"
     break;
 
 
-#line 3678 "C_grammar.tab.c"
+#line 3764 "C_grammar.tab.c"
 
       default: break;
     }
@@ -3867,7 +3953,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 994 "C_grammar.y"
+#line 1036 "C_grammar.y"
 
 int main(int argc, char *argv[]) {			//argc is the total number of strings in the argv array
 	char C_file_path[_MAX_PATH];				//directory where the C and .i files are

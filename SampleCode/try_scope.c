@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 typedef int myType; // Ordinary identifier
 struct myType { // Tag
     int myType; // Member
@@ -13,12 +11,15 @@ void myFunction() { // Ordinary identifier
     myType var = 10; // var Ordinary identifier
     goto var; // var Label
 var:
-    printf("var: %d\n", var);
+    var++;
 }
 
 int identVar;
 typedef int identType;
-enum identVar {identEnumLit1, identEnumLit2};
+enum identVar 
+    {identEnumLit1, 
+     identEnumLit2
+    };
 
 identType identFun(int identVar) {
     if (identVar==42) return 42;
