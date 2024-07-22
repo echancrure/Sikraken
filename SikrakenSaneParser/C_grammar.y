@@ -437,19 +437,19 @@ constant_expression
 
 declaration
 	: declaration_specifiers ';'
-		{fprintf(pl_file, "declaration([%s])\n", $1);
+		{fprintf(pl_file, "\ndeclaration([%s])", $1);
 		 free($1);
 		}
 	| declaration_specifiers init_declarator_list ';' 
 	  	{if (typedef_flag == 1) {	//we were processing typedef declarations
 	    	typedef_flag = 0;
 	   	 }
-	     fprintf(pl_file, "declaration([%s], [%s])\n", $1, $2);
+	     fprintf(pl_file, "\ndeclaration([%s], [%s])", $1, $2);
 	     free($1);
 	     free($2);
 	  }
 	| static_assert_declaration
-		{fprintf(pl_file, "%s\n", $1);
+		{fprintf(pl_file, "\n%s", $1);
 		 free($1);
 		}
 	;
@@ -749,7 +749,7 @@ declarator
 
 direct_declarator
 	: IDENTIFIER	
-		{simple_str_copy(&$$, $1);} //Ordinary namespace id declaration unless within a struct declaration in which case it isa Member namespace id
+		{simple_str_copy(&$$, $1);} //Ordinary namespace id declaration unless within a struct declaration in which case it is a Member namespace id
 	| '(' declarator ')'			
 		{simple_str_lit_copy(&$$, "D1");}
 	| direct_declarator '[' ']'		
@@ -773,7 +773,11 @@ direct_declarator
 	| direct_declarator '(' parameter_type_list ')'
 		{simple_str_lit_copy(&$$, "D11");}
 	| direct_declarator '(' ')'
-		{simple_str_lit_copy(&$$, "D12");}
+		{size_t const size = strlen("%s, []") + strlen($1) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_s($$, size, "%s, []", $1);
+	     free($1);
+		}
 	| direct_declarator '(' identifier_list ')'
 		{simple_str_lit_copy(&$$, "D13");}
 	;
@@ -977,8 +981,8 @@ labeled_statement	//printed out
 	;
 
 compound_statement	//printed out
-	: '{' '}' {fprintf(pl_file, "cmp_stmts([])");}
-	| '{' {fprintf(pl_file, "cmp_stmts([");} block_item_list '}' {fprintf(pl_file, "])");}
+	: '{' '}' {fprintf(pl_file, "\ncmp_stmts([])");}
+	| '{' {fprintf(pl_file, "\ncmp_stmts([\n");} block_item_list '}' {fprintf(pl_file, "\n])");}
 	;
 
 block_item_list		//printed out
@@ -992,13 +996,13 @@ block_item			//printed out
 	;
 
 expression_statement	//printed out
-	: ';'				{fprintf(pl_file, "exp_stmt()");}
-	| expression ';'	{fprintf(pl_file, "exp_stmt(%s)", $1); free($1);}
+	: ';'				{fprintf(pl_file, "stmt()");}
+	| expression ';'	{fprintf(pl_file, "\nstmt(%s)", $1); free($1);}
 	;
 
 selection_statement		//printed out
-	: IF '(' expression ')' {fprintf(pl_file, "if_stmt(%s, ", $3); free($3);} statement else_opt {fprintf(pl_file, ")");}
-	| SWITCH '(' expression ')' {fprintf(pl_file, "switch_stmt(%s, ", $3); free($3);} statement	{fprintf(pl_file, ")");}
+	: IF '(' expression ')' {fprintf(pl_file, "\nif_stmt(%s, ", $3); free($3);} statement else_opt {fprintf(pl_file, ")");}
+	| SWITCH '(' expression ')' {fprintf(pl_file, "\nswitch_stmt(%s, ", $3); free($3);} statement	{fprintf(pl_file, ")");}
 	;
 
 else_opt	//printed out
@@ -1006,9 +1010,9 @@ else_opt	//printed out
 	| ELSE {fprintf(pl_file, ", ");} statement
 
 iteration_statement	//printed out
-	: WHILE '(' expression ')' {fprintf(pl_file, "while_stmt(%s, ", $3); free($3);} statement {fprintf(pl_file, ")");}
-	| DO {fprintf(pl_file, "do_while_stmt(");} statement WHILE '(' expression ')' ';' {fprintf(pl_file, ", %s)", $6); free($6);}
-	| FOR '(' {fprintf(pl_file, "for_stmt(");} for_stmt_type ')' {fprintf(pl_file, ", ");} statement {fprintf(pl_file, ")");}
+	: WHILE '(' expression ')' {fprintf(pl_file, "\nwhile_stmt(%s, ", $3); free($3);} statement {fprintf(pl_file, ")");}
+	| DO {fprintf(pl_file, "\ndo_while_stmt(");} statement WHILE '(' expression ')' ';' {fprintf(pl_file, ", %s)", $6); free($6);}
+	| FOR '(' {fprintf(pl_file, "\nfor_stmt(");} for_stmt_type ')' {fprintf(pl_file, ", ");} statement {fprintf(pl_file, ")");}
 	;
 
 for_stmt_type 		//printed out
@@ -1021,16 +1025,16 @@ expression_opt 		//printed out
 	| expression {fprintf(pl_file, ", %s", $1); free($1);}
 
 jump_statement		//printed out
-	: GOTO IDENTIFIER ';'	{fprintf(pl_file, "goto_stmt(%s)\n", $2); free($2);}
-	| CONTINUE ';'			{fprintf(pl_file, "continue_stmt\n");}
-	| BREAK ';'				{fprintf(pl_file, "break_stmt\n");}
-	| RETURN ';'			{fprintf(pl_file, "return_stmt\n");}
-	| RETURN expression ';'	{fprintf(pl_file, "return_stmt(%s)\n", $2); free($2);}
+	: GOTO IDENTIFIER ';'	{fprintf(pl_file, "\ngoto_stmt(%s)\n", $2); free($2);}
+	| CONTINUE ';'			{fprintf(pl_file, "\ncontinue_stmt\n");}
+	| BREAK ';'				{fprintf(pl_file, "\nbreak_stmt\n");}
+	| RETURN ';'			{fprintf(pl_file, "\nreturn_stmt\n");}
+	| RETURN expression ';'	{fprintf(pl_file, "\nreturn_stmt(%s)\n", $2); free($2);}
 	;
 
 translation_unit 	//printed out
 	: external_declaration
-	| translation_unit {fprintf(pl_file, ", ");} external_declaration
+	| translation_unit {fprintf(pl_file, ", \n");} external_declaration
 	;
 
 external_declaration	//printed out
@@ -1044,7 +1048,7 @@ function_definition	//printed out
 
 declaration_list_opt	//printed out
 	: /* empty */
-	| declaration_list	//already printed out
+	| declaration_list	//already printed out //for old-style function declaration see p. 226 K&R
 	;
 
 declaration_list	//printed out
