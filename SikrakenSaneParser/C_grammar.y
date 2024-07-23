@@ -7,8 +7,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <io.h>
+#include <ctype.h>
 #include "utils.h"
 #include "handle_typedefs.h"
+#include "stack_of_id_tables.c"
 
 extern int yylex();
 extern int yylineno;
@@ -18,9 +20,14 @@ extern char *yytext;
 
 FILE* pl_file;				//the file of containing the Prolog predicated after parsing the target C file
 char pl_file_uri[_MAX_PATH];	//the full path to the Pl_file
+struct scope *ordinary_ids_scope_stack = NULL;	//stack of id tables to track scopes of is in the ordinary namespace 
 char id_names[1000];		//string to hold Prolog var names and their details e.g. a(I_407, 'ch8_1.adb:39:7:i')
-int id_counter = 1;			//used to generate unique Prolog var names e.g. I_1, I_2, I_3 etc.
+int id_counter = 0;			//used to generate unique Prolog var names e.g. I_1, I_2, I_3 etc.
+//ugly non-recursive flags and temporary variables
 int in_member_decl_flag = 0;	//indicate that we are parsing struct or union declarations and that the ids are part of the members namespace
+char* tmp_current_decl_id;			//temporary holder for the id currently being declared
+char* tmp_current_decl_prolog_var;	//temporary holder for the Prolog var currently being declared
+
 
 void yyerror(const char*);
 void my_exit(int);				//attempts to close handles and delete generated files prior to caling exit(int);
@@ -65,7 +72,14 @@ int debugMode = 0;				//flag to indicate if we are in debug mode set by by -d co
 %%
 
 primary_expression
-	: IDENTIFIER	{simple_str_copy(&$$, $1);}
+	: IDENTIFIER	
+		{char *Prolog_name;
+		 Prolog_name = find_symbol(ordinary_ids_scope_stack, $1)->Prolog_name;
+		 size_t const size = strlen(Prolog_name) + 1;
+		 $$ = (char*)malloc(size);
+         strcpy_s($$, size, Prolog_name);
+		 free($1);
+		}
 	| constant		{simple_str_copy(&$$, $1);}
 	| string		{simple_str_copy(&$$, $1);}
 	| '(' expression ')'	{simple_str_lit_copy(&$$, "prim4");}
@@ -103,7 +117,8 @@ generic_association	/* to do */
 	;
 
 postfix_expression
-	: primary_expression	{simple_str_copy(&$$, $1);}
+	: primary_expression	
+		{simple_str_copy(&$$, $1);}
 	| postfix_expression '[' expression ']'
 		{size_t const size = strlen("index(, )") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
@@ -498,17 +513,19 @@ init_declarator_list
 
 init_declarator
 	: declarator '=' initializer
-	  {size_t const size = strlen("initialised(, )") + strlen($1) + strlen($3) + 1;
-	   $$ = (char*)malloc(size);
-	   sprintf_s($$, size, "initialised(%s, %s)", $1, $3);
-	   free($1);
-	   //free($3);
-	  }
+		{size_t const size = strlen("initialised(, )") + strlen($1) + strlen($3) + 1;
+	     $$ = (char*)malloc(size);
+	   	 sprintf_s($$, size, "initialised(%s, %s)", $1, $3);
+	   	 free($1);
+	   	 //free($3);
+		 add_symbol(ordinary_ids_scope_stack, tmp_current_decl_id, tmp_current_decl_prolog_var);	//i.e. only after initialisation
+	  	}
 	| declarator
 	  {if (typedef_flag == 1) {	// we are parsing one typedef declaration
 		 add_typedef_name($1);
 	   }
 	   simple_str_copy(&$$, $1);
+	   add_symbol(ordinary_ids_scope_stack, tmp_current_decl_id, tmp_current_decl_prolog_var);
 	  }
 	;
 
@@ -748,8 +765,31 @@ declarator
 	;
 
 direct_declarator
-	: IDENTIFIER	
-		{simple_str_copy(&$$, $1);} //Ordinary namespace id declaration unless within a struct declaration in which case it is a Member namespace id
+	: IDENTIFIER		//Ordinary namespace id declaration unless within a struct declaration in which case it is a Member namespace id
+		{id_counter++;
+		 char id_counter_str[20];
+		 sprintf_s(id_counter_str, 20, "%d", id_counter);
+		 char Prolog_var_name[MAX_ID_LENGTH];
+		 if (islower($1[0])) {
+			Prolog_var_name[0] = toupper($1[0]);
+			strcpy_s(&Prolog_var_name[1], MAX_ID_LENGTH-1, &$1[1]);
+		 } else {
+			strcpy_s(Prolog_var_name, MAX_ID_LENGTH, "UC_");
+			strcat_s(Prolog_var_name, MAX_ID_LENGTH, $1);
+		 }
+		 strcat_s(Prolog_var_name, MAX_ID_LENGTH, "_");
+		 strcat_s(Prolog_var_name, MAX_ID_LENGTH, id_counter_str);
+		 size_t const size = strlen(Prolog_var_name) + 1;
+		 $$ = (char*)malloc(size);
+		 strcpy_s($$, size, Prolog_var_name);
+		 //ugly: keep declared identifer details to be pushed after possible initialisation
+		 size_t const size1 = strlen($1) + 1;
+		 tmp_current_decl_id = (char*)malloc(size1);
+		 strcpy_s(tmp_current_decl_id, size1, $1);		
+		 size_t const size2 = strlen(Prolog_var_name) + 1;
+		 tmp_current_decl_prolog_var = (char*)malloc(size2);
+		 strcpy_s(tmp_current_decl_prolog_var, size2, Prolog_var_name);
+		} 
 	| '(' declarator ')'			
 		{simple_str_lit_copy(&$$, "D1");}
 	| direct_declarator '[' ']'		
@@ -980,9 +1020,17 @@ labeled_statement	//printed out
 	| DEFAULT ':' {fprintf(pl_file, "default_stmt(");} statement {fprintf(pl_file, ")");}
 	;
 
-compound_statement	//printed out
+compound_statement	//printed out	//aka a 'block'
 	: '{' '}' {fprintf(pl_file, "\ncmp_stmts([])");}
-	| '{' {fprintf(pl_file, "\ncmp_stmts([\n");} block_item_list '}' {fprintf(pl_file, "\n])");}
+	| '{' 
+		{enter_scope(&ordinary_ids_scope_stack);
+		 fprintf(pl_file, "\ncmp_stmts([\n");
+		} 
+	   block_item_list 
+	  '}' 
+		{leave_scope(&ordinary_ids_scope_stack);
+		 fprintf(pl_file, "\n])");
+		}
 	;
 
 block_item_list		//printed out
@@ -1032,6 +1080,7 @@ jump_statement		//printed out
 	| RETURN expression ';'	{fprintf(pl_file, "\nreturn_stmt(%s)\n", $2); free($2);}
 	;
 
+//top level rule
 translation_unit 	//printed out
 	: external_declaration
 	| translation_unit {fprintf(pl_file, ", \n");} external_declaration
@@ -1100,12 +1149,14 @@ int main(int argc, char *argv[]) {			//argc is the total number of strings in th
 		fprintf(stderr, ".pl file could created for write at: %s\n", pl_file_uri);
 		exit(EXIT_FAILURE);
 	}
-	fprintf(pl_file, "prolog_c([");	//opening predicate
-	if (yyparse() != 0) {
+	fprintf(pl_file, "prolog_c([");			//opening predicate
+	enter_scope(&ordinary_ids_scope_stack);	//creates the initial scope for ordinary ids namespace
+	if (yyparse() != 0) {					//the parser is called
 		fprintf(stderr, "Parsing failed.\n");
 		exit(EXIT_FAILURE);
-	}
-	fprintf(pl_file, "\n]).");	//closing predicate
+	}	
+	leave_scope(&ordinary_ids_scope_stack);	//destroys the initial scope for ordinary ids namespace
+	fprintf(pl_file, "\n]).");				//closing predicate
 	fclose(pl_file);
 	fclose(i_file);
 	my_exit(EXIT_SUCCESS);

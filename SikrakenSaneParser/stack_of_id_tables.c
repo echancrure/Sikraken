@@ -1,9 +1,14 @@
 //started with chatGPT template Mon 22 July 2024
+
 #include "uthash.h"
 
+#define MAX_ID_LENGTH 255
+
+extern void my_exit(int);
+
 struct symbol {
-    char name[50];
-    char type[50];
+    char name[MAX_ID_LENGTH];
+    char Prolog_name[MAX_ID_LENGTH];
     UT_hash_handle hh;
 };
 
@@ -12,20 +17,18 @@ struct scope {
     struct scope *next;
 };
 
-struct scope *scope_stack = NULL;
-
 // Enter a new scope
-void enter_scope() {
+void enter_scope(struct scope **scope) {
     struct scope *new_scope = malloc(sizeof(struct scope));
     new_scope->symbols = NULL;
-    new_scope->next = scope_stack;
-    scope_stack = new_scope;
+    new_scope->next = *scope;
+    *scope = new_scope;
 }
 
 // Leave the current scope
-void leave_scope() {
-    struct scope *old_scope = scope_stack;
-    scope_stack = scope_stack->next;
+void leave_scope(struct scope **scope) {
+    struct scope *old_scope = *scope;
+    *scope = (*scope)->next;
     // Free the symbols in the old scope
     struct symbol *current_symbol, *tmp;
     HASH_ITER(hh, old_scope->symbols, current_symbol, tmp) {
@@ -36,16 +39,26 @@ void leave_scope() {
 }
 
 // Add a symbol to the current scope
-void add_symbol(const char *name, const char *type) {
+void add_symbol(struct scope *scope, const char *name, const char *Prolog_name) {
+    if (scope == NULL) {
+        fprintf(stderr, "Sikraken parsing fatal error: Null scope in add_symbol");
+        my_exit(201);
+    }
     struct symbol *sym = malloc(sizeof(struct symbol));
-    strcpy(sym->name, name);
-    strcpy(sym->type, type);
-    HASH_ADD_STR(scope_stack->symbols, name, sym);
+    strcpy_s(sym->name, MAX_ID_LENGTH, name);
+    strcpy_s(sym->Prolog_name, MAX_ID_LENGTH, Prolog_name);
+    HASH_ADD_STR(scope->symbols, name, sym);
 }
 
-// Find a symbol in the current scope
-struct symbol *find_symbol(const char *name) {
+// Find a symbol in the stack of scopes
+struct symbol *find_symbol(struct scope *scope, const char *name) {
     struct symbol *sym;
-    HASH_FIND_STR(scope_stack->symbols, name, sym);
-    return sym;
+    while (scope) {
+        HASH_FIND_STR(scope->symbols, name, sym);
+        if (sym) return sym;
+        scope = scope->next;
+    }
+    fprintf(stderr, "Sikraken parsing fatal error: the Id %s was not found in the stack of scopes", name);
+    my_exit(202);
+    return NULL;
 }
