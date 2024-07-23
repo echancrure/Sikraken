@@ -10,7 +10,9 @@
 #include <ctype.h>
 #include "utils.h"
 #include "handle_typedefs.h"
+#include "string_buffer.c"
 #include "stack_of_id_tables.c"
+
 
 extern int yylex();
 extern int yylineno;
@@ -21,7 +23,7 @@ extern char *yytext;
 FILE* pl_file;				//the file of containing the Prolog predicated after parsing the target C file
 char pl_file_uri[_MAX_PATH];	//the full path to the Pl_file
 struct scope *ordinary_ids_scope_stack = NULL;	//stack of id tables to track scopes of is in the ordinary namespace 
-char id_names[1000];		//string to hold Prolog var names and their details e.g. a(I_407, 'ch8_1.adb:39:7:i')
+StringBuilder *id_names;			//string buffer to hold Prolog var names and their details e.g. a(I_407, 'ch8_1.adb:39:7:i')
 int id_counter = 0;			//used to generate unique Prolog var names e.g. I_1, I_2, I_3 etc.
 //ugly non-recursive flags and temporary variables
 int in_member_decl_flag = 0;	//indicate that we are parsing struct or union declarations and that the ids are part of the members namespace
@@ -1024,7 +1026,7 @@ compound_statement	//printed out	//aka a 'block'
 	: '{' '}' {fprintf(pl_file, "\ncmp_stmts([])");}
 	| '{' 
 		{enter_scope(&ordinary_ids_scope_stack);
-		 fprintf(pl_file, "\ncmp_stmts([\n");
+		 fprintf(pl_file, "\ncmp_stmts([");
 		} 
 	   block_item_list 
 	  '}' 
@@ -1112,6 +1114,8 @@ int main(int argc, char *argv[]) {			//argc is the total number of strings in th
 	char i_file_uri[_MAX_PATH];
 	FILE *i_file;
 
+	id_names = sb_init();		//initialise the buffer to hold all the Prolog id details
+
 	strcpy_s(C_file_path, 3, ".\\");				//default path for input file is current directory, overwrite with -p on command line
 	for (int i = 1; i <= argc - 1; i++) {	//processing command line arguments
 		if (argv[i][0] == '-') {
@@ -1156,7 +1160,9 @@ int main(int argc, char *argv[]) {			//argc is the total number of strings in th
 		exit(EXIT_FAILURE);
 	}	
 	leave_scope(&ordinary_ids_scope_stack);	//destroys the initial scope for ordinary ids namespace
-	fprintf(pl_file, "\n]).");				//closing predicate
+	fprintf(pl_file, ",\nsikraken_xref([\n");				//append all the ids details
+	fprintf(pl_file, id_names->str);
+	fprintf(pl_file, "\n    ])\n]).");
 	fclose(pl_file);
 	fclose(i_file);
 	my_exit(EXIT_SUCCESS);
