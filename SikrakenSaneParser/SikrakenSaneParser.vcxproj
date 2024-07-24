@@ -148,11 +148,17 @@
     <ClCompile Include="C_grammar.tab.c" />
     <ClCompile Include="handle_typedefs.c" />
     <ClCompile Include="lex.yy.c" />
+    <ClCompile Include="stack_of_id_tables.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="string_buffer.c" />
     <ClCompile Include="utils.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C_grammar.tab.h" />
     <ClInclude Include="handle_typedefs.h" />
+    <ClInclude Include="string_buffer.h" />
+    <ClInclude Include="uthash.h" />
     <ClInclude Include="utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

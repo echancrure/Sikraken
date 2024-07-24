@@ -1,9 +1,9 @@
 //started with chatGPT template Tue 23 July 2024
-typedef struct {
-    char *str;
-    size_t length;
-    size_t capacity;
-} StringBuilder;
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <io.h>
+#include "string_buffer.h"
 
 #define INITIAL_CAPACITY 1024
 

@@ -10,9 +10,8 @@
 #include <ctype.h>
 #include "utils.h"
 #include "handle_typedefs.h"
-#include "string_buffer.c"
+#include "string_buffer.h"
 #include "stack_of_id_tables.c"
-
 
 extern int yylex();
 extern int yylineno;
