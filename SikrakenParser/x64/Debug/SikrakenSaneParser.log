@@ -1,0 +1,10 @@
+﻿  Generate lexer and parser afresh everytime
+C_grammar.y : warning : 2 shift/reduce conflicts [-Wconflicts-sr]
+  C_grammar.y: note: rerun with option '-Wcounterexamples' to generate conflict counterexamples
+  C_grammar.tab.c
+C_grammar.tab.c(1831,41): warning C4244: 'initializing': conversion from '__int64' to 'long', possible loss of data
+  handle_typedefs.c
+  lex.yy.c
+  utils.c
+  Generating Code...
+  SikrakenSaneParser.vcxproj -> C:\Users\echan\My Drive\Sikraken\bin\sikraken_sane_parser.exe
