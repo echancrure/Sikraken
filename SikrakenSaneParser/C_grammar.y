@@ -19,21 +19,20 @@ extern int yylineno;
 extern FILE *yyin;
 extern char *yytext;
 
-FILE* pl_file;				//the file of containing the Prolog predicated after parsing the target C file
-char pl_file_uri[_MAX_PATH];	//the full path to the Pl_file
+int debugMode = 0;				//flag to indicate if we are in debug mode set by by -d command line switch
+FILE* pl_file;						//the file of containing the Prolog predicated after parsing the target C file
+char pl_file_uri[_MAX_PATH];		//the full path to the Pl_file
 struct scope *ordinary_ids_scope_stack = NULL;	//stack of id tables to track scopes of is in the ordinary namespace 
 StringBuilder *id_names;			//string buffer to hold Prolog var names and their details e.g. a(I_407, 'ch8_1.adb:39:7:i')
-int id_counter = 0;			//used to generate unique Prolog var names e.g. I_1, I_2, I_3 etc.
-//ugly non-recursive flags and temporary variables
+int id_counter = 0;					//used to generate unique Prolog var names e.g. I_1, I_2, I_3 etc.
+//start: ugly, breaking parsing spirit, flags and temporary variables
 int in_member_decl_flag = 0;	//indicate that we are parsing struct or union declarations and that the ids are part of the members namespace
 char* tmp_current_decl_id;			//temporary holder for the id currently being declared
 char* tmp_current_decl_prolog_var;	//temporary holder for the Prolog var currently being declared
 
-
 void yyerror(const char*);
 void my_exit(int);				//attempts to close handles and delete generated files prior to caling exit(int);
 
-int debugMode = 0;				//flag to indicate if we are in debug mode set by by -d command line switch
 %}
 
 %union {
@@ -1107,25 +1106,29 @@ declaration_list	//printed out
 	;
 
 %%
-int main(int argc, char *argv[]) {			//argc is the total number of strings in the argv array
+int main(int argc, char *argv[]) {				//argc is the total number of strings in the argv array
 	char C_file_path[_MAX_PATH];				//directory where the C and .i files are
 	char filename_no_ext[_MAX_PATH];
 	char i_file_uri[_MAX_PATH];
 	FILE *i_file;
 
 	id_names = sb_init();		//initialise the buffer to hold all the Prolog id details
+	if (id_names==NULL) {
+		fprintf(stderr, "Sikraken parser fatal error: cannot initialise buffer id_names");
+		my_exit(2);
+	}
 
-	strcpy_s(C_file_path, 3, ".\\");				//default path for input file is current directory, overwrite with -p on command line
+	strcpy_s(C_file_path, 3, ".\\");		//default path for input file is current directory, overwrite with -p on command line
 	for (int i = 1; i <= argc - 1; i++) {	//processing command line arguments
 		if (argv[i][0] == '-') {
 			switch (argv[i][1]) {
 			case 'h':
 				printf("Usage: .\\sikraken_parser [OPTION]... [FILE]\nParse a C file to Prolog terms.\n\n-h\t Display help information\n-p\t Path to the .c/.i file (DEFAULT: Current Directory ('.'))\n\nExamples:\n\t.\\LilyParser -p\".\" get_sign \n\t.\\LilyParser get_sign \n\t.\\LilyParser -p\"C:/Parser/\" sign \n");
-				exit(0);
+				my_exit(0);
 			case 'p':	//path to the .i pre-processed input C file
 				if (_access(&argv[i][2], 0) == -1) {    //checks if it is a valid directory
 					fprintf(stderr, "Sikraken parser error: the indicated source path (via -p switch): %s , cannot be accessed\n", &argv[i][2]);
-					exit(1);
+					my_exit(1);
 				}
 				strcpy_s(C_file_path, _MAX_PATH, &argv[i][2]);
 				break;
@@ -1144,19 +1147,19 @@ int main(int argc, char *argv[]) {			//argc is the total number of strings in th
 	sprintf_s(i_file_uri, _MAX_PATH, "%s%s.i", C_file_path, filename_no_ext);
 	if (fopen_s(&i_file, i_file_uri, "r") != 0) {
 		fprintf(stderr, ".i file could opened to read at: %s\n", i_file_uri);
-		exit(EXIT_FAILURE);
+		my_exit(EXIT_FAILURE);
 	}
 	yyin = i_file;	//set the input to the parser
 	sprintf_s(pl_file_uri, _MAX_PATH, "%s%s.pl", C_file_path, filename_no_ext);
 	if (fopen_s(&pl_file, pl_file_uri, "w") != 0) {
 		fprintf(stderr, ".pl file could created for write at: %s\n", pl_file_uri);
-		exit(EXIT_FAILURE);
+		my_exit(EXIT_FAILURE);
 	}
 	fprintf(pl_file, "prolog_c([");			//opening predicate
 	enter_scope(&ordinary_ids_scope_stack);	//creates the initial scope for ordinary ids namespace
 	if (yyparse() != 0) {					//the parser is called
 		fprintf(stderr, "Parsing failed.\n");
-		exit(EXIT_FAILURE);
+		my_exit(EXIT_FAILURE);
 	}	
 	leave_scope(&ordinary_ids_scope_stack);	//destroys the initial scope for ordinary ids namespace
 	fprintf(pl_file, ",\nsikraken_xref([\n");				//append all the ids details
