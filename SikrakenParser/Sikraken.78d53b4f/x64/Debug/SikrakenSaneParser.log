@@ -7,4 +7,4 @@ C_grammar.y : warning : 2 shift/reduce conflicts [-Wconflicts-sr]
   string_buffer.c
   utils.c
   Generating Code...
-  SikrakenSaneParser.vcxproj -> C:\Users\Chris2\GoogleDrive\Sikraken\bin\sikraken_sane_parser.exe
+  SikrakenSaneParser.vcxproj -> C:\Users\Chris2\GoogleDrive\Sikraken\bin\sikraken_parser.exe

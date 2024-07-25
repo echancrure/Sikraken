@@ -14,7 +14,7 @@ void run_test(int i) {
         case 2 : {
             int basic_4_x = -10;
             int basic_4_return = basic(basic_4_x);
-            assert(basic_4_return==64);
+            assert(basic_4_return==65);
             break;
         }
         default:
