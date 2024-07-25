@@ -54,7 +54,7 @@ void add_symbol(struct scope* scope, const char* name, const char* Prolog_name) 
     size_t const size_name = strlen(name) + 1;
     size_t const size_prolog_name = strlen(Prolog_name) + 1;
     char id_details[MAX_ID_LENGTH * 3] = "";
-    if (id_names->length != 0) {    //i.e. this is not the first id declared
+    if (id_names->length != 0) {    //i.e. this is not the first id declared for this scope
         sb_append(id_names, ",\n");
     }
     sprintf_s(id_details, MAX_ID_LENGTH * 3, "    a(%s, \'%s\')", Prolog_name, name);

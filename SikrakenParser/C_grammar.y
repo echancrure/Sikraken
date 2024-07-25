@@ -812,8 +812,10 @@ direct_declarator
 	| direct_declarator '[' assignment_expression ']'
 		{simple_str_lit_copy(&$$, "D10");}
 	| direct_declarator '(' 
-		{enter_scope(&ordinary_ids_scope_stack);}	//for parameters
-		parameter_type_list ')'
+		{add_symbol(ordinary_ids_scope_stack, tmp_current_decl_id, tmp_current_decl_prolog_var);	//for the function name
+		 enter_scope(&ordinary_ids_scope_stack); 	//for parameters
+		}	
+	  parameter_type_list ')'
 		{size_t const size = strlen(", ") + strlen($1) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_s($$, size, "%s, %s", $1, $4);
