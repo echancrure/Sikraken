@@ -67,8 +67,9 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 %type <id> struct_or_union_specifier struct_or_union struct_declaration_list struct_declaration specifier_qualifier_list struct_declarator_list struct_declarator
 %type <id> static_assert_declaration
 %type <id> enum_specifier enumerator_list enumerator
+%type <id> parameter_type_list parameter_list parameter_declaration
 
-%start translation_unit
+%start translation_unit 
 %%
 
 primary_expression
@@ -810,8 +811,15 @@ direct_declarator
 		{simple_str_lit_copy(&$$, "D9");}
 	| direct_declarator '[' assignment_expression ']'
 		{simple_str_lit_copy(&$$, "D10");}
-	| direct_declarator '(' parameter_type_list ')'
-		{simple_str_lit_copy(&$$, "D11");}
+	| direct_declarator '(' 
+		{enter_scope(&ordinary_ids_scope_stack);}	//for parameters
+		parameter_type_list ')'
+		{size_t const size = strlen(", ") + strlen($1) + strlen($4) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_s($$, size, "%s, %s", $1, $4);
+	     free($1);
+		 free($4);
+		}
 	| direct_declarator '(' ')'
 		{size_t const size = strlen("%s, []") + strlen($1) + 1;
 	     $$ = (char*)malloc(size);
@@ -860,18 +868,49 @@ type_qualifier_list
 
 parameter_type_list
 	: parameter_list ',' ELLIPSIS
+		{size_t const size = strlen("variable_length_args()") + strlen($1) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_s($$, size, "variable_length_args(%s)", $1);
+	     free($1);
+		}
 	| parameter_list
+		{simple_str_copy(&$$, $1);}
 	;
 
 parameter_list
 	: parameter_declaration
+		{simple_str_copy(&$$, $1);}
 	| parameter_list ',' parameter_declaration
+		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_s($$, size, "%s, %s", $1, $3);
+	     free($1);
+		 free($3);
+		}
 	;
 
 parameter_declaration
 	: declaration_specifiers declarator
+		{size_t const size = strlen("param(, )") + strlen($1) + strlen($2) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_s($$, size, "param(%s, %s)", $1, $2);
+	     free($1);
+		 free($2);
+		 add_symbol(ordinary_ids_scope_stack, tmp_current_decl_id, tmp_current_decl_prolog_var);
+		}
 	| declaration_specifiers abstract_declarator
+		{size_t const size = strlen("param_no_decl(%s, dummy_abstract_declarator)") + strlen($1) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_s($$, size, "param_no_decl(%s, dummy_abstract_declarator)", $1);
+	     free($1);
+		 //free($2);
+		}
 	| declaration_specifiers
+		{size_t const size = strlen("param_no_decl(%s, [])") + strlen($1) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_s($$, size, "param_no_decl(%s, [])", $1);
+	     free($1);
+		}
 	;
 
 identifier_list
@@ -1092,7 +1131,17 @@ external_declaration	//printed out
 	;
 
 function_definition	//printed out
-	: declaration_specifiers declarator {fprintf(pl_file, "function(%s, %s, [", $1, $2); free($1); free($2);} declaration_list_opt {fprintf(pl_file, "], ");} compound_statement {fprintf(pl_file, ")");}
+	: declaration_specifiers declarator 
+		{fprintf(pl_file, "function(%s, %s, [", $1, $2); 
+		 free($1); 
+		 free($2);
+		} 
+		declaration_list_opt 
+		{fprintf(pl_file, "], ");}
+		compound_statement 			//aka a block: contains curly brackets { }
+		{fprintf(pl_file, ")");
+		 leave_scope(&ordinary_ids_scope_stack);	//for the surrounding parameters
+		}	
 	;
 
 declaration_list_opt	//printed out
