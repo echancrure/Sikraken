@@ -1213,9 +1213,9 @@ int main(int argc, char *argv[]) {				//argc is the total number of strings in t
 		my_exit(EXIT_FAILURE);
 	}	
 	leave_scope(&ordinary_ids_scope_stack);	//destroys the initial scope for ordinary ids namespace
-	fprintf(pl_file, ",\nsikraken_xref([\n");				//append all the ids details
+	fprintf(pl_file, "],\nsikraken_xref([\n");				//append all the ids details
 	fprintf(pl_file, id_names->str);
-	fprintf(pl_file, "\n    ])\n]).");
+	fprintf(pl_file, "\n    ])\n).");
 	fclose(pl_file);
 	fclose(i_file);
 	my_exit(EXIT_SUCCESS);

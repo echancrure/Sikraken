@@ -3372,8 +3372,8 @@ yyreduce:
 
   case 187: /* $@2: %empty  */
 #line 815 "C_grammar.y"
-                {add_symbol(ordinary_ids_scope_stack, tmp_current_decl_id, tmp_current_decl_prolog_var);
-		 enter_scope(&ordinary_ids_scope_stack); //for parameters
+                {add_symbol(ordinary_ids_scope_stack, tmp_current_decl_id, tmp_current_decl_prolog_var);	//for the function name
+		 enter_scope(&ordinary_ids_scope_stack); 	//for parameters
 		}
 #line 3379 "C_grammar.tab.c"
     break;
@@ -4142,9 +4142,9 @@ int main(int argc, char *argv[]) {				//argc is the total number of strings in t
 		my_exit(EXIT_FAILURE);
 	}	
 	leave_scope(&ordinary_ids_scope_stack);	//destroys the initial scope for ordinary ids namespace
-	fprintf(pl_file, ",\nsikraken_xref([\n");				//append all the ids details
+	fprintf(pl_file, "],\nsikraken_xref([\n");				//append all the ids details
 	fprintf(pl_file, id_names->str);
-	fprintf(pl_file, "\n    ])\n]).");
+	fprintf(pl_file, "\n    ])\n).");
 	fclose(pl_file);
 	fclose(i_file);
 	my_exit(EXIT_SUCCESS);
