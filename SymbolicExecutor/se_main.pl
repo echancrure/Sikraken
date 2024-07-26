@@ -26,11 +26,16 @@ mytrace.            %call this to start debugging
 :- use_module('se_globals').
 :- import se_globals__set_globals/2 from se_globals.
 
+:- use_module('se_name_atts').
+:- import se_name_atts__initL/1 from se_name_atts.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic001, basic, debug)
 se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_name, Debug_mode) :-
     se_globals__set_globals(Install_dir, Debug_mode),
-    read_parsed_file(Parsed_dir, Target_source_file_name),  %may fail if badly formed due to parsing errors
+    read_parsed_file(Parsed_dir, Target_source_file_name),      %may fail if badly formed due to parsing errors
+    prolog_c(Parsed_prolog_code, sikraken_xref(NamesL)),        %retrieve the entire contents of the parsed Prolog code
+    se_name_atts__initL(NamesL),
     true.
 
 %%%
@@ -45,3 +50,4 @@ read_parsed_file(Parsed_dir, Target_source_file_name) :-
     ;
         common_util__error(10, "Parsed file does not exist", "Cannot process parsed C code", [('parsed_filename', Parsed_filename)], 10260724, 'se_main', 'read_parsed_file', no_localisation, no_extra_info)
     ).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
