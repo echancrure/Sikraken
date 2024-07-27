@@ -27,7 +27,7 @@ mytrace.            %call this to start debugging
 :- import se_globals__set_globals/2 from se_globals.
 
 :- use_module('se_name_atts').
-:- import se_name_atts__initL/1 from se_name_atts.
+:- import se_name_atts__initL/3 from se_name_atts.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic001, basic, debug)
@@ -35,7 +35,8 @@ se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_
     se_globals__set_globals(Install_dir, Debug_mode),
     read_parsed_file(Parsed_dir, Target_source_file_name),      %may fail if badly formed due to parsing errors
     prolog_c(Parsed_prolog_code, sikraken_xref(NamesL)),        %retrieve the entire contents of the parsed Prolog code
-    se_name_atts__initL(NamesL),
+    se_name_atts__initL(NamesL, Target_raw_subprogram_name, Target_subprogram_var),     %initialise all C vars with their id 
+    symbolic_execute_all_declarations(Parsed_prolog_code),
     true.
 
 %%%

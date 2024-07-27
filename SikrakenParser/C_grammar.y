@@ -1138,9 +1138,9 @@ function_definition	//printed out
 		 free($1); 
 		 free($2);
 		} 
-		declaration_list_opt 
+	  declaration_list_opt 
 		{fprintf(pl_file, "], ");}
-		compound_statement 			//aka a block: contains curly brackets { }
+	  compound_statement 			//aka a block: contains curly brackets { }
 		{fprintf(pl_file, ")");
 		 leave_scope(&ordinary_ids_scope_stack);	//for the surrounding parameters
 		}	
