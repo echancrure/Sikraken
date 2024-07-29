@@ -20,7 +20,7 @@ mytrace.            %call this to start debugging
 :- module('se_main').
 :- export se_main/5.
 
-:- lib(ptc_solver).
+:- use_module("./../Solver/PTC-Solver/source/ptc_solver").
 
 :- use_module('common_util').
 :- import common_util__error/9 from common_util.
