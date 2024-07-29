@@ -46,9 +46,9 @@ read_parsed_file(Parsed_dir, Target_source_file_name) :-
         (compile(Parsed_filename) ->    %may fail if parsed file contents is not well formed
             true
         ;
-            common_util__error(10, "Compilation of parsed file failed", "Cannot process parsed C code", [('Parsed_filename', Parsed_filename)], 102607241, 'se_main', 'read_parsed_file', no_localisation, "the parser probably produced bad Prolog code")
+            common_util__error(10, "Compilation of parsed file failed", "Cannot process parsed C code", [('parsed_filename', Parsed_filename)], 102607241, 'se_main', 'read_parsed_file', no_localisation, "the parser probably produced bad Prolog code")
         )
     ;
-        common_util__error(10, "Parsed file does not exist", "Cannot process parsed C code", [('Parsed_filename', Parsed_filename)], 10260724, 'se_main', 'read_parsed_file', no_localisation, no_extra_info)
+        common_util__error(10, "Parsed file does not exist", "Cannot process parsed C code", [('parsed_filename', Parsed_filename)], 10260724, 'se_main', 'read_parsed_file', no_localisation, no_extra_info)
     ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
