@@ -22,6 +22,6 @@ declare_declarators([Declarator|R], Type_name) :-
          ...
         )
     ;
-        se_heap__create_var(Var, Type_name, no_init)
+        use the PTC_Ssolver to __create_var(Var, Type_name, no_init)
     ).
 %%% 

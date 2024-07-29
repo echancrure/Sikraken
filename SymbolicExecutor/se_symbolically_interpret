@@ -1,0 +1,3 @@
+symbolically_interpret(Expression, Symbolic, Constraint, Type) :-
+    (number(Expression)
+    )
