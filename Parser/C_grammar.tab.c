@@ -2266,7 +2266,7 @@ yyreduce:
 
   case 38: /* unary_operator: '&'  */
 #line 238 "C_grammar.y"
-                {simple_str_lit_copy(&(yyval.id), "address_of_op");}
+                {simple_str_lit_copy(&(yyval.id), "addr_of");}
 #line 2271 "C_grammar.tab.c"
     break;
 

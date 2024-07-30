@@ -22,7 +22,7 @@
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{78d53b4f-e00e-4853-9c62-4530c7baa6da}</ProjectGuid>
-    <RootNamespace>SikrakenSaneParser</RootNamespace>
+    <RootNamespace>SikrakenParser</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>SikrakenParser</ProjectName>
   </PropertyGroup>

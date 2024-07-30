@@ -17,15 +17,34 @@
 %internal attributed variable handlers
 %called to confirm unification after unification with an another attributed variable or a non-variable
 %Value is a non-variable or another attributed variable
-unify_name(_, Attr) :-          %ECLiPSe fails on compilation if this is not present even though the documentation says that the handler is not called in this case 
-    var(Attr).                  %Ignore if no attribute for this extension
-unify_name(Term, se_name_atts(Name)) :-
-    meta(Term),                 %fails otherwise: e.g. when unified with an atom
-    unify_attr_name(Term, Name).
+/*unify_name(_Unified, Attr) :-          %ECLiPSe fails on compilation if this is not present even though the documentation says that the handler is not called in this case 
+    var(Attr).                      %i.e. ignore and succeed: unification does not involve the attribute for this extension
+unify_name(Unified, Attr) :-
+    compound(Attr),    
+    printf("hello there 2 unified:%w attr:%w\n", [Unified, Attr]),             
+    unify_term_name(Unified, Attr).
 %%%
-unify_attr_name(_{se_name_atts(Name)}, Name) :- 
+unify_term_name(Unified, Attr) :- 
+    nonvar(Unified),
+    printf("hello there 3: unified:%w attr:%w\n", [Unified, Attr]),
+    fail.           
+unify_term_name(U{Unified_attr}, Attr) :-
     -?->
-    true.
+    printf("hello there 4", []),
+    unify_name_name(U, Unified_attr, Attr).
+unify_name_name(U, Unified_attr, Attr) :-
+    printf("hello there 5", []),
+    var(Unified_attr),
+    Attr = Unified_attr.*/
+unify_name(_, Attr) :-
+	var(Attr).                       %ANY+META (false call)
+unify_name(Term, Attr) :-
+	compound(Attr),
+	unify_term_name(Term, Attr).
+
+unify_term_name(_{AttrY}, AttrX) :-   %META + META
+	-?->
+	AttrX = AttrY.  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 print_name(_{se_name_atts(Name)}, Print) :-
 	-?->
@@ -38,7 +57,7 @@ se_name_atts__is_name_atts(_{se_name_atts(Name)}) :-
 se_name_atts__create(Name, Name_atts) :-
     add_attribute(Name_atts, se_name_atts(Name)).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-se_name_atts__get(name, _{Attr}, Name) :-
+se_name_atts__get(_{Attr}, 'name', Name) :-
     -?->
     Attr = se_name_atts(Name).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

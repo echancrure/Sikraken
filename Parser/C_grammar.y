@@ -235,7 +235,7 @@ unary_inc_dec
 	;
 
 unary_operator
-	: '&'	{simple_str_lit_copy(&$$, "address_of_op");}
+	: '&'	{simple_str_lit_copy(&$$, "addr_of");}
 	| '*'	{simple_str_lit_copy(&$$, "dereference_op");}
 	| '+'	{simple_str_lit_copy(&$$, "plus_op");}
 	| '-'	{simple_str_lit_copy(&$$, "minus_op");}
