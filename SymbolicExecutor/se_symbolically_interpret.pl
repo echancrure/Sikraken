@@ -1,4 +1,3 @@
-symbolically_interpret(Expression, Symbolic, Constraint, Type) :-
+symbolically_interpret(Expression, Expression) :-
     number(Expression),
-    !,
-    midoan_solver__interpret(Expression, types(_), Constraint, Type, _Exception).
+    !.

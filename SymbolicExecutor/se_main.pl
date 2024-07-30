@@ -21,6 +21,7 @@ mytrace.            %call this to start debugging
 :- export se_main/5.
 
 :- use_module("./../Solver/PTC-Solver/source/ptc_solver").
+:- import ptc_solver__clean_up/0, ptc_solver__default_declarations/0.
 
 :- use_module('common_util').
 :- import common_util__error/9 from common_util.
@@ -31,16 +32,22 @@ mytrace.            %call this to start debugging
 :- use_module('se_name_atts').
 :- import se_name_atts__initL/3 from se_name_atts.
 
+:- use_module('se_seav_atts').
+:- import se_seav__create_var/3, seav__is_seav/1, seav__get/3, seav__update/2 from se_seav_atts.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic001, basic, debug)
 se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_name, Debug_mode) :-
+    initialise,
     se_globals__set_globals(Install_dir, Debug_mode),
     read_parsed_file(Parsed_dir, Target_source_file_name),      %may fail if badly formed due to parsing errors
     prolog_c(Parsed_prolog_code, sikraken_xref(NamesL)),        %retrieve the entire contents of the parsed Prolog code
     se_name_atts__initL(NamesL, Target_raw_subprogram_name, Target_subprogram_var),     %initialise all C vars with their id 
     symbolic_execute_all_declarations(Parsed_prolog_code),
     true.
-
+%%
+initialise :-
+    ptc_solver__clean_up,
+    ptc_solver__default_declarations.
 %%%
 read_parsed_file(Parsed_dir, Target_source_file_name) :-
     concat_atom([Parsed_dir, Target_source_file_name, '.pl'], Parsed_filename),

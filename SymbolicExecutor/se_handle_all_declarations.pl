@@ -17,11 +17,14 @@ extract_type(Specifiers, _Type_name) :-
 %%%
 declare_declarators([], _).
 declare_declarators([Declarator|R], Type_name) :-
-    (Declarator = initialised(Var, Expresion) ->
-        (symbolically_interpret(Expression, Symbolic, Constraint, Type),
-         ...
-        )
+    (Declarator = initialised(Var, Expression) ->
+        symbolically_interpret(Expression, Symbolic)
     ;
-        use the PTC_Ssolver to __create_var(Var, Type_name, no_init)
-    ).
+        (Var = Declarator,
+         ptc_solver__variable([Symbolic], Type_name)
+        )
+    ),
+    se_seav__create_var(Var, Type_name, SEAV),
+    se_seav__update(SEAV, input, Symbolic),
+    se_seav__update(SEAV, output, Symbolic).
 %%% 

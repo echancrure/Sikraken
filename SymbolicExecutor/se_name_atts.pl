@@ -8,16 +8,15 @@
 
 :- export se_name_atts__is_name_atts/1, se_name_atts__create/2, se_name_atts__get/3, se_name_atts__initL/3.
 
-:- meta_attribute(se_name_atts, [unify:unify_name/2, print:print_name/2]).
+:- meta_attribute('se_name_atts', [unify:unify_name/2, print:print_name/2]).
 
 :- use_module('common_util').
 :- import common_util__error/9 from common_util.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %internal attributed variable handlers
-%called to confirm unification after unification with an another attributed variable or a non-variable (note: this not cally on unication with a free variable) 
+%called to confirm unification after unification with an another attributed variable or a non-variable
 %Value is a non-variable or another attributed variable
-% verify_attributes mostly gives rise to error messages except with an atom in which case it should fail
 unify_name(_, Attr) :-          %ECLiPSe fails on compilation if this is not present even though the documentation says that the handler is not called in this case 
     var(Attr).                  %Ignore if no attribute for this extension
 unify_name(Term, se_name_atts(Name)) :-

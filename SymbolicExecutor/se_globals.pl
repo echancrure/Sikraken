@@ -6,8 +6,8 @@
 :- local reference('call_stack_bran', []).     %list of functions entered so far
 
 %%%
-se_globals__set_globals(Install_dir, Debug_mode) :-
-    %declaring global non-logical variables: not undone on backtracking
+%declaring global non-logical variables: not undone on backtracking
+se_globals__set_globals(Install_dir, Debug_mode) :-    
     setval('errorMessageNb', 0),	            %number of error messages generated: used to set trace_points in debug mode only
     setval('debug_info', 'pre_symbolic_execution'),    %used in debug mode only to hold the current processing position of the symbolic executor: a phase, file, or function being handled
     setval('phase', 'elaboration'),             %initially we are in the elaboration phase: used during cfg building and elaboration control
