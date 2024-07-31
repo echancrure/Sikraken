@@ -893,24 +893,24 @@ parameter_list
 
 parameter_declaration
 	: declaration_specifiers declarator
-		{size_t const size = strlen("param(, )") + strlen($1) + strlen($2) + 1;
+		{size_t const size = strlen("param([], )") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "param(%s, %s)", $1, $2);
+	     sprintf_s($$, size, "param([%s], %s)", $1, $2);
 	     free($1);
 		 free($2);
 		 add_symbol(ordinary_ids_scope_stack, tmp_current_decl_id, tmp_current_decl_prolog_var);
 		}
 	| declaration_specifiers abstract_declarator
-		{size_t const size = strlen("param_no_decl(%s, dummy_abstract_declarator)") + strlen($1) + 1;
+		{size_t const size = strlen("param_no_decl([], dummy_abstract_declarator)") + strlen($1) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "param_no_decl(%s, dummy_abstract_declarator)", $1);
+	     sprintf_s($$, size, "param_no_decl([%s], dummy_abstract_declarator)", $1);
 	     free($1);
 		 //free($2);
 		}
 	| declaration_specifiers
-		{size_t const size = strlen("param_no_decl(%s, [])") + strlen($1) + 1;
+		{size_t const size = strlen("param_no_decl([], [])") + strlen($1) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "param_no_decl(%s, [])", $1);
+	     sprintf_s($$, size, "param_no_decl([%s], [])", $1);
 	     free($1);
 		}
 	;
@@ -1134,7 +1134,7 @@ external_declaration	//printed out
 
 function_definition	//printed out
 	: declaration_specifiers declarator 
-		{fprintf(pl_file, "function(%s, %s, [", $1, $2); 
+		{fprintf(pl_file, "function([%s], %s, [", $1, $2); 
 		 free($1); 
 		 free($2);
 		} 

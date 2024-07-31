@@ -8,9 +8,9 @@ symbolic_execute(mytrace) :-
 symbolic_execute(declaration(Specifiers, Declarators)) :-
     extract_type(Specifiers, Type_name),
     declare_declarators(Declarators, Type_name).
-
-symbolic_execute(function(_Specifiers, _Function_name, _Params, [], _Compound_statement)) :-
-    true.  
+symbolic_execute(function(Specifiers, Function, Parameters, [], Compound_statement)) :-
+    extract_type(Specifiers, Return_type_name),
+    se_sub_atts__create(Return_type_name, Parameters, Compound_statement, Function).
 %%%
 extract_type([int], integer) :-
     !.

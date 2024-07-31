@@ -3494,9 +3494,9 @@ yyreduce:
 
   case 201: /* parameter_declaration: declaration_specifiers declarator  */
 #line 896 "C_grammar.y"
-                {size_t const size = strlen("param(, )") + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1;
+                {size_t const size = strlen("param([], )") + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1;
 	     (yyval.id) = (char*)malloc(size);
-	     sprintf_s((yyval.id), size, "param(%s, %s)", (yyvsp[-1].id), (yyvsp[0].id));
+	     sprintf_s((yyval.id), size, "param([%s], %s)", (yyvsp[-1].id), (yyvsp[0].id));
 	     free((yyvsp[-1].id));
 		 free((yyvsp[0].id));
 		 add_symbol(ordinary_ids_scope_stack, tmp_current_decl_id, tmp_current_decl_prolog_var);
@@ -3506,9 +3506,9 @@ yyreduce:
 
   case 202: /* parameter_declaration: declaration_specifiers abstract_declarator  */
 #line 904 "C_grammar.y"
-                {size_t const size = strlen("param_no_decl(%s, dummy_abstract_declarator)") + strlen((yyvsp[-1].id)) + 1;
+                {size_t const size = strlen("param_no_decl([], dummy_abstract_declarator)") + strlen((yyvsp[-1].id)) + 1;
 	     (yyval.id) = (char*)malloc(size);
-	     sprintf_s((yyval.id), size, "param_no_decl(%s, dummy_abstract_declarator)", (yyvsp[-1].id));
+	     sprintf_s((yyval.id), size, "param_no_decl([%s], dummy_abstract_declarator)", (yyvsp[-1].id));
 	     free((yyvsp[-1].id));
 		 //free($2);
 		}
@@ -3517,9 +3517,9 @@ yyreduce:
 
   case 203: /* parameter_declaration: declaration_specifiers  */
 #line 911 "C_grammar.y"
-                {size_t const size = strlen("param_no_decl(%s, [])") + strlen((yyvsp[0].id)) + 1;
+                {size_t const size = strlen("param_no_decl([], [])") + strlen((yyvsp[0].id)) + 1;
 	     (yyval.id) = (char*)malloc(size);
-	     sprintf_s((yyval.id), size, "param_no_decl(%s, [])", (yyvsp[0].id));
+	     sprintf_s((yyval.id), size, "param_no_decl([%s], [])", (yyvsp[0].id));
 	     free((yyvsp[0].id));
 		}
 #line 3526 "C_grammar.tab.c"
@@ -3863,7 +3863,7 @@ yyreduce:
 
   case 297: /* $@18: %empty  */
 #line 1137 "C_grammar.y"
-                {fprintf(pl_file, "function(%s, %s, [", (yyvsp[-1].id), (yyvsp[0].id)); 
+                {fprintf(pl_file, "function([%s], %s, [", (yyvsp[-1].id), (yyvsp[0].id)); 
 		 free((yyvsp[-1].id)); 
 		 free((yyvsp[0].id));
 		}
