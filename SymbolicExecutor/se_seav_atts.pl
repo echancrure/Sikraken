@@ -1,8 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SEAV
 % Defines the module seav for Symbolic Execution Attributed Variables
-%   briefly the attribute is of the form : mika_seav(Type_name, Input_value, Output_value)
-%                                                    T          I            O        
+% The attribute is of the form: se_seav_atts(Type_name, Input_value, Output_value)    
 %   Type_name    : just the type_name of the variable
 %   Input_value  : the input value of the variable: free for uninitialised variables, immutable during symbolic execution
 %   Output_value : the current value of the variable: initially Input_value, mutated via assignments

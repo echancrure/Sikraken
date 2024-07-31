@@ -8,7 +8,6 @@
 %%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 %% You should have received a copy of the GNU General Public License along with Mika.  If not, see <https://www.gnu.org/licenses/>.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% main.pl
 % defines module se_main
 % symbolic execution of parsed C code
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -24,13 +23,9 @@ mytrace.            %call this to start debugging
 
 :- use_module("./../Solver/PTC-Solver/source/ptc_solver").
 
-:- use_module('common_util').
-:- use_module('se_globals').
-:- import se_globals__set_globals/2 from se_globals.
+:- use_module(['common_util', 'se_globals']).
 
-:- use_module('se_name_atts').
-
-:- use_module('se_seav_atts').
+:- use_module(['se_name_atts', 'se_seav_atts', 'se_sub_atts']).
 
 :-compile([se_handle_all_declarations, se_symbolically_interpret]).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
