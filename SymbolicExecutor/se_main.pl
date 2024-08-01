@@ -29,7 +29,7 @@ mytrace.            %call this to start debugging
 
 :-compile([se_handle_all_declarations, se_symbolically_interpret]).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic001, basic, debug)
+% se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic001, main, debug)
 se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_name, Debug_mode) :-
     initialise,
     se_globals__set_globals(Install_dir, Debug_mode),
@@ -37,6 +37,7 @@ se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_
     prolog_c(Parsed_prolog_code, sikraken_xref(NamesL)),        %retrieve the entire contents of the parsed Prolog code
     se_name_atts__initL(NamesL, Target_raw_subprogram_name, Target_subprogram_var),     %initialise all C vars with their id 
     symbolic_execute_all_declarations(Parsed_prolog_code),
+    se_sub_atts__get(Target_subprogram_var, 'params', Parameters),
     se_sub_atts__get(Target_subprogram_var, 'params', Parameters),
     %some work here... 
     %  make a copy (but only of parameters, and non-static locals...): copy non-seavs //see my_copy_term(locals)

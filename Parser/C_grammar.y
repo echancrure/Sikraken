@@ -811,6 +811,13 @@ direct_declarator
 		{simple_str_lit_copy(&$$, "D9");}
 	| direct_declarator '[' assignment_expression ']'
 		{simple_str_lit_copy(&$$, "D10");}
+	| direct_declarator '(' ')'
+		{//size_t const size = strlen(", []") + strlen($1) + 1;
+	     //$$ = (char*)malloc(size);
+	     //sprintf_s($$, size, "%s, []", $1);
+	     //free($1);
+		 simple_str_lit_copy(&$$, "no params");
+		}
 	| direct_declarator '(' 
 		{add_symbol(ordinary_ids_scope_stack, tmp_current_decl_id, tmp_current_decl_prolog_var);	//for the function name
 		 enter_scope(&ordinary_ids_scope_stack); 	//for parameters
@@ -822,12 +829,7 @@ direct_declarator
 	     free($1);
 		 free($4);
 		}
-	| direct_declarator '(' ')'
-		{size_t const size = strlen("%s, []") + strlen($1) + 1;
-	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "%s, []", $1);
-	     free($1);
-		}
+
 	| direct_declarator '(' identifier_list ')'
 		{simple_str_lit_copy(&$$, "D13");}
 	;
@@ -870,13 +872,17 @@ type_qualifier_list
 
 parameter_type_list
 	: parameter_list ',' ELLIPSIS
-		{size_t const size = strlen("variable_length_args()") + strlen($1) + 1;
+		{size_t const size = strlen("variable_length_args([])") + strlen($1) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "variable_length_args(%s)", $1);
+	     sprintf_s($$, size, "variable_length_args([%s])", $1);
 	     free($1);
 		}
 	| parameter_list
-		{simple_str_copy(&$$, $1);}
+		{size_t const size = strlen("[]") + strlen($1) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_s($$, size, "[%s]", $1);
+	     free($1);
+		}
 	;
 
 parameter_list
