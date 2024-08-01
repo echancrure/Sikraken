@@ -16,8 +16,8 @@
 mytrace.            %call this to start debugging
 :- spy mytrace/0.
 %%%
-:- module('se_main').
-:- export se_main/5.
+%:- module('se_main').
+%:- export se_main/5.
 
 :- dynamic prolog_c/2.
 
@@ -29,7 +29,8 @@ mytrace.            %call this to start debugging
 
 :-compile([se_handle_all_declarations, se_symbolically_interpret]).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic001, main, debug)
+% home pc   se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic001, main, debug)
+% laptop    se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, main, debug)
 se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_name, Debug_mode) :-
     initialise,
     se_globals__set_globals(Install_dir, Debug_mode),
