@@ -1,8 +1,8 @@
-symbolic_execute_all_declarations([]).
-symbolic_execute_all_declarations([Declaration|R]) :-
-    symbolic_execute(Declaration),
-    symbolic_execute_all_declarations(R).
-
+symbolic_execute([]).
+symbolic_execute([Item|R]) :-
+    symbolic_execute(Item),
+    symbolic_execute(R).
+%%%
 symbolic_execute(mytrace) :-
     mytrace.
 symbolic_execute(declaration(Specifiers, Declarators)) :-
@@ -11,8 +11,23 @@ symbolic_execute(declaration(Specifiers, Declarators)) :-
 symbolic_execute(function(Specifiers, Function, Parameters, [], Compound_statement)) :-
     extract_type(Specifiers, Return_type_name),
     se_sub_atts__create(Return_type_name, Parameters, Compound_statement, Function).
+symbolic_execute(cmp_stmts(List)) :-
+    symbolic_execute(List).
+symbolic_execute(stmt(assign(LValue, Expression))) :-
+    mytrace,
+    (seav__is_seav(LValue) ->
+        (symbolically_interpret(Expression, Symbolic_expression),
+         seav__update(LValue, 'output', Symbolic_expression)
+        )
+    ;
+        (symbolically_interpret(LValue, Symbolic_LValue),
+         symbolic_execute(stmt(assign(Symbolic_LValue, Expression)))
+        )
+    ).
 %%%
 extract_type([int], integer) :-
+    !.
+extract_type([void], void) :-
     !.
 extract_type(Specifiers, _Type_name) :-
     common_util__error(9, "Not Handled", "Sikraken needs expanding", [('Specifiers', Specifiers)], 9270724, 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).

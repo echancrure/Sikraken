@@ -2266,13 +2266,13 @@ yyreduce:
 
   case 38: /* unary_operator: '&'  */
 #line 238 "C_grammar.y"
-                {simple_str_lit_copy(&(yyval.id), "addr_of");}
+                {simple_str_lit_copy(&(yyval.id), "addr");}
 #line 2271 "C_grammar.tab.c"
     break;
 
   case 39: /* unary_operator: '*'  */
 #line 239 "C_grammar.y"
-                {simple_str_lit_copy(&(yyval.id), "dereference_op");}
+                {simple_str_lit_copy(&(yyval.id), "deref");}
 #line 2277 "C_grammar.tab.c"
     break;
 

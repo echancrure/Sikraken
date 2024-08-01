@@ -30,7 +30,7 @@ common_util__error(Error_severity, Error_message, Error_consequences, ArgumentsL
             (se_globals__getval('errorMessageNb', ErrorNb),
              ErrorNb1 is ErrorNb + 1,
              %(ErrorNb1 == 34 -> mytrace ; true),
-             printf(user_error, "Error Nb: %w", [ErrorNb1]),
+             printf(user_error, "Error Nb: %w: ", [ErrorNb1]),
              se_globals__setval('errorMessageNb', ErrorNb1),
              common_util__error2(Error_severity, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode)
             )
