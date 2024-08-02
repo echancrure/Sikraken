@@ -16,10 +16,7 @@
 mytrace.            %call this to start debugging
 :- spy mytrace/0.
 %%%
-%:- module('se_main').
-%:- export se_main/5.
-
-:- dynamic prolog_c/2.
+:- (is_predicate(prolog_c/2) -> abolish prolog_c/2 ; dynamic prolog_c/2).
 
 :- use_module("./../Solver/PTC-Solver/source/ptc_solver").
 
@@ -31,6 +28,7 @@ mytrace.            %call this to start debugging
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % home pc   se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic001, main, debug)
 % laptop    se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, main, debug)
+go_laptop :- se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, main, debug).
 se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_name, Debug_mode) :-
     initialise,
     se_globals__set_globals(Install_dir, Debug_mode),
@@ -38,7 +36,7 @@ se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_
     prolog_c(Parsed_prolog_code, sikraken_xref(NamesL)),        %retrieve the entire contents of the parsed Prolog code
     se_name_atts__initL(NamesL, Target_raw_subprogram_name, Target_subprogram_var),     %initialise all C vars with their id 
     symbolic_execute(Parsed_prolog_code),   %handles all global declarations
-    mytrace,
+    %mytrace,
     se_sub_atts__get(Target_subprogram_var, 'parameters', [param_no_decl([void], [])]), %only handling function call with no parameters for now
     se_sub_atts__get(Target_subprogram_var, 'return_type', void), %only handling function call with void return type for now
     se_sub_atts__get(Target_subprogram_var, 'body', Compound_statement),

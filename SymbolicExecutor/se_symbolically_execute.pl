@@ -14,7 +14,7 @@ symbolic_execute(function(Specifiers, Function, Parameters, [], Compound_stateme
 symbolic_execute(cmp_stmts(List)) :-
     symbolic_execute(List).
 symbolic_execute(stmt(assign(LValue, Expression))) :-
-    mytrace,
+    %mytrace,
     (seav__is_seav(LValue) ->
         (symbolically_interpret(Expression, Symbolic_expression),
          seav__update(LValue, 'output', Symbolic_expression)

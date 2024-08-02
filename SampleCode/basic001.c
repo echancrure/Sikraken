@@ -19,10 +19,10 @@ void swap(int *px, int *py) {	//Eileen's Thesis p. 106
     *py = temp;				//assign(deref(addr(b)), a <=> assign(b, a)
 }
 
-void main() {
+void main(void) {           //must be main(void) or the parser misbehaves
     pi = &num;				//example 5 pi = seav(ptr(integer), addr(null), addr(seav(num, 0)))
     *pi = 200;	            //example 5 deref(addr(seav(num, 0))) = 200 i.e. num == 200
     int m;
     m = 2*x;
-    int z = y + *pi + 1 + m;
+    int z = y + *pi + 1 + m; //int z = 42 + 200 + 1 + 84 i.e. 327
 }
