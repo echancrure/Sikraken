@@ -1180,7 +1180,7 @@ int main(int argc, char *argv[]) {				//argc is the total number of strings in t
 		if (argv[i][0] == '-') {
 			switch (argv[i][1]) {
 			case 'h':
-				printf("Usage: .\\sikraken_parser [OPTION]... [FILE]\nParse a C file to Prolog terms.\n\n-h\t Display help information\n-p\t Path to the .c/.i file (DEFAULT: Current Directory ('.'))\n\nExamples:\n\t.\\LilyParser -p\".\" get_sign \n\t.\\LilyParser get_sign \n\t.\\LilyParser -p\"C:/Parser/\" sign \n");
+				printf("Usage: .\\sikraken_parser [OPTION]... [FILE]\nParse a C file to Prolog terms.\n\n-h\t Display help information\n-p\t Path to the .c/.i file (DEFAULT: Current Directory ('.'))\n\nExamples:\n\t.\\sikraken_parser -p\".\" get_sign \n\t.\\sikraken_parser get_sign \n\t.\\sikraken_parser -p\"C:/Parser/\" sign \n");
 				my_exit(0);
 			case 'p':	//path to the .i pre-processed input C file
 				if (_access(&argv[i][2], 0) == -1) {    //checks if it is a valid directory
@@ -1203,13 +1203,13 @@ int main(int argc, char *argv[]) {				//argc is the total number of strings in t
 	}
 	sprintf_s(i_file_uri, _MAX_PATH, "%s%s.i", C_file_path, filename_no_ext);
 	if (fopen_s(&i_file, i_file_uri, "r") != 0) {
-		fprintf(stderr, ".i file could opened to read at: %s\n", i_file_uri);
+		fprintf(stderr, ".i file could not be opened for reading at: %s\n", i_file_uri);
 		my_exit(EXIT_FAILURE);
 	}
 	yyin = i_file;	//set the input to the parser
 	sprintf_s(pl_file_uri, _MAX_PATH, "%s%s.pl", C_file_path, filename_no_ext);
 	if (fopen_s(&pl_file, pl_file_uri, "w") != 0) {
-		fprintf(stderr, ".pl file could created for write at: %s\n", pl_file_uri);
+		fprintf(stderr, ".pl file could not be created for writing at: %s\n", pl_file_uri);
 		my_exit(EXIT_FAILURE);
 	}
 	fprintf(pl_file, "prolog_c([");			//opening predicate
