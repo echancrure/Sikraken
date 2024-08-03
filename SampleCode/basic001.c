@@ -1,4 +1,4 @@
-int x, y = 42;
+int x, y = 42;  //x is initialised to 0
 int *pi = &y;
 
 //31 July 2024 example #5 from the diary
@@ -23,6 +23,6 @@ void main(void) {           //must be main(void) or the parser misbehaves
     pi = &num;				//example 5 pi = seav(ptr(integer), addr(null), addr(seav(num, 0)))
     *pi = 200;	            //example 5 deref(addr(seav(num, 0))) = 200 i.e. num == 200
     int m;
-    m = 2*x;
-    int z = y + *pi + 1 + m; //int z = 42 + 200 + 1 + 84 i.e. 327
+    m = 2*x;                //m = 2*0;
+    int z = y + *pi + 1 + m; //int z = 42 + 200 + 1 + 0 i.e. 243
 }

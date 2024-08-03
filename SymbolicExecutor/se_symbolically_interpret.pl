@@ -10,11 +10,11 @@ symbolically_interpret(addr(Expression), addr(Expression)) :-
     !.
 symbolically_interpret(deref(Expression), Symbolic_expression) :-
     !,
-    symbolically_interpret(Expression, Symbolic_expression2),
-    (Symbolic_expression2 = addr(Symbolic_expression3) ->   %need a version that works for many levels of derefs
-        Symbolic_expression = Symbolic_expression3          %need better names 
+    symbolically_interpret(Expression, Symbolic_expression_ptr),
+    (Symbolic_expression_ptr = addr(Inner_Symbolic_expression) ->   %todo: need testing with many levels of derefs
+        symbolically_interpret(Inner_Symbolic_expression, Symbolic_expression)
     ;
-        Symbolic_expression = Symbolic_expression2
+        Symbolic_expression = Symbolic_expression_ptr   %todo: unsure...
     ).
 symbolically_interpret(multiply_op(Le_exp, Ri_exp), Le_Symbolic * Ri_Symbolic) :-
     !,

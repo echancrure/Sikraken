@@ -39,7 +39,7 @@ unify_name_name(U, Unified_attr, Attr) :-
 unify_name(_, Attr) :-
 	var(Attr).                       %ANY+META (false call)
 unify_name(Term, Attr) :-
-	compound(Attr),
+	compound(Attr), %todo: revisit and do the same as for SEAVs
 	unify_term_name(Term, Attr).
 
 unify_term_name(_{AttrY}, AttrX) :-   %META + META

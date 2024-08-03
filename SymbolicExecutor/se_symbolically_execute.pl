@@ -20,9 +20,16 @@ symbolic_execute(stmt(assign(LValue, Expression))) :-
          seav__update(LValue, 'output', Symbolic_expression)
         )
     ;
-        (symbolically_interpret(LValue, Symbolic_LValue),
-         symbolic_execute(stmt(assign(Symbolic_LValue, Expression)))
+     LValue = deref(LValue_ptr) ->
+        (symbolically_interpret(LValue_ptr, Symbolic_LValue_ptr),
+         (Symbolic_LValue_ptr = addr(New_LValue) ->
+            symbolic_execute(stmt(assign(New_LValue, Expression)))
+         ;
+            common_util__error(10, "Unexpected derefed expression", "Sikraken's logic is wrong", [('Symbolic_LValue_ptr', Symbolic_LValue_ptr)], 10030824, 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
+         )
         )
+    ;
+        common_util__error(10, "Unexpected LValue", "Sikraken's logic is wrong", [('LValue', LValue)], 10030824_2, 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
     ).
 %%%
 extract_type([int], integer) :-
@@ -36,11 +43,11 @@ declare_declarators([], _).
 declare_declarators([Declarator|R], Type_name) :-
     %mytrace,
     (nonvar(Declarator), Declarator = initialised(Var, Expression) ->   %added nonvar(...) as a guard 30/07/24
-        symbolically_interpret(Expression, Symbolic)
+        symbolically_interpret(Expression, Symbolic)    %todo: handling initialised variables without re-using assignment symbolic execution is probably a bad idea
     ;
         (%declaration of non-initialised variable
          Var = Declarator,
-         Symbolic = null %for static variables; for non-static, automatic objects use ptc_solver__variable([Symbolic], Type_name) as they are not initialised in C see K&R p. 219
+         Symbolic = 0 %todo: should be only for global and static variables as non-static and automatic objects are not initialised in C see K&R p. 219
         )
     ),
     extract_pointers(Var, Type_name, Type_name_ptr_opt, Clean_var),
