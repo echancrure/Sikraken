@@ -27,8 +27,8 @@ mytrace.            %call this to start debugging
 :-compile([se_symbolically_execute, se_symbolically_interpret]).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % home pc   se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic001, main, debug)
-% laptop    se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, main, debug)
-go_laptop :- se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, main, debug).
+% laptop    se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug)
+go_laptop :- se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug).
 se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_name, Debug_mode) :-
     initialise,
     se_globals__set_globals(Install_dir, Debug_mode),
@@ -36,17 +36,23 @@ se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_
     prolog_c(Parsed_prolog_code, sikraken_xref(NamesL)),        %retrieve the entire contents of the parsed Prolog code
     se_name_atts__initL(NamesL, Target_raw_subprogram_name, Target_subprogram_var),     %initialise all C vars with their id 
     symbolic_execute(Parsed_prolog_code),   %handles all global declarations
-    %mytrace,
-    se_sub_atts__get(Target_subprogram_var, 'parameters', [param_no_decl([void], [])]), %only handling function call with no parameters for now
-    se_sub_atts__get(Target_subprogram_var, 'return_type', void), %only handling function call with void return type for now
-    se_sub_atts__get(Target_subprogram_var, 'body', Compound_statement),
+    %always symbolically execute void main(void) for now: should be a switch 
+    memberchk(a(Main, 'main')),
+    se_sub_atts__get(Main, 'parameters', [param_no_decl([void], [])]), %only handling main with no parameters for now
+    se_sub_atts__get(Main, 'return_type', void), %only handling main with void return type for now
+    se_sub_atts__get(Main, 'body', Compound_statement),
     symbolic_execute(Compound_statement),
-    %some work here... 
-    %  make a copy (but only of parameters, and non-static locals...): copy non-seavs //see my_copy_term(locals)
-    %  declare parameters
-    % symbolically_execute ('interpret') the compound statements, push to call stack
-    % collect the result., pop call stack
-
+    %symbolically execute the target C function: for now only inputs are its arguments (expand to globals that get overwritten with a switch)
+    memberchk(a(Target_subprogram_var, Target_raw_subprogram_name)),
+    se_sub_atts__get(Target_subprogram_var, 'parameters', Params),
+    declare_params(Params),
+    se_sub_atts__get(Target_subprogram_var, 'return_type', Return_type),
+    declare_return(Return_var, Return_type),
+    se_sub_atts__get(Target_subprogram_var, 'body', Compound_statement),
+    %todo: label the params
+    %todo: collect the modified globals and the return var to write the result
+    %todo: write the test driver
+    %todo: fail and backtrack
     true.
 %%
 initialise :-
