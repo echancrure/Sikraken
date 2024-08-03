@@ -31,6 +31,17 @@ symbolic_execute(stmt(assign(LValue, Expression))) :-
     ;
         common_util__error(10, "Unexpected LValue", "Sikraken's logic is wrong", [('LValue', LValue)], 10030824_2, 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
     ).
+symbolic_execute(if_stmt(Condition, True_statements, False_statements)) :-
+    mytrace,
+    symbolically_interpret(Condition, Symbolic_condition),
+    (   (ptc_solver__sdl(Symbolic_condition),
+         symbolic_execute(True_statements)
+        )
+    ;   %deliberate choice point
+        (ptc_solver__sdl(not(Symbolic_condition)),
+         symbolic_execute(False_statements)
+        )
+    ).
 %%%
 extract_type([int], integer) :-
     !.

@@ -25,4 +25,7 @@ void main(void) {           //must be main(void) or the parser misbehaves
     int m;
     m = 2*x;                //m = 2*0;
     int z = y + *pi + 1 + m; //int z = 42 + 200 + 1 + 0 i.e. 243
+    if (z > 42) {
+        x = 42;
+    } else x = -1;
 }
