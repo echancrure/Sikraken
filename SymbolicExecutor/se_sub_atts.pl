@@ -23,9 +23,9 @@ unify_term_sub(_{AttrY}, AttrX) :-   %META + META
 	-?->
 	AttrX = AttrY.  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-print_sub(_{se_sub_atts(Return_type, _, _)}, Print) :-
+print_sub(_{se_sub_atts(Return_type, Params, Body)}, Print) :-
 	-?->
-	Print = sub_atts(Return_type).
+	Print = sub_atts(Return_type, Params, Body).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 se_sub_atts__is_sub_atts(_{se_sub_atts(_, _, _)}) :-
     -?->
