@@ -9,7 +9,7 @@ int basic(int x) {
     int m;
     m = 2*x;
     if (x > *pi) return y;      //*pi = num = 200 from main
-    else return y + *pi + 1 + m;
+    else return y + *pi + 1 + m;    //243 + 2*x
 }
 
 void swap(int *px, int *py) {	//Eileen's Thesis p. 106

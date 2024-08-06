@@ -36,7 +36,7 @@ se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_
     initialise,
     se_globals__set_globals(Install_dir, Debug_mode),
     read_parsed_file(Parsed_dir, Target_source_file_name),      %may fail if badly formed due to parsing errors
-    prolog_c(Parsed_prolog_code, sikraken_xref(NamesL)),        %retrieve the entire contents of the parsed Prolog code
+    read_prolog_c(prolog_c(Parsed_prolog_code, sikraken_xref(NamesL))),        %retrieve the entire contents of the parsed Prolog code
     se_name_atts__initL(NamesL),     %initialise all C vars with their id 
     symbolic_execute(Parsed_prolog_code),   %always symbolically execute all global declarations for now: initiailisations could be ignored via a switch if desired 
     %always symbolically execute void main(void) for now: should be a switch allowing the main to be ignored via a switch if desired
@@ -61,6 +61,9 @@ se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_
     get_all_outputs(All_Ids, All_seavs),
     print_test_outputs(All_seavs),
     fail.       %oh yes!
+se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_name, Debug_mode) :-
+    printf(user_output, "\nSUCCESS", []).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 initialise :-
     ptc_solver__clean_up,
@@ -77,6 +80,10 @@ read_parsed_file(Parsed_dir, Target_source_file_name) :-
     ;
         common_util__error(10, "Parsed file does not exist", "Cannot process parsed C code", [('Parsed_filename', Parsed_filename)], 10260724, 'se_main', 'read_parsed_file', no_localisation, no_extra_info)
     ).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+read_prolog_c(Goal) :-
+    Goal,
+    !.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 label(Declared_params_seavs) :-
     get_all_inputs(Declared_params_seavs, InputsL),

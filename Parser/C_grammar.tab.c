@@ -3856,7 +3856,7 @@ yyreduce:
 
   case 291: /* jump_statement: RETURN expression ';'  */
 #line 1127 "C_grammar.y"
-                                {fprintf(pl_file, "\nreturn_stmt(%s)\n", (yyvsp[-1].id)); free((yyvsp[-1].id));}
+                                {fprintf(pl_file, "\nreturn_stmt(Sikraken_return, %s)\n", (yyvsp[-1].id)); free((yyvsp[-1].id));}
 #line 3861 "C_grammar.tab.c"
     break;
 
@@ -4148,6 +4148,7 @@ int main(int argc, char *argv[]) {				//argc is the total number of strings in t
 	}	
 	leave_scope(&ordinary_ids_scope_stack);	//destroys the initial scope for ordinary ids namespace
 	fprintf(pl_file, "],\nsikraken_xref([\n");				//append all the ids details
+	fprintf(pl_file, "\ta(Sikraken_return, 'Sikraken_return'),\n");	//the default return variable during symbolic execution
 	fprintf(pl_file, id_names->str);
 	fprintf(pl_file, "\n    ])\n).");
 	fclose(pl_file);
