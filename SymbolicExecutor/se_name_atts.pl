@@ -6,7 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 :- module('se_name_atts').
 
-:- export se_name_atts__is_name_atts/1, se_name_atts__create/2, se_name_atts__get/3, se_name_atts__initL/3.
+:- export se_name_atts__is_name_atts/1, se_name_atts__create/2, se_name_atts__get/3, se_name_atts__initL/1.
 
 :- meta_attribute('se_name_atts', [unify:unify_name/2, print:print_name/2]).
 
@@ -63,21 +63,8 @@ se_name_atts__get(_{Attr}, 'name', Name) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %create a list of name_atts variables from a list of a(Var, Name_string) generated during parsing in foo.pl
 %  e.g. a(X_353, "bool.ads:4:3:x")
-se_name_atts__initL([], Target_raw_subprogram_name, _) :-
-    common_util__error(10, "Target function is not a valid id", "Cannot find the target function", [('Target_raw_subprogram_name', Target_raw_subprogram_name)], 102607243, 'se_name_atts', 'se_name_atts__initL', no_localisation, no_extra_info).
-
-se_name_atts__initL([a(Var, Name_atom)|R], Target_raw_subprogram_name, Target_subprogram_var) :-
+se_name_atts__initL([]).
+se_name_atts__initL([a(Var, Name_atom)|R]) :-
     se_name_atts__create(Name_atom, Var),
-    (Target_raw_subprogram_name == Name_atom ->
-        (Target_subprogram_var = Var,
-         initL(R)    %just process the rest of the list without looking for the Target_raw_subprogram_name
-        )
-    ;
-        se_name_atts__initL(R, Target_raw_subprogram_name, Target_subprogram_var)
-    ).
-
-initL([]).
-initL([a(Var, Name_atom)|R]) :-
-    se_name_atts__create(Name_atom, Var),
-    initL(R).
+    se_name_atts__initL(R).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

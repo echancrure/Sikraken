@@ -52,7 +52,7 @@ extract_type(Specifiers, _Type_name) :-
 %%%
 declare_declarators([], _).
 declare_declarators([Declarator|R], Type_name) :-
-    %mytrace,
+    mytrace,
     (nonvar(Declarator), Declarator = initialised(Var, Expression) ->   %added nonvar(...) as a guard 30/07/24
         symbolically_interpret(Expression, Symbolic)    %todo: handling initialised variables without re-using assignment symbolic execution is probably a bad idea
     ;
@@ -61,10 +61,18 @@ declare_declarators([Declarator|R], Type_name) :-
          Symbolic = 0 %todo: should be only for global and static variables as non-static and automatic objects are not initialised in C see K&R p. 219
         )
     ),
-    extract_pointers(Var, Type_name, Type_name_ptr_opt, Clean_var),
+    extract_pointers(Var, Type_name, Type_name_ptr_opt, Clean_var), %e.g. extract_pointers(pointer(Pi_3{c_id(pi)}), integer, pointer(integer), Pi_3)
     seav__create_var(Type_name_ptr_opt, Clean_var),
-    seav__update(Clean_var, 'input', Symbolic),
-    seav__update(Clean_var, 'output', Symbolic),
+    seav__update(Clean_var, 'input', 'not_needed'),
+    %crate ptc solver variable and == to Symbolic
+    (Type_name_ptr_opt = pointer(_) ->
+        Output = Symbolic           %C pointers variables are not ptc_solver variable: they are handled syntactically e.g. seav(pointer(integer), not_needed, addr(Y_2{se_seav_atts : seav(integer, not_needed, 42)}))
+    ;
+        (ptc_solver__variable([Output], Type_name),
+         ptc_solver__sdl(Output = Symbolic)
+        )
+    ),
+    seav__update(Clean_var, 'output', Output),
     declare_declarators(R, Type_name).
 %%%
 %e.g. extract_pointers(pointer(X), int, pointer(int), X)

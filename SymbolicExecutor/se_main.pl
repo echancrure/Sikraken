@@ -16,7 +16,9 @@
 mytrace.            %call this to start debugging
 :- spy mytrace/0.
 %%%
-:- (is_predicate(prolog_c/2) -> abolish prolog_c/2 ; dynamic prolog_c/2).
+:- (is_predicate(prolog_c/2) -> abolish prolog_c/2 ; dynamic prolog_c/2).   %to ensure clean environment when using 'make' during development 
+
+:- use_module(library('lists')).
 
 :- use_module("./../Solver/PTC-Solver/source/ptc_solver").
 
@@ -29,21 +31,22 @@ mytrace.            %call this to start debugging
 % home pc   se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic001, main, debug)
 % laptop    se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug)
 go_laptop :- se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug).
+go_pc :- se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic001, basic, debug).
 se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_name, Debug_mode) :-
     initialise,
     se_globals__set_globals(Install_dir, Debug_mode),
     read_parsed_file(Parsed_dir, Target_source_file_name),      %may fail if badly formed due to parsing errors
     prolog_c(Parsed_prolog_code, sikraken_xref(NamesL)),        %retrieve the entire contents of the parsed Prolog code
-    se_name_atts__initL(NamesL, Target_raw_subprogram_name, Target_subprogram_var),     %initialise all C vars with their id 
+    se_name_atts__initL(NamesL),     %initialise all C vars with their id 
     symbolic_execute(Parsed_prolog_code),   %handles all global declarations
     %always symbolically execute void main(void) for now: should be a switch 
-    memberchk(a(Main, 'main')),
+    memberchk(a(Main, 'main'), NamesL),
     se_sub_atts__get(Main, 'parameters', [param_no_decl([void], [])]), %only handling main with no parameters for now
     se_sub_atts__get(Main, 'return_type', void), %only handling main with void return type for now
     se_sub_atts__get(Main, 'body', Compound_statement),
     symbolic_execute(Compound_statement),
     %symbolically execute the target C function: for now only inputs are its arguments (expand to globals that get overwritten with a switch)
-    memberchk(a(Target_subprogram_var, Target_raw_subprogram_name)),
+    memberchk(a(Target_subprogram_var, Target_raw_subprogram_name), NamesL),
     se_sub_atts__get(Target_subprogram_var, 'parameters', Params),
     declare_params(Params),
     se_sub_atts__get(Target_subprogram_var, 'return_type', Return_type),
