@@ -11,8 +11,11 @@ symbolic_execute(declaration(Specifiers, Declarators)) :-
 symbolic_execute(function(Specifiers, Function, Parameters, [], Compound_statement)) :-
     extract_type(Specifiers, Return_type_name),
     se_sub_atts__create(Return_type_name, Parameters, Compound_statement, Function).
-symbolic_execute(cmp_stmts(List)) :-
-    symbolic_execute(List).
+symbolic_execute(cmp_stmts(Stmts)) :-
+    se_globals__push_scope_stack,
+    symbolic_execute(Stmts),
+    %pop scope
+    se_globals__pop_scope_stack.
 symbolic_execute(stmt(assign(LValue, Expression))) :-
     %mytrace,
     (seav__is_seav(LValue) ->

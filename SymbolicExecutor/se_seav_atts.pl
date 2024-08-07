@@ -7,8 +7,8 @@
 %   Output_value : the current value of the variable: initially Input_value, mutated via assignments
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 :- module('se_seav_atts').
-:- export seav__create_var/2, seav__is_seav/1, seav__get/3, seav__update/3.
-
+:- export seav__create_var/2, seav__is_seav/1, seav__get/3, seav__update/3, seav__seav_is_in_scope/1.
+:- use_module(['se_globals']).
 :- meta_attribute('se_seav_atts', [unify:unify_seav/2, print:print_seav/2]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -21,32 +21,57 @@ unify_seav(Term, _Attr) :-
     meta(Term),                 %fails otherwise: e.g. when unified with an atom
     fail.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-print_seav(_{se_seav_atts(Type_name, Input, Output)}, Print) :-
+print_seav(_{se_seav_atts(Scope_list)}, Print) :-
 	-?->
-	Print = seav(Type_name, Input, Output).
+	Print = seav(Scope_list).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 seav__create_var(Type_name, SEAV):-
-    add_attribute(SEAV, se_seav_atts(Type_name, _, _)).
+    (seav__is_seav(SEAV) -> %new scope: must shadow
+        push_scope_list(SEAV, scope(Type_name, _, _))
+    ;
+        add_attribute(SEAV, se_seav_atts([scope(Type_name, _, _)])) %brand new SEAV only has one scope
+    ),
+    se_globals__getref('scope_stack', [scope(_Current_level, Current_var_scope)|_]),
+    suspend(pop_scope_list(SEAV), 3, Current_var_scope->inst).  %delays until Current_var_scope becomes instantiated (i.e. when leaving a scope)
+    %%%
+    push_scope_list(_{Attr}, New_scope) :-
+        -?->
+        Attr = se_seav_atts(Old_scopes),
+        setarg(1, Attr, [New_scope|Old_scopes]).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%
+    %called when awakened by leaving a scope
+    pop_scope_list(_{Attr}) :-
+        -?->
+        Attr = se_seav_atts([_|Old_scopes]),
+        setarg(1, Attr, Old_scopes).
 seav__is_seav(_{Attr}) :-
     -?->
     compound(Attr),
-    Attr = se_seav_atts(_, _, _).
+    Attr = se_seav_atts(_).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+seav__seav_is_in_scope(_{Attr}) :-
+    -?->
+    compound(Attr),
+    Attr = se_seav_atts(ScopeL),
+    ScopeL \== [].
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 seav__get(_{Attr}, 'type', Type_name) :-        
     -?->
-   Attr = se_seav_atts(Type_name, _, _).
+   Attr = se_seav_atts([scope(Type_name, _, _)|_]).
 seav__get(_{Attr}, 'input', Input) :-        
     -?->
-   Attr = se_seav_atts(_, Input, _).
+   Attr = se_seav_atts([scope(_, Input, _)|_]).
 seav__get(_{Attr}, 'output', Output) :-        
     -?->
-   Attr = se_seav_atts(_, _, Output).
+   Attr = se_seav_atts([scope(_, _, Output)|_]).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 seav__update(_{Attr}, 'input', Input) :-        
     -?->
-   setarg(2, Attr, Input).
+    Attr = se_seav_atts([scope(Type_name, _, Output)|R]),
+    setarg(1, Attr, [scope(Type_name, Input, Output)|R]).
 seav__update(_{Attr}, 'output', Output) :-        
     -?->
-   setarg(3, Attr, Output).
+    Attr = se_seav_atts([scope(Type_name, Input, _)|R]),
+    setarg(1, Attr, [scope(Type_name, Input, Output)|R]).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

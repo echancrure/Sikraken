@@ -31,7 +31,7 @@ mytrace.            %call this to start debugging
 % home pc   se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic001, main, debug)
 % laptop    se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug)
 go_laptop :- se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug).
-go_pc :- se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic001, basic, debug).
+go_pc :- se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic002mod, basic, debug).
 se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_name, Debug_mode) :-
     initialise,
     se_globals__set_globals(Install_dir, Debug_mode),
@@ -46,22 +46,25 @@ se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_
     se_sub_atts__get(Main, 'body', Main_compound_statement),
     symbolic_execute(Main_compound_statement),
     %symbolically execute the target C function: for now only inputs are its arguments (expand to globals that get overwritten with a switch)
-    memberchk(a(Target_subprogram_var, Target_raw_subprogram_name), NamesL),
-    se_sub_atts__get(Target_subprogram_var, 'parameters', Params),
-    declare_params(Params, Declared_params_seavs),
+    memberchk(a(Target_subprogram_var, Target_raw_subprogram_name), NamesL),    
     se_sub_atts__get(Target_subprogram_var, 'return_type', Return_type),
     memberchk(a(Return_var, 'Sikraken_return'), NamesL),
-    declare_return(Return_var, Return_type),
+    declare_return(Return_var, Return_type),    %belong to the outer scope
+    se_sub_atts__get(Target_subprogram_var, 'parameters', Params),
+    se_globals__push_scope_stack,       %create function parameter scope
+    declare_params(Params, Declared_params_seavs),
     se_sub_atts__get(Target_subprogram_var, 'body', Compound_statement),
     symbolic_execute(Compound_statement),
-    mytrace,
+    %mytrace,
     label(Declared_params_seavs),
     print_test_inputs(Declared_params_seavs),
+    se_globals__pop_scope_stack,    %only after labeling and printed to preserve parameters
     term_variables(Parsed_prolog_code, All_Ids),
     get_all_outputs(All_Ids, All_seavs),
     print_test_outputs(All_seavs),
+    flush(user_output),
     fail.       %oh yes!
-se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_name, Debug_mode) :-
+se_main(_Install_dir, _Parsed_dir, _Target_source_file_name, _Target_raw_subprogram_name, _Debug_mode) :-
     printf(user_output, "\nSUCCESS", []).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -97,7 +100,7 @@ label(Declared_params_seavs) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 get_all_outputs([], []).
 get_all_outputs([Id|R_ids], All_outputs) :-
-    (seav__is_seav(Id) ->
+    (seav__seav_is_in_scope(Id) ->
          All_outputs = [Id|R_outputs]
     ;
         All_outputs = R_outputs

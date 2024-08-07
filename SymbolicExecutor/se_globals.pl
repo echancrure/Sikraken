@@ -1,9 +1,11 @@
 :- module('se_globals').
 :- export se_globals__set_globals/2, se_globals__getval/2, se_globals__setval/2, se_globals__getref/2, se_globals__setref/2.
+:- export se_globals__push_scope_stack/0, se_globals__pop_scope_stack/0.
 
 %declaring global references: undone on backtracking
-:- local reference('current_path_bran', []).   %list of branches followed so far
-:- local reference('call_stack_bran', []).     %list of functions entered so far
+:- local reference('current_path_bran', []).    %list of branches followed so far
+:- local reference('call_stack_bran', []).      %list of functions entered so far
+:- local reference('scope_stack', [scope(0, dummy)]).          %[scope(level_nb|Var)|Older] with Var used for delaying and awakening
 
 %%%
 %declaring global non-logical variables: not undone on backtracking
@@ -21,15 +23,26 @@ se_globals__set_globals(Install_dir, Debug_mode) :-
     setval('message_mode', Debug_mode),         %debug or release
     setval('already_printed', []),              %list of already printed error messages : used in release mode only
     !.
-%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 se_globals__getval(Global, Value) :-
     getval(Global, Value).
-%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 se_globals__setval(Global, Value) :-
     setval(Global, Value).
-%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 se_globals__getref(Global, Value) :-
     getref(Global, Value).
-%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 se_globals__setref(Global, Value) :-
     setref(Global, Value).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+se_globals__push_scope_stack :-
+    getref('scope_stack', [scope(Current_level, Current_var_scope)|Rest_stack]),
+    Next_level is Current_level + 1,
+    setref('scope_stack', [scope(Next_level, _Next_var_scope), scope(Current_level, Current_var_scope)|Rest_stack]).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+se_globals__pop_scope_stack :-
+    getref('scope_stack', [scope(Exit_level, Exist_var_scope)|Exit_stack]),
+    Exist_var_scope = Exit_level,      %will trigger awakening of variables for that level: pops their own variable-level stack
+    setref('scope_stack', Exit_stack).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
