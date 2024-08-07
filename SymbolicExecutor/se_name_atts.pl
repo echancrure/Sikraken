@@ -64,7 +64,7 @@ se_name_atts__get(_{Attr}, 'name', Name) :-
 %create a list of name_atts variables from a list of a(Var, Name_string) generated during parsing in foo.pl
 %  e.g. a(X_353, "bool.ads:4:3:x")
 se_name_atts__initL([]).
-se_name_atts__initL([a(Var, Name_atom)|R]) :-
-    se_name_atts__create(Name_atom, Var),
+se_name_atts__initL([Atom_name = Var|R]) :-
+    se_name_atts__create(Atom_name, Var),
     se_name_atts__initL(R).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

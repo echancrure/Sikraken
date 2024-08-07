@@ -31,16 +31,15 @@ mytrace.            %call this to start debugging
 % home pc   se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic001, main, debug)
 % laptop    se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug)
 go_laptop :- se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug).
-go_pc :- se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic002mod, basic, debug).
+go_pc :- se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic002, basic, debug).
 se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_name, Debug_mode) :-
     initialise,
     se_globals__set_globals(Install_dir, Debug_mode),
-    read_parsed_file(Parsed_dir, Target_source_file_name),      %may fail if badly formed due to parsing errors
-    read_prolog_c(prolog_c(Parsed_prolog_code, sikraken_xref(NamesL))),        %retrieve the entire contents of the parsed Prolog code
-    se_name_atts__initL(NamesL),     %initialise all C vars with their id 
+    read_parsed_file(Parsed_dir, Target_source_file_name, prolog_c(Parsed_prolog_code)),      %may fail if badly formed due to parsing errors
+    mytrace,
     symbolic_execute(Parsed_prolog_code),   %always symbolically execute all global declarations for now: initiailisations could be ignored via a switch if desired 
     %always symbolically execute void main(void) for now: should be a switch allowing the main to be ignored via a switch if desired
-    memberchk(a(Main, 'main'), NamesL),
+    memberchk(a(Main, 'main'), NamesL), 
     se_sub_atts__get(Main, 'parameters', [param_no_decl([void], [])]),  %only handling main with no parameters for now
     se_sub_atts__get(Main, 'return_type', void),                        %only handling main with void return type for now
     se_sub_atts__get(Main, 'body', Main_compound_statement),
@@ -72,11 +71,13 @@ initialise :-
     ptc_solver__clean_up,
     ptc_solver__default_declarations.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-read_parsed_file(Parsed_dir, Target_source_file_name) :-
+read_parsed_file(Parsed_dir, Target_source_file_name, CProlog) :-
     concat_atom([Parsed_dir, Target_source_file_name, '.pl'], Parsed_filename),
-    (exists(Parsed_filename) ->
-        (compile(Parsed_filename) ->    %may fail if parsed file contents is not well formed
-            true
+    (open(Parsed_filename, read, Stream) ->
+        (read_term(Stream, CProlog, [variable_names(VarsNames)]) ->
+            (close(Stream),
+             se_name_atts__initL(VarsNames)     %initialise all C vars with their id 
+            )
         ;
             common_util__error(10, "Compilation of parsed file failed", "Cannot process parsed C code", [('Parsed_filename', Parsed_filename)], 102607241, 'se_main', 'read_parsed_file', no_localisation, "the parser probably produced bad Prolog code")
         )

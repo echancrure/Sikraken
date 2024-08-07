@@ -11,7 +11,6 @@
 #include "utils.h"
 #include "handle_typedefs.h"
 #include "string_buffer.h"
-#include "stack_of_id_tables.c"
 
 extern int yylex();
 extern int yylineno;
@@ -19,16 +18,14 @@ extern int yylineno;
 extern FILE *yyin;
 extern char *yytext;
 
+#define MAX_ID_LENGTH 255
+
 int debugMode = 0;				//flag to indicate if we are in debug mode set by by -d command line switch
 FILE* pl_file;						//the file of containing the Prolog predicated after parsing the target C file
 char pl_file_uri[_MAX_PATH];		//the full path to the Pl_file
-struct scope *ordinary_ids_scope_stack = NULL;	//stack of id tables to track scopes of is in the ordinary namespace 
 StringBuilder *id_names;			//string buffer to hold Prolog var names and their details e.g. a(I_407, 'ch8_1.adb:39:7:i')
-int id_counter = 0;					//used to generate unique Prolog var names e.g. I_1, I_2, I_3 etc.
 //start: ugly, breaking parsing spirit, flags and temporary variables
 int in_member_decl_flag = 0;	//indicate that we are parsing struct or union declarations and that the ids are part of the members namespace
-char* tmp_current_decl_id;			//temporary holder for the id currently being declared
-char* tmp_current_decl_prolog_var;	//temporary holder for the Prolog var currently being declared
 
 void yyerror(const char*);
 void my_exit(int);				//attempts to close handles and delete generated files prior to caling exit(int);
@@ -74,11 +71,17 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 
 primary_expression
 	: IDENTIFIER	
-		{char *Prolog_name;
-		 Prolog_name = find_symbol(ordinary_ids_scope_stack, $1)->Prolog_name;
-		 size_t const size = strlen(Prolog_name) + 1;
+		{char Prolog_var_name[MAX_ID_LENGTH];
+		 if (islower($1[0])) {
+			Prolog_var_name[0] = toupper($1[0]);
+			strcpy_s(&Prolog_var_name[1], MAX_ID_LENGTH-1, &$1[1]);
+		 } else {
+			strcpy_s(Prolog_var_name, MAX_ID_LENGTH, "UC_");
+			strcat_s(Prolog_var_name, MAX_ID_LENGTH, $1);
+		 }
+		 size_t const size = strlen(Prolog_var_name) + 1;
 		 $$ = (char*)malloc(size);
-         strcpy_s($$, size, Prolog_name);
+		 strcpy_s($$, size, Prolog_var_name);
 		 free($1);
 		}
 	| constant		{simple_str_copy(&$$, $1);}
@@ -133,7 +136,7 @@ postfix_expression
 		 sprintf_s($$, size, "%s([])", $1);
 		 free($1);
 		}
-	| postfix_expression '(' argument_expression_list ')'	/* functyion call */
+	| postfix_expression '(' argument_expression_list ')'	/* function call */
 		{size_t const size = strlen("([])") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_s($$, size, "%s([%s])", $1, $3);
@@ -519,14 +522,12 @@ init_declarator
 	   	 sprintf_s($$, size, "initialised(%s, %s)", $1, $3);
 	   	 free($1);
 	   	 //free($3);
-		 add_symbol(ordinary_ids_scope_stack, tmp_current_decl_id, tmp_current_decl_prolog_var);	//i.e. only after initialisation
 	  	}
 	| declarator
 	  {if (typedef_flag == 1) {	// we are parsing one typedef declaration
 		 add_typedef_name($1);
 	   }
 	   simple_str_copy(&$$, $1);
-	   add_symbol(ordinary_ids_scope_stack, tmp_current_decl_id, tmp_current_decl_prolog_var);
 	  }
 	;
 
@@ -767,10 +768,7 @@ declarator
 
 direct_declarator
 	: IDENTIFIER		//Ordinary namespace id declaration unless within a struct declaration in which case it is a Member namespace id
-		{id_counter++;
-		 char id_counter_str[20];
-		 sprintf_s(id_counter_str, 20, "%d", id_counter);
-		 char Prolog_var_name[MAX_ID_LENGTH];
+		{char Prolog_var_name[MAX_ID_LENGTH];
 		 if (islower($1[0])) {
 			Prolog_var_name[0] = toupper($1[0]);
 			strcpy_s(&Prolog_var_name[1], MAX_ID_LENGTH-1, &$1[1]);
@@ -778,18 +776,10 @@ direct_declarator
 			strcpy_s(Prolog_var_name, MAX_ID_LENGTH, "UC_");
 			strcat_s(Prolog_var_name, MAX_ID_LENGTH, $1);
 		 }
-		 strcat_s(Prolog_var_name, MAX_ID_LENGTH, "_");
-		 strcat_s(Prolog_var_name, MAX_ID_LENGTH, id_counter_str);
 		 size_t const size = strlen(Prolog_var_name) + 1;
 		 $$ = (char*)malloc(size);
 		 strcpy_s($$, size, Prolog_var_name);
-		 //ugly: keep declared identifer details to be pushed after possible initialisation
-		 size_t const size1 = strlen($1) + 1;
-		 tmp_current_decl_id = (char*)malloc(size1);
-		 strcpy_s(tmp_current_decl_id, size1, $1);		
-		 size_t const size2 = strlen(Prolog_var_name) + 1;
-		 tmp_current_decl_prolog_var = (char*)malloc(size2);
-		 strcpy_s(tmp_current_decl_prolog_var, size2, Prolog_var_name);
+		 free($1);
 		} 
 	| '(' declarator ')'			
 		{simple_str_lit_copy(&$$, "D1");}
@@ -812,22 +802,17 @@ direct_declarator
 	| direct_declarator '[' assignment_expression ']'
 		{simple_str_lit_copy(&$$, "D10");}
 	| direct_declarator '(' ')'
-		{//size_t const size = strlen(", []") + strlen($1) + 1;
-	     //$$ = (char*)malloc(size);
-	     //sprintf_s($$, size, "%s, []", $1);
-	     //free($1);
-		 simple_str_lit_copy(&$$, "no params");
-		}
-	| direct_declarator '(' 
-		{add_symbol(ordinary_ids_scope_stack, tmp_current_decl_id, tmp_current_decl_prolog_var);	//for the function name
-		 enter_scope(&ordinary_ids_scope_stack); 	//for parameters
-		}	
-	  parameter_type_list ')'
-		{size_t const size = strlen(", ") + strlen($1) + strlen($4) + 1;
+		{size_t const size = strlen(", []") + strlen($1) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "%s, %s", $1, $4);
+	     sprintf_s($$, size, "%s, []", $1);
 	     free($1);
-		 free($4);
+		}
+	| direct_declarator '(' parameter_type_list ')'
+		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_s($$, size, "%s, %s", $1, $3);
+	     free($1);
+		 free($3);
 		}
 
 	| direct_declarator '(' identifier_list ')'
@@ -904,7 +889,6 @@ parameter_declaration
 	     sprintf_s($$, size, "param([%s], %s)", $1, $2);
 	     free($1);
 		 free($2);
-		 add_symbol(ordinary_ids_scope_stack, tmp_current_decl_id, tmp_current_decl_prolog_var);
 		}
 	| declaration_specifiers abstract_declarator
 		{size_t const size = strlen("param_no_decl([], dummy_abstract_declarator)") + strlen($1) + 1;
@@ -1070,13 +1054,11 @@ labeled_statement	//printed out
 compound_statement	//printed out	//aka a 'block'
 	: '{' '}' {fprintf(pl_file, "\ncmp_stmts([])");}
 	| '{' 
-		{enter_scope(&ordinary_ids_scope_stack);
-		 fprintf(pl_file, "\ncmp_stmts([");
+		{fprintf(pl_file, "\ncmp_stmts([");
 		} 
 	   block_item_list 
 	  '}' 
-		{leave_scope(&ordinary_ids_scope_stack);
-		 fprintf(pl_file, "\n])");
+		{fprintf(pl_file, "\n])");
 		}
 	;
 
@@ -1148,7 +1130,6 @@ function_definition	//printed out
 		{fprintf(pl_file, "], ");}
 	  compound_statement 			//aka a block: contains curly brackets { }
 		{fprintf(pl_file, ")");
-		 leave_scope(&ordinary_ids_scope_stack);	//for the surrounding parameters
 		}	
 	;
 
@@ -1213,12 +1194,10 @@ int main(int argc, char *argv[]) {				//argc is the total number of strings in t
 		my_exit(EXIT_FAILURE);
 	}
 	fprintf(pl_file, "prolog_c([");			//opening predicate
-	enter_scope(&ordinary_ids_scope_stack);	//creates the initial scope for ordinary ids namespace
 	if (yyparse() != 0) {					//the parser is called
 		fprintf(stderr, "Parsing failed.\n");
 		my_exit(EXIT_FAILURE);
 	}	
-	leave_scope(&ordinary_ids_scope_stack);	//destroys the initial scope for ordinary ids namespace
 	fprintf(pl_file, "],\nsikraken_xref([\n");				//append all the ids details
 	fprintf(pl_file, "\ta(Sikraken_return, 'Sikraken_return'),\n");	//the default return variable during symbolic execution
 	fprintf(pl_file, id_names->str);
