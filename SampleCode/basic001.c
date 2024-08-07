@@ -5,6 +5,9 @@ int *pi = &y;
 int num = 0;		    //num=seav(num, 0)
 int *pi;				//[pi=seav(ptr(integer), addr_of(null), _)?]			
 
+int a = 10;
+int a;  // Error: redefinition of 'a'
+
 int basic(int x) {
     int m;
     m = 2*x;

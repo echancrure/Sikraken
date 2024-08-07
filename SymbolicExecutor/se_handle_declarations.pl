@@ -6,6 +6,7 @@ declare_declarators([Declarator|R], Type_name) :-
         symbolically_interpret(Expression, Symbolic)    %todo: handling initialised variables without re-using assignment symbolic execution is probably a bad idea
     ;
         (%declaration of non-initialised variable
+         %todo check for redefinition which is allowed: see diary 07/08/24
          Var = Declarator,
          Symbolic = 0 %todo: should be only for global and static variables as non-static and automatic objects are not initialised in C see K&R p. 219
         )
