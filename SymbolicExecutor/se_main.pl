@@ -35,19 +35,17 @@ go_pc :- se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/Goo
 se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_name, Debug_mode) :-
     initialise,
     se_globals__set_globals(Install_dir, Debug_mode),
-    read_parsed_file(Parsed_dir, Target_source_file_name, prolog_c(Parsed_prolog_code)),      %may fail if badly formed due to parsing errors
+    capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
+    read_parsed_file(Parsed_dir, Target_source_file_name, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var, Return_var),      %may fail if badly formed due to parsing errors
     mytrace,
     symbolic_execute(Parsed_prolog_code),   %always symbolically execute all global declarations for now: initiailisations could be ignored via a switch if desired 
     %always symbolically execute void main(void) for now: should be a switch allowing the main to be ignored via a switch if desired
-    memberchk(a(Main, 'main'), NamesL), 
     se_sub_atts__get(Main, 'parameters', [param_no_decl([void], [])]),  %only handling main with no parameters for now
     se_sub_atts__get(Main, 'return_type', void),                        %only handling main with void return type for now
     se_sub_atts__get(Main, 'body', Main_compound_statement),
     symbolic_execute(Main_compound_statement),
     %symbolically execute the target C function: for now only inputs are its arguments (expand to globals that get overwritten with a switch)
-    memberchk(a(Target_subprogram_var, Target_raw_subprogram_name), NamesL),    
     se_sub_atts__get(Target_subprogram_var, 'return_type', Return_type),
-    memberchk(a(Return_var, 'Sikraken_return'), NamesL),
     declare_return(Return_var, Return_type),    %belong to the outer scope
     se_sub_atts__get(Target_subprogram_var, 'parameters', Params),
     se_globals__push_scope_stack,       %create function parameter scope
@@ -65,29 +63,51 @@ se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_
     fail.       %oh yes!
 se_main(_Install_dir, _Parsed_dir, _Target_source_file_name, _Target_raw_subprogram_name, _Debug_mode) :-
     printf(user_output, "\nSUCCESS", []).
-
+    %%%
+    capitalize_first_letter(Input, Output) :-
+        atom_string(Input, Input_string),
+        string_chars(Input_string, [FirstChar|RestChars]),
+        char_code(FirstChar, FirstCharCode),
+        ((FirstCharCode >= 97, FirstCharCode =< 122) -> %a lowercase letter (ASCII a-z)
+            (UpperFirstCharCode is FirstCharCode - 32,
+             char_code(UpperFirstChar, UpperFirstCharCode)
+            )
+        ; 
+            UpperFirstChar = FirstChar
+        ),
+        string_chars(Output_string, [UpperFirstChar|RestChars]),
+        atom_string(Output, Output_string). 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 initialise :-
     ptc_solver__clean_up,
     ptc_solver__default_declarations.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-read_parsed_file(Parsed_dir, Target_source_file_name, CProlog) :-
+read_parsed_file(Parsed_dir, Target_source_file_name, Target_raw_subprogram_name, CProlog, Main, Target_subprogram_var, Return_var) :-
     concat_atom([Parsed_dir, Target_source_file_name, '.pl'], Parsed_filename),
     (open(Parsed_filename, read, Stream) ->
         (read_term(Stream, CProlog, [variable_names(VarsNames)]) ->
             (close(Stream),
-             se_name_atts__initL(VarsNames)     %initialise all C vars with their id 
+             se_name_atts__initL(VarsNames),     %initialise all C vars with their id
+             (memberchk(Target_raw_subprogram_name = Target_subprogram_var, VarsNames) ->
+                (memberchk('Main' = Main, VarsNames) ->
+                    (memberchk('Sikraken_return' = Return_var, VarsNames) ->
+                        true
+                    ;
+                        Return_var = null
+                    )
+                ;
+                    Main = null
+                )
+             ;
+                common_util__error(10, "Could not find the target function", "Cannot process parsed C code", [('Parsed_filename', Parsed_filename), ('Target_raw_subprogram_name', Target_raw_subprogram_name)], 10080824_1, 'se_main', 'read_parsed_file', no_localisation, "make sure the function name starts with an uppercase")
+             )
             )
         ;
-            common_util__error(10, "Compilation of parsed file failed", "Cannot process parsed C code", [('Parsed_filename', Parsed_filename)], 102607241, 'se_main', 'read_parsed_file', no_localisation, "the parser probably produced bad Prolog code")
+            common_util__error(10, "Reading parsed file failed", "Cannot process parsed C code", [('Parsed_filename', Parsed_filename)], 102607241, 'se_main', 'read_parsed_file', no_localisation, "the parser probably produced bad Prolog code")
         )
     ;
         common_util__error(10, "Parsed file does not exist", "Cannot process parsed C code", [('Parsed_filename', Parsed_filename)], 10260724, 'se_main', 'read_parsed_file', no_localisation, no_extra_info)
     ).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-read_prolog_c(Goal) :-
-    Goal,
-    !.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 label(Declared_params_seavs) :-
     get_all_inputs(Declared_params_seavs, InputsL),

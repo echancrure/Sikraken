@@ -10,7 +10,6 @@
 #include <ctype.h>
 #include "utils.h"
 #include "handle_typedefs.h"
-#include "string_buffer.h"
 
 extern int yylex();
 extern int yylineno;
@@ -23,7 +22,6 @@ extern char *yytext;
 int debugMode = 0;				//flag to indicate if we are in debug mode set by by -d command line switch
 FILE* pl_file;						//the file of containing the Prolog predicated after parsing the target C file
 char pl_file_uri[_MAX_PATH];		//the full path to the Pl_file
-StringBuilder *id_names;			//string buffer to hold Prolog var names and their details e.g. a(I_407, 'ch8_1.adb:39:7:i')
 //start: ugly, breaking parsing spirit, flags and temporary variables
 int in_member_decl_flag = 0;	//indicate that we are parsing struct or union declarations and that the ids are part of the members namespace
 
@@ -1150,12 +1148,6 @@ int main(int argc, char *argv[]) {				//argc is the total number of strings in t
 	char i_file_uri[_MAX_PATH];
 	FILE *i_file;
 
-	id_names = sb_init();		//initialise the buffer to hold all the Prolog id details
-	if (id_names==NULL) {
-		fprintf(stderr, "Sikraken parser fatal error: cannot initialise buffer id_names");
-		my_exit(2);
-	}
-
 	strcpy_s(C_file_path, 3, ".\\");		//default path for input file is current directory, overwrite with -p on command line
 	for (int i = 1; i <= argc - 1; i++) {	//processing command line arguments
 		if (argv[i][0] == '-') {
@@ -1198,10 +1190,7 @@ int main(int argc, char *argv[]) {				//argc is the total number of strings in t
 		fprintf(stderr, "Parsing failed.\n");
 		my_exit(EXIT_FAILURE);
 	}	
-	fprintf(pl_file, "],\nsikraken_xref([\n");				//append all the ids details
-	fprintf(pl_file, "\ta(Sikraken_return, 'Sikraken_return'),\n");	//the default return variable during symbolic execution
-	fprintf(pl_file, id_names->str);
-	fprintf(pl_file, "\n    ])\n).");
+	fprintf(pl_file, "\n]).");
 	fclose(pl_file);
 	fclose(i_file);
 	my_exit(EXIT_SUCCESS);
