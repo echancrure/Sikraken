@@ -122,11 +122,13 @@ extern int yydebug;
     RETURN = 323,                  /* RETURN  */
     ALIGNAS = 324,                 /* ALIGNAS  */
     ALIGNOF = 325,                 /* ALIGNOF  */
-    ATOMIC = 326,                  /* ATOMIC  */
-    GENERIC = 327,                 /* GENERIC  */
-    NORETURN = 328,                /* NORETURN  */
-    STATIC_ASSERT = 329,           /* STATIC_ASSERT  */
-    THREAD_LOCAL = 330             /* THREAD_LOCAL  */
+    ATOMIC_SPECIFIER = 326,        /* ATOMIC_SPECIFIER  */
+    ATOMIC = 327,                  /* ATOMIC  */
+    GENERIC = 328,                 /* GENERIC  */
+    NORETURN = 329,                /* NORETURN  */
+    STATIC_ASSERT = 330,           /* STATIC_ASSERT  */
+    THREAD_LOCAL = 331,            /* THREAD_LOCAL  */
+    LOWER_THAN_ELSE = 332          /* LOWER_THAN_ELSE  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -139,7 +141,7 @@ union YYSTYPE
 
 	char* id;
 
-#line 143 "C_grammar.tab.h"
+#line 145 "C_grammar.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

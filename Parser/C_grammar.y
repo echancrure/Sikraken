@@ -50,7 +50,7 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 
 %token	CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
-%token ALIGNAS ALIGNOF ATOMIC GENERIC NORETURN STATIC_ASSERT THREAD_LOCAL
+%token ALIGNAS ALIGNOF ATOMIC_SPECIFIER ATOMIC GENERIC NORETURN STATIC_ASSERT THREAD_LOCAL
 
 %type <id> storage_class_specifier declarator init_declarator initializer direct_declarator pointer type_qualifier type_qualifier_list init_declarator_list declaration_specifiers
 %type <id> type_specifier
@@ -65,6 +65,11 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 %type <id> parameter_type_list parameter_list parameter_declaration
 
 %start translation_unit 
+
+//gets rid of shift/reduce warning on if statement see pp. 233-235 Lex & Yacc 1992 Levine, Mason Brown O'Reilly 
+%nonassoc LOWER_THAN_ELSE
+%nonassoc ELSE
+
 %%
 
 primary_expression
@@ -732,7 +737,7 @@ enumerator	/* identifiers must be flagged as ENUMERATION_CONSTANT */
 	;
 
 atomic_type_specifier		// new in C11 for atomic operation: used in concurrency
-	: ATOMIC '(' type_name ')'
+	: ATOMIC_SPECIFIER type_name ')'
 	;
 
 type_qualifier
@@ -1075,13 +1080,13 @@ expression_statement	//printed out
 	| expression ';'	{fprintf(pl_file, "\nstmt(%s)", $1); free($1);}
 	;
 
-selection_statement		//printed out
-	: IF '(' expression ')' {fprintf(pl_file, "\nif_stmt(%s, ", $3); free($3);} statement else_opt {fprintf(pl_file, ")");}
+	selection_statement		//printed out
+		: IF '(' expression ')' {fprintf(pl_file, "\nif_stmt(%s, ", $3); free($3); } statement else_opt{ fprintf(pl_file, ")"); } 
 	| SWITCH '(' expression ')' {fprintf(pl_file, "\nswitch_stmt(%s, ", $3); free($3);} statement	{fprintf(pl_file, ")");}
 	;
 
 else_opt	//printed out
-	:	/* empty */
+	:	/* empty */								%prec LOWER_THAN_ELSE
 	| ELSE {fprintf(pl_file, ", ");} statement
 
 iteration_statement	//printed out

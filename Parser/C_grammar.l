@@ -83,6 +83,7 @@ WS  [ \t\v\n\f]
 "while"					{ return(WHILE); }
 "_Alignas"                              { return ALIGNAS; }
 "_Alignof"                              { return ALIGNOF; }
+"_Atomic"{WS}*"("                       { return ATOMIC_SPECIFIER; }
 "_Atomic"                               { return ATOMIC; }
 "_Bool"                                 { return BOOL; }
 "_Complex"                              { return COMPLEX; }
