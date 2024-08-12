@@ -13,6 +13,12 @@
 %option yylineno
 
 %{
+#ifdef _MSC_VER
+    #define strdup_safe(char_ptr) _strdup(char_ptr)
+#else
+    #define strdup_safe(char_ptr) strdup(char_ptr)
+#endif
+
 #include <stdio.h>
 
 #include "C_grammar.tab.h"
@@ -94,31 +100,31 @@ WS  [ \t\v\n\f]
 "_Thread_local"                         { return THREAD_LOCAL; }
 "__func__"                              { return FUNC_NAME; }
 
-{L}{A}*                     {yylval.id = _strdup(yytext);
+{L}{A}*                     {yylval.id = strdup_safe(yytext);
                               if (is_typedef_name(yylval.id)) {
                                   return TYPEDEF_NAME;
                               }
                               return IDENTIFIER;
                             }
 
-{HP}{H}+{IS}?				{yylval.id = _strdup(yytext); return I_CONSTANT;}
-{NZ}{D}*{IS}?				{yylval.id = _strdup(yytext); return I_CONSTANT;}
-"0"{O}*{IS}?				{yylval.id = _strdup(yytext); return I_CONSTANT;}
-{CP}?"'"([^'\\\n]|{ES})+"'"	{yylval.id = _strdup(yytext); return I_CONSTANT;}
+{HP}{H}+{IS}?				{yylval.id = strdup_safe(yytext); return I_CONSTANT;}
+{NZ}{D}*{IS}?				{yylval.id = strdup_safe(yytext); return I_CONSTANT;}
+"0"{O}*{IS}?				{yylval.id = strdup_safe(yytext); return I_CONSTANT;}
+{CP}?"'"([^'\\\n]|{ES})+"'"	{yylval.id = strdup_safe(yytext); return I_CONSTANT;}
 
-{D}+{E}{FS}?				{yylval.id = _strdup(yytext); return F_CONSTANT;}
-{D}*"."{D}+{E}?{FS}?		{yylval.id = _strdup(yytext); return F_CONSTANT;}
-{D}+"."{E}?{FS}?			{yylval.id = _strdup(yytext); return F_CONSTANT;}
-{HP}{H}+{P}{FS}?			{yylval.id = _strdup(yytext); return F_CONSTANT;}
-{HP}{H}*"."{H}+{P}{FS}?		{yylval.id = _strdup(yytext); return F_CONSTANT;}
-{HP}{H}+"."{P}{FS}?			{yylval.id = _strdup(yytext); return F_CONSTANT;}
+{D}+{E}{FS}?				{yylval.id = strdup_safe(yytext); return F_CONSTANT;}
+{D}*"."{D}+{E}?{FS}?		{yylval.id = strdup_safe(yytext); return F_CONSTANT;}
+{D}+"."{E}?{FS}?			{yylval.id = strdup_safe(yytext); return F_CONSTANT;}
+{HP}{H}+{P}{FS}?			{yylval.id = strdup_safe(yytext); return F_CONSTANT;}
+{HP}{H}*"."{H}+{P}{FS}?		{yylval.id = strdup_safe(yytext); return F_CONSTANT;}
+{HP}{H}+"."{P}{FS}?			{yylval.id = strdup_safe(yytext); return F_CONSTANT;}
 
 ({SP}?\"([^"\\\n]|{ES})*\"{WS}*)+	{if (yytext[0] == 'L') { //a wide string constant
                                         size_t const size = strlen("wide_string()") + strlen(yytext) - 1 + 1;
                                         yylval.id = (char*)malloc(size);
                                         sprintf_safe(yylval.id, size, "wide_string(%s)", &yytext[1]);      //copy from yytext[1] to remove 'L' prefix 
                                      } else {
-                                        yylval.id = _strdup(yytext);
+                                        yylval.id = strdup_safe(yytext);
                                      }
                                      return STRING_LITERAL;
                                     }

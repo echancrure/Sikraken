@@ -24,8 +24,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "utils.h"
-#include "handle_typedefs.h"
+#include "utils.c"
+#include "handle_typedefs.c"
 
 extern int yylex();
 extern int yylineno;
@@ -40,7 +40,8 @@ int debugMode = 0;				//flag to indicate if we are in debug mode set by by -d co
 FILE* pl_file;						//the file of containing the Prolog predicated after parsing the target C file
 char pl_file_uri[MAX_PATH];		//the full path to the Pl_file
 //start: ugly, breaking parsing spirit, flags and temporary variables
-int in_member_decl_flag = 0;	//indicate that we are parsing struct or union declarations and that the ids are part of the members namespace
+int typedef_flag = 0; 			//indicates that we are within a typedef declaration
+int in_member_decl_flag = 0;	//indicates that we are parsing struct or union declarations and that the ids are part of the members namespace
 
 void yyerror(const char*);
 void my_exit(int);				//attempts to close handles and delete generated files prior to caling exit(int);
@@ -91,7 +92,7 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 
 primary_expression
 	: IDENTIFIER	
-		{char Prolog_var_name[MAX_ID_LENGTH];
+		{char Prolog_var_name[MAX_ID_LENGTH+5];
 		 if (islower($1[0])) {
 			Prolog_var_name[0] = toupper($1[0]);
 			strcpy_safe(&Prolog_var_name[1], MAX_ID_LENGTH-1, &$1[1]);
@@ -788,7 +789,7 @@ declarator
 
 direct_declarator
 	: IDENTIFIER		//Ordinary namespace id declaration unless within a struct declaration in which case it is a Member namespace id
-		{char Prolog_var_name[MAX_ID_LENGTH];
+		{char Prolog_var_name[MAX_ID_LENGTH+5];
 		 if (islower($1[0])) {
 			Prolog_var_name[0] = toupper($1[0]);
 			strcpy_safe(&Prolog_var_name[1], MAX_ID_LENGTH-1, &$1[1]);
@@ -1164,6 +1165,8 @@ declaration_list	//printed out
 	;
 
 %%
+#include "lex.yy.c"
+
 int main(int argc, char *argv[]) {				//argc is the total number of strings in the argv array
 	char C_file_path[MAX_PATH];				//directory where the C and .i files are
 	char filename_no_ext[MAX_PATH];
@@ -1196,13 +1199,13 @@ int main(int argc, char *argv[]) {				//argc is the total number of strings in t
 			strcpy_safe(filename_no_ext, MAX_PATH, argv[i]);
 		}
 	}
-	sprintf_safe(i_file_uri, MAX_PATH, "%s%s.i", C_file_path, filename_no_ext);
+	sprintf_safe(i_file_uri, 3*MAX_PATH, "%s%s.i", C_file_path, filename_no_ext);
 	if (fopen_safe(&i_file, i_file_uri, "r") != 0) {
 		fprintf(stderr, ".i file could not be opened for reading at: %s\n", i_file_uri);
 		my_exit(EXIT_FAILURE);
 	}
 	yyin = i_file;	//set the input to the parser
-	sprintf_safe(pl_file_uri, MAX_PATH, "%s%s.pl", C_file_path, filename_no_ext);
+	sprintf_safe(pl_file_uri, 3*MAX_PATH, "%s%s.pl", C_file_path, filename_no_ext);
 	if (fopen_safe(&pl_file, pl_file_uri, "w") != 0) {
 		fprintf(stderr, ".pl file could not be created for writing at: %s\n", pl_file_uri);
 		my_exit(EXIT_FAILURE);
