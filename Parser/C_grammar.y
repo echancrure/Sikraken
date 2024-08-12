@@ -37,7 +37,9 @@ extern char *yytext;
 #define MAX_PATH 256
 
 int debugMode = 0;				//flag to indicate if we are in debug mode set by by -d command line switch
-FILE* pl_file;						//the file of containing the Prolog predicated after parsing the target C file
+FILE* pl_file;					//the file of containing the Prolog predicated after parsing the target C file
+char i_file_uri[MAX_PATH];
+FILE *i_file;
 char pl_file_uri[MAX_PATH];		//the full path to the Pl_file
 //start: ugly, breaking parsing spirit, flags and temporary variables
 int typedef_flag = 0; 			//indicates that we are within a typedef declaration
@@ -1170,10 +1172,12 @@ declaration_list	//printed out
 int main(int argc, char *argv[]) {				//argc is the total number of strings in the argv array
 	char C_file_path[MAX_PATH];				//directory where the C and .i files are
 	char filename_no_ext[MAX_PATH];
-	char i_file_uri[MAX_PATH];
-	FILE *i_file;
 
+#ifdef _MSC_VER
 	strcpy_safe(C_file_path, 3, ".\\");		//default path for input file is current directory, overwrite with -p on command line
+#else
+	strcpy_safe(C_file_path, 3, "./");
+#endif
 	for (int i = 1; i <= argc - 1; i++) {	//processing command line arguments
 		if (argv[i][0] == '-') {
 			switch (argv[i][1]) {
@@ -1217,7 +1221,9 @@ int main(int argc, char *argv[]) {				//argc is the total number of strings in t
 	}	
 	fprintf(pl_file, "\n]).");
 	fclose(pl_file);
+	pl_file = NULL;
 	fclose(i_file);
+	i_file = NULL;
 	my_exit(EXIT_SUCCESS);
 }
 
@@ -1230,10 +1236,10 @@ void yyerror(const char* s) {
 
 void my_exit(int exit_code) {			//exits and performs some tidying up if not in debug mode
   if (!debugMode) {
-    if (yyin) fclose(yyin);
+    if (i_file) fclose(i_file);
     if (pl_file) fclose(pl_file);
-    if (access_safe(pl_file_uri, 0) != -1) remove(pl_file_uri);
+    if (access_safe(i_file_uri, 0) != -1) remove(i_file_uri);
   }
-  if (exit_code == EXIT_SUCCESS) fprintf(stderr, "Sikraken parsing success, wrote %s", pl_file_uri);
+  if (exit_code == EXIT_SUCCESS) fprintf(stderr, "Sikraken parsing success, wrote %s\n", pl_file_uri);
   exit(exit_code);
 }
