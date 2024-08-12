@@ -55,7 +55,7 @@ int sb_append(StringBuilder *sb, const char *suffix) {
     if (sb_ensure_capacity(sb, suffix_length) != 0) {
         return -1; // Allocation failed
     }
-    strcat_s(sb->str, sb->capacity, suffix);
+    strcat_safe(sb->str, sb->capacity, suffix);
     sb->length += suffix_length;
     return 0;
 }

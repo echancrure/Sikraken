@@ -3,13 +3,29 @@
 /* Bison documentation: https://www.gnu.org/software/bison/manual/html_node/index.html              */
 /****************************************************************************************************/
 %{
+#ifdef _MSC_VER
+	#include <io.h>
+	#define fopen_safe(pFile, filename, mode) fopen_s(pFile, filename, mode)
+	#define access_safe(path, mode) _access(path, mode)
+	#define strcpy_safe(dest, destsz, src) strcpy_s(dest, destsz, src)
+	#define strcat_safe(dest, destsz, src) strcat_s(dest, destsz, src)
+	#define sprintf_safe(buffer, size, format, ...) sprintf_s(buffer, size, format, __VA_ARGS__)
+#else
+	#include <unistd.h>
+	#include <errno.h>
+	#define fopen_safe(pFile, filename, mode) ((*pFile = fopen(filename, mode)) == NULL ? errno : 0)
+	#define access_safe(path, mode) access(path, mode)
+	#define strcpy_safe(dest, destsz, src) strncpy(dest, src, destsz)
+	#define strcat_safe(dest, destsz, src) strncat(dest, src, destsz)
+	#define sprintf_safe(buffer, size, format, ...) snprintf(buffer, size, format, __VA_ARGS__)
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <io.h>
 #include <ctype.h>
-#include "utils.h"
-#include "handle_typedefs.h"
+#include "utils.c"
+#include "handle_typedefs.c"
 
 extern int yylex();
 extern int yylineno;
@@ -18,12 +34,16 @@ extern FILE *yyin;
 extern char *yytext;
 
 #define MAX_ID_LENGTH 255
+#define MAX_PATH 256
 
 int debugMode = 0;				//flag to indicate if we are in debug mode set by by -d command line switch
-FILE* pl_file;						//the file of containing the Prolog predicated after parsing the target C file
-char pl_file_uri[_MAX_PATH];		//the full path to the Pl_file
+FILE* pl_file;					//the file of containing the Prolog predicated after parsing the target C file
+char i_file_uri[MAX_PATH];
+FILE *i_file;
+char pl_file_uri[MAX_PATH];		//the full path to the Pl_file
 //start: ugly, breaking parsing spirit, flags and temporary variables
-int in_member_decl_flag = 0;	//indicate that we are parsing struct or union declarations and that the ids are part of the members namespace
+int typedef_flag = 0; 			//indicates that we are within a typedef declaration
+int in_member_decl_flag = 0;	//indicates that we are parsing struct or union declarations and that the ids are part of the members namespace
 
 void yyerror(const char*);
 void my_exit(int);				//attempts to close handles and delete generated files prior to caling exit(int);
@@ -74,17 +94,17 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 
 primary_expression
 	: IDENTIFIER	
-		{char Prolog_var_name[MAX_ID_LENGTH];
+		{char Prolog_var_name[MAX_ID_LENGTH+5];
 		 if (islower($1[0])) {
 			Prolog_var_name[0] = toupper($1[0]);
-			strcpy_s(&Prolog_var_name[1], MAX_ID_LENGTH-1, &$1[1]);
+			strcpy_safe(&Prolog_var_name[1], MAX_ID_LENGTH-1, &$1[1]);
 		 } else {
-			strcpy_s(Prolog_var_name, MAX_ID_LENGTH, "UC_");
-			strcat_s(Prolog_var_name, MAX_ID_LENGTH, $1);
+			strcpy_safe(Prolog_var_name, MAX_ID_LENGTH, "UC_");
+			strcat_safe(Prolog_var_name, MAX_ID_LENGTH, $1);
 		 }
 		 size_t const size = strlen(Prolog_var_name) + 1;
 		 $$ = (char*)malloc(size);
-		 strcpy_s($$, size, Prolog_var_name);
+		 strcpy_safe($$, size, Prolog_var_name);
 		 free($1);
 		}
 	| constant		{simple_str_copy(&$$, $1);}
@@ -129,60 +149,60 @@ postfix_expression
 	| postfix_expression '[' expression ']'
 		{size_t const size = strlen("index(, )") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "index(%s, %s)", $1, $3);
+		 sprintf_safe($$, size, "index(%s, %s)", $1, $3);
 		 free($1);
 		 free($3);
 		}
 	| postfix_expression '(' ')'
 		{size_t const size = strlen("([])") + strlen($1) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "%s([])", $1);
+		 sprintf_safe($$, size, "%s([])", $1);
 		 free($1);
 		}
 	| postfix_expression '(' argument_expression_list ')'	/* function call */
 		{size_t const size = strlen("([])") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "%s([%s])", $1, $3);
+		 sprintf_safe($$, size, "%s([%s])", $1, $3);
 		 free($1);
 		 free($3);
 		}
 	| postfix_expression '.' IDENTIFIER
 		{size_t const size = strlen("select(, )") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "select(%s, %s)", $1, $3);
+		 sprintf_safe($$, size, "select(%s, %s)", $1, $3);
 		 free($1);
 		 free($3);
 		}
 	| postfix_expression PTR_OP IDENTIFIER
 		{size_t const size = strlen("struct_pointer(, )") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "struct_pointer(%s, %s)", $1, $3);
+		 sprintf_safe($$, size, "struct_pointer(%s, %s)", $1, $3);
 		 free($1);
 		 free($3);
 		}
 	| postfix_expression INC_OP
 		{size_t const size = strlen("postfix_inc_op()") + strlen($1) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "postfix_inc_op(%s)", $1);
+		 sprintf_safe($$, size, "postfix_inc_op(%s)", $1);
 		 free($1);
 		}
 	| postfix_expression DEC_OP
 		{size_t const size = strlen("postfix_dec_op()") + strlen($1) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "postfix_dec_op(%s)", $1);
+		 sprintf_safe($$, size, "postfix_dec_op(%s)", $1);
 		 free($1);
 		}
 	| '(' type_name ')' '{' initializer_list '}'
 		{size_t const size = strlen("compound_literal(, )") + strlen($2) + strlen($5) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "compound_literal(%s, %s)", $2, $5);
+		 sprintf_safe($$, size, "compound_literal(%s, %s)", $2, $5);
 		 free($2);
 		 free($5);
 		}
 	| '(' type_name ')' '{' initializer_list ',' '}'
 		{size_t const size = strlen("trailing_comma_compound_literal(, )") + strlen($2) + strlen($5) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "trailing_comma_compound_literal(%s, %s)", $2, $5);
+		 sprintf_safe($$, size, "trailing_comma_compound_literal(%s, %s)", $2, $5);
 		 free($2);
 		 free($5);
 		}
@@ -193,7 +213,7 @@ argument_expression_list
 	| argument_expression_list ',' assignment_expression
 		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "%s, %s", $1, $3);
+		 sprintf_safe($$, size, "%s, %s", $1, $3);
 		 free($1);
 		 free($3);
 		}
@@ -204,33 +224,33 @@ unary_expression
 	| unary_inc_dec unary_expression
 		{size_t const size = strlen("()") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "%s(%s)", $1, $2);
+		 sprintf_safe($$, size, "%s(%s)", $1, $2);
 		 free($1);
 		 free($2);
 		}
 	| unary_operator cast_expression
 		{size_t const size = strlen("()") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "%s(%s)", $1, $2);
+		 sprintf_safe($$, size, "%s(%s)", $1, $2);
 		 free($1);
 		 free($2);
 		}
 	| SIZEOF unary_expression
 		{size_t const size = strlen("size_of_exp()") + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "size_of_exp(%s)", $2);
+		 sprintf_safe($$, size, "size_of_exp(%s)", $2);
 		 free($2);
 		}
 	| SIZEOF '(' type_name ')'
 		{size_t const size = strlen("size_of_type()") + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "size_of_type(%s)", $3);
+		 sprintf_safe($$, size, "size_of_type(%s)", $3);
 		 free($3);
 		}
 	| ALIGNOF '(' type_name ')'
 		{size_t const size = strlen("align_of()") + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "align_of(%s)", $3);
+		 sprintf_safe($$, size, "align_of(%s)", $3);
 		 free($3);
 		}
 	;
@@ -254,7 +274,7 @@ cast_expression
 	| '(' type_name ')' cast_expression
 		{size_t const size = strlen("cast(, )") + strlen($2) + strlen($4) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "cast(%s, %s)", $2, $4);
+		 sprintf_safe($$, size, "cast(%s, %s)", $2, $4);
 		 free($2);
 		 free($4);
 		}
@@ -265,7 +285,7 @@ multiplicative_expression
 	| multiplicative_expression multiplicative_expression_op cast_expression
 		{size_t const size = strlen("(, )") + strlen($1) + strlen($2) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "%s(%s, %s)", $2, $1, $3);
+		 sprintf_safe($$, size, "%s(%s, %s)", $2, $1, $3);
 		 free($1);
 		 free($2);
 		 free($3);
@@ -283,7 +303,7 @@ additive_expression
 	| additive_expression additive_expression_op multiplicative_expression
 		{size_t const size = strlen("(, )") + strlen($1) + strlen($2) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "%s(%s, %s)", $2, $1, $3);
+		 sprintf_safe($$, size, "%s(%s, %s)", $2, $1, $3);
 		 free($1);
 		 free($2);
 		 free($3);
@@ -300,7 +320,7 @@ shift_expression
 	| shift_expression shift_expression_op additive_expression
 		{size_t const size = strlen("(, )") + strlen($1) + strlen($2) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "%s(%s, %s)", $2, $1, $3);
+		 sprintf_safe($$, size, "%s(%s, %s)", $2, $1, $3);
 		 free($1);
 		 free($2);
 		 free($3);
@@ -317,7 +337,7 @@ relational_expression
 	| relational_expression relational_expression_operator shift_expression
 		{size_t const size = strlen("(, )") + strlen($1) + strlen($2) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "%s(%s, %s)", $2, $1, $3);
+		 sprintf_safe($$, size, "%s(%s, %s)", $2, $1, $3);
 		 free($1);
 		 free($2);
 		 free($3);
@@ -337,7 +357,7 @@ equality_expression
 	| equality_expression equality_expression_op relational_expression
 		{size_t const size = strlen("(, )") + strlen($1) + strlen($2) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "%s(%s, %s)", $2, $1, $3);
+		 sprintf_safe($$, size, "%s(%s, %s)", $2, $1, $3);
 		 free($1);
 		 free($2);
 		 free($3);
@@ -354,7 +374,7 @@ and_expression
 	| and_expression '&' equality_expression
 		{size_t const size = strlen("bitw_and(, )") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "bitw_and(%s, %s)", $1, $3);
+		 sprintf_safe($$, size, "bitw_and(%s, %s)", $1, $3);
 		 free($1);
 		 free($3);
 		}
@@ -365,7 +385,7 @@ exclusive_or_expression
 	| exclusive_or_expression '^' and_expression
 		{size_t const size = strlen("bitw_excl_or_op(, )") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "bitw_excl_or_op(%s, %s)", $1, $3);
+		 sprintf_safe($$, size, "bitw_excl_or_op(%s, %s)", $1, $3);
 		 free($1);
 		 free($3);
 		}
@@ -376,7 +396,7 @@ inclusive_or_expression
 	| inclusive_or_expression '|' exclusive_or_expression
 		{size_t const size = strlen("bitw_incl_or_op(, )") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "bitw_incl_or_op(%s, %s)", $1, $3);
+		 sprintf_safe($$, size, "bitw_incl_or_op(%s, %s)", $1, $3);
 		 free($1);
 		 free($3);
 		}
@@ -387,7 +407,7 @@ logical_and_expression
 	| logical_and_expression AND_OP inclusive_or_expression
 		{size_t const size = strlen("and_op(, )") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "and_op(%s, %s)", $1, $3);
+		 sprintf_safe($$, size, "and_op(%s, %s)", $1, $3);
 		 free($1);
 		 free($3);
 		}
@@ -398,7 +418,7 @@ logical_or_expression
 	| logical_or_expression OR_OP logical_and_expression
 		{size_t const size = strlen("or_op(, )") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "or_op(%s, %s)", $1, $3);
+		 sprintf_safe($$, size, "or_op(%s, %s)", $1, $3);
 		 free($1);
 		 free($3);
 		}
@@ -409,7 +429,7 @@ conditional_expression
 	| logical_or_expression '?' expression ':' conditional_expression 
 		{size_t const size = strlen("cond_exp(, , )") + strlen($1) + strlen($3) + strlen($5) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "cond_exp(%s, %s, %s)", $1, $3, $5);
+		 sprintf_safe($$, size, "cond_exp(%s, %s, %s)", $1, $3, $5);
 		 free($1);
 		 free($3);
 		 free($5);
@@ -421,7 +441,7 @@ assignment_expression
 	| unary_expression assignment_operator assignment_expression
 		{size_t const size = strlen("%s(%s, %s)") + strlen($1) + strlen($2) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "%s(%s, %s)", $2, $1, $3);
+		 sprintf_safe($$, size, "%s(%s, %s)", $2, $1, $3);
 		 free($1);
 		 free($2);
 		 free($3);
@@ -447,7 +467,7 @@ expression
 	| expression ',' assignment_expression
 		{size_t const size = strlen("comma_op(, )") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "comma_op(%s, %s)", $1, $3);
+		 sprintf_safe($$, size, "comma_op(%s, %s)", $1, $3);
 		 free($1);
 		 free($3);
 		}
@@ -480,7 +500,7 @@ declaration_specifiers
 	: storage_class_specifier declaration_specifiers
 		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "%s, %s", $1, $2);
+		 sprintf_safe($$, size, "%s, %s", $1, $2);
 		 free($1);
 		 free($2);
 		}
@@ -488,7 +508,7 @@ declaration_specifiers
 	| type_specifier declaration_specifiers
 		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "%s, %s", $1, $2);
+		 sprintf_safe($$, size, "%s, %s", $1, $2);
 		 free($1);
 		 free($2);
 		}
@@ -512,7 +532,7 @@ init_declarator_list
 	| init_declarator_list ',' init_declarator
 		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "%s, %s", $1, $3);
+		 sprintf_safe($$, size, "%s, %s", $1, $3);
 	     free($1);
 	     free($3);
 		}
@@ -522,7 +542,7 @@ init_declarator
 	: declarator '=' initializer
 		{size_t const size = strlen("initialised(, )") + strlen($1) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
-	   	 sprintf_s($$, size, "initialised(%s, %s)", $1, $3);
+	   	 sprintf_safe($$, size, "initialised(%s, %s)", $1, $3);
 	   	 free($1);
 	   	 //free($3);
 	  	}
@@ -569,14 +589,14 @@ struct_or_union_specifier
 	: struct_or_union '{' struct_declaration_list '}'
 		{size_t const size = strlen("([])") + strlen($1) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "%s([%s])", $1, $3);
+	     sprintf_safe($$, size, "%s([%s])", $1, $3);
 	     free($1);
 	     free($3);
 	    }
 	| struct_or_union IDENTIFIER '{' struct_declaration_list '}'	//Tag namespace Id declaration
 		{size_t const size = strlen("(, [])") + strlen($1) + strlen($2) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "%s(%s, [%s])", $1, $2, $4);
+	     sprintf_safe($$, size, "%s(%s, [%s])", $1, $2, $4);
 	     free($1);
 	     free($2);
 		 free($4);
@@ -584,7 +604,7 @@ struct_or_union_specifier
 	| struct_or_union IDENTIFIER	//Tag namespace Id declaration
 		{size_t const size = strlen("()") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "%s(%s)", $1, $2);
+	     sprintf_safe($$, size, "%s(%s)", $1, $2);
 	     free($1);
 	     free($2);
 	    }
@@ -601,7 +621,7 @@ struct_declaration_list
 	| struct_declaration_list struct_declaration
 		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "%s, %s", $1, $2);
+	     sprintf_safe($$, size, "%s, %s", $1, $2);
 	     free($1);
 	     free($2);
 	    }
@@ -611,14 +631,14 @@ struct_declaration
 	: specifier_qualifier_list ';'	/* for anonymous struct/union */
 		{size_t const size = strlen("struct_decl_anonymous()") + strlen($1) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_s($$, size, "struct_decl_anonymous(%s)", $1);
+         sprintf_safe($$, size, "struct_decl_anonymous(%s)", $1);
 	   	 free($1);
         }
 	| specifier_qualifier_list {in_member_decl_flag = 1;} struct_declarator_list ';'
 		{in_member_decl_flag = 0;
 		 size_t const size = strlen("struct_decl([], )") + strlen($1) + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_s($$, size, "struct_decl([%s], %s)", $1, $3);
+         sprintf_safe($$, size, "struct_decl([%s], %s)", $1, $3);
 	   	 free($1);
 		 free($3);
         }
@@ -630,7 +650,7 @@ specifier_qualifier_list
 	: type_specifier specifier_qualifier_list
 		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_s($$, size, "%s, %s", $1, $2);
+         sprintf_safe($$, size, "%s, %s", $1, $2);
 	   	 free($1);
 	     free($2);
         }
@@ -639,7 +659,7 @@ specifier_qualifier_list
 	| type_qualifier specifier_qualifier_list
 		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_s($$, size, "%s, %s", $1, $2);
+         sprintf_safe($$, size, "%s, %s", $1, $2);
 	   	 free($1);
 	     free($2);
         }
@@ -653,7 +673,7 @@ struct_declarator_list
 	| struct_declarator_list ',' struct_declarator
 		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_s($$, size, "%s, %s)", $1, $3);
+         sprintf_safe($$, size, "%s, %s)", $1, $3);
 	   	 free($1);
 	     free($3);
         }
@@ -663,13 +683,13 @@ struct_declarator
 	: ':' constant_expression
 		{size_t const size = strlen("anonymous_bit_field()") + strlen($2) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_s($$, size, "anonymous_bit_field(%s)", $2);
+         sprintf_safe($$, size, "anonymous_bit_field(%s)", $2);
 	   	 free($2);
         }
 	| declarator ':' constant_expression
 		{size_t const size = strlen("bit_field(, )") + strlen($1) + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_s($$, size, "bit_field(%s, %s)", $1, $3);
+         sprintf_safe($$, size, "bit_field(%s, %s)", $1, $3);
 	   	 free($1);
 	     free($3);
         }
@@ -681,33 +701,33 @@ enum_specifier
 	: ENUM '{' enumerator_list '}'
 		{size_t const size = strlen("anonymous_enum([])") + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_s($$, size, "anonymous_enum([%s])", $3);
+         sprintf_safe($$, size, "anonymous_enum([%s])", $3);
 	     free($3);
         }
 	| ENUM '{' enumerator_list ',' '}'
 		{size_t const size = strlen("trailing_comma_anonymous_enum([])") + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_s($$, size, "trailing_comma_anonymous_enum([%s])", $3);
+         sprintf_safe($$, size, "trailing_comma_anonymous_enum([%s])", $3);
 	     free($3);
         }
 	| ENUM IDENTIFIER '{' enumerator_list '}'	//Tag namespace Id declaration
 		{size_t const size = strlen("enum(, [])") + strlen($2) + strlen($4) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_s($$, size, "enum(%s, [%s])", $2, $4);
+         sprintf_safe($$, size, "enum(%s, [%s])", $2, $4);
 	     free($2);
 		 free($4);
         }
 	| ENUM IDENTIFIER '{' enumerator_list ',' '}'	//Tag namespace Id declaration
 		{size_t const size = strlen("trailing_comma_enum(, [])") + strlen($2) + strlen($4) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_s($$, size, "trailing_comma_enum(%s, [%s])", $2, $4);
+         sprintf_safe($$, size, "trailing_comma_enum(%s, [%s])", $2, $4);
 	     free($2);
 		 free($4);
         }
 	| ENUM IDENTIFIER	//Tag namespace Id declaration
 		{size_t const size = strlen("forward_enum()") + strlen($2) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_s($$, size, "forward_enum(%s)", $2);
+         sprintf_safe($$, size, "forward_enum(%s)", $2);
 	     free($2);
         }
 	;
@@ -718,7 +738,7 @@ enumerator_list
 	| enumerator_list ',' enumerator
 		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_s($$, size, "%s, %s", $1, $3);
+         sprintf_safe($$, size, "%s, %s", $1, $3);
 	   	 free($1);
 	     free($3);
         }
@@ -728,7 +748,7 @@ enumerator	/* identifiers must be flagged as ENUMERATION_CONSTANT */
 	: enumeration_constant '=' constant_expression
 		{size_t const size = strlen("init_enum(, )") + strlen($1) + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_s($$, size, "init_enum(%s, %s)", $1, $3);
+         sprintf_safe($$, size, "init_enum(%s, %s)", $1, $3);
 	   	 free($1);
 	     free($3);
         }
@@ -761,7 +781,7 @@ declarator
 	: pointer direct_declarator
 	  {size_t const size = strlen("()") + strlen($1) + strlen($2) + 1;
        $$ = (char*)malloc(size);
-       sprintf_s($$, size, "%s(%s)", $1, $2);
+       sprintf_safe($$, size, "%s(%s)", $1, $2);
 	   free($1);
 	   free($2);
       }
@@ -771,17 +791,17 @@ declarator
 
 direct_declarator
 	: IDENTIFIER		//Ordinary namespace id declaration unless within a struct declaration in which case it is a Member namespace id
-		{char Prolog_var_name[MAX_ID_LENGTH];
+		{char Prolog_var_name[MAX_ID_LENGTH+5];
 		 if (islower($1[0])) {
 			Prolog_var_name[0] = toupper($1[0]);
-			strcpy_s(&Prolog_var_name[1], MAX_ID_LENGTH-1, &$1[1]);
+			strcpy_safe(&Prolog_var_name[1], MAX_ID_LENGTH-1, &$1[1]);
 		 } else {
-			strcpy_s(Prolog_var_name, MAX_ID_LENGTH, "UC_");
-			strcat_s(Prolog_var_name, MAX_ID_LENGTH, $1);
+			strcpy_safe(Prolog_var_name, MAX_ID_LENGTH, "UC_");
+			strcat_safe(Prolog_var_name, MAX_ID_LENGTH, $1);
 		 }
 		 size_t const size = strlen(Prolog_var_name) + 1;
 		 $$ = (char*)malloc(size);
-		 strcpy_s($$, size, Prolog_var_name);
+		 strcpy_safe($$, size, Prolog_var_name);
 		 free($1);
 		} 
 	| '(' declarator ')'			
@@ -807,13 +827,13 @@ direct_declarator
 	| direct_declarator '(' ')'
 		{size_t const size = strlen(", []") + strlen($1) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "%s, []", $1);
+	     sprintf_safe($$, size, "%s, []", $1);
 	     free($1);
 		}
 	| direct_declarator '(' parameter_type_list ')'
 		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "%s, %s", $1, $3);
+	     sprintf_safe($$, size, "%s, %s", $1, $3);
 	     free($1);
 		 free($3);
 		}
@@ -826,20 +846,20 @@ pointer
 	: '*' type_qualifier_list pointer
 		{size_t const size = strlen("pointer???(, )") + strlen($2) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "pointer???(%s, %s)", $2, $3);
+	     sprintf_safe($$, size, "pointer???(%s, %s)", $2, $3);
 		 free($2);
 		 free($3);
 		}
 	| '*' type_qualifier_list
 		{size_t const size = strlen("pointer()") + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "pointer(%s)", $2);
+	     sprintf_safe($$, size, "pointer(%s)", $2);
 	     free($2);
 		}
 	| '*' pointer
 		{size_t const size = strlen("pointer()") + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_s($$, size, "pointer(%s)", $2);
+		 sprintf_safe($$, size, "pointer(%s)", $2);
 		 free($2);
 		}
 	| '*'
@@ -852,7 +872,7 @@ type_qualifier_list
 	| type_qualifier_list type_qualifier
 		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "%s, %s", $1, $2);
+	     sprintf_safe($$, size, "%s, %s", $1, $2);
 	     free($1);
 		 free($2);
 		}
@@ -862,13 +882,13 @@ parameter_type_list
 	: parameter_list ',' ELLIPSIS
 		{size_t const size = strlen("variable_length_args([])") + strlen($1) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "variable_length_args([%s])", $1);
+	     sprintf_safe($$, size, "variable_length_args([%s])", $1);
 	     free($1);
 		}
 	| parameter_list
 		{size_t const size = strlen("[]") + strlen($1) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "[%s]", $1);
+	     sprintf_safe($$, size, "[%s]", $1);
 	     free($1);
 		}
 	;
@@ -879,7 +899,7 @@ parameter_list
 	| parameter_list ',' parameter_declaration
 		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "%s, %s", $1, $3);
+	     sprintf_safe($$, size, "%s, %s", $1, $3);
 	     free($1);
 		 free($3);
 		}
@@ -889,21 +909,21 @@ parameter_declaration
 	: declaration_specifiers declarator
 		{size_t const size = strlen("param([], )") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "param([%s], %s)", $1, $2);
+	     sprintf_safe($$, size, "param([%s], %s)", $1, $2);
 	     free($1);
 		 free($2);
 		}
 	| declaration_specifiers abstract_declarator
 		{size_t const size = strlen("param_no_decl([], dummy_abstract_declarator)") + strlen($1) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "param_no_decl([%s], dummy_abstract_declarator)", $1);
+	     sprintf_safe($$, size, "param_no_decl([%s], dummy_abstract_declarator)", $1);
 	     free($1);
 		 //free($2);
 		}
 	| declaration_specifiers
 		{size_t const size = strlen("param_no_decl([], [])") + strlen($1) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "param_no_decl([%s], [])", $1);
+	     sprintf_safe($$, size, "param_no_decl([%s], [])", $1);
 	     free($1);
 		}
 	;
@@ -952,13 +972,13 @@ initializer
 	: '{' initializer_list '}'
 		{size_t const size = strlen("initializer([])") + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "initializer([%s])", $2);
+	     sprintf_safe($$, size, "initializer([%s])", $2);
 	     free($2);
 		}
 	| '{' initializer_list ',' '}'
 		{size_t const size = strlen("[]") + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "trailing_comma_initializer([%s])", $2);
+	     sprintf_safe($$, size, "trailing_comma_initializer([%s])", $2);
 	     free($2);
 		}
 	| assignment_expression
@@ -969,7 +989,7 @@ initializer_list
 	: designation initializer
 		{size_t const size = strlen("init(, )") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "init(%s, %s)", $1, $2);
+	     sprintf_safe($$, size, "init(%s, %s)", $1, $2);
 	     free($1);
 		 free($2);
 		}
@@ -978,7 +998,7 @@ initializer_list
 	| initializer_list ',' designation initializer
 		{size_t const size = strlen(", init(, )") + strlen($1) + strlen($3) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "%s, init(%s, %s)", $1, $3, $4);
+	     sprintf_safe($$, size, "%s, init(%s, %s)", $1, $3, $4);
 	     free($1);
 		 free($3);
 		 free($4);
@@ -986,7 +1006,7 @@ initializer_list
 	| initializer_list ',' initializer
 		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "%s, %s", $1, $3);
+	     sprintf_safe($$, size, "%s, %s", $1, $3);
 	     free($1);
 		 free($3);
 		}
@@ -996,7 +1016,7 @@ designation
 	: designator_list '='
 		{size_t const size = strlen("[]") + strlen($1) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "[%s]", $1);
+	     sprintf_safe($$, size, "[%s]", $1);
 	     free($1);
 		}
 	;
@@ -1007,7 +1027,7 @@ designator_list
 	| designator_list designator
 		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "%s, %s", $1, $2);
+	     sprintf_safe($$, size, "%s, %s", $1, $2);
 	     free($1);
 		 free($2);
 		}
@@ -1019,7 +1039,7 @@ designator
 	| '.' IDENTIFIER
 		{size_t const size = strlen("select()") + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "select(%s)", $2);
+	     sprintf_safe($$, size, "select(%s)", $2);
 		 free($2);
 		}
 	;
@@ -1028,7 +1048,7 @@ static_assert_declaration
 	: STATIC_ASSERT '(' constant_expression ',' STRING_LITERAL ')' ';'
 		{size_t const size = strlen("static_assert(, )") + strlen($3) + strlen($5) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_s($$, size, "static_assert(%s, %s)", $3, $5);
+	     sprintf_safe($$, size, "static_assert(%s, %s)", $3, $5);
 		 free($3);
 		 free($5);
 		}
@@ -1147,13 +1167,17 @@ declaration_list	//printed out
 	;
 
 %%
-int main(int argc, char *argv[]) {				//argc is the total number of strings in the argv array
-	char C_file_path[_MAX_PATH];				//directory where the C and .i files are
-	char filename_no_ext[_MAX_PATH];
-	char i_file_uri[_MAX_PATH];
-	FILE *i_file;
+#include "lex.yy.c"
 
-	strcpy_s(C_file_path, 3, ".\\");		//default path for input file is current directory, overwrite with -p on command line
+int main(int argc, char *argv[]) {				//argc is the total number of strings in the argv array
+	char C_file_path[MAX_PATH];				//directory where the C and .i files are
+	char filename_no_ext[MAX_PATH];
+
+#ifdef _MSC_VER
+	strcpy_safe(C_file_path, 3, ".\\");		//default path for input file is current directory, overwrite with -p on command line
+#else
+	strcpy_safe(C_file_path, 3, "./");
+#endif
 	for (int i = 1; i <= argc - 1; i++) {	//processing command line arguments
 		if (argv[i][0] == '-') {
 			switch (argv[i][1]) {
@@ -1161,11 +1185,11 @@ int main(int argc, char *argv[]) {				//argc is the total number of strings in t
 				printf("Usage: .\\sikraken_parser [OPTION]... [FILE]\nParse a C file to Prolog terms.\n\n-h\t Display help information\n-p\t Path to the .c/.i file (DEFAULT: Current Directory ('.'))\n\nExamples:\n\t.\\sikraken_parser -p\".\" get_sign \n\t.\\sikraken_parser get_sign \n\t.\\sikraken_parser -p\"C:/Parser/\" sign \n");
 				my_exit(0);
 			case 'p':	//path to the .i pre-processed input C file
-				if (_access(&argv[i][2], 0) == -1) {    //checks if it is a valid directory
+				if (access_safe(&argv[i][2], 0) == -1) {    //checks if it is a valid directory
 					fprintf(stderr, "Sikraken parser error: the indicated source path (via -p switch): %s , cannot be accessed\n", &argv[i][2]);
 					my_exit(1);
 				}
-				strcpy_s(C_file_path, _MAX_PATH, &argv[i][2]);
+				strcpy_safe(C_file_path, MAX_PATH, &argv[i][2]);
 				break;
 			case 'd':
 				debugMode = 1;	//we are in debug mode : will affect output of warnings amongst other things
@@ -1176,17 +1200,17 @@ int main(int argc, char *argv[]) {				//argc is the total number of strings in t
 		}
 		else {	//must be the filename to analyse
 			argv[i][strlen(argv[i]) - 2] = '\0';	//cut the out ".c"
-			strcpy_s(filename_no_ext, _MAX_PATH, argv[i]);
+			strcpy_safe(filename_no_ext, MAX_PATH, argv[i]);
 		}
 	}
-	sprintf_s(i_file_uri, _MAX_PATH, "%s%s.i", C_file_path, filename_no_ext);
-	if (fopen_s(&i_file, i_file_uri, "r") != 0) {
+	sprintf_safe(i_file_uri, 3*MAX_PATH, "%s%s.i", C_file_path, filename_no_ext);
+	if (fopen_safe(&i_file, i_file_uri, "r") != 0) {
 		fprintf(stderr, ".i file could not be opened for reading at: %s\n", i_file_uri);
 		my_exit(EXIT_FAILURE);
 	}
 	yyin = i_file;	//set the input to the parser
-	sprintf_s(pl_file_uri, _MAX_PATH, "%s%s.pl", C_file_path, filename_no_ext);
-	if (fopen_s(&pl_file, pl_file_uri, "w") != 0) {
+	sprintf_safe(pl_file_uri, 3*MAX_PATH, "%s%s.pl", C_file_path, filename_no_ext);
+	if (fopen_safe(&pl_file, pl_file_uri, "w") != 0) {
 		fprintf(stderr, ".pl file could not be created for writing at: %s\n", pl_file_uri);
 		my_exit(EXIT_FAILURE);
 	}
@@ -1197,7 +1221,9 @@ int main(int argc, char *argv[]) {				//argc is the total number of strings in t
 	}	
 	fprintf(pl_file, "\n]).");
 	fclose(pl_file);
+	pl_file = NULL;
 	fclose(i_file);
+	i_file = NULL;
 	my_exit(EXIT_SUCCESS);
 }
 
@@ -1210,10 +1236,10 @@ void yyerror(const char* s) {
 
 void my_exit(int exit_code) {			//exits and performs some tidying up if not in debug mode
   if (!debugMode) {
-    if (yyin) fclose(yyin);
+    if (i_file) fclose(i_file);
     if (pl_file) fclose(pl_file);
-    if (_access(pl_file_uri, 0) != -1) remove(pl_file_uri);
+    if (access_safe(i_file_uri, 0) != -1) remove(i_file_uri);
   }
-  if (exit_code == EXIT_SUCCESS) fprintf(stderr, "Sikraken parsing success, wrote %s", pl_file_uri);
+  if (exit_code == EXIT_SUCCESS) fprintf(stderr, "Sikraken parsing success, wrote %s\n", pl_file_uri);
   exit(exit_code);
 }
