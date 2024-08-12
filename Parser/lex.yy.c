@@ -1,5 +1,5 @@
 
-#line 2 "lex.yy.c"
+#line 3 "lex.yy.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -783,16 +783,19 @@ extern int is_typedef_name(char*);
 void read_comment();
 int differentiate_identifiers(char *);
 
-#line 786 "lex.yy.c"
 #line 787 "lex.yy.c"
+#line 788 "lex.yy.c"
 
 #define INITIAL 0
 
-/*windows compatibility case*/
-#include <io.h>
-#define isatty _isatty
-#define fileno _fileno
-    
+#ifndef YY_NO_UNISTD_H
+/* Special case for "unistd.h", since it is non-ANSI. We include it way
+ * down here because we want the user's section 1 to have been scanned first.
+ * The user has a chance to override it with an option.
+ */
+#include <unistd.h>
+#endif
+
 #ifndef YY_EXTRA_TYPE
 #define YY_EXTRA_TYPE void *
 #endif
@@ -1002,7 +1005,7 @@ YY_DECL
 
 #line 47 "C_grammar.l"
         /* rules section */
-#line 1005 "lex.yy.c"
+#line 1009 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1630,7 +1633,7 @@ YY_RULE_SETUP
 #line 177 "C_grammar.l"
 ECHO;
 	YY_BREAK
-#line 1633 "lex.yy.c"
+#line 1637 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 

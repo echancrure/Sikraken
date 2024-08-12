@@ -116,7 +116,7 @@ WS  [ \t\v\n\f]
 ({SP}?\"([^"\\\n]|{ES})*\"{WS}*)+	{if (yytext[0] == 'L') { //a wide string constant
                                         size_t const size = strlen("wide_string()") + strlen(yytext) - 1 + 1;
                                         yylval.id = (char*)malloc(size);
-                                        sprintf_s(yylval.id, size, "wide_string(%s)", &yytext[1]);      //copy from yytext[1] to remove 'L' prefix 
+                                        sprintf_safe(yylval.id, size, "wide_string(%s)", &yytext[1]);      //copy from yytext[1] to remove 'L' prefix 
                                      } else {
                                         yylval.id = _strdup(yytext);
                                      }
