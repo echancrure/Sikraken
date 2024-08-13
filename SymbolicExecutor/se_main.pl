@@ -26,7 +26,8 @@ mytrace.            %call this to start debugging
 
 :- use_module(['se_name_atts', 'se_seav_atts', 'se_sub_atts']).
 
-:-compile(['se_handle_declarations', 'se_symbolically_execute', 'se_symbolically_interpret']).
+:- compile(['se_handle_declarations', 'se_symbolically_execute', 'se_symbolically_interpret']).
+:- compile(['se_write_tests_testcomp']).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % home pc   se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic001, main, debug)
 % laptop    se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug)
@@ -130,16 +131,16 @@ get_all_outputs([Id|R_ids], All_outputs) :-
     get_all_outputs(R_ids, R_outputs).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 print_test_inputs([]).
-print_test_inputs([Seav|R]) :-
-    se_name_atts__get(Seav, 'name', Name),
-    seav__get(Seav, 'input', Input_value),
+print_test_inputs([SEAV|R]) :-
+    se_name_atts__get(SEAV, 'name', Name),
+    seav__get(SEAV, 'input', Input_value),
     printf(user_output, "\nInput %w = %w", [Name, Input_value]),
     print_test_inputs(R).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 print_test_outputs([]).
-print_test_outputs([Seav|R]) :-
-    se_name_atts__get(Seav, 'name', Name),
-    seav__get(Seav, 'output', Output_value),
+print_test_outputs([SEAV|R]) :-
+    se_name_atts__get(SEAV, 'name', Name),
+    seav__get(SEAV, 'output', Output_value),
     printf(user_output, "\nOutput %w = %w", [Name, Output_value]),
     print_test_outputs(R).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
