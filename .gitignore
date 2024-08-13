@@ -1,0 +1,16 @@
+Documentation/Sikraken Backlog.gsheet
+RegressionTool/**/
+Parser/**/
+RegressionTests/**/
+RegressionTests/*.i
+RegressionTests/*.pl
+RegressionTests/*.obj
+SampleCode/**/
+SampleCode/*.i
+SampleCode/*.pl
+SampleCode/*.obj
+SampleCode/*.exe
+Archive/
+Tools/
+ToolsArchive/
+Sikraken.code-workspace
