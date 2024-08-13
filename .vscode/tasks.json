@@ -32,6 +32,21 @@
             "runOptions": {
                 "runOn": "default"
             }
+        },
+        {
+            "label": "Call Parser",
+            "type": "shell",
+            "command": "${workspaceFolder}/Parser/call_parser.sh",
+            "args": [
+                "${fileDirname}",
+                "${fileBasename}"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "detail": "Preprocesses the current C file and then runs sikraken_parser on it."
         }
     ]
 }

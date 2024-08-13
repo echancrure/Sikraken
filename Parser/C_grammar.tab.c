@@ -4228,9 +4228,9 @@ int main(int argc, char *argv[]) {				//argc is the total number of strings in t
 	char filename_no_ext[MAX_PATH];
 
 #ifdef _MSC_VER
-	strcpy_safe(C_file_path, 3, ".\\");		//default path for input file is current directory, overwrite with -p on command line
+	strcpy_safe(C_file_path, 3, ".");		//default path for input file is current directory, overwrite with -p on command line
 #else
-	strcpy_safe(C_file_path, 3, "./");
+	strcpy_safe(C_file_path, 3, ".");
 #endif
 	for (int i = 1; i <= argc - 1; i++) {	//processing command line arguments
 		if (argv[i][0] == '-') {
@@ -4257,7 +4257,7 @@ int main(int argc, char *argv[]) {				//argc is the total number of strings in t
 			strcpy_safe(filename_no_ext, MAX_PATH, argv[i]);
 		}
 	}
-	sprintf_safe(i_file_uri, 3*MAX_PATH, "%s%s.i", C_file_path, filename_no_ext);
+	sprintf_safe(i_file_uri, 3*MAX_PATH, "%s/%s.i", C_file_path, filename_no_ext);
 	if (fopen_safe(&i_file, i_file_uri, "r") != 0) {
 		fprintf(stderr, ".i file could not be opened for reading at: %s\n", i_file_uri);
 		my_exit(EXIT_FAILURE);
