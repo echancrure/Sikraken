@@ -2250,9 +2250,9 @@ yyreduce:
 
   case 20: /* postfix_expression: postfix_expression '(' ')'  */
 #line 157 "C_grammar.y"
-                {size_t const size = strlen("([])") + strlen((yyvsp[-2].id)) + 1;
+                {size_t const size = strlen("function_call(, [])") + strlen((yyvsp[-2].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
-		 sprintf_safe((yyval.id), size, "%s([])", (yyvsp[-2].id));
+		 sprintf_safe((yyval.id), size, "function_call(%s, [])", (yyvsp[-2].id));
 		 free((yyvsp[-2].id));
 		}
 #line 2259 "C_grammar.tab.c"
@@ -2260,9 +2260,9 @@ yyreduce:
 
   case 21: /* postfix_expression: postfix_expression '(' argument_expression_list ')'  */
 #line 163 "C_grammar.y"
-                {size_t const size = strlen("([])") + strlen((yyvsp[-3].id)) + strlen((yyvsp[-1].id)) + 1;
+                {size_t const size = strlen("function_call(, [])") + strlen((yyvsp[-3].id)) + strlen((yyvsp[-1].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
-		 sprintf_safe((yyval.id), size, "%s([%s])", (yyvsp[-3].id), (yyvsp[-1].id));
+		 sprintf_safe((yyval.id), size, "function_call(%s, [%s])", (yyvsp[-3].id), (yyvsp[-1].id));
 		 free((yyvsp[-3].id));
 		 free((yyvsp[-1].id));
 		}
@@ -4223,14 +4223,14 @@ yyreturnlab:
 
 #include "lex.yy.c"
 
-int main(int argc, char *argv[]) {				//argc is the total number of strings in the argv array
+int main(int argc, char *argv[]) {
 	char C_file_path[MAX_PATH];				//directory where the C and .i files are
 	char filename_no_ext[MAX_PATH];
 
 #ifdef _MSC_VER
-	strcpy_safe(C_file_path, 3, ".\\");		//default path for input file is current directory, overwrite with -p on command line
+	strcpy_safe(C_file_path, 3, ".");		//default path for input file is current directory, overwrite with -p on command line
 #else
-	strcpy_safe(C_file_path, 3, "./");
+	strcpy_safe(C_file_path, 3, ".");
 #endif
 	for (int i = 1; i <= argc - 1; i++) {	//processing command line arguments
 		if (argv[i][0] == '-') {
@@ -4257,13 +4257,13 @@ int main(int argc, char *argv[]) {				//argc is the total number of strings in t
 			strcpy_safe(filename_no_ext, MAX_PATH, argv[i]);
 		}
 	}
-	sprintf_safe(i_file_uri, 3*MAX_PATH, "%s%s.i", C_file_path, filename_no_ext);
+	sprintf_safe(i_file_uri, 3*MAX_PATH, "%s/%s.i", C_file_path, filename_no_ext);
 	if (fopen_safe(&i_file, i_file_uri, "r") != 0) {
 		fprintf(stderr, ".i file could not be opened for reading at: %s\n", i_file_uri);
 		my_exit(EXIT_FAILURE);
 	}
 	yyin = i_file;	//set the input to the parser
-	sprintf_safe(pl_file_uri, 3*MAX_PATH, "%s%s.pl", C_file_path, filename_no_ext);
+	sprintf_safe(pl_file_uri, 3*MAX_PATH, "%s/%s.pl", C_file_path, filename_no_ext);
 	if (fopen_safe(&pl_file, pl_file_uri, "w") != 0) {
 		fprintf(stderr, ".pl file could not be created for writing at: %s\n", pl_file_uri);
 		my_exit(EXIT_FAILURE);

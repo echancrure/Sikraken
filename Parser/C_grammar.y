@@ -154,15 +154,15 @@ postfix_expression
 		 free($3);
 		}
 	| postfix_expression '(' ')'
-		{size_t const size = strlen("([])") + strlen($1) + 1;
+		{size_t const size = strlen("function_call(, [])") + strlen($1) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "%s([])", $1);
+		 sprintf_safe($$, size, "function_call(%s, [])", $1);
 		 free($1);
 		}
 	| postfix_expression '(' argument_expression_list ')'	/* function call */
-		{size_t const size = strlen("([])") + strlen($1) + strlen($3) + 1;
+		{size_t const size = strlen("function_call(, [])") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "%s([%s])", $1, $3);
+		 sprintf_safe($$, size, "function_call(%s, [%s])", $1, $3);
 		 free($1);
 		 free($3);
 		}
@@ -1169,14 +1169,14 @@ declaration_list	//printed out
 %%
 #include "lex.yy.c"
 
-int main(int argc, char *argv[]) {				//argc is the total number of strings in the argv array
+int main(int argc, char *argv[]) {
 	char C_file_path[MAX_PATH];				//directory where the C and .i files are
 	char filename_no_ext[MAX_PATH];
 
 #ifdef _MSC_VER
-	strcpy_safe(C_file_path, 3, ".\\");		//default path for input file is current directory, overwrite with -p on command line
+	strcpy_safe(C_file_path, 3, ".");		//default path for input file is current directory, overwrite with -p on command line
 #else
-	strcpy_safe(C_file_path, 3, "./");
+	strcpy_safe(C_file_path, 3, ".");
 #endif
 	for (int i = 1; i <= argc - 1; i++) {	//processing command line arguments
 		if (argv[i][0] == '-') {
@@ -1203,13 +1203,13 @@ int main(int argc, char *argv[]) {				//argc is the total number of strings in t
 			strcpy_safe(filename_no_ext, MAX_PATH, argv[i]);
 		}
 	}
-	sprintf_safe(i_file_uri, 3*MAX_PATH, "%s%s.i", C_file_path, filename_no_ext);
+	sprintf_safe(i_file_uri, 3*MAX_PATH, "%s/%s.i", C_file_path, filename_no_ext);
 	if (fopen_safe(&i_file, i_file_uri, "r") != 0) {
 		fprintf(stderr, ".i file could not be opened for reading at: %s\n", i_file_uri);
 		my_exit(EXIT_FAILURE);
 	}
 	yyin = i_file;	//set the input to the parser
-	sprintf_safe(pl_file_uri, 3*MAX_PATH, "%s%s.pl", C_file_path, filename_no_ext);
+	sprintf_safe(pl_file_uri, 3*MAX_PATH, "%s/%s.pl", C_file_path, filename_no_ext);
 	if (fopen_safe(&pl_file, pl_file_uri, "w") != 0) {
 		fprintf(stderr, ".pl file could not be created for writing at: %s\n", pl_file_uri);
 		my_exit(EXIT_FAILURE);

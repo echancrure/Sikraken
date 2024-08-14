@@ -5,6 +5,9 @@ symbolic_execute([Item|R]) :-
 %%%
 symbolic_execute(mytrace) :-
     mytrace.
+symbolic_execute(declaration([extern, int], [UC___VERIFIER_nondet_int, []])) :-
+    se_name_atts__get(UC___VERIFIER_nondet_int, 'name', 'UC___VERIFIER_nondet_int'),    %just ignoring them
+    !.
 symbolic_execute(declaration(Specifiers, Declarators)) :-
     extract_type(Specifiers, Type_name),
     declare_declarators(Declarators, Type_name).
@@ -19,7 +22,8 @@ symbolic_execute(cmp_stmts(Stmts)) :-
 symbolic_execute(stmt(assign(LValue, Expression))) :-
     %mytrace,
     (seav__is_seav(LValue) ->
-        (symbolically_interpret(Expression, Symbolic_expression),
+        (!,
+         symbolically_interpret(Expression, Symbolic_expression),
          seav__update(LValue, 'output', Symbolic_expression)
         )
     ;
@@ -45,6 +49,17 @@ symbolic_execute(if_stmt(Condition, True_statements, False_statements)) :-
          symbolic_execute(False_statements)
         )
     ).
+symbolic_execute(if_stmt(Condition, True_statements)) :-
+    mytrace,
+    symbolically_interpret(Condition, Symbolic_condition),
+    (   (ptc_solver__sdl(Symbolic_condition),
+         symbolic_execute(True_statements)
+        )
+    ;   %deliberate choice point
+        ptc_solver__sdl(not(Symbolic_condition))
+    ).
 symbolic_execute(return_stmt(Return_var, Expression)) :- 
     symbolic_execute(stmt(assign(Return_var, Expression))).
+symbolic_execute(stmt(postfix_inc_op(Expression))) :-
+    symbolically_interpret(postfix_inc_op(Expression), _).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
