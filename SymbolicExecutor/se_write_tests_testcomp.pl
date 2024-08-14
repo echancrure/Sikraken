@@ -1,58 +1,70 @@
-:- lib(calendar).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%create the folder for TestComp format and the metadat file
-print_preamble_testcomp(Parsed_dir, Target_source_file_name, Test_suite_folder) :-
+%create the folder for TestComp format and the metadata file
+print_preamble_testcomp(Parsed_dir, Target_source_file_name) :-
     concat_atom([Parsed_dir, 'suite-', Target_source_file_name], Test_suite_folder),
     concat_atom([Parsed_dir, Target_source_file_name, '.c'], Filename),
+    (exists(Test_suite_folder) ->
+        (concat_atom(['rm -rf ', Test_suite_folder], Delete_call),
+         system(Delete_call)
+        )
+    ;
+        true
+    ),
     mkdir(Test_suite_folder),
-    open('metadata.xml', 'write', _, [alias('answer_output')]),
-    format('answer_output', "<?xml version=""1.0"" encoding=""UTF-8"" standalone=""no""?>\n", []),
-    format('answer_output', "<!DOCTYPE test-metadata PUBLIC ""+//IDN sosy-lab.org//DTD test-format test-metadata 1.1//EN"" ""https://sosy-lab.org/test-format/test-metadata-1.1.dtd"">\n", []),
-    format('answer_output', "<test-metadata>\n", []),
-    format('answer_output', "<sourcecodelang>C</sourcecodelang>\n", []),
-    format('answer_output', "<producer>Sikraken</producer>\n", []),
-    format('answer_output', "<specification>CHECK( init(main()), FQL(cover EDGES(@DECISIONEDGE)) )</specification>\n", []),
-    format('answer_output', "<programfile>%w</programfile>\n", [Filename]),
+    se_globals__setval(testcomp_test_suite_folder, Test_suite_folder),
+    cd(Test_suite_folder),
+    open('metadata.xml', 'write', 'metadata_stream'),
+    printf('metadata_stream', "<?xml version=""1.0"" encoding=""UTF-8"" standalone=""no""?>\n", []),
+    printf('metadata_stream', "<!DOCTYPE test-metadata PUBLIC ""+//IDN sosy-lab.org//DTD test-format test-metadata 1.1//EN"" ""https://sosy-lab.org/test-format/test-metadata-1.1.dtd"">\n", []),
+    printf('metadata_stream', "<test-metadata>\n", []),
+    printf('metadata_stream', "\t<sourcecodelang>C</sourcecodelang>\n", []),
+    printf('metadata_stream', "\t<producer>Sikraken</producer>\n", []),
+    printf('metadata_stream', "\t<specification>CHECK( init(main()), FQL(cover EDGES(@DECISIONEDGE)) )</specification>\n", []),
+    printf('metadata_stream', "\t<programfile>%w</programfile>\n", [Filename]),
     get_hash(Filename, Hash),
-    format('answer_output', "<programhash>%w</programhash>\n", [Hash]),
-    format('answer_output', "<entryfunction>main</entryfunction>\n", []),
-    format('answer_output', "<architecture>32bit</architecture>\n", []),
+    printf('metadata_stream', "\t<programhash>%w</programhash>\n", [Hash]),
+    printf('metadata_stream', "\t<entryfunction>main</entryfunction>\n", []),
+    printf('metadata_stream', "\t<architecture>32bit</architecture>\n", []),
     get_Date_time(Date_time),
-    format('answer_output', "<creationtime>%w</creationtime>\n", [Date_time]),
-    format('answer_output', "</test-metadata>", []),
-    close('answer_output').
-    %%%
+    printf('metadata_stream', "\t<creationtime>%w</creationtime>\n", [Date_time]),
+    printf('metadata_stream', "</test-metadata>", []),
+    close('metadata_stream').
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     get_hash(Filename, Hash) :-
-        concat_atom(['get_hash.sh ', Filename, '.c'], Script_call),
-        exec(Script_call, [stdout(pipe(Out))]),
-        read_string(Out, _, Hash),
-        close(Out).
-    %%%
+        se_globals__getval('install_dir', Install_dir),
+        concat_atom([Install_dir, 'SymbolicExecutor/get_hash.sh ', Filename], Hash_call),
+        exec(Hash_call, [_, 'hash_stream', _]),
+        read_string('hash_stream', end_of_line, "", _, Hash),
+        close('hash_stream').
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     get_Date_time(Date_time) :-
-        mjd_now(Now), 
-        mjd_to_ymd(Now, YMD), 
-        mjd_to_time(Now, Time),
-        concat_atom([YMD, ' - ', Time], Date_time).
+        get_flag(unix_time, T), 
+        local_time_string(T, "%c", Date_time).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %create a new test case .xml file
-print_test_inputs_testcomp(SEAV_list, Test_suite_folder) :-
+print_test_inputs_testcomp(SEAV_list) :-
     se_globals__getval('path_nb', Test_nb),
-    concat_atom(['testinput-', Test_nb, '.xml'], Filename),
-    open(Filename, 'write', _, [alias('answer_output')]),
-    format('answer_output', "<?xml version=""1.0"" encoding=""UTF-8"" standalone=""no""?>\n", []),
-    format('answer_output', "<!DOCTYPE testcase PUBLIC ""+//IDN sosy-lab.org//DTD test-format testcase 1.1//EN"" ""https://sosy-lab.org/test-format/testcase-1.1.dtd"">\n", []),
-    format('answer_output', "<testcase>\n", []),
-    print_SEAVs(SEAV_list, 'answer_output'),
-    format('answer_output', "</testcase>", []),
-    close('answer_output').
-    %%%
-    print_SEAVs([], _).
-    print_SEAVs([SEAV|R], Stream) :-
-        se_name_atts__get(SEAV, 'name', Name),
+    concat_atom(['test_input-', Test_nb, '.xml'], Filename),
+    open(Filename, 'write', 'test_input_stream'),
+    printf('test_input_stream', "<?xml version=""1.0"" encoding=""UTF-8"" standalone=""no""?>\n", []),
+    printf('test_input_stream', "<!DOCTYPE testcase PUBLIC ""+//IDN sosy-lab.org//DTD test-format testcase 1.1//EN"" ""https://sosy-lab.org/test-format/testcase-1.1.dtd"">\n", []),
+    printf('test_input_stream', "<testcase>\n", []),
+    %mytrace,
+    print_SEAVs(SEAV_list),
+    printf('test_input_stream', "</testcase>", []),
+    close('test_input_stream').
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    print_SEAVs([]).
+    print_SEAVs([SEAV|R]) :-
         seav__get(SEAV, 'input', Input_value),
-        printf(Stream, "\t<input variable=""%w"" type=""int"">%w</input>\n", [Name, Input_value]),
+        printf('test_input_stream', "\t<input>%w</input>\n", [Input_value]),
         print_SEAVs(R).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %zip the Test_suite_folder directory for TestCov consumption
-terminate_test_comp(Test_suite_folder):-
-    true.
+terminate_testcomp(Target_source_file_name):-
+    mytrace,
+    se_globals__getval(testcomp_test_suite_folder, Test_suite_folder),
+    cd('..'),
+    concat_string(["zip -r suite-", Target_source_file_name, ".zip ", Test_suite_folder], Zip_call),
+    exec(Zip_call, []).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
