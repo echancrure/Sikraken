@@ -1169,7 +1169,7 @@ declaration_list	//printed out
 %%
 #include "lex.yy.c"
 
-int main(int argc, char *argv[]) {				//argc is the total number of strings in the argv array
+int main(int argc, char *argv[]) {
 	char C_file_path[MAX_PATH];				//directory where the C and .i files are
 	char filename_no_ext[MAX_PATH];
 
@@ -1209,7 +1209,7 @@ int main(int argc, char *argv[]) {				//argc is the total number of strings in t
 		my_exit(EXIT_FAILURE);
 	}
 	yyin = i_file;	//set the input to the parser
-	sprintf_safe(pl_file_uri, 3*MAX_PATH, "%s%s.pl", C_file_path, filename_no_ext);
+	sprintf_safe(pl_file_uri, 3*MAX_PATH, "%s/%s.pl", C_file_path, filename_no_ext);
 	if (fopen_safe(&pl_file, pl_file_uri, "w") != 0) {
 		fprintf(stderr, ".pl file could not be created for writing at: %s\n", pl_file_uri);
 		my_exit(EXIT_FAILURE);

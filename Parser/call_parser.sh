@@ -11,7 +11,7 @@ output_file="${input_file%.*}.i"
 directory="$1"
 
 # Preprocess the file using gcc
-gcc -E -P "$directory"/"$input_file" -o "$output_file"
+gcc -E -P "$directory/$input_file" -o "$directory/$output_file"
 
 # Check if gcc was successful
 if [ $? -ne 0 ]; then
