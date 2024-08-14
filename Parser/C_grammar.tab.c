@@ -3797,7 +3797,7 @@ yyreduce:
 
   case 250: /* $@2: %empty  */
 #line 1068 "C_grammar.y"
-                {fprintf(pl_file, "label_stmt($1, "); 
+                {fprintf(pl_file, "label_stmt(%s, ", (yyvsp[-1].id)); 
 		 free((yyvsp[-1].id));
 		}
 #line 3804 "C_grammar.tab.c"

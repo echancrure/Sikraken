@@ -1065,7 +1065,7 @@ statement	//printed out
 
 labeled_statement	//printed out
 	: IDENTIFIER ':' 	//Label Id declaration
-		{fprintf(pl_file, "label_stmt($1, "); 
+		{fprintf(pl_file, "label_stmt(%s, ", $1); 
 		 free($1);
 		} 
 		statement 
