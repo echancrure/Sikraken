@@ -10,6 +10,8 @@ SampleCode/*.i
 SampleCode/*.pl
 SampleCode/*.obj
 SampleCode/*.exe
+SampleCode/*.zip
+SampleCode/*.gcov
 Archive/
 Tools/
 ToolsArchive/

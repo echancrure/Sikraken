@@ -33,46 +33,54 @@ mytrace.            %call this to start debugging
 % laptop    se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug)
 go_laptop :- se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug).
 go_pc :- se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic002, basic, debug).
-go_linux :- se_main('/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/', basic002, basic, debug, testcomp).
+go_linux :- se_main('/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/', testcov_simple_if, main, debug, testcomp).
 se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_name, Debug_mode, Output_mode) :-
     initialise,
     se_globals__set_globals(Install_dir, Debug_mode),
     capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
     read_parsed_file(Parsed_dir, Target_source_file_name, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var, Return_var),      %may fail if badly formed due to parsing errors
-    %mytrace,
+    mytrace,
     symbolic_execute(Parsed_prolog_code),   %always symbolically execute all global declarations for now: initiailisations could be ignored via a switch if desired
     (Output_mode == 'testcomp' ->
-        print_preamble_testcomp(Parsed_dir, Target_source_file_name) 
+        ((se_sub_atts__get(Main, 'parameters', []), se_sub_atts__get(Main, 'return_type', 'integer')) ->
+            (print_preamble_testcomp(Parsed_dir, Target_source_file_name),
+             se_sub_atts__get(Main, 'body', Main_compound_statement),
+             symbolic_execute(Main_compound_statement),
+             se_globals__getref('verifier_inputs', Verifier_inputs),
+             label_testcomp(Verifier_inputs)
+            )
+        ;
+            common_util__error(10, "Unexpected main format in testcomp mode", "Best not to proceed", [('Main', Main)], 10140824_1, 'se_main', 'se_main', no_localisation, no_extra_info)
+        )
     ;
-        true
+        (%always symbolically execute void main(void) for now: should be a switch allowing the main to be ignored via a switch if desired
+         se_sub_atts__get(Main, 'parameters', [param_no_decl([void], [])]),  %only handling main with no parameters for now
+         se_sub_atts__get(Main, 'return_type', void),                        %only handling main with void return type for now
+         se_sub_atts__get(Main, 'body', Main_compound_statement),
+         symbolic_execute(Main_compound_statement),         %symbolically execute the target C function: for now only inputs are its arguments (expand to globals that get overwritten with a switch)
+         se_sub_atts__get(Target_subprogram_var, 'return_type', Return_type),
+         declare_return(Return_var, Return_type),    %belong to the outer scope
+         se_sub_atts__get(Target_subprogram_var, 'parameters', Params),
+         se_globals__push_scope_stack,       %create function parameter scope
+         declare_params(Params, SEAV_Inputs),
+         se_sub_atts__get(Target_subprogram_var, 'body', Compound_statement),
+         symbolic_execute(Compound_statement),
+         label(SEAV_Inputs)
+        )
     ),
-    %always symbolically execute void main(void) for now: should be a switch allowing the main to be ignored via a switch if desired
-    se_sub_atts__get(Main, 'parameters', [param_no_decl([void], [])]),  %only handling main with no parameters for now
-    se_sub_atts__get(Main, 'return_type', void),                        %only handling main with void return type for now
-    se_sub_atts__get(Main, 'body', Main_compound_statement),
-    symbolic_execute(Main_compound_statement),
-    %symbolically execute the target C function: for now only inputs are its arguments (expand to globals that get overwritten with a switch)
-    se_sub_atts__get(Target_subprogram_var, 'return_type', Return_type),
-    declare_return(Return_var, Return_type),    %belong to the outer scope
-    se_sub_atts__get(Target_subprogram_var, 'parameters', Params),
-    se_globals__push_scope_stack,       %create function parameter scope
-    declare_params(Params, Declared_params_seavs),
-    se_sub_atts__get(Target_subprogram_var, 'body', Compound_statement),
-    symbolic_execute(Compound_statement),
-    label(Declared_params_seavs),
     se_globals__getval('path_nb', Test_nb),
     Inc_test_nb is Test_nb + 1,
     se_globals__setval('path_nb', Inc_test_nb),
     (Output_mode == 'testcomp' ->
-        print_test_inputs_testcomp(Declared_params_seavs)
+        print_test_inputs_testcomp(Verifier_inputs)
     ;
-        print_test_inputs(Declared_params_seavs)
+        print_test_inputs(SEAV_Inputs)
     ),
-    se_globals__pop_scope_stack,    %only after labeling and printed to preserve parameters
     (Output_mode == 'testcomp' ->
         true    %don't print expected outputs
     ;
-        (term_variables(Parsed_prolog_code, All_Ids),
+        (se_globals__pop_scope_stack,    %only after labeling and printed to preserve parameters
+         term_variables(Parsed_prolog_code, All_Ids),
          get_all_outputs(All_Ids, All_seavs),
          print_test_outputs(All_seavs),    
          flush(user_output)
@@ -131,8 +139,8 @@ read_parsed_file(Parsed_dir, Target_source_file_name, Target_raw_subprogram_name
         common_util__error(10, "Parsed file does not exist", "Cannot process parsed C code", [('Parsed_filename', Parsed_filename)], 10260724, 'se_main', 'read_parsed_file', no_localisation, no_extra_info)
     ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-label(Declared_params_seavs) :-
-    get_all_inputs(Declared_params_seavs, InputsL),
+label(SEAV_Inputs) :-
+    get_all_inputs(SEAV_Inputs, InputsL),
     ptc_solver__label_integers(InputsL),
     !.
     %%%
@@ -140,6 +148,10 @@ label(Declared_params_seavs) :-
     get_all_inputs([Seav|R_seavs], [Input|R_inputs]) :-
         seav__get(Seav, 'input', Input),
         get_all_inputs(R_seavs, R_inputs).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+label_testcomp(Verifier_inputs) :-
+    ptc_solver__label_integers(Verifier_inputs),
+    !.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 get_all_outputs([], []).
 get_all_outputs([Id|R_ids], All_outputs) :-

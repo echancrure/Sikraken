@@ -14,8 +14,8 @@ print_preamble_testcomp(Parsed_dir, Target_source_file_name) :-
     se_globals__setval(testcomp_test_suite_folder, Test_suite_folder),
     cd(Test_suite_folder),
     open('metadata.xml', 'write', 'metadata_stream'),
-    printf('metadata_stream', "<?xml version=""1.0"" encoding=""UTF-8"" standalone=""no""?>\n", []),
-    printf('metadata_stream', "<!DOCTYPE test-metadata PUBLIC ""+//IDN sosy-lab.org//DTD test-format test-metadata 1.1//EN"" ""https://sosy-lab.org/test-format/test-metadata-1.1.dtd"">\n", []),
+    printf('metadata_stream', "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n", []),
+    printf('metadata_stream', "<!DOCTYPE test-metadata PUBLIC \"+//IDN sosy-lab.org//DTD test-format test-metadata 1.1//EN\" \"https://sosy-lab.org/test-format/test-metadata-1.1.dtd\">\n", []),
     printf('metadata_stream', "<test-metadata>\n", []),
     printf('metadata_stream', "\t<sourcecodelang>C</sourcecodelang>\n", []),
     printf('metadata_stream', "\t<producer>Sikraken</producer>\n", []),
@@ -42,23 +42,22 @@ print_preamble_testcomp(Parsed_dir, Target_source_file_name) :-
         local_time_string(T, "%c", Date_time).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %create a new test case .xml file
-print_test_inputs_testcomp(SEAV_list) :-
+print_test_inputs_testcomp(Verifier_inputs) :-
     se_globals__getval('path_nb', Test_nb),
     concat_atom(['test_input-', Test_nb, '.xml'], Filename),
     open(Filename, 'write', 'test_input_stream'),
-    printf('test_input_stream', "<?xml version=""1.0"" encoding=""UTF-8"" standalone=""no""?>\n", []),
-    printf('test_input_stream', "<!DOCTYPE testcase PUBLIC ""+//IDN sosy-lab.org//DTD test-format testcase 1.1//EN"" ""https://sosy-lab.org/test-format/testcase-1.1.dtd"">\n", []),
+    printf('test_input_stream', "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n", []),
+    printf('test_input_stream', "<!DOCTYPE testcase PUBLIC \"+//IDN sosy-lab.org//DTD test-format testcase 1.1//EN\" \"https://sosy-lab.org/test-format/testcase-1.1.dtd\">\n", []),
     printf('test_input_stream', "<testcase>\n", []),
     %mytrace,
-    print_SEAVs(SEAV_list),
+    print_inputs(Verifier_inputs),
     printf('test_input_stream', "</testcase>", []),
     close('test_input_stream').
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    print_SEAVs([]).
-    print_SEAVs([SEAV|R]) :-
-        seav__get(SEAV, 'input', Input_value),
-        printf('test_input_stream', "\t<input>%w</input>\n", [Input_value]),
-        print_SEAVs(R).
+    print_inputs([]).
+    print_inputs([Input|R]) :-
+        printf('test_input_stream', "\t<input>%w</input>\n", [Input]),
+        print_inputs(R).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %zip the Test_suite_folder directory for TestCov consumption
 terminate_testcomp(Target_source_file_name):-

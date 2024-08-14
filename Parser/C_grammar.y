@@ -154,15 +154,15 @@ postfix_expression
 		 free($3);
 		}
 	| postfix_expression '(' ')'
-		{size_t const size = strlen("([])") + strlen($1) + 1;
+		{size_t const size = strlen("function_call(, [])") + strlen($1) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "%s([])", $1);
+		 sprintf_safe($$, size, "function_call(%s, [])", $1);
 		 free($1);
 		}
 	| postfix_expression '(' argument_expression_list ')'	/* function call */
-		{size_t const size = strlen("([])") + strlen($1) + strlen($3) + 1;
+		{size_t const size = strlen("function_call(, [])") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "%s([%s])", $1, $3);
+		 sprintf_safe($$, size, "function_call(%s, [%s])", $1, $3);
 		 free($1);
 		 free($3);
 		}

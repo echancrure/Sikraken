@@ -5,8 +5,8 @@
 %declaring global references: undone on backtracking
 :- local reference('current_path_bran', []).    %list of branches followed so far
 :- local reference('call_stack_bran', []).      %list of functions entered so far
-:- local reference('scope_stack', [scope(0, dummy)]).          %[scope(level_nb|Var)|Older] with Var used for delaying and awakening
-
+:- local reference('scope_stack', [scope(0, dummy)]).          %[scope(level_nb|Var)|Older] with Var only used for delaying and awakening
+:- local reference('verifier_inputs', []).      %only used in 'testcomp' testing mode to track the order of the verifier variables
 %%%
 %declaring global non-logical variables: not undone on backtracking
 se_globals__set_globals(Install_dir, Debug_mode) :-    

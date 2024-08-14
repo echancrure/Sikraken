@@ -2250,9 +2250,9 @@ yyreduce:
 
   case 20: /* postfix_expression: postfix_expression '(' ')'  */
 #line 157 "C_grammar.y"
-                {size_t const size = strlen("([])") + strlen((yyvsp[-2].id)) + 1;
+                {size_t const size = strlen("function_call(, [])") + strlen((yyvsp[-2].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
-		 sprintf_safe((yyval.id), size, "%s([])", (yyvsp[-2].id));
+		 sprintf_safe((yyval.id), size, "function_call(%s, [])", (yyvsp[-2].id));
 		 free((yyvsp[-2].id));
 		}
 #line 2259 "C_grammar.tab.c"
@@ -2260,9 +2260,9 @@ yyreduce:
 
   case 21: /* postfix_expression: postfix_expression '(' argument_expression_list ')'  */
 #line 163 "C_grammar.y"
-                {size_t const size = strlen("([])") + strlen((yyvsp[-3].id)) + strlen((yyvsp[-1].id)) + 1;
+                {size_t const size = strlen("function_call(, [])") + strlen((yyvsp[-3].id)) + strlen((yyvsp[-1].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
-		 sprintf_safe((yyval.id), size, "%s([%s])", (yyvsp[-3].id), (yyvsp[-1].id));
+		 sprintf_safe((yyval.id), size, "function_call(%s, [%s])", (yyvsp[-3].id), (yyvsp[-1].id));
 		 free((yyvsp[-3].id));
 		 free((yyvsp[-1].id));
 		}
