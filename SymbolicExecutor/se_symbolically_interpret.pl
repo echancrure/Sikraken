@@ -24,6 +24,9 @@ symbolically_interpret(plus_op(Le_exp, Ri_exp), Le_Symbolic + Ri_Symbolic) :-
     !,
     symbolically_interpret(Le_exp, Le_Symbolic),
     symbolically_interpret(Ri_exp, Ri_Symbolic).
+symbolically_interpret(minus_op(Expression), -Symbolic_expression) :-
+    !,
+    symbolically_interpret(Expression, Symbolic_expression).
 symbolically_interpret(greater_op(Le_exp, Ri_exp), Le_Symbolic > Ri_Symbolic) :-
     !,
     symbolically_interpret(Le_exp, Le_Symbolic),
