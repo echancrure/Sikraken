@@ -3,15 +3,7 @@ declare_declarators([], _).
 declare_declarators([Declarator|R], Type_name) :-
     %mytrace,
     (nonvar(Declarator), Declarator = initialised(Var, Expression) ->   %added nonvar(...) as a guard 30/07/24
-        ((Expression = function_call(UC___VERIFIER_nondet_int, []), se_name_atts__get(UC___VERIFIER_nondet_int, 'name', 'UC___VERIFIER_nondet_int')) ->
-            (se_globals__getref('verifier_inputs', Verifier_inputs),
-             append(Verifier_inputs, [Output], New_verifier_inputs),
-             se_globals__setref('verifier_inputs', New_verifier_inputs),
-             Symbolic = Output          %quite a dirty way, but should not impact performance
-            )
-        ;
-            symbolically_interpret(Expression, Symbolic)    %todo: handling initialised variables without re-using assignment symbolic execution is probably a bad idea
-        )
+        symbolically_interpret(Expression, Symbolic)    %todo: handling initialised variables without re-using assignment symbolic execution is probably a bad idea
     ;
         (%declaration of non-initialised variable
          %todo check for redefinition which is allowed: see diary 07/08/24
@@ -32,7 +24,7 @@ declare_declarators([Declarator|R], Type_name) :-
     ),
     seav__update(Clean_var, 'output', Output),
     declare_declarators(R, Type_name).
-%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %e.g. extract_pointers(pointer(X), int, pointer(int), X)
 extract_pointers(Var, Type_name, Type_name_ptr_opt, Clean_var) :-
     (nonvar(Var), Var = pointer(Inner_var) ->

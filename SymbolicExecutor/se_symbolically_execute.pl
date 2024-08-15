@@ -13,20 +13,24 @@ symbolic_execute([Item|R], Flow) :-
 symbolic_execute(mytrace, 'carry_on') :-
     !,
     mytrace.
-symbolic_execute(declaration([extern, int], [function(UC___VERIFIER_nondet_int, _)]), 'carry_on') :-
-    se_name_atts__get(UC___VERIFIER_nondet_int, 'name', 'UC___VERIFIER_nondet_int'),    %just ignoring them
-    !.
-symbolic_execute(declaration(Declaration_specifiers, [function(Function_name, _Parameter_list)]), 'carry_on') :-
+symbolic_execute(declaration(Declaration_specifiers, Declarators), 'carry_on') :-
     !,
-    (memberchk('extern', Declaration_specifiers) ->  %(extern does not necessairily come first) found an extern function declaration
-        common_util__error(2, "Warning: external function declaration is ignored", "Trouble if called", [('Function_name', Function_name)], 2150824_1, 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
+    ((Declarators = [Declarator], nonvar(Declarator), Declarator = function(Function_name, Parameters)) ->  %a function forward declaration
+        (memberchk('extern', Declaration_specifiers) ->  %(need to use memberchk because 'extern' does not necessairily come first) found an extern function declaration
+            (common_util__error(2, "Warning: external function declaration is ignored", "Trouble if called", [('Function_name', Function_name)], 2150824_1, 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info),
+             subtract(Declaration_specifiers, ['extern'], Other_specifiers),
+             extract_type(Other_specifiers, Return_type_name),
+             se_sub_atts__create(Return_type_name, Parameters, 'no_body_is_extern', Function_name)
+            )
+        ;
+            true    %we ignore all, non-extern, forward function declarations: they will be declared later
+        )
     ;
-        true    %we ignore all forward function declarations: they will be declared later
+        (%a variable declaration
+         extract_type(Declaration_specifiers, Type_name),
+         declare_declarators(Declarators, Type_name)
+        )
     ).
-symbolic_execute(declaration(Specifiers, Declarators), 'carry_on') :-
-    !,
-    extract_type(Specifiers, Type_name),
-    declare_declarators(Declarators, Type_name).
 symbolic_execute(function(Specifiers, function(Function_name, Parameters), [], Compound_statement), 'carry_on') :-
     !,
     extract_type(Specifiers, Return_type_name),
@@ -83,7 +87,7 @@ symbolic_execute(while_stmt(Condition, Statements), Flow) :-
     !,
     symbolically_interpret(Condition, Symbolic_condition),
     (ptc_solver__sdl(Symbolic_condition <> 0) ->  %15 August 2024 hack for now...to deal with while(1)
-        (symbolic_execute(Statements, Inner_flow),
+        (symbolic_execute(Statements, Inner_flow), 
          (Inner_flow == 'carry_on' ->
             symbolic_execute(while_stmt(Condition, Statements), Flow)
          ;
