@@ -33,14 +33,14 @@ mytrace.            %call this to start debugging
 % laptop    se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug)
 go_laptop :- se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug).
 go_pc :- se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic002, basic, debug).
-go_linux :- se_main('/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/', testcov_simple_if, main, debug, testcomp).
+go_linux(Target_source_file_name) :- se_main('/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/', Target_source_file_name, main, debug, testcomp).
 se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_name, Debug_mode, Output_mode) :-
     initialise,
     se_globals__set_globals(Install_dir, Debug_mode),
     capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
     read_parsed_file(Parsed_dir, Target_source_file_name, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var, Return_var),      %may fail if badly formed due to parsing errors
     mytrace,
-    symbolic_execute(Parsed_prolog_code),   %always symbolically execute all global declarations for now: initiailisations could be ignored via a switch if desired
+    symbolic_execute(Parsed_prolog_code),   %always symbolically execute all global declarations for now: initialisations could be ignored via a switch if desired
     (Output_mode == 'testcomp' ->
         ((se_sub_atts__get(Main, 'parameters', []), se_sub_atts__get(Main, 'return_type', 'integer')) ->
             (print_preamble_testcomp(Parsed_dir, Target_source_file_name),

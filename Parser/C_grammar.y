@@ -109,7 +109,12 @@ primary_expression
 		}
 	| constant		{simple_str_copy(&$$, $1);}
 	| string		{simple_str_copy(&$$, $1);}
-	| '(' expression ')'	{simple_str_lit_copy(&$$, "prim4");}
+	| '(' expression ')'	
+		{size_t const size = strlen("()") + strlen($2) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_safe($$, size, "(%s)", $2);
+		 free($2);
+		}
 	| generic_selection		{simple_str_lit_copy(&$$, "generic_selection");}
 	;
 
@@ -504,7 +509,8 @@ declaration_specifiers
 		 free($1);
 		 free($2);
 		}
-	| storage_class_specifier	{simple_str_copy(&$$, $1);}
+	| storage_class_specifier	
+		{simple_str_copy(&$$, $1);}
 	| type_specifier declaration_specifiers
 		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
@@ -512,19 +518,20 @@ declaration_specifiers
 		 free($1);
 		 free($2);
 		}
-	| type_specifier	{simple_str_copy(&$$, $1);}
+	| type_specifier	
+		{simple_str_copy(&$$, $1);}
 	| type_qualifier declaration_specifiers
-{ simple_str_lit_copy(&$$, "type_qualifier declaration_specifiers"); }
+		{ simple_str_lit_copy(&$$, "dummy_type_qualifier, dummy_declaration_specifiers"); }
 	| type_qualifier
-{ simple_str_lit_copy(&$$, "type_qualifier"); }
+		{ simple_str_lit_copy(&$$, "dummy_type_qualifier"); }
 	| function_specifier declaration_specifiers
-{ simple_str_lit_copy(&$$, "function_specifier declaration_specifiers"); }
+		{ simple_str_lit_copy(&$$, "dummy_function_specifier, dummy_declaration_specifiers"); }
 	| function_specifier
-{ simple_str_lit_copy(&$$, "function_specifier"); }
+		{ simple_str_lit_copy(&$$, "dummy_function_specifier"); }
 	| alignment_specifier declaration_specifiers
-{ simple_str_lit_copy(&$$, "alignment_specifier declaration_specifiers"); }
+		{ simple_str_lit_copy(&$$, "dummy_alignment_specifier, dummy_declaration_specifiers"); }
 	| alignment_specifier
-{ simple_str_lit_copy(&$$, "alignment_specifier"); }
+		{ simple_str_lit_copy(&$$, "dummy_alignment_specifier"); }
 	;
 
 init_declarator_list

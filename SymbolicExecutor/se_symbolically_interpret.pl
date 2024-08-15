@@ -32,5 +32,20 @@ symbolically_interpret(postfix_inc_op(Expression), Symbolic_expression) :-
     !,
     symbolically_interpret(Expression, Symbolic_expression),
     symbolic_execute(stmt(assign(Expression, plus_op(Expression, 1)))).
+symbolically_interpret(equal_op(Le_exp, Ri_exp), Le_Symbolic = Ri_Symbolic) :-
+    !,
+    symbolically_interpret(Le_exp, Le_Symbolic),
+    symbolically_interpret(Ri_exp, Ri_Symbolic).
+symbolically_interpret(and_op(Le_exp, Ri_exp), and_then(Le_Symbolic, Ri_Symbolic)) :-   %C semantics of && is always short circuit
+    !,
+    symbolically_interpret(Le_exp, Le_Symbolic),
+    symbolically_interpret(Ri_exp, Ri_Symbolic).
+symbolically_interpret(or_op(Le_exp, Ri_exp), or_else(Le_Symbolic, Ri_Symbolic)) :-   %C semantics of || is always short circuit
+    !,
+    symbolically_interpret(Le_exp, Le_Symbolic),
+    symbolically_interpret(Ri_exp, Ri_Symbolic).
+symbolically_interpret(not_op(Le_exp), not(Le_Symbolic)) :-
+    !,
+    symbolically_interpret(Le_exp, Le_Symbolic).
 symbolically_interpret(Unhandled_expression, _Symbolic_expression) :-
 common_util__error(10, "Expression is not handled", "Cannot perform symbolic interpretation", [('Unhandled_expression', Unhandled_expression)], 10020824, 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
