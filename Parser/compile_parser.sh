@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script name: run_compiler.sh
+# Script name: compile_parser.sh
 cd ./Parser
 # Run the flex command
 flex C_grammar.l

@@ -7,8 +7,6 @@ symbolically_interpret(Expression, Symbolic_expression) :-
     seav__get(Expression, 'output', Symbolic_expression).
 symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) :-
     !,
-    se_sub_atts__get(Function, 'parameters', Parameters,
-    se_sub_atts__get(Function, 'return_type', Return_type),
     se_sub_atts__get(Function, 'body', Body),
     (Body == 'no_body_is_extern' -> %calling an extern function with no_body
         (se_name_atts__get(Function, 'name', Function_name),
@@ -32,6 +30,9 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
         (%have not thought about function calls in a good while
          %how to handle them with our new VLS strategy? Don't forget about recursive calls and multiple calls
          % need to reflect
+         se_sub_atts__get(Function, 'parameters', Parameters),
+         se_sub_atts__get(Function, 'return_type', Return_type),
+         true
         )
     ).
 symbolically_interpret(addr(Expression), addr(Expression)) :-
@@ -62,7 +63,7 @@ symbolically_interpret(greater_op(Le_exp, Ri_exp), Le_Symbolic > Ri_Symbolic) :-
 symbolically_interpret(postfix_inc_op(Expression), Symbolic_expression) :-
     !,
     symbolically_interpret(Expression, Symbolic_expression),
-    symbolic_execute(stmt(assign(Expression, plus_op(Expression, 1)))).
+    symbolic_execute(stmt(assign(Expression, plus_op(Expression, 1))), _).
 symbolically_interpret(equal_op(Le_exp, Ri_exp), Le_Symbolic = Ri_Symbolic) :-
     !,
     symbolically_interpret(Le_exp, Le_Symbolic),

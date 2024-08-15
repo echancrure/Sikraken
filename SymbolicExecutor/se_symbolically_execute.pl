@@ -17,8 +17,7 @@ symbolic_execute(declaration(Declaration_specifiers, Declarators), 'carry_on') :
     !,
     ((Declarators = [Declarator], nonvar(Declarator), Declarator = function(Function_name, Parameters)) ->  %a function forward declaration
         (memberchk('extern', Declaration_specifiers) ->  %(need to use memberchk because 'extern' does not necessairily come first) found an extern function declaration
-            (common_util__error(2, "Warning: external function declaration is ignored", "Trouble if called", [('Function_name', Function_name)], 2150824_1, 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info),
-             subtract(Declaration_specifiers, ['extern'], Other_specifiers),
+            (subtract(Declaration_specifiers, ['extern'], Other_specifiers),
              extract_type(Other_specifiers, Return_type_name),
              se_sub_atts__create(Return_type_name, Parameters, 'no_body_is_extern', Function_name)
             )

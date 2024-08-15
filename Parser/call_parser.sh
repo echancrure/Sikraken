@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Ensure we have a file as argument
+# Ensure we have 2 arguments
 if [ $# -lt 2 ]; then
     echo "Usage: $0 <directory> <file>"
     exit 1
