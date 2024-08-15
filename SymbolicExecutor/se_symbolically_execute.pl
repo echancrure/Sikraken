@@ -1,25 +1,38 @@
-symbolic_execute([]).
+symbolic_execute([]) :-
+    !.
 symbolic_execute([Item|R]) :-
+    !,
     symbolic_execute(Item),
     symbolic_execute(R).
-%%%
 symbolic_execute(mytrace) :-
+    !,
     mytrace.
-symbolic_execute(declaration([extern, int], [UC___VERIFIER_nondet_int, []])) :-
+symbolic_execute(declaration([extern, int], [function(UC___VERIFIER_nondet_int, _)])) :-
     se_name_atts__get(UC___VERIFIER_nondet_int, 'name', 'UC___VERIFIER_nondet_int'),    %just ignoring them
     !.
+symbolic_execute(declaration(Declaration_specifiers, [function(Function_name, _Parameter_list)])) :-
+    !,
+    (memberchk('extern', Declaration_specifiers) ->  %found an extern function declaration
+        common_util__error(2, "Warning: external function declaration is ignored", "Trouble if called", [('Function_name', Function_name)], 2150824_1, 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
+    ;
+        true    %we ignore all forward function declarations: they will be declared later
+    ).
 symbolic_execute(declaration(Specifiers, Declarators)) :-
+    !,
     extract_type(Specifiers, Type_name),
     declare_declarators(Declarators, Type_name).
-symbolic_execute(function(Specifiers, Function, Parameters, [], Compound_statement)) :-
+symbolic_execute(function(Specifiers, function(Function_name, Parameters), [], Compound_statement)) :-
+    !,
     extract_type(Specifiers, Return_type_name),
-    se_sub_atts__create(Return_type_name, Parameters, Compound_statement, Function).
+    se_sub_atts__create(Return_type_name, Parameters, Compound_statement, Function_name).
 symbolic_execute(cmp_stmts(Stmts)) :-
+    !,
     se_globals__push_scope_stack,
     symbolic_execute(Stmts),
     %pop scope
     se_globals__pop_scope_stack.
 symbolic_execute(stmt(assign(LValue, Expression))) :-
+    !,
     %mytrace,
     (seav__is_seav(LValue) ->
         (!,
@@ -39,6 +52,7 @@ symbolic_execute(stmt(assign(LValue, Expression))) :-
         common_util__error(10, "Unexpected LValue", "Sikraken's logic is wrong", [('LValue', LValue)], 10030824_2, 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
     ).
 symbolic_execute(if_stmt(Condition, True_statements, False_statements)) :-
+    !,
     %mytrace,
     symbolically_interpret(Condition, Symbolic_condition),
     (   (ptc_solver__sdl(Symbolic_condition),
@@ -50,6 +64,7 @@ symbolic_execute(if_stmt(Condition, True_statements, False_statements)) :-
         )
     ).
 symbolic_execute(if_stmt(Condition, True_statements)) :-
+    !,
     mytrace,
     symbolically_interpret(Condition, Symbolic_condition),
     (   (ptc_solver__sdl(Symbolic_condition),
@@ -59,7 +74,12 @@ symbolic_execute(if_stmt(Condition, True_statements)) :-
         ptc_solver__sdl(not(Symbolic_condition))
     ).
 symbolic_execute(return_stmt(Return_var, Expression)) :- 
+    !,
     symbolic_execute(stmt(assign(Return_var, Expression))).
 symbolic_execute(stmt(postfix_inc_op(Expression))) :-
+    !,
     symbolically_interpret(postfix_inc_op(Expression), _).
+symbolic_execute(Unknown_statement) :-
+    !,
+common_util__error(10, "Unexpected statement", "Cannot possibly continue", [('Unknown_statement', Unknown_statement)], 10150824_2, 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

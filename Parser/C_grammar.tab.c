@@ -3519,9 +3519,9 @@ yyreduce:
 
   case 187: /* direct_declarator: direct_declarator '(' ')'  */
 #line 835 "C_grammar.y"
-                {size_t const size = strlen(", []") + strlen((yyvsp[-2].id)) + 1;
+                {size_t const size = strlen("function(, [])") + strlen((yyvsp[-2].id)) + 1;
 	     (yyval.id) = (char*)malloc(size);
-	     sprintf_safe((yyval.id), size, "%s, []", (yyvsp[-2].id));
+	     sprintf_safe((yyval.id), size, "function(%s, [])", (yyvsp[-2].id));
 	     free((yyvsp[-2].id));
 		}
 #line 3528 "C_grammar.tab.c"
@@ -3529,9 +3529,9 @@ yyreduce:
 
   case 188: /* direct_declarator: direct_declarator '(' parameter_type_list ')'  */
 #line 841 "C_grammar.y"
-                {size_t const size = strlen(", ") + strlen((yyvsp[-3].id)) + strlen((yyvsp[-1].id)) + 1;
+                {size_t const size = strlen("function(, )") + strlen((yyvsp[-3].id)) + strlen((yyvsp[-1].id)) + 1;
 	     (yyval.id) = (char*)malloc(size);
-	     sprintf_safe((yyval.id), size, "%s, %s", (yyvsp[-3].id), (yyvsp[-1].id));
+	     sprintf_safe((yyval.id), size, "function(%s, %s)", (yyvsp[-3].id), (yyvsp[-1].id));
 	     free((yyvsp[-3].id));
 		 free((yyvsp[-1].id));
 		}

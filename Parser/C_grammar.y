@@ -832,15 +832,15 @@ direct_declarator
 	| direct_declarator '[' assignment_expression ']'
 		{simple_str_lit_copy(&$$, "D10");}
 	| direct_declarator '(' ')'
-		{size_t const size = strlen(", []") + strlen($1) + 1;
+		{size_t const size = strlen("function(, [])") + strlen($1) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "%s, []", $1);
+	     sprintf_safe($$, size, "function(%s, [])", $1);
 	     free($1);
 		}
 	| direct_declarator '(' parameter_type_list ')'
-		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
+		{size_t const size = strlen("function(, )") + strlen($1) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "%s, %s", $1, $3);
+	     sprintf_safe($$, size, "function(%s, %s)", $1, $3);
 	     free($1);
 		 free($3);
 		}
@@ -1247,6 +1247,6 @@ void my_exit(int exit_code) {			//exits and performs some tidying up if not in d
     if (pl_file) fclose(pl_file);
     if (access_safe(i_file_uri, 0) != -1) remove(i_file_uri);
   }
-  if (exit_code == EXIT_SUCCESS) fprintf(stderr, "Sikraken parsing success, wrote %s\n", pl_file_uri);
+  if (exit_code == EXIT_SUCCESS) fprintf(stderr, "Sikraken parsing SUCCESS, wrote %s\n", pl_file_uri);
   exit(exit_code);
 }
