@@ -73,11 +73,11 @@ extract_type(Specifiers, _Type_name) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 match_parameters_arguments([], []) :-
         !.
-match_parameters_arguments([param(Declaration_specifiers, Parameter)|Rest_parameters], [Argument|Rest_parameters]) :-
+match_parameters_arguments([param(Declaration_specifiers, Parameter)|Rest_parameters], [Argument|Rest_arguments]) :-
     !,
     extract_type(Declaration_specifiers, Type_name),
     declare_declarators([initialised(Parameter, Argument)], Type_name),
-    match_parameters_arguments(Rest_parameters, Rest_parameters).
+    match_parameters_arguments(Rest_parameters, Rest_arguments).
 match_parameters_arguments(Parameters, Arguments) :-
     !,
     common_util__error(10, "mismatch of parameters and arguments", "Cannot call function", [('Parameters', Parameters), ('Arguments', Arguments)], 10160824_1, 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).

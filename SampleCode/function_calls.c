@@ -15,5 +15,5 @@ int two_params(int x, int y) {
 int main() {
   int x, input;
   input = __VERIFIER_nondet_int();
-  x = calc(input);
+  x = calc(input) + two_params(input, input);
 }
