@@ -40,19 +40,20 @@ symbolic_execute(cmp_stmts(Stmts), Flow) :-
     symbolic_execute(Stmts, Flow),
     %pop scope
     se_globals__pop_scope_stack.
-symbolic_execute(stmt(assign(LValue, Expression)), 'carry_on') :-
+symbolic_execute(stmt(assign(LValue, Expression)), Flow) :-
     !,
     %mytrace,
     (seav__is_seav(LValue) ->
         (!,
          symbolically_interpret(Expression, Symbolic_expression),
-         seav__update(LValue, 'output', Symbolic_expression)
+         seav__update(LValue, 'output', Symbolic_expression),
+         Flow = 'carry_on'
         )
     ;
      LValue = deref(LValue_ptr) ->
         (symbolically_interpret(LValue_ptr, Symbolic_LValue_ptr),
          (Symbolic_LValue_ptr = addr(New_LValue) ->
-            symbolic_execute(stmt(assign(New_LValue, Expression)), 'carry_on')
+            symbolic_execute(stmt(assign(New_LValue, Expression)), Flow)
          ;
             common_util__error(10, "Unexpected derefed expression", "Sikraken's logic is wrong", [('Symbolic_LValue_ptr', Symbolic_LValue_ptr)], 10030824, 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
          )
@@ -80,7 +81,9 @@ symbolic_execute(if_stmt(Condition, True_statements), Flow) :-
          symbolic_execute(True_statements, Flow)
         )
     ;   %deliberate choice point
-        ptc_solver__sdl(not(Symbolic_condition))
+        (ptc_solver__sdl(not(Symbolic_condition)),
+         Flow = 'carry_on'
+        )
     ).
 symbolic_execute(while_stmt(Condition, Statements), Flow) :-
     !,
@@ -100,7 +103,10 @@ symbolic_execute(while_stmt(Condition, Statements), Flow) :-
     ).
 symbolic_execute(return_stmt(Expression), return(Symbolic)) :- 
     !,
-    symbolically_interpret(Expression, Symbolic).
+    symbolically_interpret(Expression, Symbolic),
+    ptc_solver__variable([Value], 'integer'),
+    ptc_solver__sdl(Value = Symbolic),
+    common_util__error(0, "Return Statement Value:", 'no_error_consequences', [('Value', Value)], 0150824_3, 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info).
 symbolic_execute(stmt(postfix_inc_op(Expression)), 'carry_on') :-
     !,
     symbolically_interpret(postfix_inc_op(Expression), _).

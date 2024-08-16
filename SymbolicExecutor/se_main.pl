@@ -39,12 +39,12 @@ se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_
     se_globals__set_globals(Install_dir, Debug_mode),
     capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
     read_parsed_file(Parsed_dir, Target_source_file_name, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors
-    symbolic_execute(Parsed_prolog_code, _Flow),   %always symbolically execute all global declarations for now: initialisations could be ignored via a switch if desired
+    symbolic_execute(Parsed_prolog_code, _),   %always symbolically execute all global declarations for now: initialisations could be ignored via a switch if desired
     (Output_mode == 'testcomp' ->
         ((se_sub_atts__get(Main, 'parameters', []), se_sub_atts__get(Main, 'return_type', 'integer')) ->
             (print_preamble_testcomp(Parsed_dir, Target_source_file_name),
              se_sub_atts__get(Main, 'body', Main_compound_statement),
-             symbolic_execute(Main_compound_statement, _Flow),
+             symbolic_execute(Main_compound_statement, _),
              se_globals__getref('verifier_inputs', Verifier_inputs),
              label_testcomp(Verifier_inputs)
             )
@@ -56,7 +56,7 @@ se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_
          se_sub_atts__get(Main, 'parameters', [param_no_decl([void], [])]),  %only handling main with no parameters for now
          se_sub_atts__get(Main, 'return_type', void),                        %only handling main with void return type for now
          se_sub_atts__get(Main, 'body', Main_compound_statement),
-         symbolic_execute(Main_compound_statement),         %symbolically execute the target C function: for now only inputs are its arguments (expand to globals that get overwritten with a switch)
+         symbolic_execute(Main_compound_statement, _Flow),         %symbolically execute the target C function: for now only inputs are its arguments (expand to globals that get overwritten with a switch)
          se_sub_atts__get(Target_subprogram_var, 'return_type', _Return_type),
          se_sub_atts__get(Target_subprogram_var, 'parameters', Params),
          se_globals__push_scope_stack,       %create function parameter scope
