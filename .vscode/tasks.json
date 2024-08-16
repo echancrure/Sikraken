@@ -15,7 +15,7 @@
         {
             "label": "Compile Parser",
             "type": "shell",
-            "command": "${workspaceFolder}/Parser/compile_parser.sh",
+            "command": "${workspaceFolder}/bin/compile_parser.sh",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -36,7 +36,7 @@
         {
             "label": "Call Parser",
             "type": "shell",
-            "command": "${workspaceFolder}/Parser/call_parser.sh",
+            "command": "${workspaceFolder}/bin/call_parser.sh",
             "args": [
                 "${fileDirname}",
                 "${fileBasename}"

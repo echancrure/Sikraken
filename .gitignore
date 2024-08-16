@@ -16,3 +16,5 @@ Archive/
 Tools/
 ToolsArchive/
 Sikraken.code-workspace
+output/
+*.gcov

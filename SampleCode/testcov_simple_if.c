@@ -5,7 +5,7 @@
 // SPDX-FileCopyrightText: 2019 Dirk Beyer <https://www.sosy-lab.org>
 //
 // SPDX-License-Identifier: Apache-2.0
-
+// testcov_simple_if.c
 extern int __VERIFIER_nondet_int();
 
 int main() {

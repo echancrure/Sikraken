@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Script name: compile_parser.sh
-cd ./Parser
+
 # Run the flex command
-flex C_grammar.l
+flex "./Parser/C_grammar.l"
 
 # Check if the flex command was successful
 if [ $? -ne 0 ]; then
@@ -14,7 +14,7 @@ else
 fi
 
 # Run the bison command
-bison C_grammar.y
+bison "./Parser/C_grammar.y"
 
 # Check if the bison command was successful
 if [ $? -ne 0 ]; then
@@ -25,12 +25,12 @@ else
 fi
 
 # Run the gcc command to compile the generated C code
-gcc -trigraphs C_grammar.tab.c -o ./../bin/sikraken_parser.exe
+gcc -trigraphs "./Parser/C_grammar.tab.c" -o ./bin/sikraken_parser.exe
 
 # Check if the gcc command was successful
 if [ $? -ne 0 ]; then
     echo "Error: gcc failed to compile C_grammar.tab.c"
     exit 1
 else
-    echo "gcc successfully compiled C_grammar.tab.c to ./../bin/sikraken_parser.exe"
+    echo "gcc successfully compiled C_grammar.tab.c to ./bin/sikraken_parser.exe"
 fi
