@@ -3991,7 +3991,7 @@ yyreduce:
 
   case 290: /* jump_statement: RETURN expression ';'  */
 #line 1139 "C_grammar.y"
-                                {fprintf(pl_file, "\nreturn_stmt(Sikraken_return, %s)\n", (yyvsp[-1].id)); free((yyvsp[-1].id));}
+                                {fprintf(pl_file, "\nreturn_stmt(%s)\n", (yyvsp[-1].id)); free((yyvsp[-1].id));}
 #line 3996 "C_grammar.tab.c"
     break;
 
@@ -4298,6 +4298,6 @@ void my_exit(int exit_code) {			//exits and performs some tidying up if not in d
     if (pl_file) fclose(pl_file);
     if (access_safe(i_file_uri, 0) != -1) remove(i_file_uri);
   }
-  if (exit_code == EXIT_SUCCESS) fprintf(stderr, "Sikraken parsing success, wrote %s\n", pl_file_uri);
+  if (exit_code == EXIT_SUCCESS) fprintf(stderr, "Sikraken parsing SUCCESS, wrote %s\n", pl_file_uri);
   exit(exit_code);
 }
