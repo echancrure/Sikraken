@@ -3991,7 +3991,7 @@ yyreduce:
 
   case 290: /* jump_statement: RETURN expression ';'  */
 #line 1139 "./Parser/C_grammar.y"
-                                {fprintf(pl_file, "\nreturn_stmt(Sikraken_return, %s)\n", (yyvsp[-1].id)); free((yyvsp[-1].id));}
+                                {fprintf(pl_file, "\nreturn_stmt(%s)\n", (yyvsp[-1].id)); free((yyvsp[-1].id));}
 #line 3996 "C_grammar.tab.c"
     break;
 

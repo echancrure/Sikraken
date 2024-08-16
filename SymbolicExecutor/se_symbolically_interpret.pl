@@ -27,14 +27,22 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
          )
         )
     ;
-        (%have not thought about function calls in a good while
-         %how to handle them with our new VLS strategy? Don't forget about recursive calls and multiple calls
-         % need to reflect
-         se_sub_atts__get(Function, 'parameters', Parameters),
+        (se_sub_atts__get(Function, 'parameters', Parameters),
          se_sub_atts__get(Function, 'return_type', Return_type),
-         true
+         se_globals__push_scope_stack,          %function parameters scope
+         match_parameters_arguments(Parameters, Arguments),
+         symbolic_execute(Body, Flow),
+         (Flow = return(Return_expression) ->
+            symbolically_interpret(cast(Return_type, Return_expression), Symbolic_expression)
+         ;
+            Symbolic_expression = void
+         ),
+         se_globals__pop_scope_stack            %function parameters scope
         )
     ).
+symbolically_interpret(cast(_Return_type, Return_expression), Symbolic_expression) :-
+    !,
+    Symbolic_expression = Return_expression.    %for now
 symbolically_interpret(addr(Expression), addr(Expression)) :-
     !.
 symbolically_interpret(deref(Expression), Symbolic_expression) :-

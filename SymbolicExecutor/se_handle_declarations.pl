@@ -71,3 +71,19 @@ extract_type([void], void) :-
 extract_type(Specifiers, _Type_name) :-
     common_util__error(9, "Not Handled", "Sikraken needs expanding", [('Specifiers', Specifiers)], 9270724, 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+match_parameters_arguments([], []) :-
+        !.
+match_parameters_arguments([param(Declaration_specifiers, Declarators)|Rest], Arguments) :-
+    !,
+    extract_type(Declaration_specifiers, Type_name),
+    match_group_parameters_arguments(Declarators, Type_name, Arguments, Arguments_rest),
+    match_parameters_arguments(Rest, Arguments_rest).
+match_parameters_arguments(Parameters, Arguments) :-
+    !,
+    common_util__error(10, "mismatch of parameters and arguments", "Cannot call function", [('Parameters', Parameters), ('Arguments', Arguments)], 10160824_1, 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    match_group_parameters_arguments([], _Type_name, Arguments_rest, Arguments_rest).
+    match_group_parameters_arguments([Parameter|Rest], Type_name, [Argument|Other_arguments], Arguments_rest) :-
+        declare_declarators([initialised(Parameter, Argument)], Type_name),
+        match_group_parameters_arguments(Rest, Type_name, Other_arguments, Arguments_rest).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -38,7 +38,7 @@ se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_
     initialise,
     se_globals__set_globals(Install_dir, Debug_mode),
     capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
-    read_parsed_file(Parsed_dir, Target_source_file_name, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var, Return_var),      %may fail if badly formed due to parsing errors
+    read_parsed_file(Parsed_dir, Target_source_file_name, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors
     mytrace,
     symbolic_execute(Parsed_prolog_code, _Flow),   %always symbolically execute all global declarations for now: initialisations could be ignored via a switch if desired
     (Output_mode == 'testcomp' ->
@@ -58,13 +58,12 @@ se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_
          se_sub_atts__get(Main, 'return_type', void),                        %only handling main with void return type for now
          se_sub_atts__get(Main, 'body', Main_compound_statement),
          symbolic_execute(Main_compound_statement),         %symbolically execute the target C function: for now only inputs are its arguments (expand to globals that get overwritten with a switch)
-         se_sub_atts__get(Target_subprogram_var, 'return_type', Return_type),
-         declare_return(Return_var, Return_type),    %belong to the outer scope
+         se_sub_atts__get(Target_subprogram_var, 'return_type', _Return_type),
          se_sub_atts__get(Target_subprogram_var, 'parameters', Params),
          se_globals__push_scope_stack,       %create function parameter scope
          declare_params(Params, SEAV_Inputs),
          se_sub_atts__get(Target_subprogram_var, 'body', Compound_statement),
-         symbolic_execute(Compound_statement),
+         symbolic_execute(Compound_statement, _Flow),
          label(SEAV_Inputs)
         )
     ),
@@ -112,7 +111,7 @@ initialise :-
     ptc_solver__clean_up,
     ptc_solver__default_declarations.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-read_parsed_file(Parsed_dir, Target_source_file_name, Target_raw_subprogram_name, CProlog, Main, Target_subprogram_var, Return_var) :-
+read_parsed_file(Parsed_dir, Target_source_file_name, Target_raw_subprogram_name, CProlog, Main, Target_subprogram_var) :-
     concat_atom([Parsed_dir, Target_source_file_name, '.pl'], Parsed_filename),
     (open(Parsed_filename, read, Stream) ->
         (read_term(Stream, CProlog, [variable_names(VarsNames)]) ->
@@ -120,11 +119,7 @@ read_parsed_file(Parsed_dir, Target_source_file_name, Target_raw_subprogram_name
              se_name_atts__initL(VarsNames),     %initialise all C vars with their id
              (memberchk(Target_raw_subprogram_name = Target_subprogram_var, VarsNames) ->
                 (memberchk('Main' = Main, VarsNames) ->
-                    (memberchk('Sikraken_return' = Return_var, VarsNames) ->
-                        true
-                    ;
-                        Return_var = null
-                    )
+                    true
                 ;
                     Main = null
                 )

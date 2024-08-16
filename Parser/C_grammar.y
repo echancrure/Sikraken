@@ -1136,7 +1136,7 @@ jump_statement		//printed out
 	| CONTINUE ';'			{fprintf(pl_file, "\ncontinue_stmt\n");}
 	| BREAK ';'				{fprintf(pl_file, "\nbreak_stmt\n");}
 	| RETURN ';'			{fprintf(pl_file, "\nreturn_stmt\n");}
-	| RETURN expression ';'	{fprintf(pl_file, "\nreturn_stmt(Sikraken_return, %s)\n", $2); free($2);}
+	| RETURN expression ';'	{fprintf(pl_file, "\nreturn_stmt(%s)\n", $2); free($2);}
 	;
 
 //top level rule

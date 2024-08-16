@@ -1,5 +1,5 @@
 %The second argument of symbolic_execute/2 is an indication of the control flow.
-%  it can have the following values : 'carry_on'|goto(Label)|exit|return
+%  it can have the following values : 'carry_on'|goto(Label)|exit|return(expression)
 symbolic_execute([], 'carry_on') :-
     !.
 symbolic_execute([Item|R], Flow) :-
@@ -98,9 +98,9 @@ symbolic_execute(while_stmt(Condition, Statements), Flow) :-
          Flow = 'carry_on'
         )
     ).
-symbolic_execute(return_stmt(Return_var, Expression), 'return') :- 
+symbolic_execute(return_stmt(Expression), return(Symbolic)) :- 
     !,
-    symbolic_execute(stmt(assign(Return_var, Expression)), _).
+    symbolically_interpret(Expression, Symbolic).
 symbolic_execute(stmt(postfix_inc_op(Expression)), 'carry_on') :-
     !,
     symbolically_interpret(postfix_inc_op(Expression), _).
