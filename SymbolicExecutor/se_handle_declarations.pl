@@ -69,7 +69,7 @@ extract_type([int], integer) :-
 extract_type([void], void) :-
     !.
 extract_type(Specifiers, _Type_name) :-
-    common_util__error(9, "Not Handled", "Sikraken needs expanding", [('Specifiers', Specifiers)], '9_270724, 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).
+    common_util__error(9, "Not Handled", "Sikraken needs expanding", [('Specifiers', Specifiers)], '9_270724', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 match_parameters_arguments([], []) :-
         !.

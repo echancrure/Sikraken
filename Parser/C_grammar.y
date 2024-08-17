@@ -1107,8 +1107,8 @@ expression_statement	//printed out
 	| expression ';'	{fprintf(pl_file, "\nstmt(%s)", $1); free($1);}
 	;
 
-	selection_statement		//printed out
-		: IF '(' expression ')' {fprintf(pl_file, "\nif_stmt(%s, ", $3); free($3); } statement else_opt{ fprintf(pl_file, ")"); } 
+selection_statement		//printed out
+	: IF '(' expression ')' {fprintf(pl_file, "\nif_stmt(%s, ", $3); free($3); } statement else_opt{ fprintf(pl_file, ")"); } 
 	| SWITCH '(' expression ')' {fprintf(pl_file, "\nswitch_stmt(%s, ", $3); free($3);} statement	{fprintf(pl_file, ")");}
 	;
 

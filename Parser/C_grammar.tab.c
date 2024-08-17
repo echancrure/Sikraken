@@ -3877,13 +3877,13 @@ yyreduce:
 
   case 266: /* $@7: %empty  */
 #line 1111 "C_grammar.y"
-                                        {fprintf(pl_file, "\nif_stmt(%s, ", (yyvsp[-1].id)); free((yyvsp[-1].id)); }
+                                {fprintf(pl_file, "\nif_stmt(%s, ", (yyvsp[-1].id)); free((yyvsp[-1].id)); }
 #line 3882 "C_grammar.tab.c"
     break;
 
   case 267: /* selection_statement: IF '(' expression ')' $@7 statement else_opt  */
 #line 1111 "C_grammar.y"
-                                                                                                               { fprintf(pl_file, ")"); }
+                                                                                                       { fprintf(pl_file, ")"); }
 #line 3888 "C_grammar.tab.c"
     break;
 

@@ -18,9 +18,10 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
              Symbolic_expression = Input_var
             )
          ;
-          Function_name == 'Exit' ->             %%%trigger global constraint?
+          Function_name == 'Exit' ->
             (Arguments = [Exit_code],
-             common_util__error(10, "Function call to Exit", "Unsure how to handle this yet, see diary 15 August 2024", [('Exit_code', Exit_code)], '10_150824_4', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info)
+             common_util__error(0, "Exit Called:", 'no_error_consequences', [('Exit_code', Exit_code)], '0_170824_1', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info),
+             end_of_path_predicate(_, _)    %only works in 'testcomp'
             )
          ;
             common_util__error(10, "Function call to unknown external function", "Cannot perform symbolic interpretation", [('Function_name', Function_name)], '10_150824_3', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info)
@@ -75,7 +76,7 @@ symbolically_interpret(greater_op(Le_exp, Ri_exp), Le_Symbolic > Ri_Symbolic) :-
 symbolically_interpret(postfix_inc_op(Expression), Symbolic_expression) :-
     !,
     symbolically_interpret(Expression, Symbolic_expression),
-    symbolic_execute(stmt(assign(Expression, plus_op(Expression, 1))), _).
+    symbolic_execute(assign(Expression, plus_op(Expression, 1)), _).
 symbolically_interpret(equal_op(Le_exp, Ri_exp), Le_Symbolic = Ri_Symbolic) :-
     !,
     symbolically_interpret(Le_exp, Le_Symbolic),
