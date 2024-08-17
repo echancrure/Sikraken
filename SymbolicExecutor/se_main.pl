@@ -33,23 +33,21 @@ mytrace.            %call this to start debugging
 % laptop    se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug)
 go_laptop :- se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug).
 go_pc :- se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic002, basic, debug).
-go_linux(Target_source_file_name) :- se_main('/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/', Target_source_file_name, main, debug, testcomp).
-se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_name, Debug_mode, Output_mode) :-
+go_linux(Target_source_file_name_no_ext) :- se_main('/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/', Target_source_file_name_no_ext, main, debug, testcomp).
+se_main(Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode) :-
     initialise,
-    se_globals__set_globals(Install_dir, Debug_mode),
+    se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode),
     capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
-    read_parsed_file(Parsed_dir, Target_source_file_name, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors
+    read_parsed_file(Parsed_dir, Target_source_file_name_no_ext, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors
     symbolic_execute(Parsed_prolog_code, _),   %always symbolically execute all global declarations for now: initialisations could be ignored via a switch if desired
     (Output_mode == 'testcomp' ->
         ((se_sub_atts__get(Main, 'parameters', []), se_sub_atts__get(Main, 'return_type', 'integer')) ->
-            (print_preamble_testcomp(Parsed_dir, Target_source_file_name),
+            (print_preamble_testcomp(Parsed_dir),
              se_sub_atts__get(Main, 'body', Main_compound_statement),
-             symbolic_execute(Main_compound_statement, _),
-             se_globals__getref('verifier_inputs', Verifier_inputs),
-             label_testcomp(Verifier_inputs)
+             symbolic_execute(Main_compound_statement, _)
             )
         ;
-            common_util__error(10, "Unexpected main format in testcomp mode", "Best not to proceed", [('Main', Main)], 10140824_1, 'se_main', 'se_main', no_localisation, no_extra_info)
+            common_util__error(10, "Unexpected main format in testcomp mode", "Best not to proceed", [('Main', Main)], '10_140824_1', 'se_main', 'se_main', no_localisation, no_extra_info)
         )
     ;
         (%always symbolically execute void main(void) for now: should be a switch allowing the main to be ignored via a switch if desired
@@ -62,32 +60,14 @@ se_main(Install_dir, Parsed_dir, Target_source_file_name, Target_raw_subprogram_
          se_globals__push_scope_stack,       %create function parameter scope
          declare_params(Params, SEAV_Inputs),
          se_sub_atts__get(Target_subprogram_var, 'body', Compound_statement),
-         symbolic_execute(Compound_statement, _Flow),
-         label(SEAV_Inputs)
+         symbolic_execute(Compound_statement, _Flow)
         )
     ),
-    se_globals__getval('path_nb', Test_nb),
-    Inc_test_nb is Test_nb + 1,
-    se_globals__setval('path_nb', Inc_test_nb),
-    (Output_mode == 'testcomp' ->
-        print_test_inputs_testcomp(Verifier_inputs)
-    ;
-        print_test_inputs(SEAV_Inputs)
-    ),
-    (Output_mode == 'testcomp' ->
-        true    %don't print expected outputs
-    ;
-        (se_globals__pop_scope_stack,    %only after labeling and printed to preserve parameters
-         term_variables(Parsed_prolog_code, All_Ids),
-         get_all_outputs(All_Ids, All_seavs),
-         print_test_outputs(All_seavs),    
-         flush(user_output)
-        )
-    ),
+    end_of_path_predicate(SEAV_Inputs, Parsed_prolog_code),
     fail.       %oh yes!
-se_main(_Install_dir, _Parsed_dir, Target_source_file_name, _Target_raw_subprogram_name, _Debug_mode, Output_mode) :-
+se_main(_Install_dir, _Parsed_dir, _Target_source_file_name_no_ext, _Target_raw_subprogram_name, _Debug_mode, Output_mode) :-
     (Output_mode == 'testcomp' ->
-        terminate_testcomp(Target_source_file_name)
+        terminate_testcomp
     ;
         printf(user_output, "\nSUCCESS", [])
     ).
@@ -104,15 +84,39 @@ se_main(_Install_dir, _Parsed_dir, Target_source_file_name, _Target_raw_subprogr
             UpperFirstChar = FirstChar
         ),
         string_chars(Output_string, [UpperFirstChar|RestChars]),
-        atom_string(Output, Output_string). 
+        atom_string(Output, Output_string).
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    end_of_path_predicate(SEAV_Inputs, Parsed_prolog_code) :-
+        se_globals__getval('output_mode', Output_mode),
+        (Output_mode = 'testcomp' ->
+            (se_globals__getref('verifier_inputs', Verifier_inputs),
+             label_testcomp(Verifier_inputs)
+            )
+        ;
+            true
+        ),
+        se_globals__getval('path_nb', Test_nb),
+        Inc_test_nb is Test_nb + 1,
+        se_globals__setval('path_nb', Inc_test_nb),
+        (Output_mode == 'testcomp' ->
+            print_test_inputs_testcomp(Verifier_inputs)   %but don't print expected outputs
+        ;
+            (print_test_inputs(SEAV_Inputs),
+             se_globals__pop_scope_stack,    %only after labeling and printed to preserve parameters
+             term_variables(Parsed_prolog_code, All_Ids),
+             get_all_outputs(All_Ids, All_seavs),
+             print_test_outputs(All_seavs),    
+             flush(user_output)
+            )
+        ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 initialise :-
     ptc_solver__clean_up,
     ptc_solver__default_declarations.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-read_parsed_file(Parsed_dir, Target_source_file_name, Target_raw_subprogram_name, CProlog, Main, Target_subprogram_var) :-
-    concat_atom([Parsed_dir, Target_source_file_name, '.pl'], Parsed_filename),
-    (open(Parsed_filename, read, Stream) ->
+read_parsed_file(Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, CProlog, Main, Target_subprogram_var) :-
+    concat_atom([Parsed_dir, Target_source_file_name_no_ext, '.pl'], Parsed_filename),
+    (open(Parsed_filename, read, Stream) -> %todo check if the file existing, has open aborts otherwsie (it does not fail) 
         (read_term(Stream, CProlog, [variable_names(VarsNames)]) ->
             (close(Stream),
              se_name_atts__initL(VarsNames),     %initialise all C vars with their id
@@ -123,14 +127,14 @@ read_parsed_file(Parsed_dir, Target_source_file_name, Target_raw_subprogram_name
                     Main = null
                 )
              ;
-                common_util__error(10, "Could not find the target function", "Cannot process parsed C code", [('Parsed_filename', Parsed_filename), ('Target_raw_subprogram_name', Target_raw_subprogram_name)], 10080824_1, 'se_main', 'read_parsed_file', no_localisation, "make sure the function name starts with an uppercase")
+                common_util__error(10, "Could not find the target function", "Cannot process parsed C code", [('Parsed_filename', Parsed_filename), ('Target_raw_subprogram_name', Target_raw_subprogram_name)], '10_080824_1', 'se_main', 'read_parsed_file', no_localisation, "make sure the function name starts with an uppercase")
              )
             )
         ;
-            common_util__error(10, "Reading parsed file failed", "Cannot process parsed C code", [('Parsed_filename', Parsed_filename)], 102607241, 'se_main', 'read_parsed_file', no_localisation, "the parser probably produced bad Prolog code")
+            common_util__error(10, "Reading parsed file failed", "Cannot process parsed C code", [('Parsed_filename', Parsed_filename)], '10_260724_1', 'se_main', 'read_parsed_file', no_localisation, "the parser probably produced bad Prolog code")
         )
     ;
-        common_util__error(10, "Parsed file does not exist", "Cannot process parsed C code", [('Parsed_filename', Parsed_filename)], 10260724, 'se_main', 'read_parsed_file', no_localisation, no_extra_info)
+        common_util__error(10, "Parsed file does not exist", "Cannot process parsed C code", [('Parsed_filename', Parsed_filename)], '10_260724', 'se_main', 'read_parsed_file', no_localisation, no_extra_info)
     ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 label(SEAV_Inputs) :-

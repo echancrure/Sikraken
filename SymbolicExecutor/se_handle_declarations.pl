@@ -69,7 +69,7 @@ extract_type([int], integer) :-
 extract_type([void], void) :-
     !.
 extract_type(Specifiers, _Type_name) :-
-    common_util__error(9, "Not Handled", "Sikraken needs expanding", [('Specifiers', Specifiers)], 9270724, 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).
+    common_util__error(9, "Not Handled", "Sikraken needs expanding", [('Specifiers', Specifiers)], '9_270724, 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 match_parameters_arguments([], []) :-
         !.
@@ -80,5 +80,5 @@ match_parameters_arguments([param(Declaration_specifiers, Parameter)|Rest_parame
     match_parameters_arguments(Rest_parameters, Rest_arguments).
 match_parameters_arguments(Parameters, Arguments) :-
     !,
-    common_util__error(10, "mismatch of parameters and arguments", "Cannot call function", [('Parameters', Parameters), ('Arguments', Arguments)], 10160824_1, 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
+    common_util__error(10, "mismatch of parameters and arguments", "Cannot call function", [('Parameters', Parameters), ('Arguments', Arguments)], '10160824_1', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

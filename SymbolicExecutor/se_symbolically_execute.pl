@@ -55,11 +55,11 @@ symbolic_execute(stmt(assign(LValue, Expression)), Flow) :-
          (Symbolic_LValue_ptr = addr(New_LValue) ->
             symbolic_execute(stmt(assign(New_LValue, Expression)), Flow)
          ;
-            common_util__error(10, "Unexpected derefed expression", "Sikraken's logic is wrong", [('Symbolic_LValue_ptr', Symbolic_LValue_ptr)], 10030824, 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
+            common_util__error(10, "Unexpected derefed expression", "Sikraken's logic is wrong", [('Symbolic_LValue_ptr', Symbolic_LValue_ptr)], '10_030824', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
          )
         )
     ;
-        common_util__error(10, "Unexpected LValue", "Sikraken's logic is wrong", [('LValue', LValue)], 10030824_2, 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
+        common_util__error(10, "Unexpected LValue", "Sikraken's logic is wrong", [('LValue', LValue)], '10_030824_2', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
     ).
 symbolic_execute(if_stmt(Condition, True_statements, False_statements), Flow) :-
     !,
@@ -101,16 +101,19 @@ symbolic_execute(while_stmt(Condition, Statements), Flow) :-
          Flow = 'carry_on'
         )
     ).
+symbolic_execute(label_stmt(_Label, Statement), Flow) :- 
+    !,
+    symbolic_execute(Statement, Flow).
 symbolic_execute(return_stmt(Expression), return(Symbolic)) :- 
     !,
     symbolically_interpret(Expression, Symbolic),
     ptc_solver__variable([Value], 'integer'),
     ptc_solver__sdl(Value = Symbolic),
-    common_util__error(0, "Return Statement Value:", 'no_error_consequences', [('Value', Value)], 0150824_3, 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info).
+    common_util__error(0, "Return Statement Value:", 'no_error_consequences', [('Value', Value)], '0_150824_3', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info).
 symbolic_execute(stmt(postfix_inc_op(Expression)), 'carry_on') :-
     !,
     symbolically_interpret(postfix_inc_op(Expression), _).
 symbolic_execute(Unknown_statement, _) :-
     !,
-common_util__error(10, "Unexpected statement", "Caould not possibly continue", [('Unknown_statement', Unknown_statement)], 10150824_2, 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info).
+common_util__error(10, "Unexpected statement", "Could not possibly continue", [('Unknown_statement', Unknown_statement)], '10_150824_2', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

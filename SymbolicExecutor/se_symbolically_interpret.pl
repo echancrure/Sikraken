@@ -20,10 +20,10 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
          ;
           Function_name == 'Exit' ->             %%%trigger global constraint?
             (Arguments = [Exit_code],
-             common_util__error(10, "Function call to Exit", "Unsure how to handle this yet, see diary 15 August 2024", [('Exit_code', Exit_code)], 10150824_4, 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info)
+             common_util__error(10, "Function call to Exit", "Unsure how to handle this yet, see diary 15 August 2024", [('Exit_code', Exit_code)], '10_150824_4', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info)
             )
          ;
-            common_util__error(10, "Function call to unknown external function", "Cannot perform symbolic interpretation", [('Function_name', Function_name)], 10150824_3, 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info)
+            common_util__error(10, "Function call to unknown external function", "Cannot perform symbolic interpretation", [('Function_name', Function_name)], '10_150824_3', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info)
          )
         )
     ;
@@ -80,6 +80,10 @@ symbolically_interpret(equal_op(Le_exp, Ri_exp), Le_Symbolic = Ri_Symbolic) :-
     !,
     symbolically_interpret(Le_exp, Le_Symbolic),
     symbolically_interpret(Ri_exp, Ri_Symbolic).
+symbolically_interpret(not_equal_op(Le_exp, Ri_exp), Le_Symbolic <> Ri_Symbolic) :-
+    !,
+    symbolically_interpret(Le_exp, Le_Symbolic),
+    symbolically_interpret(Ri_exp, Ri_Symbolic).
 symbolically_interpret(and_op(Le_exp, Ri_exp), and_then(Le_Symbolic, Ri_Symbolic)) :-   %C semantics of && is always short circuit
     !,
     symbolically_interpret(Le_exp, Le_Symbolic),
@@ -92,5 +96,5 @@ symbolically_interpret(not_op(Le_exp), not(Le_Symbolic)) :-
     !,
     symbolically_interpret(Le_exp, Le_Symbolic).
 symbolically_interpret(Unhandled_expression, _Symbolic_expression) :-
-    common_util__error(10, "Expression is not handled", "Cannot perform symbolic interpretation", [('Unhandled_expression', Unhandled_expression)], 10020824, 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
+    common_util__error(10, "Expression is not handled", "Cannot perform symbolic interpretation", [('Unhandled_expression', Unhandled_expression)], '10_020824', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

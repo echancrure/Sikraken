@@ -1,8 +1,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %create the folder for TestComp format and the metadata file
-print_preamble_testcomp(Parsed_dir, Target_source_file_name) :-
-    concat_atom([Parsed_dir, 'suite-', Target_source_file_name], Test_suite_folder),
-    concat_atom([Parsed_dir, Target_source_file_name, '.c'], Filename),
+print_preamble_testcomp(Parsed_dir) :-
+    se_globals__getval(target_source_file_name_no_ext, Target_source_file_name_no_ext),
+    concat_atom([Parsed_dir, 'suite-', Target_source_file_name_no_ext], Test_suite_folder),
+    concat_atom([Parsed_dir, Target_source_file_name_no_ext, '.c'], Filename),
     (exists(Test_suite_folder) ->
         (concat_atom(['rm -rf ', Test_suite_folder], Delete_call),
          system(Delete_call)
@@ -60,10 +61,11 @@ print_test_inputs_testcomp(Verifier_inputs) :-
         print_inputs(R).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %zip the Test_suite_folder directory for TestCov consumption
-terminate_testcomp(Target_source_file_name):-
+terminate_testcomp:-
     mytrace,
+    se_globals__getval(target_source_file_name_no_ext, Target_source_file_name_no_ext),
     se_globals__getval(testcomp_test_suite_folder, Test_suite_folder),
     cd('..'),
-    concat_string(["zip -r suite-", Target_source_file_name, ".zip ", Test_suite_folder], Zip_call),
+    concat_string(["zip -r suite-", Target_source_file_name_no_ext, ".zip ", Test_suite_folder], Zip_call),
     exec(Zip_call, []).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

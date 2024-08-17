@@ -52,6 +52,12 @@ common_util__error(Error_severity, Error_message, Error_consequences, ArgumentsL
 
 common_util__error2(10, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode) :-
     !,
+    se_globals__getval('output_mode', Output_mode),
+    (Output_mode = 'testcomp' ->
+       call(terminate_testcomp) @ eclipse   %rescue tests inputs generated so far before aborting  //bad hack for calling unexported predicate
+    ;
+       true
+    ),
     (Message_mode == debug ->
             (printf(user_error, "%2n###################################%n", []),
              printf(user_error, "=>Sikraken: a fatal error has occurred%n", []),
