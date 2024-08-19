@@ -28,9 +28,11 @@ mytrace.            %call this to start debugging
 
 :- compile(['se_handle_declarations', 'se_symbolically_execute', 'se_symbolically_interpret']).
 :- compile(['se_write_tests_testcomp']).
+:- compile(['se_coverage']).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % home pc   se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic001, main, debug)
 % laptop    se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug)
+%  go_linux('Problem03_label00')
 go_laptop :- se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug).
 go_pc :- se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic002, basic, debug).
 go_linux(Target_source_file_name_no_ext) :- se_main('/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/', Target_source_file_name_no_ext, main, debug, testcomp).
@@ -44,6 +46,7 @@ se_main(Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subp
         ((se_sub_atts__get(Main, 'parameters', []), se_sub_atts__get(Main, 'return_type', 'integer')) ->
             (print_preamble_testcomp(Parsed_dir),
              se_sub_atts__get(Main, 'body', Main_compound_statement),
+             se_globals__update_ref('current_path_bran', start('Target_raw_subprogram_name', true)),
              symbolic_execute(Main_compound_statement, _)
             )
         ;
@@ -87,17 +90,26 @@ se_main(_Install_dir, _Parsed_dir, _Target_source_file_name_no_ext, _Target_raw_
         atom_string(Output, Output_string).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     end_of_path_predicate(SEAV_Inputs, Parsed_prolog_code) :-
-        se_globals__getval('output_mode', Output_mode),
+        se_globals__get_ref('current_path_bran', Current_path),
+        prune_instances(Current_path, Current_path_no_duplicates),
+        se_globals__get_val('covered_bran', Already_covered),
+        union(Already_covered, Current_path_no_duplicates, Covered),
+        se_globals__set_val('covered_bran', Covered),
+        subtract(Current_path_no_duplicates, Already_covered, Newly_covered),
+        common_util__error(0, "End of path", 'no_error_consequences', [('Newly_covered', Newly_covered), ('Current_path', Current_path)], '0_190824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info),
+        %%%
+        se_globals__get_val('output_mode', Output_mode),
         (Output_mode = 'testcomp' ->
-            (se_globals__getref('verifier_inputs', Verifier_inputs),
+            (se_globals__get_ref('verifier_inputs', Verifier_inputs),
              label_testcomp(Verifier_inputs)
             )
         ;
             true
         ),
-        se_globals__getval('path_nb', Test_nb),
+        se_globals__get_val('path_nb', Test_nb),
         Inc_test_nb is Test_nb + 1,
-        se_globals__setval('path_nb', Inc_test_nb),
+        (Inc_test_nb == 3 -> mytrace ; true),
+        se_globals__set_val('path_nb', Inc_test_nb),
         (Output_mode == 'testcomp' ->
             print_test_inputs_testcomp(Verifier_inputs)   %but don't print expected outputs
         ;
@@ -113,7 +125,7 @@ se_main(_Install_dir, _Parsed_dir, _Target_source_file_name_no_ext, _Target_raw_
 initialise :-
     ptc_solver__clean_up,
     ptc_solver__default_declarations,
-    ptc_solver__set_flag('or_constraint_behaviour', 'pure').
+    ptc_solver__set_flag('or_constraint_behaviour', 'choice').
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 read_parsed_file(Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, CProlog, Main, Target_subprogram_var) :-
     concat_atom([Parsed_dir, Target_source_file_name_no_ext, '.pl'], Parsed_filename),

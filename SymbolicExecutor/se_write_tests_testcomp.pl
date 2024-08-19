@@ -1,7 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %create the folder for TestComp format and the metadata file
 print_preamble_testcomp(Parsed_dir) :-
-    se_globals__getval(target_source_file_name_no_ext, Target_source_file_name_no_ext),
+    se_globals__get_val(target_source_file_name_no_ext, Target_source_file_name_no_ext),
     concat_atom([Parsed_dir, 'suite-', Target_source_file_name_no_ext], Test_suite_folder),
     concat_atom([Parsed_dir, Target_source_file_name_no_ext, '.c'], Filename),
     (exists(Test_suite_folder) ->
@@ -12,7 +12,7 @@ print_preamble_testcomp(Parsed_dir) :-
         true
     ),
     mkdir(Test_suite_folder),
-    se_globals__setval(testcomp_test_suite_folder, Test_suite_folder),
+    se_globals__set_val(testcomp_test_suite_folder, Test_suite_folder),
     cd(Test_suite_folder),
     open('metadata.xml', 'write', 'metadata_stream'),
     printf('metadata_stream', "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n", []),
@@ -32,7 +32,7 @@ print_preamble_testcomp(Parsed_dir) :-
     close('metadata_stream').
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     get_hash(Filename, Hash) :-
-        se_globals__getval('install_dir', Install_dir),
+        se_globals__get_val('install_dir', Install_dir),
         concat_atom([Install_dir, 'SymbolicExecutor/get_hash.sh ', Filename], Hash_call),
         exec(Hash_call, [_, 'hash_stream', _]),
         read_string('hash_stream', end_of_line, "", _, Hash),
@@ -44,7 +44,7 @@ print_preamble_testcomp(Parsed_dir) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %create a new test case .xml file
 print_test_inputs_testcomp(Verifier_inputs) :-
-    se_globals__getval('path_nb', Test_nb),
+    se_globals__get_val('path_nb', Test_nb),
     concat_atom(['test_input-', Test_nb, '.xml'], Filename),
     open(Filename, 'write', 'test_input_stream'),
     printf('test_input_stream', "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n", []),
@@ -63,9 +63,9 @@ print_test_inputs_testcomp(Verifier_inputs) :-
 %zip the Test_suite_folder directory for TestCov consumption
 terminate_testcomp:-
     mytrace,
-    se_globals__getval(target_source_file_name_no_ext, Target_source_file_name_no_ext),
-    se_globals__getval(testcomp_test_suite_folder, Test_suite_folder),
-    cd('..'),
+    se_globals__get_val(target_source_file_name_no_ext, Target_source_file_name_no_ext),
+    se_globals__get_val(testcomp_test_suite_folder, Test_suite_folder),
+    cd('..'),   %todo delete existing archive if it exists
     concat_string(["zip -r suite-", Target_source_file_name_no_ext, ".zip ", Test_suite_folder], Zip_call),
     exec(Zip_call, []).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

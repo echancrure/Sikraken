@@ -1,5 +1,6 @@
 :- module('se_globals').
-:- export se_globals__set_globals/4, se_globals__getval/2, se_globals__setval/2, se_globals__getref/2, se_globals__setref/2.
+:- export se_globals__set_globals/4, se_globals__get_val/2, se_globals__set_val/2, se_globals__get_ref/2, se_globals__set_ref/2.
+:- export se_globals__update_ref/2.
 :- export se_globals__push_scope_stack/0, se_globals__pop_scope_stack/0.
 
 %declaring global references: undone on backtracking
@@ -26,17 +27,26 @@ se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode,
     setval('already_printed', []),              %list of already printed error messages : used in release mode only
     !.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-se_globals__getval(Global, Value) :-
+se_globals__get_val(Global, Value) :-
     getval(Global, Value).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-se_globals__setval(Global, Value) :-
-    setval(Global, Value).
+se_globals__set_val(Global, Value) :-      
+    setval(Global, Value). 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-se_globals__getref(Global, Value) :-
+se_globals__get_ref(Global, Value) :-
     getref(Global, Value).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-se_globals__setref(Global, Value) :-
+se_globals__set_ref(Global, Value) :-
     setref(Global, Value).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+se_globals__update_ref(Global, Value) :-
+    (Global == 'current_path_bran' ->
+        (se_globals__get_ref('current_path_bran', Current_path),
+         se_globals__set_ref('current_path_bran', [Value|Current_path])
+        )
+    ;        
+        setref(Global, Value)
+    ). 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 se_globals__push_scope_stack :-
     getref('scope_stack', [scope(Current_level, Current_var_scope)|Rest_stack]),

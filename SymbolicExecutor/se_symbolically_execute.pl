@@ -67,48 +67,71 @@ symbolic_execute(assign(LValue, Expression), Flow) :-
 symbolic_execute(function_call(Function, Arguments), 'carry_on') :-
     !,
     symbolically_interpret(function_call(Function, Arguments), _Symbolic_expression).
-symbolic_execute(if_stmt(Condition, True_statements, False_statements), Flow) :-
+symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statements), Flow) :-
     !,
     %mytrace,
     symbolically_interpret(Condition, Symbolic_condition),
-    random(3, R),
-    (R == 2 -> fail ; true),
-    (R == 0 -> 
-        (   (ptc_solver__sdl(Symbolic_condition),
-             symbolic_execute(True_statements, Flow)
+    (se_coverage__bran_is_already_covered(branch(Id, 'true')) ->
+        (
+            (ptc_solver__sdl(not(Symbolic_condition)),
+             se_globals__update_ref('current_path_bran', branch(Id, 'false')),
+             symbolic_execute(False_statements, Flow)
             )
         ;   %deliberate choice point
-            (ptc_solver__sdl(not(Symbolic_condition)),
-             symbolic_execute(False_statements, Flow)
+            (random(1, R),
+             (R == 0 ->
+                (ptc_solver__sdl(Symbolic_condition),
+                 se_globals__update_ref('current_path_bran', branch(Id, 'true')),
+                 symbolic_execute(True_statements, Flow)
+                )
+             ;
+                (%mytrace, 
+                 fail
+                )
+             )
             )
         )
     ;
-        (
-            (ptc_solver__sdl(not(Symbolic_condition)),
-             symbolic_execute(False_statements, Flow)
+        (   (ptc_solver__sdl(Symbolic_condition),
+             mytrace,
+             se_globals__update_ref('current_path_bran', branch(Id, 'true')),
+             symbolic_execute(True_statements, Flow)
             )
         ;   %deliberate choice point
-            (ptc_solver__sdl(Symbolic_condition),
-             symbolic_execute(True_statements, Flow)
+            (random(1, R),
+             (R == 0 ->
+                (%mytrace,
+                 ptc_solver__sdl(not(Symbolic_condition)),
+                 se_globals__update_ref('current_path_bran', branch(Id, 'false')),
+                 symbolic_execute(False_statements, Flow)
+                )
+             ;
+                (%mytrace, 
+                 fail
+                )
+             )
             )
         )
     ).
-symbolic_execute(if_stmt(Condition, True_statements), Flow) :-
+symbolic_execute(if_stmt(Branch, True_statements), Flow) :-
     !,
-    symbolic_execute(if_stmt(Condition, True_statements, []), Flow).
-symbolic_execute(while_stmt(Condition, Statements), Flow) :-
+    symbolic_execute(if_stmt(Branch, True_statements, []), Flow).
+symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
     !,
+    %mytrace,
     symbolically_interpret(Condition, Symbolic_condition),
     (ptc_solver__sdl(Symbolic_condition <> 0) ->  %15 August 2024 hack for now...to deal with while(1)
-        (symbolic_execute(Statements, Inner_flow), 
+        (se_globals__update_ref('current_path_bran', branch(Id, true)),
+         symbolic_execute(Statements, Inner_flow), 
          (Inner_flow == 'carry_on' ->
-            symbolic_execute(while_stmt(Condition, Statements), Flow)
+            symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow)
          ;
             Flow = Inner_flow
          )
         )
     ;   %deliberate choice point
         (ptc_solver__sdl(not(Symbolic_condition)),
+         se_globals__update_ref('current_path_bran', branch(Id, false)),
          Flow = 'carry_on'
         )
     ).
@@ -119,8 +142,8 @@ symbolic_execute(return_stmt(Expression), return(Symbolic)) :-
     !,
     symbolically_interpret(Expression, Symbolic),
     ptc_solver__variable([Value], 'integer'),
-    ptc_solver__sdl(Value = Symbolic),
-    common_util__error(0, "Return Statement Value:", 'no_error_consequences', [('Value', Value)], '0_150824_3', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info).
+    ptc_solver__sdl(Value = Symbolic).
+    %common_util__error(0, "Return Statement Value:", 'no_error_consequences', [('Value', Value)], '0_150824_3', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info).
 symbolic_execute(postfix_inc_op(Expression), 'carry_on') :-
     !,
     symbolically_interpret(postfix_inc_op(Expression), _).

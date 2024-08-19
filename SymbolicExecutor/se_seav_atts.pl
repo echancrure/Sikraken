@@ -37,7 +37,7 @@ seav__create_var(Type_name, SEAV):-
     ;
         add_attribute(SEAV, se_seav_atts([scope(Type_name, _, _)])) %brand new SEAV only has one scope
     ),
-    se_globals__getref('scope_stack', [scope(_Current_level, Current_var_scope)|_]),
+    se_globals__get_ref('scope_stack', [scope(_Current_level, Current_var_scope)|_]),
     suspend(pop_scope_list(SEAV), 3, Current_var_scope->inst).  %delays pop_scope_list until Current_var_scope becomes instantiated (i.e. when leaving a scope)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     push_scope_list(_{Attr}, New_scope) :-
