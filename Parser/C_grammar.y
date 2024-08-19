@@ -41,9 +41,11 @@ FILE* pl_file;					//the file of containing the Prolog predicated after parsing 
 char i_file_uri[MAX_PATH];
 FILE *i_file;
 char pl_file_uri[MAX_PATH];		//the full path to the Pl_file
+int branch_nb = 1;				//unique id for branches created
 //start: ugly, breaking parsing spirit, flags and temporary variables
 int typedef_flag = 0; 			//indicates that we are within a typedef declaration
 int in_member_decl_flag = 0;	//indicates that we are parsing struct or union declarations and that the ids are part of the members namespace
+
 
 void yyerror(const char*);
 void my_exit(int);				//attempts to close handles and delete generated files prior to caling exit(int);
@@ -1108,8 +1110,20 @@ expression_statement	//printed out
 	;
 
 selection_statement		//printed out
-	: IF '(' expression ')' {fprintf(pl_file, "\nif_stmt(%s, ", $3); free($3); } statement else_opt{ fprintf(pl_file, ")"); } 
-	| SWITCH '(' expression ')' {fprintf(pl_file, "\nswitch_stmt(%s, ", $3); free($3);} statement	{fprintf(pl_file, ")");}
+	: IF '(' expression ')' 
+		{fprintf(pl_file, "\nif_stmt(branch(%d, %s), ", branch_nb++, $3); 
+		 free($3); 
+		} 
+	  statement else_opt 
+		{ fprintf(pl_file, ")"); 
+		} 
+	| SWITCH '(' expression ')' 
+		{fprintf(pl_file, "\nswitch_stmt(%s, ", $3); 
+		 free($3);
+		} 
+	  statement	
+	  	{fprintf(pl_file, ")");
+		}
 	;
 
 else_opt	//printed out
@@ -1117,7 +1131,13 @@ else_opt	//printed out
 	| ELSE {fprintf(pl_file, ", ");} statement
 
 iteration_statement	//printed out
-	: WHILE '(' expression ')' {fprintf(pl_file, "\nwhile_stmt(%s, ", $3); free($3);} statement {fprintf(pl_file, ")");}
+	: WHILE '(' expression ')' 
+		{fprintf(pl_file, "\nwhile_stmt(branch(%d, %s), ", branch_nb++, $3); 
+		 free($3);
+		} 
+	  statement 
+	  	{fprintf(pl_file, ")");
+		}
 	| DO {fprintf(pl_file, "\ndo_while_stmt(");} statement WHILE '(' expression ')' ';' {fprintf(pl_file, ", %s)", $6); free($6);}
 	| FOR '(' {fprintf(pl_file, "\nfor_stmt(");} for_stmt_type ')' {fprintf(pl_file, ", ");} statement {fprintf(pl_file, ")");}
 	;

@@ -71,26 +71,31 @@ symbolic_execute(if_stmt(Condition, True_statements, False_statements), Flow) :-
     !,
     %mytrace,
     symbolically_interpret(Condition, Symbolic_condition),
-    (   (ptc_solver__sdl(Symbolic_condition),
-         symbolic_execute(True_statements, Flow)
+    random(3, R),
+    (R == 2 -> fail ; true),
+    (R == 0 -> 
+        (   (ptc_solver__sdl(Symbolic_condition),
+             symbolic_execute(True_statements, Flow)
+            )
+        ;   %deliberate choice point
+            (ptc_solver__sdl(not(Symbolic_condition)),
+             symbolic_execute(False_statements, Flow)
+            )
         )
-    ;   %deliberate choice point
-        (ptc_solver__sdl(not(Symbolic_condition)),
-         symbolic_execute(False_statements, Flow)
+    ;
+        (
+            (ptc_solver__sdl(not(Symbolic_condition)),
+             symbolic_execute(False_statements, Flow)
+            )
+        ;   %deliberate choice point
+            (ptc_solver__sdl(Symbolic_condition),
+             symbolic_execute(True_statements, Flow)
+            )
         )
     ).
 symbolic_execute(if_stmt(Condition, True_statements), Flow) :-
     !,
-    mytrace,
-    symbolically_interpret(Condition, Symbolic_condition),
-    (   (ptc_solver__sdl(Symbolic_condition),
-         symbolic_execute(True_statements, Flow)
-        )
-    ;   %deliberate choice point
-        (ptc_solver__sdl(not(Symbolic_condition)),
-         Flow = 'carry_on'
-        )
-    ).
+    symbolic_execute(if_stmt(Condition, True_statements, []), Flow).
 symbolic_execute(while_stmt(Condition, Statements), Flow) :-
     !,
     symbolically_interpret(Condition, Symbolic_condition),

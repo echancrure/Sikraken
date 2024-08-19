@@ -113,7 +113,7 @@ se_main(_Install_dir, _Parsed_dir, _Target_source_file_name_no_ext, _Target_raw_
 initialise :-
     ptc_solver__clean_up,
     ptc_solver__default_declarations,
-    ptc_solver__set_flag('or_constraint_behaviour', 'choice').
+    ptc_solver__set_flag('or_constraint_behaviour', 'pure').
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 read_parsed_file(Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, CProlog, Main, Target_subprogram_var) :-
     concat_atom([Parsed_dir, Target_source_file_name_no_ext, '.pl'], Parsed_filename),
