@@ -32,11 +32,13 @@ mytrace.            %call this to start debugging
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % home pc   se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic001, main, debug)
 % laptop    se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug)
-%  go_linux('Problem03_label00')
+%  
 go_laptop :- se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug).
 go_pc :- se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic002, basic, debug).
 go_linux(Target_source_file_name_no_ext) :- se_main('/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/', Target_source_file_name_no_ext, main, debug, testcomp).
+go :- go_linux('Problem03_label00').
 se_main(Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode) :-
+    setval('while_problem_3', 0),
     initialise,
     se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode),
     capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
@@ -90,26 +92,26 @@ se_main(_Install_dir, _Parsed_dir, _Target_source_file_name_no_ext, _Target_raw_
         atom_string(Output, Output_string).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     end_of_path_predicate(SEAV_Inputs, Parsed_prolog_code) :-
-        se_globals__get_ref('current_path_bran', Current_path),
-        prune_instances(Current_path, Current_path_no_duplicates),
-        se_globals__get_val('covered_bran', Already_covered),
-        union(Already_covered, Current_path_no_duplicates, Covered),
-        se_globals__set_val('covered_bran', Covered),
-        subtract(Current_path_no_duplicates, Already_covered, Newly_covered),
-        common_util__error(0, "End of path", 'no_error_consequences', [('Newly_covered', Newly_covered), ('Current_path', Current_path)], '0_190824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info),
-        %%%
         se_globals__get_val('output_mode', Output_mode),
         (Output_mode = 'testcomp' ->
             (se_globals__get_ref('verifier_inputs', Verifier_inputs),
              label_testcomp(Verifier_inputs)
             )
         ;
-            true
+            true    %todo
         ),
         se_globals__get_val('path_nb', Test_nb),
         Inc_test_nb is Test_nb + 1,
         (Inc_test_nb == 3 -> mytrace ; true),
-        se_globals__set_val('path_nb', Inc_test_nb),
+        se_globals__set_val('path_nb', Inc_test_nb),        
+        se_globals__get_ref('current_path_bran', Current_path),
+        prune_instances(Current_path, Current_path_no_duplicates),
+        se_globals__get_val('covered_bran', Already_covered),
+        union(Already_covered, Current_path_no_duplicates, Covered),
+        se_globals__set_val('covered_bran', Covered),
+        subtract(Current_path_no_duplicates, Already_covered, Newly_covered),
+        common_util__error(0, "End of path", 'no_error_consequences', [('Path Nb', Inc_test_nb), ('Newly_covered', Newly_covered), ('Current_path', Current_path)], '0_190824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info),
+
         (Output_mode == 'testcomp' ->
             print_test_inputs_testcomp(Verifier_inputs)   %but don't print expected outputs
         ;
@@ -123,6 +125,7 @@ se_main(_Install_dir, _Parsed_dir, _Target_source_file_name_no_ext, _Target_raw_
         ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 initialise :-
+    seed(1970),             %set for repeatable random behaviour between runs
     ptc_solver__clean_up,
     ptc_solver__default_declarations,
     ptc_solver__set_flag('or_constraint_behaviour', 'choice').
@@ -161,7 +164,13 @@ label(SEAV_Inputs) :-
         get_all_inputs(R_seavs, R_inputs).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 label_testcomp(Verifier_inputs) :-
-    ptc_solver__label_integers(Verifier_inputs),
+    (ptc_solver__label_integers(Verifier_inputs) ->
+        true
+    ;
+        (common_util__error(0, "Labeling failed", "Should only happen for reals or non-linear integers", [], '0_200824', 'se_main', 'label_testcomp', no_localisation, no_extra_info),
+         fail
+        )
+    ),
     !.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 get_all_outputs([], []).

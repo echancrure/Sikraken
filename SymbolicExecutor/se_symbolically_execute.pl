@@ -69,8 +69,35 @@ symbolic_execute(function_call(Function, Arguments), 'carry_on') :-
     symbolically_interpret(function_call(Function, Arguments), _Symbolic_expression).
 symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statements), Flow) :-
     !,
-    %mytrace,
+    %(Id == 217 -> mytrace ; true),
     symbolically_interpret(Condition, Symbolic_condition),
+    random(2, R2),
+    (R2 == 0 -> %randomness to ensure true and false branches are given equal chances
+        (
+            (ptc_solver__sdl(Symbolic_condition),
+             se_globals__update_ref('current_path_bran', branch(Id, 'true')),
+             symbolic_execute(True_statements, Flow)
+            )
+        ;   % if statement deliberate choice point
+            (ptc_solver__sdl(not(Symbolic_condition)),
+             se_globals__update_ref('current_path_bran', branch(Id, 'false')),
+             symbolic_execute(False_statements, Flow)
+            )
+        )
+    ;
+        (
+            (ptc_solver__sdl(not(Symbolic_condition)),
+             se_globals__update_ref('current_path_bran', branch(Id, 'false')),
+             symbolic_execute(False_statements, Flow)
+            )
+        ;   %if statement deliberate choice point
+            (ptc_solver__sdl(Symbolic_condition),
+             se_globals__update_ref('current_path_bran', branch(Id, 'true')),
+             symbolic_execute(True_statements, Flow)
+            )
+        )
+    ).
+/*
     (se_coverage__bran_is_already_covered(branch(Id, 'true')) ->
         (
             (ptc_solver__sdl(not(Symbolic_condition)),
@@ -112,16 +139,29 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
              )
             )
         )
-    ).
+    ).*/
 symbolic_execute(if_stmt(Branch, True_statements), Flow) :-
     !,
     symbolic_execute(if_stmt(Branch, True_statements, []), Flow).
 symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
     !,
-    %mytrace,
+    /*mytrace,
+    getval('while_problem_3', Nb),
+    (Nb == 3 ->
+        (mytrace,
+         setval('while_problem_3', 0),
+         end_of_path_predicate(_, _),    %only works in 'testcomp'
+         fail    %non-logical we fail the loop entirely after Nb iterations
+        )
+    ;
+        (Nb1 is Nb + 1,
+         setval('while_problem_3', Nb1)
+        )
+    ),*/
     symbolically_interpret(Condition, Symbolic_condition),
-    (ptc_solver__sdl(Symbolic_condition <> 0) ->  %15 August 2024 hack for now...to deal with while(1)
-        (se_globals__update_ref('current_path_bran', branch(Id, true)),
+    (
+        (ptc_solver__sdl(Symbolic_condition <> 0),
+         se_globals__update_ref('current_path_bran', branch(Id, true)),
          symbolic_execute(Statements, Inner_flow), 
          (Inner_flow == 'carry_on' ->
             symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow)
@@ -129,8 +169,9 @@ symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
             Flow = Inner_flow
          )
         )
-    ;   %deliberate choice point
-        (ptc_solver__sdl(not(Symbolic_condition)),
+    ;   %while loop deliberate choice point
+        (mytrace,
+         ptc_solver__sdl(not(Symbolic_condition <> 0)),
          se_globals__update_ref('current_path_bran', branch(Id, false)),
          Flow = 'carry_on'
         )

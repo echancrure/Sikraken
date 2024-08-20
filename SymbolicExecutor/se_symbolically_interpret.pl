@@ -11,7 +11,8 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
     (Body == 'no_body_is_extern' -> %calling an extern function with no_body
         (se_name_atts__get(Function, 'name', Function_name),
          (Function_name == 'UC___VERIFIER_nondet_int' ->
-            (ptc_solver__variable([Input_var], 'integer'),
+            (%mytrace,
+             ptc_solver__variable([Input_var], 'integer'),
              se_globals__get_ref('verifier_inputs', Verifier_inputs),
              append(Verifier_inputs, [Input_var], New_verifier_inputs),
              se_globals__set_ref('verifier_inputs', New_verifier_inputs),
@@ -21,7 +22,7 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
           Function_name == 'Exit' ->
             (Arguments = [Exit_code],
              common_util__error(0, "Exit Called:", 'no_error_consequences', [('Exit_code', Exit_code)], '0_170824_1', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info),
-             mytrace,
+             %mytrace,
              end_of_path_predicate(_, _),    %only works in 'testcomp'
              fail
             )
