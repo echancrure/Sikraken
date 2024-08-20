@@ -88,17 +88,80 @@ symbolically_interpret(not_equal_op(Le_exp, Ri_exp), Le_Symbolic <> Ri_Symbolic)
     !,
     symbolically_interpret(Le_exp, Le_Symbolic),
     symbolically_interpret(Ri_exp, Ri_Symbolic).
-symbolically_interpret(and_op(Le_exp, Ri_exp), and_then(Le_Symbolic, Ri_Symbolic)) :-   %C semantics of && is always short circuit
+symbolically_interpret(and_op(Le_exp, Ri_exp), 'true') :-   %C semantics of && is always short circuit
     !,
+    mytrace,
     symbolically_interpret(Le_exp, Le_Symbolic),
-    symbolically_interpret(Ri_exp, Ri_Symbolic).
-symbolically_interpret(or_op(Le_exp, Ri_exp), or_else(Le_Symbolic, Ri_Symbolic)) :-   %C semantics of || is always short circuit
+    ptc_solver__sdl(Le_Symbolic),  %if it fails, overall it fails
+    symbolically_interpret(Ri_exp, Ri_Symbolic),
+    ptc_solver__sdl(Ri_Symbolic).
+
+symbolically_interpret(or_op(Le_exp, Ri_exp), 'true') :-   %C semantics of || is always short circuit
     !,
-    symbolically_interpret(Le_exp, Le_Symbolic),
-    symbolically_interpret(Ri_exp, Ri_Symbolic).
-symbolically_interpret(not_op(Le_exp), not(Le_Symbolic)) :-
+    mytrace,
+    (
+        (symbolically_interpret(Le_exp, Le_Symbolic),
+         ptc_solver__sdl(Le_Symbolic)
+        )
+    ;       %deliberate choice point
+        (%but only if will lead to new path todo
+         symbolically_interpret(not_op(Le_exp), Not_Le_Symbolic),
+         ptc_solver__sdl(Not_Le_Symbolic),
+         symbolically_interpret(Ri_exp, Ri_Symbolic),
+         ptc_solver__sdl(Ri_Symbolic)
+        )
+    ).
+ /*       
+    assess_truth(Le_Symbolic, Can_be_true, Can_be_false),
+    ((Can_be_true == 'yes', Can_be_false == 'no') ->
+        Symbolic = Le_Symbolic
+    ;
+     Can_be_true == 'no' ->
+        symbolically_interpret(Ri_exp, Symbolic)
+    ;
+     (Can_be_true == 'yes', Can_be_false == 'yes') ->
+        (   
+            Symbolic = Le_Symbolic
+        ;   %deliberate choice point
+            (symbolically_interpret(Ri_exp, Ri_Symbolic),
+             Symbolic = and(not(Le_Symbolic), Ri_Symbolic)
+            )
+        )
+    ).*/
+symbolically_interpret(not_op(Le_exp), Symbolic) :-
     !,
-    symbolically_interpret(Le_exp, Le_Symbolic).
+    (Le_exp = and_op(L, R) ->
+        symbolically_interpret(or_op(not_op(L), not_op(R)), Symbolic)
+    ;
+     Le_exp = or_op(L, R) ->
+        symbolically_interpret(and_op(not_op(L), not_op(R)), Symbolic)
+    ;
+     Le_exp = not_op(L) ->
+        symbolically_interpret(L, Symbolic)
+    ;
+        (symbolically_interpret(Le_exp, Le_Symbolic),
+         Symbolic = not(Le_Symbolic)
+        )
+    ).
 symbolically_interpret(Unhandled_expression, _Symbolic_expression) :-
     common_util__error(10, "Expression is not handled", "Cannot perform symbolic interpretation", [('Unhandled_expression', Unhandled_expression)], '10_020824', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/*assess_truth(Symbolic, _, _) :-
+    setval('can_be_true', no),
+    (ptc_solver__sdl(Symbolic) ->
+        setval('can_be_true', yes)
+    ;
+        setval('can_be_true', no)
+    ),
+    fail.
+assess_truth(Symbolic, _, _) :-
+    setval('can_be_false', no),
+    (ptc_solver__sdl(not(Symbolic)) ->      %could create probelm with s_or
+        setval('can_be_false', yes)
+    ;
+        setval('can_be_false', no)
+    ),
+    fail.
+assess_truth(_, Can_be_true, Can_be_false) :-
+    getval('can_be_true', Can_be_true),
+    getval('can_be_false', Can_be_false).*/

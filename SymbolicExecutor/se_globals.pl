@@ -42,7 +42,8 @@ se_globals__set_ref(Global, Value) :-
 se_globals__update_ref(Global, Value) :-
     (Global == 'current_path_bran' ->
         (se_globals__get_ref('current_path_bran', Current_path),
-         se_globals__set_ref('current_path_bran', [Value|Current_path])
+         se_globals__set_ref('current_path_bran', [Value|Current_path]),
+         printf(user_error, "Following branch: %w\n", Value)
         )
     ;        
         setref(Global, Value)
