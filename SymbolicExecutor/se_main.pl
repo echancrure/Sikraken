@@ -37,9 +37,9 @@ mytrace.            %call this to start debugging
 %  
 go_laptop :- se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug).
 go_pc :- se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic002, basic, debug).
-go_linux(Target_source_file_name_no_ext) :- se_main('/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/', Target_source_file_name_no_ext, main, debug, testcomp).
-go :- go_linux('Problem03_label00').
-se_main(Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode) :-
+go_linux(Target_source_file_name_no_ext, Restart, Tries) :- se_main('/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/', Target_source_file_name_no_ext, main, debug, testcomp, Restart, Tries).
+go(Restart, Tries) :- go_linux('Problem03_label00', Restart, Tries).
+se_main(Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Restart, Tries) :-
     setval('while_problem_3', 0),
     initialise,
     se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode),
@@ -48,11 +48,13 @@ se_main(Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subp
     symbolic_execute(Parsed_prolog_code, _),   %always symbolically execute all global declarations for now: initialisations could be ignored via a switch if desired
     print_preamble_testcomp(Parsed_dir),
     %mytrace,
-    (for(_, 1, 32), param(execute_target(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code))
+    (for(_, 1, Restart), param(execute_target(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code, Tries))
      do 
-        (iterate(100, try, execute_target(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)), 
-         !%,
-         /*se_globals__get_val('seed', Seed),
+        (iterate(Tries, try, execute_target(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)), 
+         !
+         /*
+         ,
+         se_globals__get_val('seed', Seed),
          Next_seed is Seed + 1,
          seed(Next_seed),
          se_globals__set_val('seed', Next_seed)*/
