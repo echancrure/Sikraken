@@ -11,8 +11,9 @@
 % defines module se_main
 % symbolic execution of parsed C code
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+:- set_flag('debug_compile', 'off').
 :- get_flag(version, '7.1').    %check for valid ECLiPSe version: issue warning only if not 
-%%%
+
 mytrace.            %call this to start debugging
 :- spy mytrace/0.
 %%%
@@ -29,6 +30,7 @@ mytrace.            %call this to start debugging
 :- compile(['se_handle_declarations', 'se_symbolically_execute', 'se_symbolically_interpret']).
 :- compile(['se_write_tests_testcomp']).
 :- compile(['se_coverage']).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % home pc   se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic001, main, debug)
 % laptop    se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug)
@@ -44,10 +46,50 @@ se_main(Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subp
     capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
     read_parsed_file(Parsed_dir, Target_source_file_name_no_ext, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors
     symbolic_execute(Parsed_prolog_code, _),   %always symbolically execute all global declarations for now: initialisations could be ignored via a switch if desired
+    print_preamble_testcomp(Parsed_dir),
+    %mytrace,
+    (for(_, 1, 32), param(execute_target(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code))
+     do 
+        (iterate(100, try, execute_target(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)), 
+         !%,
+         /*se_globals__get_val('seed', Seed),
+         Next_seed is Seed + 1,
+         seed(Next_seed),
+         se_globals__set_val('seed', Next_seed)*/
+        )
+    ),
+
+%se_main(_Install_dir, _Parsed_dir, _Target_source_file_name_no_ext, _Target_raw_subprogram_name, _Debug_mode, Output_mode) :-
+    (Output_mode == 'testcomp' ->
+        terminate_testcomp
+    ;
+        printf(user_output, "\nSUCCESS", [])
+    ).
+
+iterate(Nb_iteration, Iteration_counter, Goal) :-
+    setval(Iteration_counter, 0),
+    (run_iterate(Nb_iteration, Iteration_counter, Goal) ->
+        fail    %to undo the last execution
+    ;
+        common_util__error(10, "Unexpected fail in iteration call", "Best not to proceed", [], '10_210824_1', 'se_main', 'se_main', no_localisation, no_extra_info)
+    ).
+iterate(_, _, _).
+
+run_iterate(Nb_iteration, Iteration_counter, Goal) :-
+    call(Goal),
+    getval(Iteration_counter, I),
+    I1 is I + 1,
+    setval(Iteration_counter, I1),
+    (I1 == Nb_iteration ->
+        true
+    ;
+        fail
+    ).
+
+execute_target(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
     (Output_mode == 'testcomp' ->
         ((se_sub_atts__get(Main, 'parameters', []), se_sub_atts__get(Main, 'return_type', 'integer')) ->
-            (print_preamble_testcomp(Parsed_dir),
-             se_sub_atts__get(Main, 'body', Main_compound_statement),
+            (se_sub_atts__get(Main, 'body', Main_compound_statement),
              se_globals__update_ref('current_path_bran', start('Target_raw_subprogram_name', true)),
              symbolic_execute(Main_compound_statement, _)
             )
@@ -68,14 +110,7 @@ se_main(Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subp
          symbolic_execute(Compound_statement, _Flow)
         )
     ),
-    end_of_path_predicate(SEAV_Inputs, Parsed_prolog_code),
-    fail.       %oh yes!
-se_main(_Install_dir, _Parsed_dir, _Target_source_file_name_no_ext, _Target_raw_subprogram_name, _Debug_mode, Output_mode) :-
-    (Output_mode == 'testcomp' ->
-        terminate_testcomp
-    ;
-        printf(user_output, "\nSUCCESS", [])
-    ).
+    end_of_path_predicate(SEAV_Inputs, Parsed_prolog_code).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     capitalize_first_letter(Input, Output) :-
         atom_string(Input, Input_string),
@@ -92,40 +127,43 @@ se_main(_Install_dir, _Parsed_dir, _Target_source_file_name_no_ext, _Target_raw_
         atom_string(Output, Output_string).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     end_of_path_predicate(SEAV_Inputs, Parsed_prolog_code) :-
-        se_globals__get_val('output_mode', Output_mode),
-        (Output_mode = 'testcomp' ->
-            (se_globals__get_ref('verifier_inputs', Verifier_inputs),
-             label_testcomp(Verifier_inputs)
-            )
-        ;
-            true    %todo
-        ),
-        se_globals__get_val('path_nb', Test_nb),
-        Inc_test_nb is Test_nb + 1,
-        (Inc_test_nb == 3 -> mytrace ; true),
-        se_globals__set_val('path_nb', Inc_test_nb),        
         se_globals__get_ref('current_path_bran', Current_path),
         prune_instances(Current_path, Current_path_no_duplicates),
         se_globals__get_val('covered_bran', Already_covered),
-        union(Already_covered, Current_path_no_duplicates, Covered),
-        se_globals__set_val('covered_bran', Covered),
         subtract(Current_path_no_duplicates, Already_covered, Newly_covered),
-        common_util__error(0, "End of path", 'no_error_consequences', [('Path Nb', Inc_test_nb), ('Newly_covered', Newly_covered), ('Current_path', Current_path)], '0_190824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info),
-
-        (Output_mode == 'testcomp' ->
-            print_test_inputs_testcomp(Verifier_inputs)   %but don't print expected outputs
+        (Newly_covered == [] -> %no need to label: saves labelling run and test execution time
+            true %common_util__error(0, "End of path: no new branches", 'no_error_consequences', [], '0_210824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info)
         ;
-            (print_test_inputs(SEAV_Inputs),
-             se_globals__pop_scope_stack,    %only after labeling and printed to preserve parameters
-             term_variables(Parsed_prolog_code, All_Ids),
-             get_all_outputs(All_Ids, All_seavs),
-             print_test_outputs(All_seavs),    
-             flush(user_output)
+            (se_globals__get_val('output_mode', Output_mode),
+             (Output_mode = 'testcomp' ->
+                (se_globals__get_ref('verifier_inputs', Verifier_inputs),
+                label_testcomp(Verifier_inputs)
+                )
+             ;
+                true    %todo
+             ),
+             se_globals__get_val('path_nb', Test_nb),
+             Inc_test_nb is Test_nb + 1,
+             %(Inc_test_nb == 3 -> mytrace ; true),
+             se_globals__set_val('path_nb', Inc_test_nb),        
+             union(Already_covered, Current_path_no_duplicates, Covered),
+             se_globals__set_val('covered_bran', Covered),
+             common_util__error(0, "End of path", 'no_error_consequences', [('Path Nb', Inc_test_nb), ('Newly_covered', Newly_covered), ('Current_path', Current_path)], '0_190824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info),
+             (Output_mode == 'testcomp' ->
+                print_test_inputs_testcomp(Verifier_inputs)   %but don't print expected outputs
+             ;
+                (print_test_inputs(SEAV_Inputs),
+                se_globals__pop_scope_stack,    %only after labeling and printed to preserve parameters
+                term_variables(Parsed_prolog_code, All_Ids),
+                get_all_outputs(All_Ids, All_seavs),
+                print_test_outputs(All_seavs),    
+                flush(user_output)
+                )
+             )
             )
         ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 initialise :-
-    seed(1970),             %set for repeatable random behaviour between runs
     ptc_solver__clean_up,
     ptc_solver__default_declarations,
     ptc_solver__set_flag('or_constraint_behaviour', 'choice').

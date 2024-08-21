@@ -69,19 +69,20 @@ symbolic_execute(function_call(Function, Arguments), 'carry_on') :-
     symbolically_interpret(function_call(Function, Arguments), _Symbolic_expression).
 symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statements), Flow) :-
     !,
-    (Id == 1 -> mytrace ; true),
-    
+    %(Id == 1 -> mytrace ; true),
     random(2, R2),
     (R2 == 0 -> %randomness to ensure true and false branches are given equal chances
+    %se_globals__get_val('covered_bran', Already_covered),
+    %(memberchk(Already_covered, branch(Id, 'false')) ->
         (
-            (printf(user_error, "Trying branch: %w\n", branch(Id, 'true')),
+            (%printf(user_error, "Trying branch: %w\n", branch(Id, 'true')),
              symbolically_interpret(Condition, Symbolic_condition),
              ptc_solver__sdl(Symbolic_condition),
              se_globals__update_ref('current_path_bran', branch(Id, 'true')),
              symbolic_execute(True_statements, Flow)
             )
         ;   % if statement deliberate choice point
-            (printf(user_error, "Trying branch: %w\n", branch(Id, 'false')),
+            (%printf(user_error, "Trying branch: %w\n", branch(Id, 'false')),
              symbolically_interpret(not_op(Condition), Symbolic_condition),
              ptc_solver__sdl(Symbolic_condition),
              se_globals__update_ref('current_path_bran', branch(Id, 'false')),
@@ -103,49 +104,7 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
             )
         )
     ).
-/*
-    (se_coverage__bran_is_already_covered(branch(Id, 'true')) ->
-        (
-            (ptc_solver__sdl(not(Symbolic_condition)),
-             se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-             symbolic_execute(False_statements, Flow)
-            )
-        ;   %deliberate choice point
-            (random(1, R),
-             (R == 0 ->
-                (ptc_solver__sdl(Symbolic_condition),
-                 se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-                 symbolic_execute(True_statements, Flow)
-                )
-             ;
-                (%mytrace, 
-                 fail
-                )
-             )
-            )
-        )
-    ;
-        (   (ptc_solver__sdl(Symbolic_condition),
-             mytrace,
-             se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-             symbolic_execute(True_statements, Flow)
-            )
-        ;   %deliberate choice point
-            (random(1, R),
-             (R == 0 ->
-                (%mytrace,
-                 ptc_solver__sdl(not(Symbolic_condition)),
-                 se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-                 symbolic_execute(False_statements, Flow)
-                )
-             ;
-                (%mytrace, 
-                 fail
-                )
-             )
-            )
-        )
-    ).*/
+
 symbolic_execute(if_stmt(Branch, True_statements), Flow) :-
     !,
     symbolic_execute(if_stmt(Branch, True_statements, []), Flow).
@@ -180,6 +139,7 @@ symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
         (symbolically_interpret(equal_op(Condition, 0), Symbolic_condition),
          ptc_solver__sdl(Symbolic_condition),
          se_globals__update_ref('current_path_bran', branch(Id, false)),
+         %(Id == 187 -> mytrace ; true),
          Flow = 'carry_on'
         )
     ).

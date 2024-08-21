@@ -1,4 +1,8 @@
 :- module('se_globals').
+
+mytrace.            %call this to start debugging
+:- spy mytrace/0.
+
 :- export se_globals__set_globals/4, se_globals__get_val/2, se_globals__set_val/2, se_globals__get_ref/2, se_globals__set_ref/2.
 :- export se_globals__update_ref/2.
 :- export se_globals__push_scope_stack/0, se_globals__pop_scope_stack/0.
@@ -8,15 +12,27 @@
 :- local reference('call_stack_bran', []).      %list of functions entered so far
 :- local reference('scope_stack', [scope(0, dummy)]).          %[scope(level_nb|Var)|Older] with Var only used for delaying and awakening, see SEAV module
 :- local reference('verifier_inputs', []).      %only used in 'testcomp' testing mode to track the order of the verifier variables
+
+:- dynamic covered_bran/1, path_nb/1.
 %%%
 %declaring global non-logical variables: not undone on backtracking
 se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode) :-    
     setval('errorMessageNb', 0),	            %number of error messages generated: used to set trace_points in debug mode only
     setval('debug_info', 'pre_symbolic_execution'),    %used in debug mode only to hold the current processing position of the symbolic executor: a phase, file, or function being handled
     setval('phase', 'elaboration'),             %initially we are in the elaboration phase: used during cfg building and elaboration control
-    setval('covered_bran', []),                 %list of branches covered so far
+    %mytrace,
+    (covered_bran(CV) ->
+        setval('covered_bran', CV)
+    ;
+        setval('covered_bran', [])
+    ),
+    (path_nb(N) ->
+        setval('path_nb', N)
+    ;
+        setval('path_nb', 0)
+    ),
+    setval(seed, 2970),                         %set for repeatable random behaviour between runs
     setval('to_cover', []),                     %list of branches remaining to cover
-    setval('path_nb', 0),                       %number of paths generated
     setval('test_driver_test_nb', 0),
     setval('abandoned_path_nb', 0),	            %counts the number of timed out and unsuccessful labeling tests
     setval('install_dir', Install_dir),         %the install dir of the generator executable
@@ -42,8 +58,8 @@ se_globals__set_ref(Global, Value) :-
 se_globals__update_ref(Global, Value) :-
     (Global == 'current_path_bran' ->
         (se_globals__get_ref('current_path_bran', Current_path),
-         se_globals__set_ref('current_path_bran', [Value|Current_path]),
-         printf(user_error, "Following branch: %w\n", Value)
+         se_globals__set_ref('current_path_bran', [Value|Current_path])
+         %,printf(user_error, "Following branch: %w\n", Value)
         )
     ;        
         setref(Global, Value)

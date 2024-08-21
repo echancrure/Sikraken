@@ -1,7 +1,12 @@
 :- module(common_util).
 :- export common_util__error/9.
+%%%
+
 
 :- use_module('se_globals').
+
+mytrace.            %call this to start debugging
+:- spy mytrace/0.
 %%%
 %The idea behind this complex error message predicate is to allow filtering of warning messages according to severity and allow fine control over the information displayed (e.g. different details for developpers and users)
 %any optional argument can be ommitted by appending 'no_' in front of the corresponding parameter name

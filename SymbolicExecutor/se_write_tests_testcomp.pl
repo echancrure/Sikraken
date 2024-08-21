@@ -62,7 +62,7 @@ print_test_inputs_testcomp(Verifier_inputs) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %zip the Test_suite_folder directory for TestCov consumption
 terminate_testcomp:-
-    mytrace,
+   % mytrace,
     se_globals__get_val(target_source_file_name_no_ext, Target_source_file_name_no_ext),
     se_globals__get_val(testcomp_test_suite_folder, Test_suite_folder),
     cd('..'),   %todo delete existing archive if it exists
