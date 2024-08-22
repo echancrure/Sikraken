@@ -2,8 +2,10 @@ symbolically_interpret(Expression, Expression) :-
     number(Expression),
     !.
 symbolically_interpret(Expression, Symbolic_expression) :-
+    %var(Expression),
     seav__is_seav(Expression),
     !,
+    
     seav__get(Expression, 'output', Symbolic_expression).
 symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) :-
     !,

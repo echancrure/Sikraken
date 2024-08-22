@@ -14,24 +14,16 @@ mytrace.            %call this to start debugging
 :- local reference('verifier_inputs', []).      %only used in 'testcomp' testing mode to track the order of the verifier variables
 
 :- dynamic covered_bran/1, path_nb/1.
-%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %declaring global non-logical variables: not undone on backtracking
 se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode) :-    
     setval('errorMessageNb', 0),	            %number of error messages generated: used to set trace_points in debug mode only
     setval('debug_info', 'pre_symbolic_execution'),    %used in debug mode only to hold the current processing position of the symbolic executor: a phase, file, or function being handled
     setval('phase', 'elaboration'),             %initially we are in the elaboration phase: used during cfg building and elaboration control
+    setval('covered_bran', []),
+    setval('path_nb', 0),
     %mytrace,
-    (covered_bran(CV) ->
-        setval('covered_bran', CV)
-    ;
-        setval('covered_bran', [])
-    ),
-    (path_nb(N) ->
-        setval('path_nb', N)
-    ;
-        setval('path_nb', 0)
-    ),
-    setval(seed, 2970),                         %set for repeatable random behaviour between runs
+    seed(2970),                                 %set for repeatable random behaviour between runs
     setval('to_cover', []),                     %list of branches remaining to cover
     setval('test_driver_test_nb', 0),
     setval('abandoned_path_nb', 0),	            %counts the number of timed out and unsuccessful labeling tests

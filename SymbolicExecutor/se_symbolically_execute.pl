@@ -109,21 +109,7 @@ symbolic_execute(if_stmt(Branch, True_statements), Flow) :-
     !,
     symbolic_execute(if_stmt(Branch, True_statements, []), Flow).
 symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
-    !,
-    /*mytrace,
-    getval('while_problem_3', Nb),
-    (Nb == 3 ->
-        (mytrace,
-         setval('while_problem_3', 0),
-         end_of_path_predicate(_, _),    %only works in 'testcomp'
-         fail    %non-logical we fail the loop entirely after Nb iterations
-        )
-    ;
-        (Nb1 is Nb + 1,
-         setval('while_problem_3', Nb1)
-        )
-    ),*/
-    
+    !,    
     (
         (symbolically_interpret(not_equal_op(Condition, 0), Symbolic_condition),
          ptc_solver__sdl(Symbolic_condition),
@@ -157,5 +143,5 @@ symbolic_execute(postfix_inc_op(Expression), 'carry_on') :-
     symbolically_interpret(postfix_inc_op(Expression), _).
 symbolic_execute(Unknown_statement, _) :-
     !,
-common_util__error(10, "Unexpected statement", "Could not possibly continue", [('Unknown_statement', Unknown_statement)], '10_150824_2', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info).
+    common_util__error(10, "Unexpected statement", "Could not possibly continue", [('Unknown_statement', Unknown_statement)], '10_150824_2', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
