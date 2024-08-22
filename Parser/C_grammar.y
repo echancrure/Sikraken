@@ -41,9 +41,11 @@ FILE* pl_file;					//the file of containing the Prolog predicated after parsing 
 char i_file_uri[MAX_PATH];
 FILE *i_file;
 char pl_file_uri[MAX_PATH];		//the full path to the Pl_file
+int branch_nb = 1;				//unique id for branches created
 //start: ugly, breaking parsing spirit, flags and temporary variables
 int typedef_flag = 0; 			//indicates that we are within a typedef declaration
 int in_member_decl_flag = 0;	//indicates that we are parsing struct or union declarations and that the ids are part of the members namespace
+
 
 void yyerror(const char*);
 void my_exit(int);				//attempts to close handles and delete generated files prior to caling exit(int);
@@ -71,6 +73,8 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 %token	CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
 %token ALIGNAS ALIGNOF ATOMIC_SPECIFIER ATOMIC GENERIC NORETURN STATIC_ASSERT THREAD_LOCAL
+ 
+
 
 %type <id> storage_class_specifier declarator init_declarator initializer direct_declarator pointer type_qualifier type_qualifier_list init_declarator_list declaration_specifiers
 %type <id> type_specifier
@@ -109,7 +113,12 @@ primary_expression
 		}
 	| constant		{simple_str_copy(&$$, $1);}
 	| string		{simple_str_copy(&$$, $1);}
-	| '(' expression ')'	{simple_str_lit_copy(&$$, "prim4");}
+	| '(' expression ')'	
+		{size_t const size = strlen("()") + strlen($2) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_safe($$, size, "(%s)", $2);
+		 free($2);
+		}
 	| generic_selection		{simple_str_lit_copy(&$$, "generic_selection");}
 	;
 
@@ -504,7 +513,8 @@ declaration_specifiers
 		 free($1);
 		 free($2);
 		}
-	| storage_class_specifier	{simple_str_copy(&$$, $1);}
+	| storage_class_specifier	
+		{simple_str_copy(&$$, $1);}
 	| type_specifier declaration_specifiers
 		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
@@ -512,19 +522,20 @@ declaration_specifiers
 		 free($1);
 		 free($2);
 		}
-	| type_specifier	{simple_str_copy(&$$, $1);}
+	| type_specifier	
+		{simple_str_copy(&$$, $1);}
 	| type_qualifier declaration_specifiers
-{ simple_str_lit_copy(&$$, "type_qualifier declaration_specifiers"); }
+		{ simple_str_lit_copy(&$$, "dummy_type_qualifier, dummy_declaration_specifiers"); }
 	| type_qualifier
-{ simple_str_lit_copy(&$$, "type_qualifier"); }
+		{ simple_str_lit_copy(&$$, "dummy_type_qualifier"); }
 	| function_specifier declaration_specifiers
-{ simple_str_lit_copy(&$$, "function_specifier declaration_specifiers"); }
+		{ simple_str_lit_copy(&$$, "dummy_function_specifier, dummy_declaration_specifiers"); }
 	| function_specifier
-{ simple_str_lit_copy(&$$, "function_specifier"); }
+		{ simple_str_lit_copy(&$$, "dummy_function_specifier"); }
 	| alignment_specifier declaration_specifiers
-{ simple_str_lit_copy(&$$, "alignment_specifier declaration_specifiers"); }
+		{ simple_str_lit_copy(&$$, "dummy_alignment_specifier, dummy_declaration_specifiers"); }
 	| alignment_specifier
-{ simple_str_lit_copy(&$$, "alignment_specifier"); }
+		{ simple_str_lit_copy(&$$, "dummy_alignment_specifier"); }
 	;
 
 init_declarator_list
@@ -825,15 +836,15 @@ direct_declarator
 	| direct_declarator '[' assignment_expression ']'
 		{simple_str_lit_copy(&$$, "D10");}
 	| direct_declarator '(' ')'
-		{size_t const size = strlen(", []") + strlen($1) + 1;
+		{size_t const size = strlen("function(, [])") + strlen($1) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "%s, []", $1);
+	     sprintf_safe($$, size, "function(%s, [])", $1);
 	     free($1);
 		}
 	| direct_declarator '(' parameter_type_list ')'
-		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
+		{size_t const size = strlen("function(, )") + strlen($1) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "%s, %s", $1, $3);
+	     sprintf_safe($$, size, "function(%s, %s)", $1, $3);
 	     free($1);
 		 free($3);
 		}
@@ -1065,7 +1076,7 @@ statement	//printed out
 
 labeled_statement	//printed out
 	: IDENTIFIER ':' 	//Label Id declaration
-		{fprintf(pl_file, "label_stmt($1, "); 
+		{fprintf(pl_file, "label_stmt(%s, ", $1); 
 		 free($1);
 		} 
 		statement 
@@ -1100,9 +1111,21 @@ expression_statement	//printed out
 	| expression ';'	{fprintf(pl_file, "\nstmt(%s)", $1); free($1);}
 	;
 
-	selection_statement		//printed out
-		: IF '(' expression ')' {fprintf(pl_file, "\nif_stmt(%s, ", $3); free($3); } statement else_opt{ fprintf(pl_file, ")"); } 
-	| SWITCH '(' expression ')' {fprintf(pl_file, "\nswitch_stmt(%s, ", $3); free($3);} statement	{fprintf(pl_file, ")");}
+selection_statement		//printed out
+	: IF '(' expression ')' 
+		{fprintf(pl_file, "\nif_stmt(branch(%d, %s), ", branch_nb++, $3); 
+		 free($3); 
+		} 
+	  statement else_opt 
+		{ fprintf(pl_file, ")"); 
+		} 
+	| SWITCH '(' expression ')' 
+		{fprintf(pl_file, "\nswitch_stmt(%s, ", $3); 
+		 free($3);
+		} 
+	  statement	
+	  	{fprintf(pl_file, ")");
+		}
 	;
 
 else_opt	//printed out
@@ -1110,7 +1133,13 @@ else_opt	//printed out
 	| ELSE {fprintf(pl_file, ", ");} statement
 
 iteration_statement	//printed out
-	: WHILE '(' expression ')' {fprintf(pl_file, "\nwhile_stmt(%s, ", $3); free($3);} statement {fprintf(pl_file, ")");}
+	: WHILE '(' expression ')' 
+		{fprintf(pl_file, "\nwhile_stmt(branch(%d, %s), ", branch_nb++, $3); 
+		 free($3);
+		} 
+	  statement 
+	  	{fprintf(pl_file, ")");
+		}
 	| DO {fprintf(pl_file, "\ndo_while_stmt(");} statement WHILE '(' expression ')' ';' {fprintf(pl_file, ", %s)", $6); free($6);}
 	| FOR '(' {fprintf(pl_file, "\nfor_stmt(");} for_stmt_type ')' {fprintf(pl_file, ", ");} statement {fprintf(pl_file, ")");}
 	;
@@ -1129,7 +1158,7 @@ jump_statement		//printed out
 	| CONTINUE ';'			{fprintf(pl_file, "\ncontinue_stmt\n");}
 	| BREAK ';'				{fprintf(pl_file, "\nbreak_stmt\n");}
 	| RETURN ';'			{fprintf(pl_file, "\nreturn_stmt\n");}
-	| RETURN expression ';'	{fprintf(pl_file, "\nreturn_stmt(Sikraken_return, %s)\n", $2); free($2);}
+	| RETURN expression ';'	{fprintf(pl_file, "\nreturn_stmt(%s)\n", $2); free($2);}
 	;
 
 //top level rule
@@ -1240,6 +1269,6 @@ void my_exit(int exit_code) {			//exits and performs some tidying up if not in d
     if (pl_file) fclose(pl_file);
     if (access_safe(i_file_uri, 0) != -1) remove(i_file_uri);
   }
-  if (exit_code == EXIT_SUCCESS) fprintf(stderr, "Sikraken parsing success, wrote %s\n", pl_file_uri);
+  if (exit_code == EXIT_SUCCESS) fprintf(stderr, "Sikraken parsing SUCCESS, wrote %s\n", pl_file_uri);
   exit(exit_code);
 }

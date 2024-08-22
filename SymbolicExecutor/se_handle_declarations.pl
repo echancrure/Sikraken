@@ -3,15 +3,7 @@ declare_declarators([], _).
 declare_declarators([Declarator|R], Type_name) :-
     %mytrace,
     (nonvar(Declarator), Declarator = initialised(Var, Expression) ->   %added nonvar(...) as a guard 30/07/24
-        ((Expression = function_call(UC___VERIFIER_nondet_int, []), se_name_atts__get(UC___VERIFIER_nondet_int, 'name', 'UC___VERIFIER_nondet_int')) ->
-            (se_globals__getref('verifier_inputs', Verifier_inputs),
-             append(Verifier_inputs, [Output], New_verifier_inputs),
-             se_globals__setref('verifier_inputs', New_verifier_inputs),
-             Symbolic = Output          %quite a dirty way, but should not impact performance
-            )
-        ;
-            symbolically_interpret(Expression, Symbolic)    %todo: handling initialised variables without re-using assignment symbolic execution is probably a bad idea
-        )
+        symbolically_interpret(Expression, Symbolic)    %todo: handling initialised variables without re-using assignment symbolic execution is probably a bad idea
     ;
         (%declaration of non-initialised variable
          %todo check for redefinition which is allowed: see diary 07/08/24
@@ -32,7 +24,7 @@ declare_declarators([Declarator|R], Type_name) :-
     ),
     seav__update(Clean_var, 'output', Output),
     declare_declarators(R, Type_name).
-%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %e.g. extract_pointers(pointer(X), int, pointer(int), X)
 extract_pointers(Var, Type_name, Type_name_ptr_opt, Clean_var) :-
     (nonvar(Var), Var = pointer(Inner_var) ->
@@ -77,5 +69,16 @@ extract_type([int], integer) :-
 extract_type([void], void) :-
     !.
 extract_type(Specifiers, _Type_name) :-
-    common_util__error(9, "Not Handled", "Sikraken needs expanding", [('Specifiers', Specifiers)], 9270724, 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).
+    common_util__error(9, "Not Handled", "Sikraken needs expanding", [('Specifiers', Specifiers)], '9_270724', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+match_parameters_arguments([], []) :-
+        !.
+match_parameters_arguments([param(Declaration_specifiers, Parameter)|Rest_parameters], [Argument|Rest_arguments]) :-
+    !,
+    extract_type(Declaration_specifiers, Type_name),
+    declare_declarators([initialised(Parameter, Argument)], Type_name),
+    match_parameters_arguments(Rest_parameters, Rest_arguments).
+match_parameters_arguments(Parameters, Arguments) :-
+    !,
+    common_util__error(10, "mismatch of parameters and arguments", "Cannot call function", [('Parameters', Parameters), ('Arguments', Arguments)], '10160824_1', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

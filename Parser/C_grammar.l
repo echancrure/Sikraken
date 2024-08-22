@@ -53,6 +53,8 @@ WS  [ \t\v\n\f]
 "/*"                                        { read_comment(); }
 "//".*                                      { /* consume //-comment */ }
 
+"__attribute__"[ ]*\([ ]*\([^)]*\)[ ]*\)      { /* Pattern to ignore GCC __attribute__ */ }
+
 "auto"					{ return(AUTO); }
 "break"					{ return(BREAK); }
 "case"					{ return(CASE); }

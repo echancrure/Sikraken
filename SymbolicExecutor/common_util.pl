@@ -1,8 +1,12 @@
 :- module(common_util).
 :- export common_util__error/9.
+%%%
+
 
 :- use_module('se_globals').
-:- import se_globals__getval/2, se_globals__setval/2, se_globals__getref/2 from se_globals.
+
+mytrace.            %call this to start debugging
+:- spy mytrace/0.
 %%%
 %The idea behind this complex error message predicate is to allow filtering of warning messages according to severity and allow fine control over the information displayed (e.g. different details for developpers and users)
 %any optional argument can be ommitted by appending 'no_' in front of the corresponding parameter name
@@ -25,24 +29,24 @@
 %Localisation : optional, an atom or a compound term providing further localisation information
 %Extra_info : optional, a string of anything you want
 common_util__error(Error_severity, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info) :-
-    se_globals__getval('message_mode', Message_mode),
+    se_globals__get_val('message_mode', Message_mode),
     (Message_mode == debug ->
-            (se_globals__getval('errorMessageNb', ErrorNb),
+            (se_globals__get_val('errorMessageNb', ErrorNb),
              ErrorNb1 is ErrorNb + 1,
              %(ErrorNb1 == 34 -> mytrace ; true),
              printf(user_error, "Error Nb: %w: ", [ErrorNb1]),
-             se_globals__setval('errorMessageNb', ErrorNb1),
+             se_globals__set_val('errorMessageNb', ErrorNb1),
              common_util__error2(Error_severity, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode)
             )
     ;
-            (se_globals__getval('already_printed', Already_printed),
+            (se_globals__get_val('already_printed', Already_printed),
              (memberchk(Error_code, Already_printed) ->
                     true
              ;
                     ((Error_severity == 1 ->
                             true
                      ;
-                            se_globals__setval('already_printed', [Error_code|Already_printed])    %only done if non debug and for errors severity > 1
+                            se_globals__set_val('already_printed', [Error_code|Already_printed])    %only done if non debug and for errors severity > 1
                      ),
                      common_util__error2(Error_severity, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode)
                     )
@@ -52,6 +56,12 @@ common_util__error(Error_severity, Error_message, Error_consequences, ArgumentsL
 
 common_util__error2(10, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode) :-
     !,
+    se_globals__get_val('output_mode', Output_mode),
+    (Output_mode = 'testcomp' ->
+       call(terminate_testcomp) @ eclipse   %rescue tests inputs generated so far before aborting  //bad hack for calling unexported predicate
+    ;
+       true
+    ),
     (Message_mode == debug ->
             (printf(user_error, "%2n###################################%n", []),
              printf(user_error, "=>Sikraken: a fatal error has occurred%n", []),
@@ -82,10 +92,10 @@ common_util__error2(10, Error_message, Error_consequences, ArgumentsL, Error_cod
              ),
              %debugging information
              printf(user_error, "        Debugging Info: %n", []),
-             se_globals__getval('debug_info', Current),
+             se_globals__get_val('debug_info', Current),
              printf(user_error, "            Was processing the %w entity when error occurred%n", [Current]),
              printf(user_error, "            To help debugging, path information prior to error follows ...%n", []),
-             se_globals__getref('current_path_bran', Current_path_bran),
+             se_globals__get_ref('current_path_bran', Current_path_bran),
              printf(user_error, "            Branches followed prior to error : %w%n", [Current_path_bran]),
              printf(user_error, "###################################%n", []),
              abort
@@ -111,7 +121,7 @@ common_util__error2(10, Error_message, Error_consequences, ArgumentsL, Error_cod
 common_util__error2(0, Error_message, Error_consequences, ArgumentsL, _Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode) :-
     !,
     (Message_mode == debug ->
-            (printf(user_error, "%s", [Error_message]),
+            (printf(user_error, "Debug_info: %s", [Error_message]),
              (ArgumentsL == no_arguments ->
                     true
              ;

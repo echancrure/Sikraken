@@ -1,65 +1,161 @@
-symbolic_execute([]).
-symbolic_execute([Item|R]) :-
-    symbolic_execute(Item),
-    symbolic_execute(R).
-%%%
-symbolic_execute(mytrace) :-
-    mytrace.
-symbolic_execute(declaration([extern, int], [UC___VERIFIER_nondet_int, []])) :-
-    se_name_atts__get(UC___VERIFIER_nondet_int, 'name', 'UC___VERIFIER_nondet_int'),    %just ignoring them
+%The second argument of symbolic_execute/2 is an indication of the control flow.
+%  it can have the following values : 'carry_on'|goto(Label)|exit|return(expression)
+symbolic_execute([], 'carry_on') :-
     !.
-symbolic_execute(declaration(Specifiers, Declarators)) :-
-    extract_type(Specifiers, Type_name),
-    declare_declarators(Declarators, Type_name).
-symbolic_execute(function(Specifiers, Function, Parameters, [], Compound_statement)) :-
+symbolic_execute([Item|R], Flow) :-
+    !,
+    symbolic_execute(Item, Inner_flow),
+    (Inner_flow == 'carry_on' ->
+        symbolic_execute(R, Flow)
+    ;
+        Flow = Inner_flow
+    ).
+symbolic_execute(mytrace, 'carry_on') :-
+    !,
+    mytrace.
+symbolic_execute(declaration(Declaration_specifiers, Declarators), 'carry_on') :-
+    !,
+    ((Declarators = [Declarator], nonvar(Declarator), Declarator = function(Function_name, Parameters)) ->  %a function forward declaration
+        (memberchk('extern', Declaration_specifiers) ->  %(need to use memberchk because 'extern' does not necessairily come first) found an extern function declaration
+            (subtract(Declaration_specifiers, ['extern'], Other_specifiers),
+             extract_type(Other_specifiers, Return_type_name),
+             se_sub_atts__create(Return_type_name, Parameters, 'no_body_is_extern', Function_name)
+            )
+        ;
+            true    %we ignore all, non-extern, forward function declarations: they will be declared later
+        )
+    ;
+        (%a variable declaration
+         extract_type(Declaration_specifiers, Type_name),
+         declare_declarators(Declarators, Type_name)
+        )
+    ).
+symbolic_execute(function(Specifiers, function(Function_name, Parameters), [], Compound_statement), 'carry_on') :-
+    !,
     extract_type(Specifiers, Return_type_name),
-    se_sub_atts__create(Return_type_name, Parameters, Compound_statement, Function).
-symbolic_execute(cmp_stmts(Stmts)) :-
+    se_sub_atts__create(Return_type_name, Parameters, Compound_statement, Function_name).
+symbolic_execute(cmp_stmts(Stmts), Flow) :-
+    !,
     se_globals__push_scope_stack,
-    symbolic_execute(Stmts),
+    symbolic_execute(Stmts, Flow),
     %pop scope
     se_globals__pop_scope_stack.
-symbolic_execute(stmt(assign(LValue, Expression))) :-
+symbolic_execute(stmt(Expression_statement), Flow) :-
+    !,
+    symbolic_execute(Expression_statement, Flow).
+symbolic_execute(assign(LValue, Expression), Flow) :-
+    !,
     %mytrace,
     (seav__is_seav(LValue) ->
         (!,
          symbolically_interpret(Expression, Symbolic_expression),
-         seav__update(LValue, 'output', Symbolic_expression)
+         seav__update(LValue, 'output', Symbolic_expression),
+         Flow = 'carry_on'
         )
     ;
      LValue = deref(LValue_ptr) ->
         (symbolically_interpret(LValue_ptr, Symbolic_LValue_ptr),
          (Symbolic_LValue_ptr = addr(New_LValue) ->
-            symbolic_execute(stmt(assign(New_LValue, Expression)))
+            symbolic_execute(assign(New_LValue, Expression), Flow)
          ;
-            common_util__error(10, "Unexpected derefed expression", "Sikraken's logic is wrong", [('Symbolic_LValue_ptr', Symbolic_LValue_ptr)], 10030824, 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
+            common_util__error(10, "Unexpected derefed expression", "Sikraken's logic is wrong", [('Symbolic_LValue_ptr', Symbolic_LValue_ptr)], '10_030824', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
          )
         )
     ;
-        common_util__error(10, "Unexpected LValue", "Sikraken's logic is wrong", [('LValue', LValue)], 10030824_2, 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
+        common_util__error(10, "Unexpected LValue", "Sikraken's logic is wrong", [('LValue', LValue)], '10_030824_2', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
     ).
-symbolic_execute(if_stmt(Condition, True_statements, False_statements)) :-
-    %mytrace,
-    symbolically_interpret(Condition, Symbolic_condition),
-    (   (ptc_solver__sdl(Symbolic_condition),
-         symbolic_execute(True_statements)
+symbolic_execute(function_call(Function, Arguments), 'carry_on') :-
+    !,
+    symbolically_interpret(function_call(Function, Arguments), _Symbolic_expression).
+symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statements), Flow) :-
+    !,
+    %(Id == 1 -> mytrace ; true),
+    random(2, R2),
+    (R2 == 0 -> %randomness to ensure true and false branches are given equal chances
+    %se_globals__get_val('covered_bran', Already_covered),
+    %(memberchk(Already_covered, branch(Id, 'false')) ->
+        (
+            (%printf(user_error, "Trying branch: %w\n", branch(Id, 'true')),
+             symbolically_interpret(Condition, Symbolic_condition),
+             ptc_solver__sdl(Symbolic_condition),
+             se_globals__update_ref('current_path_bran', branch(Id, 'true')),
+             symbolic_execute(True_statements, Flow)
+            )
+        ;   % if statement deliberate choice point
+            (%printf(user_error, "Trying branch: %w\n", branch(Id, 'false')),
+             symbolically_interpret(not_op(Condition), Symbolic_condition),
+             ptc_solver__sdl(Symbolic_condition),
+             se_globals__update_ref('current_path_bran', branch(Id, 'false')),
+             symbolic_execute(False_statements, Flow)
+            )
         )
-    ;   %deliberate choice point
-        (ptc_solver__sdl(not(Symbolic_condition)),
-         symbolic_execute(False_statements)
+    ;
+        (
+            (symbolically_interpret(not_op(Condition), Symbolic_condition),
+             ptc_solver__sdl(Symbolic_condition),
+             se_globals__update_ref('current_path_bran', branch(Id, 'false')),
+             symbolic_execute(False_statements, Flow)
+            )
+        ;   %if statement deliberate choice point
+            (symbolically_interpret(Condition, Symbolic_condition),
+             ptc_solver__sdl(Symbolic_condition),
+             se_globals__update_ref('current_path_bran', branch(Id, 'true')),
+             symbolic_execute(True_statements, Flow)
+            )
         )
     ).
-symbolic_execute(if_stmt(Condition, True_statements)) :-
-    mytrace,
-    symbolically_interpret(Condition, Symbolic_condition),
-    (   (ptc_solver__sdl(Symbolic_condition),
-         symbolic_execute(True_statements)
+
+symbolic_execute(if_stmt(Branch, True_statements), Flow) :-
+    !,
+    symbolic_execute(if_stmt(Branch, True_statements, []), Flow).
+symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
+    !,
+    /*mytrace,
+    getval('while_problem_3', Nb),
+    (Nb == 3 ->
+        (mytrace,
+         setval('while_problem_3', 0),
+         end_of_path_predicate(_, _),    %only works in 'testcomp'
+         fail    %non-logical we fail the loop entirely after Nb iterations
         )
-    ;   %deliberate choice point
-        ptc_solver__sdl(not(Symbolic_condition))
+    ;
+        (Nb1 is Nb + 1,
+         setval('while_problem_3', Nb1)
+        )
+    ),*/
+    
+    (
+        (symbolically_interpret(not_equal_op(Condition, 0), Symbolic_condition),
+         ptc_solver__sdl(Symbolic_condition),
+         se_globals__update_ref('current_path_bran', branch(Id, true)),
+         symbolic_execute(Statements, Inner_flow), 
+         (Inner_flow == 'carry_on' ->
+            symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow)
+         ;
+            Flow = Inner_flow
+         )
+        )
+    ;   %while loop deliberate choice point
+        (symbolically_interpret(equal_op(Condition, 0), Symbolic_condition),
+         ptc_solver__sdl(Symbolic_condition),
+         se_globals__update_ref('current_path_bran', branch(Id, false)),
+         %(Id == 187 -> mytrace ; true),
+         Flow = 'carry_on'
+        )
     ).
-symbolic_execute(return_stmt(Return_var, Expression)) :- 
-    symbolic_execute(stmt(assign(Return_var, Expression))).
-symbolic_execute(stmt(postfix_inc_op(Expression))) :-
+symbolic_execute(label_stmt(_Label, Statement), Flow) :- 
+    !,
+    symbolic_execute(Statement, Flow).
+symbolic_execute(return_stmt(Expression), return(Symbolic)) :- 
+    !,
+    symbolically_interpret(Expression, Symbolic),
+    ptc_solver__variable([Value], 'integer'),
+    ptc_solver__sdl(Value = Symbolic).
+    %common_util__error(0, "Return Statement Value:", 'no_error_consequences', [('Value', Value)], '0_150824_3', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info).
+symbolic_execute(postfix_inc_op(Expression), 'carry_on') :-
+    !,
     symbolically_interpret(postfix_inc_op(Expression), _).
+symbolic_execute(Unknown_statement, _) :-
+    !,
+common_util__error(10, "Unexpected statement", "Could not possibly continue", [('Unknown_statement', Unknown_statement)], '10_150824_2', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
