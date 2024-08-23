@@ -62,10 +62,18 @@ print_test_inputs_testcomp(Verifier_inputs) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %zip the Test_suite_folder directory for TestCov consumption
 terminate_testcomp:-
-   % mytrace,
+   mytrace,
     se_globals__get_val(target_source_file_name_no_ext, Target_source_file_name_no_ext),
     se_globals__get_val(testcomp_test_suite_folder, Test_suite_folder),
-    cd('..'),   %todo delete existing archive if it exists
+    cd('..'),   
+    concat_string(["suite-", Target_source_file_name_no_ext, ".zip"], Zip_filename),
+    (exists(Zip_filename) ->
+        (concat_string(["rm ", Zip_filename], Delete_call),
+         exec(Delete_call, [])      %delete existing zip archive if it exists
+        )
+    ;
+        true
+    ),
     concat_string(["zip -r suite-", Target_source_file_name_no_ext, ".zip ", Test_suite_folder], Zip_call),
     exec(Zip_call, []).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

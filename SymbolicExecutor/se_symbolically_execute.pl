@@ -69,39 +69,52 @@ symbolic_execute(function_call(Function, Arguments), 'carry_on') :-
     symbolically_interpret(function_call(Function, Arguments), _Symbolic_expression).
 symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statements), Flow) :-
     !,
-    %(Id == 1 -> mytrace ; true),
-    random(2, R2),
-    (R2 == 0 -> %randomness to ensure true and false branches are given equal chances
-    %se_globals__get_val('covered_bran', Already_covered),
-    %(memberchk(Already_covered, branch(Id, 'false')) ->
-        (
-            (%printf(user_error, "Trying branch: %w\n", branch(Id, 'true')),
-             symbolically_interpret(Condition, Symbolic_condition),
-             ptc_solver__sdl(Symbolic_condition),
-             se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-             symbolic_execute(True_statements, Flow)
-            )
-        ;   % if statement deliberate choice point
-            (%printf(user_error, "Trying branch: %w\n", branch(Id, 'false')),
-             symbolically_interpret(not_op(Condition), Symbolic_condition),
-             ptc_solver__sdl(Symbolic_condition),
-             se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-             symbolic_execute(False_statements, Flow)
-            )
+    %(Id == 155 -> mytrace ; true),
+    
+    se_globals__get_val('covered_bran', Already_covered),
+    ((memberchk(branch(Id, 'true'), Already_covered), True_statements = cmp_stmts([label_stmt(_, stmt(function_call(_, [0])))])) ->
+        (%total hack for now: this arc has been covered and does not lead to anything new (because it exits)
+         %so we only try the false branch
+            %mytrace,
+            symbolically_interpret(not_op(Condition), Symbolic_condition),
+            ptc_solver__sdl(Symbolic_condition),
+            se_globals__update_ref('current_path_bran', branch(Id, 'false')),
+            symbolic_execute(False_statements, Flow) 
         )
     ;
-        (
-            (symbolically_interpret(not_op(Condition), Symbolic_condition),
-             ptc_solver__sdl(Symbolic_condition),
-             se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-             symbolic_execute(False_statements, Flow)
+        (random(2, R2),
+         (R2 == 0 -> %randomness to ensure true and false branches are given equal chances
+
+            (
+                (%printf(user_error, "Trying branch: %w\n", branch(Id, 'true')),
+                symbolically_interpret(Condition, Symbolic_condition),
+                ptc_solver__sdl(Symbolic_condition),
+                se_globals__update_ref('current_path_bran', branch(Id, 'true')),
+                symbolic_execute(True_statements, Flow)
+                )
+            ;% if statement deliberate choice point
+                (%printf(user_error, "Trying branch: %w\n", branch(Id, 'false')),
+                symbolically_interpret(not_op(Condition), Symbolic_condition),
+                ptc_solver__sdl(Symbolic_condition),
+                se_globals__update_ref('current_path_bran', branch(Id, 'false')),
+                symbolic_execute(False_statements, Flow)
+                )
             )
-        ;   %if statement deliberate choice point
-            (symbolically_interpret(Condition, Symbolic_condition),
-             ptc_solver__sdl(Symbolic_condition),
-             se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-             symbolic_execute(True_statements, Flow)
+         ;
+            (
+                (symbolically_interpret(not_op(Condition), Symbolic_condition),
+                ptc_solver__sdl(Symbolic_condition),
+                se_globals__update_ref('current_path_bran', branch(Id, 'false')),
+                symbolic_execute(False_statements, Flow)
+                )
+            ;%if statement deliberate choice point
+                (symbolically_interpret(Condition, Symbolic_condition),
+                ptc_solver__sdl(Symbolic_condition),
+                se_globals__update_ref('current_path_bran', branch(Id, 'true')),
+                symbolic_execute(True_statements, Flow)
+                )
             )
+         )
         )
     ).
 
