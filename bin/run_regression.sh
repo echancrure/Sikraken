@@ -29,7 +29,7 @@ else
 fi
 
 #generate test inputs
-eclipse -f ./SymbolicExecutor/se_main.pl -e "se_main('/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/', ${regression_test_file%.*}, main, debug, testcomp)"
+eclipse -f ./SymbolicExecutor/se_main.pl -e "se_main('/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/', ${regression_test_file%.*}, main, debug, testcomp, 1, 100)"
 if [ $? -ne 0 ]; then
     echo "run_regression.sh Error: Sikraken test inputs generation of $regression_test_file failed"
     exit 1

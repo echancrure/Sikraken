@@ -18,10 +18,8 @@ mytrace.            %call this to start debugging
 :- spy mytrace/0.
 %%%
 :- (is_predicate(prolog_c/2) -> abolish prolog_c/2 ; dynamic prolog_c/2).   %to ensure clean environment when using 'make' during development 
-
+:- lib(ic).
 :- use_module(library('lists')).
-
-:- use_module("./../Solver/PTC-Solver/source/ptc_solver").
 
 :- use_module(['common_util', 'se_globals']).
 
@@ -58,7 +56,7 @@ se_main(Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subp
                 (try_nb_path(Nb_of_paths_to_try, 'try', param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)) ->
                     fail
                 ;
-                    common_util__error(10, "Unexpected fail in iteration call", "Best not to proceed", [], '10_210824_1', 'se_main', 'se_main', no_localisation, no_extra_info)
+                    common_util__error(10, "No more solutions", "Exhaustive search has been achieved", [], '10_210824_1', 'se_main', 'se_main', no_localisation, no_extra_info)
                 )
             )
         )
@@ -135,12 +133,16 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
         se_globals__get_val('covered_bran', Already_covered),
         subtract(Current_path_no_duplicates, Already_covered, Newly_covered),
         (Newly_covered == [] -> %no need to label: saves labelling run and test execution time
-            true %common_util__error(0, "End of path: no new branches", 'no_error_consequences', [], '0_210824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info)
+            (%mytrace, %would be clearer if we failed here 
+             %common_util__error(0, "End of path: no new branches", 'no_error_consequences', [], '0_210824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info),
+            %se_globals__get_ref('verifier_inputs', Verifier_inputs)
+             true
+            )
         ;
             (se_globals__get_val('output_mode', Output_mode),
              (Output_mode = 'testcomp' ->
                 (se_globals__get_ref('verifier_inputs', Verifier_inputs),
-                label_testcomp(Verifier_inputs)
+                 label_testcomp(Verifier_inputs)
                 )
              ;
                 true    %todo
@@ -156,20 +158,18 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
                 print_test_inputs_testcomp(Verifier_inputs)   %but don't print expected outputs
              ;
                 (print_test_inputs(SEAV_Inputs),
-                se_globals__pop_scope_stack,    %only after labeling and printed to preserve parameters
-                term_variables(Parsed_prolog_code, All_Ids),
-                get_all_outputs(All_Ids, All_seavs),
-                print_test_outputs(All_seavs),    
-                flush(user_output)
+                 se_globals__pop_scope_stack,    %only after labeling and printed to preserve parameters
+                 term_variables(Parsed_prolog_code, All_Ids),
+                 get_all_outputs(All_Ids, All_seavs),
+                 print_test_outputs(All_seavs),    
+                 flush(user_output)
                 )
              )
             )
         ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 initialise :-
-    ptc_solver__clean_up,
-    ptc_solver__default_declarations,
-    ptc_solver__set_flag('or_constraint_behaviour', 'choice').
+    true.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 read_parsed_file(Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, CProlog, Main, Target_subprogram_var) :-
     concat_atom([Parsed_dir, Target_source_file_name_no_ext, '.pl'], Parsed_filename),
@@ -196,7 +196,7 @@ read_parsed_file(Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogr
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 label(SEAV_Inputs) :-
     get_all_inputs(SEAV_Inputs, InputsL),
-    ptc_solver__label_integers(InputsL),
+    ic:search(InputsL, 0, most_constrained, 'indomain_random', bbs(5), []),
     !.
     %%%
     get_all_inputs([], []).
@@ -205,7 +205,8 @@ label(SEAV_Inputs) :-
         get_all_inputs(R_seavs, R_inputs).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 label_testcomp(Verifier_inputs) :-
-    (ptc_solver__label_integers(Verifier_inputs) ->
+    %mytrace,
+    (ic:search(Verifier_inputs, 0, most_constrained, 'indomain_middle', 'complete', []) ->
         true
     ;
         (common_util__error(0, "Labeling failed", "Should only happen for reals or non-linear integers", [], '0_200824', 'se_main', 'label_testcomp', no_localisation, no_extra_info),

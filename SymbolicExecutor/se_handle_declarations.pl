@@ -16,10 +16,10 @@ declare_declarators([Declarator|R], Type_name) :-
     seav__update(Clean_var, 'input', 'not_needed'),
     %create ptc solver variable and = to Symbolic
     (Type_name_ptr_opt = pointer(_) ->
-        Output = Symbolic           %C pointers variables are not ptc_solver variable: they are handled syntactically e.g. seav(pointer(integer), not_needed, addr(Y_2{se_seav_atts : seav(integer, not_needed, 42)}))
+        Output = Symbolic           %C pointers variables are not solver variable: they are handled syntactically e.g. seav(pointer(integer), not_needed, addr(Y_2{se_seav_atts : seav(integer, not_needed, 42)}))
     ;
-        (ptc_solver__variable([Output], Type_name),
-         ptc_solver__sdl(Output = Symbolic)
+        (ic_solver__variable([Output], Type_name),
+         eval(Output) $= Symbolic
         )
     ),
     seav__update(Clean_var, 'output', Output),
@@ -41,9 +41,9 @@ declare_params([], []).
 declare_params([param(Specifiers, Param)|R], [Clean_param|R_params]) :-
     extract_type(Specifiers, Type_name),
     extract_pointers(Param, Type_name, Type_name_ptr_opt, Clean_param),
-    ptc_solver__variable([Input_var], Type_name),
+    ic_solver__variable([Input_var], Type_name),
     (Type_name_ptr_opt = pointer(_) ->
-        Input = addr(Input_var)         %C pointers variables are not ptc_solver variable: they are handled syntactically e.g. seav(pointer(integer), not_needed, addr(Y_2{se_seav_atts : seav(integer, not_needed, 42)}))
+        Input = addr(Input_var)         %C pointers variables are not solver variable: they are handled syntactically e.g. seav(pointer(integer), not_needed, addr(Y_2{se_seav_atts : seav(integer, not_needed, 42)}))
     ;
         Input = Input_var
     ),
@@ -54,9 +54,9 @@ declare_params([param(Specifiers, Param)|R], [Clean_param|R_params]) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 declare_return(Return_seav, Type_name) :-
     extract_pointers(Return_seav, Type_name, Type_name_ptr_opt, Clean_return),
-    ptc_solver__variable([Output_var], Type_name),
+    ic_solver__variable([Output_var], Type_name),
     (Type_name_ptr_opt = pointer(_) ->
-         Output = addr(Output_var)           %C pointers variables are not ptc_solver variable: they are handled syntactically e.g. seav(pointer(integer), not_needed, addr(Y_2{se_seav_atts : seav(integer, not_needed, 42)}))
+         Output = addr(Output_var)           %C pointers variables are not solver variable: they are handled syntactically e.g. seav(pointer(integer), not_needed, addr(Y_2{se_seav_atts : seav(integer, not_needed, 42)}))
     ;
          Output = Output_var
     ),
@@ -82,3 +82,5 @@ match_parameters_arguments(Parameters, Arguments) :-
     !,
     common_util__error(10, "mismatch of parameters and arguments", "Cannot call function", [('Parameters', Parameters), ('Arguments', Arguments)], '10160824_1', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ic_solver__variable(Vars, 'integer') :-
+    Vars #:: -100..100.

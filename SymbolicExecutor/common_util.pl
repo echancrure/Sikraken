@@ -146,7 +146,8 @@ common_util__error2(0, Error_message, Error_consequences, ArgumentsL, _Error_cod
             )
     ;
             true
-    ).
+    ),
+    flush(user_error).
 
 common_util__error2(Error_severity, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode) :-
     (Message_mode == debug ->

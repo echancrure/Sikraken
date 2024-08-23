@@ -13,7 +13,7 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
         (se_name_atts__get(Function, 'name', Function_name),
          (Function_name == 'UC___VERIFIER_nondet_int' ->
             (%mytrace,
-             ptc_solver__variable([Input_var], 'integer'),
+             ic_solver__variable([Input_var], 'integer'),
              se_globals__get_ref('verifier_inputs', Verifier_inputs),
              append(Verifier_inputs, [Input_var], New_verifier_inputs),
              se_globals__set_ref('verifier_inputs', New_verifier_inputs),
@@ -73,32 +73,31 @@ symbolically_interpret(minus_op(Le_exp, Ri_exp), Le_Symbolic - Ri_Symbolic) :-
 symbolically_interpret(minus_op(Expression), -Symbolic_expression) :-
     !,
     symbolically_interpret(Expression, Symbolic_expression).
-symbolically_interpret(greater_op(Le_exp, Ri_exp), Le_Symbolic > Ri_Symbolic) :-
+symbolically_interpret(greater_op(Le_exp, Ri_exp), Le_Symbolic $> Ri_Symbolic) :-
     !,
     symbolically_interpret(Le_exp, Le_Symbolic),
     symbolically_interpret(Ri_exp, Ri_Symbolic).
 symbolically_interpret(postfix_inc_op(Expression), Symbolic_expression) :-
     !,
-    symbolically_interpret(Expression, Symbolic_expression),
+    symbolically_interpret(Expression, Symbolic_expression),        %todo check number of symbolic executions should be done only once
     symbolic_execute(assign(Expression, plus_op(Expression, 1)), _).
-symbolically_interpret(equal_op(Le_exp, Ri_exp), Le_Symbolic = Ri_Symbolic) :-
+symbolically_interpret(equal_op(Le_exp, Ri_exp), Le_Symbolic $= Ri_Symbolic) :-
     !,
     symbolically_interpret(Le_exp, Le_Symbolic),
     symbolically_interpret(Ri_exp, Ri_Symbolic).
-symbolically_interpret(not_equal_op(Le_exp, Ri_exp), Le_Symbolic <> Ri_Symbolic) :-
+symbolically_interpret(not_equal_op(Le_exp, Ri_exp), Le_Symbolic $\= Ri_Symbolic) :-
     !,
     symbolically_interpret(Le_exp, Le_Symbolic),
     symbolically_interpret(Ri_exp, Ri_Symbolic).
-symbolically_interpret(and_op(Le_exp, Ri_exp), 'true') :-   %C semantics of && is always short circuit
+symbolically_interpret(and_op(Le_exp, Ri_exp), 1) :-   %C semantics of && is always short circuit
     !,
     symbolically_interpret(Le_exp, Le_Symbolic),
-    ptc_solver__sdl(Le_Symbolic),
+    eval(Le_Symbolic) $= 1,
     symbolically_interpret(Ri_exp, Ri_Symbolic),
-    ptc_solver__sdl(Ri_Symbolic).
+    eval(Ri_Symbolic) $= 1.
 
-symbolically_interpret(or_op(Le_exp, Ri_exp), 'true') :-   %C semantics of || is always short circuit
+symbolically_interpret(or_op(Le_exp, Ri_exp), 1) :-   %C semantics of || is always short circuit
     !,
-    %mytrace,
     random(2, R2),
     (R2 == 0 ->
         (A = Le_exp,
@@ -111,17 +110,16 @@ symbolically_interpret(or_op(Le_exp, Ri_exp), 'true') :-   %C semantics of || is
     ),
     (
         (symbolically_interpret(A, Le_Symbolic),
-         ptc_solver__sdl(Le_Symbolic)
+         eval(Le_Symbolic) $= 1
         )
     ;       %deliberate choice point
         (%but only if will lead to new path todo
          symbolically_interpret(not_op(A), Not_Le_Symbolic),
-         ptc_solver__sdl(Not_Le_Symbolic),
+         eval(Not_Le_Symbolic) #= 1,
          symbolically_interpret(B, Ri_Symbolic),
-         ptc_solver__sdl(Ri_Symbolic)
+         eval(Ri_Symbolic) #= 1
         )
     ).
- 
 symbolically_interpret(not_op(Le_exp), Symbolic) :-
     !,
     (Le_exp = and_op(L, R) ->
@@ -134,7 +132,7 @@ symbolically_interpret(not_op(Le_exp), Symbolic) :-
         symbolically_interpret(L, Symbolic)
     ;
         (symbolically_interpret(Le_exp, Le_Symbolic),
-         Symbolic = not(Le_Symbolic)
+         Symbolic = neg(Le_Symbolic)
         )
     ).
 symbolically_interpret(Unhandled_expression, _Symbolic_expression) :-
