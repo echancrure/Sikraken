@@ -6,7 +6,7 @@
 It is a side project developed in an agile way by a team of one, part time; so don't expect miracles.
 
 It reuses bits and pieces from other projects:
-  - a parser for C using lex/yacc (Flex/Bison flavour);
+  - a parser for C using Flex/Bison;
   - a symbolic executor written in Prolog (ECLiPSe flavour);
   - a solver [PTC-Solver](https://github.com/echancrure/PTC-Solver) which uses Constraint Logic Programming (ECLiPSe flavour).
 
