@@ -18,4 +18,5 @@ ToolsArchive/
 Sikraken.code-workspace
 output/
 resources/
+SymbolicExecutor/try.pl
 *.gcov
