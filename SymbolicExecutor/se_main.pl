@@ -41,6 +41,7 @@ go_linux(Target_source_file_name_no_ext, Restart, Tries) :- se_main('/home/chris
 go(Restart, Nb_of_paths_to_try) :- go_linux('Problem03_label00', Restart, Nb_of_paths_to_try).
 se_main(Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Restart, Nb_of_paths_to_try) :-
     initialise,
+    common_util__quick_dev_info("test %w, and %s", [Parsed_dir, Target_raw_subprogram_name]),
     se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode),
     capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
     read_parsed_file(Parsed_dir, Target_source_file_name_no_ext, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors

@@ -38,7 +38,6 @@ symbolic_execute(cmp_stmts(Stmts), Flow) :-
     !,
     se_globals__push_scope_stack,
     symbolic_execute(Stmts, Flow),
-    %pop scope
     se_globals__pop_scope_stack.
 symbolic_execute(stmt(Expression_statement), Flow) :-
     !,
@@ -86,32 +85,32 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
          (R2 == 0 -> %randomness to ensure true and false branches are given equal chances
 
             (
-                (%printf(user_error, "Trying branch: %w\n", branch(Id, 'true')),
-                symbolically_interpret(Condition, Symbolic_condition),
-                ptc_solver__sdl(Symbolic_condition),
-                se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-                symbolic_execute(True_statements, Flow)
+                (%common_util__quick_dev_info("Trying branch: %w", [branch(Id, 'true')]),
+                 symbolically_interpret(Condition, Symbolic_condition),
+                 ptc_solver__sdl(Symbolic_condition),
+                 se_globals__update_ref('current_path_bran', branch(Id, 'true')),
+                 symbolic_execute(True_statements, Flow)
                 )
             ;% if statement deliberate choice point
-                (%printf(user_error, "Trying branch: %w\n", branch(Id, 'false')),
-                symbolically_interpret(not_op(Condition), Symbolic_condition),
-                ptc_solver__sdl(Symbolic_condition),
-                se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-                symbolic_execute(False_statements, Flow)
+                (%common_util__quick_dev_info("Trying branch: %w", [branch(Id, 'false')]),
+                 symbolically_interpret(not_op(Condition), Symbolic_condition),
+                 ptc_solver__sdl(Symbolic_condition),
+                 se_globals__update_ref('current_path_bran', branch(Id, 'false')),
+                 symbolic_execute(False_statements, Flow)
                 )
             )
          ;
             (
                 (symbolically_interpret(not_op(Condition), Symbolic_condition),
-                ptc_solver__sdl(Symbolic_condition),
-                se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-                symbolic_execute(False_statements, Flow)
+                 ptc_solver__sdl(Symbolic_condition),
+                 se_globals__update_ref('current_path_bran', branch(Id, 'false')),
+                 symbolic_execute(False_statements, Flow)
                 )
             ;%if statement deliberate choice point
                 (symbolically_interpret(Condition, Symbolic_condition),
-                ptc_solver__sdl(Symbolic_condition),
-                se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-                symbolic_execute(True_statements, Flow)
+                 ptc_solver__sdl(Symbolic_condition),
+                 se_globals__update_ref('current_path_bran', branch(Id, 'true')),
+                 symbolic_execute(True_statements, Flow)
                 )
             )
          )
@@ -134,7 +133,7 @@ symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
             Flow = Inner_flow
          )
         )
-    ;   %while loop deliberate choice point
+    ;%while loop deliberate choice point
         (symbolically_interpret(equal_op(Condition, 0), Symbolic_condition),
          ptc_solver__sdl(Symbolic_condition),
          se_globals__update_ref('current_path_bran', branch(Id, false)),

@@ -95,7 +95,6 @@ symbolically_interpret(and_op(Le_exp, Ri_exp), 'true') :-   %C semantics of && i
     ptc_solver__sdl(Le_Symbolic),
     symbolically_interpret(Ri_exp, Ri_Symbolic),
     ptc_solver__sdl(Ri_Symbolic).
-
 symbolically_interpret(or_op(Le_exp, Ri_exp), 'true') :-   %C semantics of || is always short circuit
     !,
     %mytrace,
@@ -113,7 +112,7 @@ symbolically_interpret(or_op(Le_exp, Ri_exp), 'true') :-   %C semantics of || is
         (symbolically_interpret(A, Le_Symbolic),
          ptc_solver__sdl(Le_Symbolic)
         )
-    ;       %deliberate choice point
+    ;%deliberate choice point
         (%but only if will lead to new path todo
          symbolically_interpret(not_op(A), Not_Le_Symbolic),
          ptc_solver__sdl(Not_Le_Symbolic),
