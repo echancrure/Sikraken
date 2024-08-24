@@ -15,6 +15,7 @@ SampleCode/*.gcov
 Archive/
 Tools/
 ToolsArchive/
+test_runs_logs/
 Sikraken.code-workspace
 output/
 resources/
