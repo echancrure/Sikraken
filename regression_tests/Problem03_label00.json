@@ -4,7 +4,7 @@
         "id": "run1",
         "description": "Fast",
         "restarts": 1,
-        "tries": 100,
+        "tries": 10,
         "expected_run_time": 30,
         "expected_test_inputs_number": 23,
         "expected_coverage": 23
@@ -12,8 +12,8 @@
       {
         "id": "run2",
         "description": "Should do well",
-        "restarts": 10,
-        "tries": 100,
+        "restarts": 1,
+        "tries": 11,
         "expected_run_time": 300,
         "expected_test_inputs_number": 42,
         "expected_coverage": 56
@@ -21,11 +21,11 @@
       {
         "id": "run3",
         "description": "Thorough",
-        "restarts": 25,
-        "tries": 100,
+        "restarts": 2,
+        "tries": 5,
         "expected_run_time": 40,
         "expected_test_inputs_number": 29,
         "expected_coverage": 99
-      },
+      }
     ]
   }

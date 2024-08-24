@@ -4,7 +4,7 @@
 # Get the directory of the script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Change the current directory to the script's directory
+# Change the current directory using the script's directory
 cd "$SCRIPT_DIR/../Parser"
 
 # Run the flex command

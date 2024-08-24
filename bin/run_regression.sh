@@ -5,7 +5,7 @@ echo "Sikraken regression testing: starting script run_regression.sh "
 
 # Check if the directory argument is provided
 if [ -z "$1" ]; then
-    echo "Sikraken regression testing ERROR: script usage is $0 <directory_with_c_files>"
+    echo "Sikraken regression testing ERROR: script usage is $0 <directory_of_regression_c_files>"
     exit 1
 fi
 
@@ -32,18 +32,16 @@ for regression_test_file in "$c_files_directory"/*.c; do
 
     # Extract the base name of the file (without the path and extension)
     base_name=$(basename "$regression_test_file" .c)
-    config_file="$base_name".json
+    config_file="$c_files_directory"/"$base_name".json
 
     # Check if the configuration file exists
-    if [ ! -f "$config_file"]; then
-        echo "Sikraken regression testing ERROR: Configuration file $config_file does not exist."
+    if [ ! -f "$config_file" ]; then
+        echo "Sikraken regression testing ERROR: Configuration file $config_file does not exist"
         exit 1
     fi
 
-    echo "Generating test inputs for $regression_test_file..."
-
-    #parse the regression test
-    ./bin/call_parser.sh './SampleCode' $regression_test_file
+    #preprocess using gcc and parse using Sikraken's parser the regression test
+    ./bin/call_parser.sh $c_files_directory "$base_name".c
     if [ $? -ne 0 ]; then
         echo "Sikraken regression testing ERROR: Sikraken parsing of $regression_test_file failed"
         exit 1
@@ -67,7 +65,7 @@ for regression_test_file in "$c_files_directory"/*.c; do
         expected_coverage=$(echo "$config" | jq -r '.expected_coverage')
 
         #generate test inputs
-        eclipse -f ./SymbolicExecutor/se_main.pl -e "se_main('/home/chris/Sikraken/', "$c_files_directory", ${regression_test_file%.*}, main, debug, testcomp, $restarts, $tries)"
+        eclipse -f ./SymbolicExecutor/se_main.pl -e "se_main(['/home/chris/Sikraken/', '"$c_files_directory"/', '"$base_name"', main, release, testcomp, $restarts, $tries])"
         if [ $? -ne 0 ]; then
             echo "Sikraken regression testing ERROR: test inputs generation of $regression_test_file failed"
             exit 1
@@ -76,9 +74,9 @@ for regression_test_file in "$c_files_directory"/*.c; do
         fi
 
         #validate test inputs
-        testcov --no-isolation --test-suite "./SampleCode/suite-${regression_test_file%.*}.zip" "./SampleCode/$regression_test_file"
+        testcov --no-isolation --test-suite "$c_files_directory""/suite-""$base_name"".zip" "$regression_test_file"
         if [ $? -ne 0 ]; then
-            echo "Sikraken regression testing ERROR: Sikraken test inputs validation of $regression_test_file failed"
+            echo "Sikraken regression testing ERROR: TestCov test inputs validation of $regression_test_file failed"
             exit 1
         else
             echo "TestCov validated the test inputs for $regression_test_file in $id configuration"    

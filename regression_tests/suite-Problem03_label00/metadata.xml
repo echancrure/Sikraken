@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE test-metadata PUBLIC "+//IDN sosy-lab.org//DTD test-format test-metadata 1.1//EN" "https://sosy-lab.org/test-format/test-metadata-1.1.dtd">
+<test-metadata>
+	<sourcecodelang>C</sourcecodelang>
+	<producer>Sikraken</producer>
+	<specification>CHECK( init(main()), FQL(cover EDGES(@DECISIONEDGE)) )</specification>
+	<programfile>/home/chris/Sikraken/regression_tests/Problem03_label00.c</programfile>
+	<programhash>8a4edabdf0973cff85d2d64b7763fa3f8100fde9657f53d6d9cb5617562776df</programhash>
+	<entryfunction>main</entryfunction>
+	<architecture>32bit</architecture>
+	<creationtime>Sun Aug 25 00:39:18 2024</creationtime>
+</test-metadata>
