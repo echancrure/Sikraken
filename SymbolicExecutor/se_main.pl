@@ -30,18 +30,23 @@ mytrace.            %call this to start debugging
 :- compile(['se_handle_declarations', 'se_symbolically_execute', 'se_symbolically_interpret']).
 :- compile(['se_write_tests_testcomp']).
 :- compile(['se_coverage']).
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % home pc   se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic001, main, debug)
 % laptop    se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug)
 %  
 go_laptop :- se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug).
 go_pc :- se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic002, basic, debug).
-go_linux(Target_source_file_name_no_ext, Restart, Tries) :- se_main('/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/', Target_source_file_name_no_ext, main, debug, testcomp, Restart, Tries).
+go_linux(Target_source_file_name_no_ext, Restart, Tries) :- se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/', Target_source_file_name_no_ext, main, debug, testcomp, Restart, Tries]).
 go(Restart, Nb_of_paths_to_try) :- go_linux('Problem03_label00', Restart, Nb_of_paths_to_try).
-se_main(Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Restart, Nb_of_paths_to_try) :-
+se_main(ArgsL) :-
+    (ArgsL = [Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Restart, Nb_of_paths_to_try] ->
+        true
+    ;
+        common_util__error(10, "Calling se_main/? with invalid argument list", "Review calling syntax of se_main/?", [], '10_240824_1', 'se_main', 'se_main', no_localisation, no_extra_info)
+    ),
+    print_test_run_log__preamble(ArgsL),
     initialise,
-    common_util__quick_dev_info("test %w, and %s", [Parsed_dir, Target_raw_subprogram_name]),
+    common_util__quick_dev_info("Analysing %w", [Target_source_file_name_no_ext]),
     se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode),
     capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
     read_parsed_file(Parsed_dir, Target_source_file_name_no_ext, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors
@@ -68,7 +73,8 @@ se_main(Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subp
         terminate_testcomp
     ;
         printf(user_output, "\nSUCCESS", [])
-    ).
+    ),
+    print_test_run_log__terminate.
 
 try_nb_path(_, Iteration_counter, _) :-
     setval(Iteration_counter, 0),
@@ -237,4 +243,56 @@ print_test_outputs([SEAV|R]) :-
     seav__get(SEAV, 'output', Output_value),
     printf(user_output, "\nOutput %w = %w", [Name, Output_value]),
     print_test_outputs(R).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+print_test_run_log__preamble(ArgsL) :-
+    ArgsL = [Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Restart, Nb_of_paths_to_try],
+    get_flag('unix_time', Time), 
+    local_time_string(Time, "%a_%d_%m_%Y_%H_%M_%S", Timestamp),
+    concat_string([Install_dir, "test_runs_logs/", "test_run_", Target_source_file_name_no_ext, "_", Timestamp, ".txt"], Test_run_filename),
+    setval('test_run_filename', Test_run_filename), 
+    open(Test_run_filename, 'write', 'test_run_stream'),
+    printf('test_run_stream', "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
+    printf('test_run_stream', "Sikraken Test Inputs Generation Run Log\n", []),
+    printf('test_run_stream', "Raw Arguments:\t%w\n", [ArgsL]),
+    printf('test_run_stream', "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
+    printf('test_run_stream', "Relevant ECLiPSe Configurations:\n", []),
+    get_flag('debug_compile', Debug_compile),
+    get_flag('debugging', Debugging),
+    get_flag('max_local_control', Max_local_control), 
+    Max_local_control_in_MB is fix((Max_local_control / 1024) / 1024),
+    get_flag('version', Version), 
+    printf('test_run_stream', "\tECLiPSe version:\t%w\n", [Version]),
+    printf('test_run_stream', "\tdebug_compile:\t\t%w\n", [Debug_compile]),
+    printf('test_run_stream', "\tdebugging:\t\t\t%w\n", [Debugging]),
+    printf('test_run_stream', "\tMaximum allowed local/control user stack:\t%wMB\n", [Max_local_control_in_MB]),
+    printf('test_run_stream', "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
+    printf('test_run_stream', "Sikraken Session Configurations at: %w\n", [Timestamp]),
+    printf('test_run_stream', "\tRun mode:\t%w\n", [Debug_mode]),
+    printf('test_run_stream', "\tTests inputs target format:\t%w\n", [Output_mode]),
+    printf('test_run_stream', "\tTarget function:\t%w\n", [Target_raw_subprogram_name]),   
+    printf('test_run_stream', "\tTarget C file:\t%w (in folder:%w)\n", [Target_source_file_name_no_ext, Parsed_dir]),
+    
+
+    printf('test_run_stream', "\tNb of restarts:\t\t%w\n", [Restart]),
+    printf('test_run_stream', "\tNb of path to try:\t%w\n", [Nb_of_paths_to_try]),
+    close('test_run_stream').
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+print_test_run_log__terminate :-
+    getval('test_run_filename', Test_run_filename),
+    open(Test_run_filename, 'append', Test_run_stream),
+    printf(Test_run_stream, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
+    printf(Test_run_stream, "Sikraken Session Results:\n", []),
+    statistics('cputime', Cputime),
+    Cputime_seconds is fix(Cputime),
+    se_globals__get_val('path_nb', Test_nb),
+    printf(Test_run_stream, "\tECLiPSe CPU time: \t%w seconds\n", [Cputime_seconds]),
+    printf(Test_run_stream, "\tGenerated: \t\t\t%w tests\n", [Test_nb]),
+    printf(Test_run_stream, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
+    printf(Test_run_stream, "ECLiPSe Statistics Dump:\n", []), 
+    get_stream('log_output', Log_output_stream),
+    set_stream('log_output', Test_run_stream),
+    statistics,     %printing out ECLiPSe internal statistics into redirected stream
+    set_stream('log_output', Log_output_stream),
+    printf(Test_run_stream, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%", []),
+    close(Test_run_stream).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
