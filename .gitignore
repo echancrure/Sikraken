@@ -1,10 +1,5 @@
 Documentation/Sikraken Backlog.gsheet
-RegressionTool/**/
 Parser/**/
-RegressionTests/**/
-RegressionTests/*.i
-RegressionTests/*.pl
-RegressionTests/*.obj
 SampleCode/**/
 SampleCode/*.i
 SampleCode/*.pl
@@ -12,12 +7,8 @@ SampleCode/*.obj
 SampleCode/*.exe
 SampleCode/*.zip
 SampleCode/*.gcov
-Archive/
-Tools/
-ToolsArchive/
 test_runs_logs/
 Sikraken.code-workspace
 output/
-resources/
 SymbolicExecutor/try.pl
 *.gcov
