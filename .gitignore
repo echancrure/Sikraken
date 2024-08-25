@@ -20,5 +20,4 @@ Sikraken.code-workspace
 output/
 resources/
 SymbolicExecutor/try.pl
-dev_space/
 *.gcov
