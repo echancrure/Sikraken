@@ -1,1 +1,0 @@
-run_regression_tester.bat "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build" "C:\Users\Chris2\GoogleDrive\Sikraken"

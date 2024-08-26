@@ -2,5 +2,6 @@
     "files.associations": {
         "*.pl": "prolog",
         "stdio.h": "c"
-    }
+    },
+    "git.detectSubmodulesLimit": 10
 }

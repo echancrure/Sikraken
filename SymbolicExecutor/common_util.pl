@@ -1,13 +1,18 @@
 :- module(common_util).
-:- export common_util__error/9.
+:- export common_util__error/9, common_util__quick_dev_info/2.
 %%%
-
 
 :- use_module('se_globals').
 
 mytrace.            %call this to start debugging
 :- spy mytrace/0.
-%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+common_util__quick_dev_info(Message, Arguments) :-
+       printf('user_error', "Dev Info: ", []),
+       printf('user_error', Message, Arguments),
+       printf('user_error', "\n", []),
+       flush('user_error').        %systematically flushing ALL debug/development messages is important or they may get displayed in a wrong order when mixed with message from other streams and be out of sync with the ECLiPse tracer
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %The idea behind this complex error message predicate is to allow filtering of warning messages according to severity and allow fine control over the information displayed (e.g. different details for developpers and users)
 %any optional argument can be ommitted by appending 'no_' in front of the corresponding parameter name
 %e.g. common_util__error(7, "Generic package instantiation to be implemented", "The package is unhandled", [("package's name", Name)], 709, mika_symbolic, exec, exec(generic_package_instantiation(...)), "scheduled to be fixed in version 2.4")
@@ -146,7 +151,8 @@ common_util__error2(0, Error_message, Error_consequences, ArgumentsL, _Error_cod
             )
     ;
             true
-    ).
+    ),
+    flush(user_error).
 
 common_util__error2(Error_severity, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode) :-
     (Message_mode == debug ->

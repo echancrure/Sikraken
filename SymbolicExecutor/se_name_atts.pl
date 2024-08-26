@@ -17,25 +17,6 @@
 %internal attributed variable handlers
 %called to confirm unification after unification with an another attributed variable or a non-variable
 %Value is a non-variable or another attributed variable
-/*unify_name(_Unified, Attr) :-          %ECLiPSe fails on compilation if this is not present even though the documentation says that the handler is not called in this case 
-    var(Attr).                      %i.e. ignore and succeed: unification does not involve the attribute for this extension
-unify_name(Unified, Attr) :-
-    compound(Attr),    
-    printf("hello there 2 unified:%w attr:%w\n", [Unified, Attr]),             
-    unify_term_name(Unified, Attr).
-%%%
-unify_term_name(Unified, Attr) :- 
-    nonvar(Unified),
-    printf("hello there 3: unified:%w attr:%w\n", [Unified, Attr]),
-    fail.           
-unify_term_name(U{Unified_attr}, Attr) :-
-    -?->
-    printf("hello there 4", []),
-    unify_name_name(U, Unified_attr, Attr).
-unify_name_name(U, Unified_attr, Attr) :-
-    printf("hello there 5", []),
-    var(Unified_attr),
-    Attr = Unified_attr.*/
 unify_name(_, Attr) :-
 	var(Attr).                       %ANY+META (false call)
 unify_name(Term, Attr) :-
