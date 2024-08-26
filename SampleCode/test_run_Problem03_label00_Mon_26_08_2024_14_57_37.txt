@@ -1,0 +1,59 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Sikraken Test Inputs Generation Run Log
+Raw Arguments:	[/home/chris/Sikraken/, /home/chris/Sikraken/SampleCode/, Problem03_label00, main, debug, testcomp, 20, 150]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Relevant ECLiPSe Configurations:
+	ECLiPSe version:	7.1
+	debug_compile:		on
+	debugging:			leap
+	Maximum allowed local/control user stack:	128MB
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Sikraken Session Configurations at: Mon_26_08_2024_14_57_37
+	Run mode:	debug
+	Tests inputs target format:	testcomp
+	Target function:	main
+	Target C file:	Problem03_label00 (in folder:/home/chris/Sikraken/SampleCode/)
+	Nb of restarts:		20
+	Nb of path to try:	150
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Sikraken Session Results:
+	ECLiPSe CPU time: 	144 seconds
+	Generated: 			75 tests
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ECLiPSe Statistics Dump:
+
+times:                   [142.21, 1.81, 144.66] seconds
+cputime:                 144.030360048 seconds
+hr_time:                 1724680801.44491 seconds
+event_time:              144.66 seconds
+session_time:            144.66 seconds
+global_stack_used:       538448 bytes
+global_stack_allocated:  82837504 bytes
+global_stack_peak:       92536832 bytes
+trail_stack_used:        7616 bytes
+trail_stack_allocated:   688128 bytes
+trail_stack_peak:        1343488 bytes
+control_stack_used:      1184 bytes
+control_stack_allocated: 3178496 bytes
+control_stack_peak:      5636096 bytes
+local_stack_used:        616 bytes
+local_stack_allocated:   14778368 bytes
+local_stack_peak:        26214400 bytes
+shared_heap_allocated:   6860800 bytes
+shared_heap_used:        6770288 bytes
+private_heap_allocated:  0 bytes
+private_heap_used:       0 bytes
+gc_number:               1991 
+gc_collected:            14279772656.0 bytes
+gc_area:                 10230784 bytes
+gc_ratio:                70.0481180230798 %
+gc_time:                 3.11 seconds
+dictionary_entries:      7618 
+dict_hash_usage:         4048 / 8192 
+dict_hash_collisions:    1560 / 5608 
+dict_collected:          4603 
+dict_gc_number:          8 
+dict_gc_countdown:       64 
+dict_gc_running:         false 
+wake_count:              18627 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
