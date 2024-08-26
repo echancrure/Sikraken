@@ -49,6 +49,23 @@
             "detail": "Preprocesses the current C file and then runs sikraken_parser on it."
         },
         {
+            "label": "Run TestCov",
+            "type": "shell",
+            "command": "testcov",
+            "args": [
+                "--no-isolation",
+                "--test-suite",
+                "${fileDirname}/suite-${fileBasenameNoExtension}.zip",
+                "${file}"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "detail": "Run TestCov on generated test inputs Zip file"
+        },
+        {
             "label": "Run Regression Tests",
             "type": "shell",
             "command": "${workspaceFolder}/bin/run_regression.sh",
