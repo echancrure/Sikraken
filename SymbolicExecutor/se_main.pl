@@ -21,7 +21,7 @@ mytrace.            %call this to start debugging
 
 :- use_module(library('lists')).
 
-:- use_module("./../Solver/PTC-Solver/source/ptc_solver").
+:- use_module("./../PTC-Solver/source/ptc_solver").
 
 :- use_module(['common_util', 'se_globals']).
 

@@ -52,6 +52,9 @@
             "label": "Run Regression Tests",
             "type": "shell",
             "command": "${workspaceFolder}/bin/run_regression.sh",
+            "args": [
+                "/home/chris/Sikraken/regression_tests"
+            ],
             "group": {
                 "kind": "build",
                 "isDefault": true
