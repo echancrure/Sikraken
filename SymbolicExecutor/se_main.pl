@@ -245,10 +245,10 @@ print_test_outputs([SEAV|R]) :-
     print_test_outputs(R).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 print_test_run_log__preamble(ArgsL) :-
-    ArgsL = [_Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Restart, Nb_of_paths_to_try],
+    ArgsL = [Install_dir, _Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Restart, Nb_of_paths_to_try],
     get_flag('unix_time', Time), 
     local_time_string(Time, "%a_%d_%m_%Y_%H_%M_%S", Timestamp),
-    concat_string([Parsed_dir, "/test_run_", Target_source_file_name_no_ext, "_", Timestamp, ".txt"], Test_run_filename),
+    concat_string([Install_dir, "SikrakenDevSpace/experiments/test_run_logs/test_run_", Target_source_file_name_no_ext, "_", Timestamp, ".txt"], Test_run_filename),
     setval('test_run_filename', Test_run_filename), 
     open(Test_run_filename, 'write', 'test_run_stream'),
     printf('test_run_stream', "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
