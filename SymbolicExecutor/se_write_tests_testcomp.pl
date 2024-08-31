@@ -80,7 +80,7 @@ terminate_testcomp:-
         )
     ;
         (%no tests at all have been generated: we issue a warning
-         common_util__error(9, "WARNING: no test were created", "Check this is not a nerror", [], '09_270824_1', 'se_main', 'terminate_testcomp', no_localisation, no_extra_info)
+         common_util__error(9, "WARNING: no test were created", "Check this is not an error", [], '09_270824_1', 'se_main', 'terminate_testcomp', no_localisation, no_extra_info)
         )
     ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
