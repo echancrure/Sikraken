@@ -36,8 +36,8 @@ mytrace.            %call this to start debugging
 %  
 go_laptop :- se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug).
 go_pc :- se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic002, basic, debug).
-go_linux(Target_source_file_name_no_ext, Restart, Tries) :- se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/', Target_source_file_name_no_ext, main, debug, testcomp, Restart, Tries]).
-go(Restart, Nb_of_paths_to_try) :- go_linux('Problem03_label00', Restart, Nb_of_paths_to_try).
+go_linux(Target_source_file_name_no_ext, Restart, Tries) :- se_main(['/home/chris/Sikraken/', "/home/chris/sv-benchmarks/c/hardness-nfm22/", Target_source_file_name_no_ext, main, debug, testcomp, Restart, Tries]).
+go(Restart, Nb_of_paths_to_try) :- go_linux('hardness_codestructure_dependencies_file-0', Restart, Nb_of_paths_to_try).
 se_main(ArgsL) :-
     (ArgsL = [Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Restart, Nb_of_paths_to_try] ->
         true
@@ -245,7 +245,7 @@ print_test_outputs([SEAV|R]) :-
     print_test_outputs(R).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 print_test_run_log__preamble(ArgsL) :-
-    ArgsL = [Install_dir, _Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Restart, Nb_of_paths_to_try],
+    ArgsL = [Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Restart, Nb_of_paths_to_try],
     get_flag('unix_time', Time), 
     local_time_string(Time, "%a_%d_%m_%Y_%H_%M_%S", Timestamp),
     concat_string([Install_dir, "SikrakenDevSpace/experiments/test_run_logs/test_run_", Target_source_file_name_no_ext, "_", Timestamp, ".txt"], Test_run_filename),

@@ -27,6 +27,7 @@ extern int is_typedef_name(char*);
 
 void read_comment();
 int differentiate_identifiers(char *);
+char *tokenize_number_constants(char *, char *, char **);
 
 %}
 
@@ -109,10 +110,17 @@ WS  [ \t\v\n\f]
                               return IDENTIFIER;
                             }
 
-{HP}{H}+{IS}?				{yylval.id = strdup_safe(yytext); return I_CONSTANT;}
-{NZ}{D}*{IS}?				{yylval.id = strdup_safe(yytext); return I_CONSTANT;}
-"0"{O}*{IS}?				{yylval.id = strdup_safe(yytext); return I_CONSTANT;}
-{CP}?"'"([^'\\\n]|{ES})+"'"	{yylval.id = strdup_safe(yytext); return I_CONSTANT;}
+{HP}{H}+{IS}?				{tokenize_number_constants("hexadecimal", yytext, &yylval.id);
+                             return I_CONSTANT;
+                            }
+{NZ}{D}*{IS}?				{tokenize_number_constants("", yytext, &yylval.id);
+                             return I_CONSTANT;
+                            }
+                            
+"0"{O}*{IS}?				{tokenize_number_constants("octal", yytext, &yylval.id);
+                             return I_CONSTANT;
+                            }
+{CP}?"'"([^'\\\n]|{ES})+"'"	{yylval.id = strdup_safe(yytext); return I_CONSTANT;}   //single characters
 
 {D}+{E}{FS}?				{yylval.id = strdup_safe(yytext); return F_CONSTANT;}
 {D}*"."{D}+{E}?{FS}?		{yylval.id = strdup_safe(yytext); return F_CONSTANT;}
@@ -203,4 +211,55 @@ void read_comment() {
             if (c == 0)
                 break;
         }
+}
+
+char * tokenize_number_constants(char * wrapper, char * input, char ** output) {
+    int current = strlen(input)-1;
+    int has_u = 0, has_l = 0, has_ll = 0;
+    int has_suffix = 1;
+
+    while (has_suffix && current >= 0) {
+        switch (input[current]) {
+            case 'u':
+            case 'U':
+                has_u = 1;
+                break;
+            case 'l':
+            case 'L':
+                if (current >0 && (input[current-1] == 'l' || input[current-1] == 'L')) {
+                    has_ll = 1;
+                    current--;  //skip the other 'l' or 'LL'
+                }
+                else has_l = 1;
+                break;
+            default:
+                has_suffix = 0;  
+        }
+        if (has_suffix) current--;
+    }
+    int has_wrapper = strcmp(wrapper, "");
+    //calculating the length of the result: length of the wrapper + 2 parentheses + length of the prefix, the suffix, the underscore, the parenthesis
+    int size = (has_wrapper ? strlen(wrapper) + 2 : 0) + current+1 + 1 + has_u*strlen("unsigned") + has_l*strlen("long") + has_ll*strlen("long_long") + has_u*has_l + has_u*has_ll + (has_u || has_l || has_ll ? 2 : 0);
+    *output = (char *)malloc(size);
+    char format_string[100];
+    if (has_wrapper) strcpy(format_string, "%s("); //starts with the integer type wrapper
+    else strcpy(format_string, "");
+    if (!has_u && !has_l && !has_ll)
+        strcat(format_string, "%.*s");
+    else if (has_u && !has_l && !has_ll) 
+        strcat(format_string, "unsigned(%.*s)");
+    else if (has_u && has_l && !has_ll) 
+        strcat(format_string, "unsigned_long(%.*s)");
+    else if (has_u && !has_l && has_ll) 
+        strcat(format_string, "unsigned_long_long(%.*s)");
+    else if (!has_u && has_l && !has_ll) 
+        strcat(format_string, "long(%.*s)");
+    else if (!has_u && !has_l && has_ll) 
+        strcat(format_string, "long_long(%.*s)");
+    if (has_wrapper) {
+        strcat(format_string, ")"); //adds the wrapper end parenthesis
+        snprintf(*output, size, format_string, wrapper, current + 1, input);
+    } else {
+        snprintf(*output, size, format_string, current + 1, input);
+    }
 }

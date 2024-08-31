@@ -23,12 +23,13 @@ se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode,
     setval('covered_bran', []),
     setval('path_nb', 0),
     %mytrace,
-    seed(11997700),                                 %set for repeatable random behaviour between runs, 1970 is the default seed
+    seed(1970),                                 %set for repeatable random behaviour between runs, 1970 is the default seed
     setval('to_cover', []),                     %list of branches remaining to cover
     setval('test_driver_test_nb', 0),
     setval('abandoned_path_nb', 0),	            %counts the number of timed out and unsuccessful labeling tests
     setval('install_dir', Install_dir),         %the install dir of the generator executable
     setval('target_source_file_name_no_ext', Target_source_file_name_no_ext),   %the name of target source file without extension
+    setval('testcomp_test_suite_folder', ""),
     setval('debug_mode', Debug_mode),           %'debug' or 'release'
     setval('output_mode', Output_mode),         %'testcomp' or something else 
     setval('message_mode', Debug_mode),         %debug or release todo: remove, just use debug_mode
