@@ -807,9 +807,11 @@ extern int is_typedef_name(char*);
 
 void read_comment();
 int differentiate_identifiers(char *);
-
-#line 812 "lex.yy.c"
-#line 813 "lex.yy.c"
+void wrap_integer_constants(char *, char *, char **);
+void wrap_floating_point_constants(char *, char *, char **);
+void add_missing_zero(char *, char **);
+#line 814 "lex.yy.c"
+#line 815 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -1030,7 +1032,7 @@ YY_DECL
 
 #line 53 "C_grammar.l"
         /* rules section */
-#line 1034 "lex.yy.c"
+#line 1036 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1357,57 +1359,80 @@ YY_RULE_SETUP
 case 51:
 YY_RULE_SETUP
 #line 113 "C_grammar.l"
-{yylval.id = strdup_safe(yytext); return I_CONSTANT;}
+{wrap_integer_constants("hexadecimal", yytext, &yylval.id);
+                             return I_CONSTANT;
+                            }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 114 "C_grammar.l"
-{yylval.id = strdup_safe(yytext); return I_CONSTANT;}
+#line 116 "C_grammar.l"
+{wrap_integer_constants("", yytext, &yylval.id);
+                             return I_CONSTANT;
+                            }
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 115 "C_grammar.l"
-{yylval.id = strdup_safe(yytext); return I_CONSTANT;}
+#line 120 "C_grammar.l"
+{if (strcmp(yytext, "0")) wrap_integer_constants("octal", yytext, &yylval.id);
+                             else wrap_integer_constants("", yytext, &yylval.id);   //because it's just the constant 0
+                             return I_CONSTANT;
+                            }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 116 "C_grammar.l"
-{yylval.id = strdup_safe(yytext); return I_CONSTANT;}
+#line 124 "C_grammar.l"
+{yylval.id = strdup_safe(yytext); return I_CONSTANT;}   //single characters
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 118 "C_grammar.l"
-{yylval.id = strdup_safe(yytext); return F_CONSTANT;}
+#line 126 "C_grammar.l"
+{wrap_floating_point_constants("", yytext, &yylval.id);     //Decimal floating-point constants with an exponent.
+                             return F_CONSTANT;
+                            }
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 119 "C_grammar.l"
-{yylval.id = strdup_safe(yytext); return F_CONSTANT;}
+#line 129 "C_grammar.l"
+{wrap_floating_point_constants("", yytext, &yylval.id);     //Decimal floating-point constants with a fractional part.
+                             return F_CONSTANT;
+                            }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 120 "C_grammar.l"
-{yylval.id = strdup_safe(yytext); return F_CONSTANT;}
+#line 132 "C_grammar.l"
+{char* added_0;
+                             add_missing_zero(yytext, &added_0);
+                             wrap_floating_point_constants("", added_0, &yylval.id);         //Decimal floating-point constants with a fractional part.
+                             return F_CONSTANT;
+                            }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 121 "C_grammar.l"
-{yylval.id = strdup_safe(yytext); return F_CONSTANT;}
+#line 137 "C_grammar.l"
+{wrap_floating_point_constants("hexadecimal", yytext, &yylval.id);  //Hexadecimal floating-point constants
+                             return F_CONSTANT;
+                            }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 122 "C_grammar.l"
-{yylval.id = strdup_safe(yytext); return F_CONSTANT;}
+#line 140 "C_grammar.l"
+{wrap_floating_point_constants("hexadecimal", yytext, &yylval.id);    //Hexadecimal floating-point constants with a fractional part.
+                             return F_CONSTANT;
+                            }
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 123 "C_grammar.l"
-{yylval.id = strdup_safe(yytext); return F_CONSTANT;}
+#line 143 "C_grammar.l"
+{char* added_0;
+                             add_missing_zero(yytext, &added_0);
+                             wrap_floating_point_constants("hexadecimal", added_0, &yylval.id);   //Hexadecimal floating-point constants with digits before the decimal point, but none after.
+                             return F_CONSTANT;
+                            }
 	YY_BREAK
 case 61:
 /* rule 61 can match eol */
 YY_RULE_SETUP
-#line 125 "C_grammar.l"
+#line 149 "C_grammar.l"
 {if (yytext[0] == 'L') { //a wide string constant
                                         size_t const size = strlen("wide_string()") + strlen(yytext) - 1 + 1;
                                         yylval.id = (char*)malloc(size);
@@ -1420,251 +1445,251 @@ YY_RULE_SETUP
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 135 "C_grammar.l"
+#line 159 "C_grammar.l"
 { return ELLIPSIS; }
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 136 "C_grammar.l"
+#line 160 "C_grammar.l"
 { return RIGHT_ASSIGN; }
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 137 "C_grammar.l"
+#line 161 "C_grammar.l"
 { return LEFT_ASSIGN; }
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 138 "C_grammar.l"
+#line 162 "C_grammar.l"
 { return ADD_ASSIGN; }
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 139 "C_grammar.l"
+#line 163 "C_grammar.l"
 { return SUB_ASSIGN; }
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 140 "C_grammar.l"
+#line 164 "C_grammar.l"
 { return MUL_ASSIGN; }
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 141 "C_grammar.l"
+#line 165 "C_grammar.l"
 { return DIV_ASSIGN; }
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 142 "C_grammar.l"
+#line 166 "C_grammar.l"
 { return MOD_ASSIGN; }
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 143 "C_grammar.l"
+#line 167 "C_grammar.l"
 { return AND_ASSIGN; }
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 144 "C_grammar.l"
+#line 168 "C_grammar.l"
 { return XOR_ASSIGN; }
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 145 "C_grammar.l"
+#line 169 "C_grammar.l"
 { return OR_ASSIGN; }
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 146 "C_grammar.l"
+#line 170 "C_grammar.l"
 { return RIGHT_OP; }
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 147 "C_grammar.l"
+#line 171 "C_grammar.l"
 { return LEFT_OP; }
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-#line 148 "C_grammar.l"
+#line 172 "C_grammar.l"
 { return INC_OP; }
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-#line 149 "C_grammar.l"
+#line 173 "C_grammar.l"
 { return DEC_OP; }
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 150 "C_grammar.l"
+#line 174 "C_grammar.l"
 { return PTR_OP; }
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 151 "C_grammar.l"
+#line 175 "C_grammar.l"
 { return AND_OP; }
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 152 "C_grammar.l"
+#line 176 "C_grammar.l"
 { return OR_OP; }
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
-#line 153 "C_grammar.l"
+#line 177 "C_grammar.l"
 { return LE_OP; }
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 154 "C_grammar.l"
+#line 178 "C_grammar.l"
 { return GE_OP; }
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
-#line 155 "C_grammar.l"
+#line 179 "C_grammar.l"
 { return EQ_OP; }
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
-#line 156 "C_grammar.l"
+#line 180 "C_grammar.l"
 { return NE_OP; }
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 157 "C_grammar.l"
+#line 181 "C_grammar.l"
 { return ';'; }
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
-#line 158 "C_grammar.l"
+#line 182 "C_grammar.l"
 { return '{'; }
 	YY_BREAK
 case 86:
 YY_RULE_SETUP
-#line 159 "C_grammar.l"
+#line 183 "C_grammar.l"
 { return '}'; }
 	YY_BREAK
 case 87:
 YY_RULE_SETUP
-#line 160 "C_grammar.l"
+#line 184 "C_grammar.l"
 { return ','; }
 	YY_BREAK
 case 88:
 YY_RULE_SETUP
-#line 161 "C_grammar.l"
+#line 185 "C_grammar.l"
 { return ':'; }
 	YY_BREAK
 case 89:
 YY_RULE_SETUP
-#line 162 "C_grammar.l"
+#line 186 "C_grammar.l"
 { return '='; }
 	YY_BREAK
 case 90:
 YY_RULE_SETUP
-#line 163 "C_grammar.l"
+#line 187 "C_grammar.l"
 { return '('; }
 	YY_BREAK
 case 91:
 YY_RULE_SETUP
-#line 164 "C_grammar.l"
+#line 188 "C_grammar.l"
 { return ')'; }
 	YY_BREAK
 case 92:
 YY_RULE_SETUP
-#line 165 "C_grammar.l"
+#line 189 "C_grammar.l"
 { return '['; }
 	YY_BREAK
 case 93:
 YY_RULE_SETUP
-#line 166 "C_grammar.l"
+#line 190 "C_grammar.l"
 { return ']'; }
 	YY_BREAK
 case 94:
 YY_RULE_SETUP
-#line 167 "C_grammar.l"
+#line 191 "C_grammar.l"
 { return '.'; }
 	YY_BREAK
 case 95:
 YY_RULE_SETUP
-#line 168 "C_grammar.l"
+#line 192 "C_grammar.l"
 { return '&'; }
 	YY_BREAK
 case 96:
 YY_RULE_SETUP
-#line 169 "C_grammar.l"
+#line 193 "C_grammar.l"
 { return '!'; }
 	YY_BREAK
 case 97:
 YY_RULE_SETUP
-#line 170 "C_grammar.l"
+#line 194 "C_grammar.l"
 { return '~'; }
 	YY_BREAK
 case 98:
 YY_RULE_SETUP
-#line 171 "C_grammar.l"
+#line 195 "C_grammar.l"
 { return '-'; }
 	YY_BREAK
 case 99:
 YY_RULE_SETUP
-#line 172 "C_grammar.l"
+#line 196 "C_grammar.l"
 { return '+'; }
 	YY_BREAK
 case 100:
 YY_RULE_SETUP
-#line 173 "C_grammar.l"
+#line 197 "C_grammar.l"
 { return '*'; }
 	YY_BREAK
 case 101:
 YY_RULE_SETUP
-#line 174 "C_grammar.l"
+#line 198 "C_grammar.l"
 { return '/'; }
 	YY_BREAK
 case 102:
 YY_RULE_SETUP
-#line 175 "C_grammar.l"
+#line 199 "C_grammar.l"
 { return '%'; }
 	YY_BREAK
 case 103:
 YY_RULE_SETUP
-#line 176 "C_grammar.l"
+#line 200 "C_grammar.l"
 { return '<'; }
 	YY_BREAK
 case 104:
 YY_RULE_SETUP
-#line 177 "C_grammar.l"
+#line 201 "C_grammar.l"
 { return '>'; }
 	YY_BREAK
 case 105:
 YY_RULE_SETUP
-#line 178 "C_grammar.l"
+#line 202 "C_grammar.l"
 { return '^'; }
 	YY_BREAK
 case 106:
 YY_RULE_SETUP
-#line 179 "C_grammar.l"
+#line 203 "C_grammar.l"
 { return '|'; }
 	YY_BREAK
 case 107:
 YY_RULE_SETUP
-#line 180 "C_grammar.l"
+#line 204 "C_grammar.l"
 { return '?'; }
 	YY_BREAK
 case 108:
 /* rule 108 can match eol */
 YY_RULE_SETUP
-#line 182 "C_grammar.l"
+#line 206 "C_grammar.l"
 { /* whitespace separates tokens */ }
 	YY_BREAK
 case 109:
 YY_RULE_SETUP
-#line 183 "C_grammar.l"
+#line 207 "C_grammar.l"
 { /* discard bad characters */ }
 	YY_BREAK
 case 110:
 YY_RULE_SETUP
-#line 185 "C_grammar.l"
+#line 209 "C_grammar.l"
 ECHO;
 	YY_BREAK
-#line 1668 "lex.yy.c"
+#line 1693 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2681,7 +2706,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 185 "C_grammar.l"
+#line 209 "C_grammar.l"
 
 /* user code section */
 int yywrap(void)        /* called at end of input */
@@ -2704,4 +2729,111 @@ void read_comment() {
             if (c == 0)
                 break;
         }
+}
+
+//add hexademical or octal wrapper and handle u|l|ll variations
+void wrap_integer_constants(char * wrapper, char * input, char ** output) {
+    int current = strlen(input)-1;
+    int has_u = 0, has_l = 0, has_ll = 0;
+    int has_suffix = 1;
+
+    while (has_suffix && current >= 0) {
+        switch (input[current]) {
+            case 'u':
+            case 'U':
+                has_u = 1;
+                break;
+            case 'l':
+            case 'L':
+                if (current >0 && (input[current-1] == 'l' || input[current-1] == 'L')) {
+                    has_ll = 1;
+                    current--;  //skip the other 'l' or 'LL'
+                }
+                else has_l = 1;
+                break;
+            default:
+                has_suffix = 0;  
+        }
+        if (has_suffix) current--;
+    }
+    int has_wrapper = strcmp(wrapper, "");
+    //calculating the length of the result: length of the wrapper + 2 parentheses + length of the prefix, the suffix, the underscore, the parenthesis
+    int size = (has_wrapper ? strlen(wrapper) + 2 : 0) + current+1 + 1 + has_u*strlen("unsigned") + has_l*strlen("long") + has_ll*strlen("long_long") + has_u*has_l + has_u*has_ll + (has_u || has_l || has_ll ? 2 : 0);
+    *output = (char *)malloc(size);
+    char format_string[100];
+    if (has_wrapper) strcpy(format_string, "%s("); //starts with the integer kind wrapper
+    else strcpy(format_string, "");
+    if (!has_u && !has_l && !has_ll)
+        strcat(format_string, "%.*s");
+    else if (has_u && !has_l && !has_ll) 
+        strcat(format_string, "unsigned(%.*s)");
+    else if (has_u && has_l && !has_ll) 
+        strcat(format_string, "unsigned_long(%.*s)");
+    else if (has_u && !has_l && has_ll) 
+        strcat(format_string, "unsigned_long_long(%.*s)");
+    else if (!has_u && has_l && !has_ll) 
+        strcat(format_string, "long(%.*s)");
+    else if (!has_u && !has_l && has_ll) 
+        strcat(format_string, "long_long(%.*s)");
+    if (has_wrapper) {
+        strcat(format_string, ")"); //adds the wrapper end parenthesis
+        snprintf(*output, size, format_string, wrapper, current + 1, input);
+    } else {
+        snprintf(*output, size, format_string, current + 1, input);
+    }
+}
+
+//add hexademical wrapper and handle f|F|l|L variations
+void wrap_floating_point_constants(char * wrapper, char * input, char ** output) {
+    int current = strlen(input)-1;
+    int has_f = 0, has_l = 0, is_d = 0;
+    int has_suffix = 1;
+    switch (input[current]) {
+        case 'f':
+        case 'F':
+            has_f = 1;
+            break;
+        case 'l':
+        case 'L':
+            has_l = 1;
+            break;
+        default:
+            is_d = 1;
+            has_suffix = 0;
+    }
+    if (has_suffix) current--;
+    int has_wrapper = strcmp(wrapper, "");
+    //calculating the length of the result: length of the wrapper + 2 parentheses + length of the prefix, the suffix, the parenthesis
+    int size = (has_wrapper ? strlen(wrapper) + 2 : 0) + current+1 + 1 + is_d*strlen("double") + has_f*strlen("float") + has_l*strlen("long_double") + (has_f || has_l || is_d ? 2 : 0);
+    *output = (char *)malloc(size);
+    char format_string[100];
+    if (has_wrapper) strcpy(format_string, "%s("); //starts with the floating point kind wrapper
+    else strcpy(format_string, "");
+    if (is_d)
+        strcat(format_string, "double(%.*s)");
+    else if (has_f) 
+        strcat(format_string, "float(%.*s)");
+    else if (has_l) 
+        strcat(format_string, "long_double(%.*s)");
+    if (has_wrapper) {
+        strcat(format_string, ")"); //adds the wrapper end parenthesis
+        snprintf(*output, size, format_string, wrapper, current + 1, input);
+    } else {
+        snprintf(*output, size, format_string, current + 1, input);
+    }
+}
+
+//float has no digit after decimal point: need to add 0
+void add_missing_zero(char * input, char ** output) {
+    size_t len = strlen(input);
+    *output = (char*)malloc(len + 1 + 1); // +1 for extra '0'
+    strcpy(*output, input);
+    char* decimal_point = strchr(*output, '.');
+    char* suffix = strpbrk(decimal_point, "eElL"); //returns pointer to first occurrence of character
+    if (suffix == NULL) {// No suffix, so it's the end of the string
+        suffix = *output + strlen(*output);
+    }
+    size_t decimal_pos = decimal_point - *output;
+    memmove(decimal_point + 2, decimal_point + 1, len - decimal_pos); //copy everything after the decimal point to +1 location
+    (*output)[decimal_pos + 1] = '0';    //add the 'missing' 0
 }

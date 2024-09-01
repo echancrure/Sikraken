@@ -1,0 +1,17 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Sikraken Test Inputs Generation Run Log
+Raw Arguments:	[/home/chris/Sikraken/, /home/chris/Sikraken/regression_tests/, Problem03_label00, main, release, testcomp, 1, 10]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Relevant ECLiPSe Configurations:
+	ECLiPSe version:	7.1
+	debug_compile:		on
+	debugging:			leap
+	Maximum allowed local/control user stack:	128MB
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Sikraken Session Configurations at: Mon_26_08_2024_15_48_27
+	Run mode:	release
+	Tests inputs target format:	testcomp
+	Target function:	main
+	Target C file:	Problem03_label00 (in folder:/home/chris/Sikraken/regression_tests/)
+	Nb of restarts:		1
+	Nb of path to try:	10

@@ -65,15 +65,22 @@ terminate_testcomp:-
     %mytrace,
     se_globals__get_val(target_source_file_name_no_ext, Target_source_file_name_no_ext),
     se_globals__get_val(testcomp_test_suite_folder, Test_suite_folder),
-    cd('..'),   
-    concat_string(["suite-", Target_source_file_name_no_ext, ".zip"], Zip_filename),
-    (exists(Zip_filename) ->
-        (concat_string(["rm ", Zip_filename], Delete_call),
-         exec(Delete_call, [])      %delete existing zip archive if it exists
+    (Test_suite_folder \= "" ->
+        (cd('..'),   
+         concat_string(["suite-", Target_source_file_name_no_ext, ".zip"], Zip_filename),
+         (exists(Zip_filename) ->
+            (concat_string(["rm ", Zip_filename], Delete_call),
+            exec(Delete_call, [])      %delete existing zip archive if it exists
+            )
+         ;
+            true
+         ),
+         concat_string(["zip -r suite-", Target_source_file_name_no_ext, ".zip ", Test_suite_folder], Zip_call),
+         exec(Zip_call, [])
         )
     ;
-        true
-    ),
-    concat_string(["zip -r suite-", Target_source_file_name_no_ext, ".zip ", Test_suite_folder], Zip_call),
-    exec(Zip_call, []).
+        (%no tests at all have been generated: we issue a warning
+         common_util__error(9, "WARNING: no test were created", "Check this is not an error", [], '09_270824_1', 'se_main', 'terminate_testcomp', no_localisation, no_extra_info)
+        )
+    ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

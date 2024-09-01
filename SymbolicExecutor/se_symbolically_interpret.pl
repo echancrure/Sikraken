@@ -62,6 +62,14 @@ symbolically_interpret(multiply_op(Le_exp, Ri_exp), Le_Symbolic * Ri_Symbolic) :
     !,
     symbolically_interpret(Le_exp, Le_Symbolic),
     symbolically_interpret(Ri_exp, Ri_Symbolic).
+symbolically_interpret(div_op(Le_exp, Ri_exp), Le_Symbolic / Ri_Symbolic) :-
+    !,
+    symbolically_interpret(Le_exp, Le_Symbolic),
+    symbolically_interpret(Ri_exp, Ri_Symbolic).
+symbolically_interpret(mod_op(Le_exp, Ri_exp), mod_op(Le_Symbolic, Ri_Symbolic)) :-
+    !,
+    symbolically_interpret(Le_exp, Le_Symbolic),
+    symbolically_interpret(Ri_exp, Ri_Symbolic).
 symbolically_interpret(plus_op(Le_exp, Ri_exp), Le_Symbolic + Ri_Symbolic) :-
     !,
     symbolically_interpret(Le_exp, Le_Symbolic),
@@ -73,14 +81,23 @@ symbolically_interpret(minus_op(Le_exp, Ri_exp), Le_Symbolic - Ri_Symbolic) :-
 symbolically_interpret(minus_op(Expression), -Symbolic_expression) :-
     !,
     symbolically_interpret(Expression, Symbolic_expression).
+%%%relational operators
+symbolically_interpret(less_op(Le_exp, Ri_exp), Le_Symbolic < Ri_Symbolic) :-
+    !,
+    symbolically_interpret(Le_exp, Le_Symbolic),
+    symbolically_interpret(Ri_exp, Ri_Symbolic).
 symbolically_interpret(greater_op(Le_exp, Ri_exp), Le_Symbolic > Ri_Symbolic) :-
     !,
     symbolically_interpret(Le_exp, Le_Symbolic),
     symbolically_interpret(Ri_exp, Ri_Symbolic).
-symbolically_interpret(postfix_inc_op(Expression), Symbolic_expression) :-
+symbolically_interpret(less_or_eq_op(Le_exp, Ri_exp), Le_Symbolic <= Ri_Symbolic) :-
     !,
-    symbolically_interpret(Expression, Symbolic_expression),
-    symbolic_execute(assign(Expression, plus_op(Expression, 1)), _).
+    symbolically_interpret(Le_exp, Le_Symbolic),
+    symbolically_interpret(Ri_exp, Ri_Symbolic).
+symbolically_interpret(greater_or_eq_op(Le_exp, Ri_exp), Le_Symbolic >= Ri_Symbolic) :-
+    !,
+    symbolically_interpret(Le_exp, Le_Symbolic),
+    symbolically_interpret(Ri_exp, Ri_Symbolic).
 symbolically_interpret(equal_op(Le_exp, Ri_exp), Le_Symbolic = Ri_Symbolic) :-
     !,
     symbolically_interpret(Le_exp, Le_Symbolic),
@@ -89,6 +106,13 @@ symbolically_interpret(not_equal_op(Le_exp, Ri_exp), Le_Symbolic <> Ri_Symbolic)
     !,
     symbolically_interpret(Le_exp, Le_Symbolic),
     symbolically_interpret(Ri_exp, Ri_Symbolic).
+%%%
+symbolically_interpret(postfix_inc_op(Expression), Symbolic_expression) :-
+    !,
+    symbolically_interpret(Expression, Symbolic_expression),
+    symbolic_execute(assign(Expression, plus_op(Expression, 1)), _).
+
+
 symbolically_interpret(and_op(Le_exp, Ri_exp), 'true') :-   %C semantics of && is always short circuit
     !,
     symbolically_interpret(Le_exp, Le_Symbolic),
