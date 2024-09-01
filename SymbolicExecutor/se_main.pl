@@ -175,13 +175,13 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 initialise :-
     ptc_solver__clean_up,
-    ptc_solver__default_declarations,
-    ptc_solver__set_flag('or_constraint_behaviour', 'choice').
+    ptc_solver__default_declarations('ILP32').
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 read_parsed_file(Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, CProlog, Main, Target_subprogram_var) :-
     concat_atom([Parsed_dir, Target_source_file_name_no_ext, '.pl'], Parsed_filename),
-    (open(Parsed_filename, read, Stream) -> %todo check if the file existing, has open aborts otherwsie (it does not fail) 
-        (read_term(Stream, CProlog, [variable_names(VarsNames)]) ->
+    (exists(Parsed_filename) ->
+        (open(Parsed_filename, read, Stream),
+         read_term(Stream, CProlog, [variable_names(VarsNames)]) ->
             (close(Stream),
              se_name_atts__initL(VarsNames),     %initialise all C vars with their id
              (memberchk(Target_raw_subprogram_name = Target_subprogram_var, VarsNames) ->
