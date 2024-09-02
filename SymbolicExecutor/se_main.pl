@@ -23,9 +23,7 @@ mytrace.            %call this to start debugging
 
 :- use_module("./../PTC-Solver/source/ptc_solver").
 
-:- use_module(['common_util', 'se_globals']).
-
-:- use_module(['se_name_atts', 'se_seav_atts', 'se_sub_atts']).
+:- use_module(['common_util', 'se_globals', 'se_name_atts', 'se_seav_atts', 'se_sub_atts']).
 
 :- compile(['se_handle_declarations', 'se_symbolically_execute', 'se_symbolically_interpret']).
 :- compile(['se_write_tests_testcomp']).
@@ -45,7 +43,8 @@ se_main(ArgsL) :-
         common_util__error(10, "Calling se_main/? with invalid argument list", "Review calling syntax of se_main/?", [], '10_240824_1', 'se_main', 'se_main', no_localisation, no_extra_info)
     ),
     print_test_run_log__preamble(ArgsL),
-    initialise,
+    concat_string([Install_dir, "PTC-Solver/source/"], Solver_install_dir),
+    initialise_ptc_solver(Solver_install_dir, 'ilp32'),    %todo for testcomp, memory model should be read from .yml file 
     common_util__quick_dev_info("Analysing %w", [Target_source_file_name_no_ext]),
     se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode),
     capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
@@ -173,9 +172,9 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
             )
         ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-initialise :-
+initialise_ptc_solver(Solver_install_dir, Memory_model) :-
     ptc_solver__clean_up,
-    ptc_solver__default_declarations('ILP32').
+    ptc_solver__default_declarations(Solver_install_dir, Memory_model).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 read_parsed_file(Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, CProlog, Main, Target_subprogram_var) :-
     concat_atom([Parsed_dir, Target_source_file_name_no_ext, '.pl'], Parsed_filename),
