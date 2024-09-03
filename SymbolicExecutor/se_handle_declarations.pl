@@ -64,7 +64,7 @@ declare_return(Return_seav, Type_name) :-
     seav__update(Clean_return, 'input', 'not_needed'),
     seav__update(Clean_return, 'output', Output).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-extract_type([int], integer) :-
+extract_type([int], int) :-
     !.
 extract_type([void], void) :-
     !.

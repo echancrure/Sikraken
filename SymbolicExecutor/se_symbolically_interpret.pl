@@ -13,7 +13,7 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
         (se_name_atts__get(Function, 'name', Function_name),
          (Function_name == 'UC___VERIFIER_nondet_int' ->
             (%mytrace,
-             ptc_solver__variable([Input_var], 'integer'),
+             ptc_solver__variable([Input_var], 'int'),
              se_globals__get_ref('verifier_inputs', Verifier_inputs),
              append(Verifier_inputs, [Input_var], New_verifier_inputs),
              se_globals__set_ref('verifier_inputs', New_verifier_inputs),
@@ -116,6 +116,7 @@ symbolically_interpret(postfix_inc_op(Expression), Symbolic_expression) :-
 symbolically_interpret(and_op(Le_exp, Ri_exp), 'true') :-   %C semantics of && is always short circuit
     !,
     symbolically_interpret(Le_exp, Le_Symbolic),
+    mytrace,
     ptc_solver__sdl(Le_Symbolic),
     symbolically_interpret(Ri_exp, Ri_Symbolic),
     ptc_solver__sdl(Ri_Symbolic).

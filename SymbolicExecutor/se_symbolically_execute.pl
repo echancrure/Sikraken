@@ -121,7 +121,7 @@ symbolic_execute(if_stmt(Branch, True_statements), Flow) :-
     !,
     symbolic_execute(if_stmt(Branch, True_statements, []), Flow).
 symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
-    !,    
+    !,    mytrace,
     (
         (symbolically_interpret(not_equal_op(Condition, 0), Symbolic_condition),
          ptc_solver__sdl(Symbolic_condition),
@@ -147,7 +147,7 @@ symbolic_execute(label_stmt(_Label, Statement), Flow) :-
 symbolic_execute(return_stmt(Expression), return(Symbolic)) :- 
     !,
     symbolically_interpret(Expression, Symbolic),
-    ptc_solver__variable([Value], 'integer'),
+    ptc_solver__variable([Value], 'int'),
     ptc_solver__sdl(Value = Symbolic).
     %common_util__error(0, "Return Statement Value:", 'no_error_consequences', [('Value', Value)], '0_150824_3', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info).
 symbolic_execute(postfix_inc_op(Expression), 'carry_on') :-

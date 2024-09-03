@@ -1,6 +1,7 @@
 Documentation/Sikraken Backlog.gsheet
 Parser/**/
 SampleCode/**/
+SampleCode/a.out
 SampleCode/*.i
 SampleCode/*.pl
 SampleCode/*.obj

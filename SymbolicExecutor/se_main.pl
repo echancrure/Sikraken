@@ -97,7 +97,7 @@ call_find_one_path(_, _, _, _) :-
 
 find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
     (Output_mode == 'testcomp' ->
-        ((se_sub_atts__get(Main, 'parameters', []), se_sub_atts__get(Main, 'return_type', 'integer')) ->
+        ((se_sub_atts__get(Main, 'parameters', []), se_sub_atts__get(Main, 'return_type', 'int')) ->
             (se_sub_atts__get(Main, 'body', Main_compound_statement),
              se_globals__update_ref('current_path_bran', start('Target_raw_subprogram_name', true)),
              symbolic_execute(Main_compound_statement, _)
