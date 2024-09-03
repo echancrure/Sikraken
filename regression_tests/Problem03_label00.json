@@ -2,7 +2,7 @@
     "configurations": [
       {
         "id": "run1",
-        "description": "Fast",
+        "description": "Validation",
         "restarts": 1,
         "tries": 10,
         "expected_run_time": 30,
@@ -11,21 +11,12 @@
       }, 
       {
         "id": "run2",
-        "description": "Should do well",
-        "restarts": 1,
-        "tries": 11,
-        "expected_run_time": 300,
-        "expected_test_inputs_number": 11,
-        "expected_coverage": 16.89
-      },
-      {
-        "id": "run3",
-        "description": "Thorough",
-        "restarts": 2,
-        "tries": 5,
-        "expected_run_time": 9,
-        "expected_test_inputs_number": 9,
-        "expected_coverage": 15.54
+        "description": "Should reach the max 46.96%",
+        "restarts": 32,
+        "tries": 100,
+        "expected_run_time": 150,
+        "expected_test_inputs_number": 77,
+        "expected_coverage": 46.62
       }
     ]
   }
