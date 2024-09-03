@@ -35,7 +35,10 @@ mytrace.            %call this to start debugging
 go_laptop :- se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug).
 go_pc :- se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic002, basic, debug).
 go_linux(Target_source_file_name_no_ext, Restart, Tries) :- se_main(['/home/chris/Sikraken/', "/home/chris/sv-benchmarks/c/hardness-nfm22/", Target_source_file_name_no_ext, main, debug, testcomp, Restart, Tries]).
+go_linux(Parsed_dir, Target_source_file_name_no_ext, Restart, Tries) :- se_main(['/home/chris/Sikraken/', Parsed_dir, Target_source_file_name_no_ext, main, debug, testcomp, Restart, Tries]).
+
 go(Restart, Nb_of_paths_to_try) :- go_linux('hardness_codestructure_dependencies_file-0', Restart, Nb_of_paths_to_try).
+
 se_main(ArgsL) :-
     (ArgsL = [Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Restart, Nb_of_paths_to_try] ->
         true
@@ -79,7 +82,7 @@ try_nb_path(_, Iteration_counter, _) :-
     setval(Iteration_counter, 0),
     fail.
 try_nb_path(Nb_of_paths_to_try, Iteration_counter, param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)) :-
-    find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code),
+    mytrace,find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code),
     getval(Iteration_counter, I),
     I1 is I + 1,
     setval(Iteration_counter, I1),
@@ -146,7 +149,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
             (se_globals__get_val('output_mode', Output_mode),
              (Output_mode = 'testcomp' ->
                 (se_globals__get_ref('verifier_inputs', Verifier_inputs),
-                label_testcomp(Verifier_inputs)
+                 label_testcomp(Verifier_inputs)
                 )
              ;
                 true    %todo

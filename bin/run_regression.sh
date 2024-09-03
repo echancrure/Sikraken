@@ -75,14 +75,32 @@ for regression_test_file in "$c_files_directory"/*.c; do
         fi
 
         #validate test inputs
-        testcov --no-isolation --test-suite "$c_files_directory""/suite-""$base_name"".zip" "$regression_test_file"
+        testcov_output=$(testcov --no-isolation --test-suite "$c_files_directory""/suite-""$base_name"".zip" "$regression_test_file")
         if [ $? -ne 0 ]; then
             echo "Sikraken regression testing ERROR: TestCov test inputs validation of $regression_test_file failed"
             exit 1
         else
             echo "TestCov validated the test inputs for $regression_test_file in $id configuration"    
         fi
+
+        tests_nb_line=$(echo "$testcov_output" | grep "Tests run:")
+        test_nb_value=$(echo "$tests_nb_line" | awk '{print $3}')
+        echo "Test number is: $test_nb_value"
+        coverage_line=$(echo "$testcov_output" | grep "Coverage:")
+        coverage_value=$(echo "$coverage_line" | awk '{print $2}')
+        coverage_value=$(echo "$coverage_value" | sed 's/%//')
+        echo "Coverage is: $coverage_value"
+
+        if [ "$expected_test_inputs_number" != "$test_nb_value" ]; then
+            echo "Error: Tests generation mismatch! Expected: $expected_expected_test_inputs_number, but got: $test_nb_value."
+            exit 1
+        fi
+
+        if [ "$expected_coverage" != "$coverage_value" ]; then
+            echo "Error: Coverage mismatch! Expected: $expected_coverage, but got: $coverage_value."
+            exit 1
+        fi
     done
 done
 
-echo "Sikraken regression testing script run_regression.sh has terminated successfully."
+echo -e "\e[32mSikraken regression testing script run_regression.sh has terminated successfully.\e[0m"

@@ -6,8 +6,8 @@
         "restarts": 1,
         "tries": 1,
         "expected_run_time": 30,
-        "expected_test_inputs_number": 23,
-        "expected_coverage": 23
+        "expected_test_inputs_number": 1,
+        "expected_coverage": 0.02
       }, 
       {
         "id": "run2",
@@ -15,8 +15,8 @@
         "restarts": 1,
         "tries": 2,
         "expected_run_time": 300,
-        "expected_test_inputs_number": 42,
-        "expected_coverage": 56
+        "expected_test_inputs_number": 2,
+        "expected_coverage": 0.42
       },
       {
         "id": "run3",
@@ -24,8 +24,8 @@
         "restarts": 1,
         "tries": 3,
         "expected_run_time": 40,
-        "expected_test_inputs_number": 29,
-        "expected_coverage": 99
+        "expected_test_inputs_number": 3,
+        "expected_coverage": 0.43
       }
     ]
   }

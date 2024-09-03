@@ -12,7 +12,7 @@ symbolic_execute([Item|R], Flow) :-
     ).
 symbolic_execute(mytrace, 'carry_on') :-
     !,
-    mytrace.
+    mytrace.    %within symbolic_execute/2
 symbolic_execute(declaration(Declaration_specifiers, Declarators), 'carry_on') :-
     !,
     ((Declarators = [Declarator], nonvar(Declarator), Declarator = function(Function_name, Parameters)) ->  %a function forward declaration
@@ -121,7 +121,7 @@ symbolic_execute(if_stmt(Branch, True_statements), Flow) :-
     !,
     symbolic_execute(if_stmt(Branch, True_statements, []), Flow).
 symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
-    !,    mytrace,
+    !,
     (
         (symbolically_interpret(not_equal_op(Condition, 0), Symbolic_condition),
          ptc_solver__sdl(Symbolic_condition),

@@ -116,7 +116,6 @@ symbolically_interpret(postfix_inc_op(Expression), Symbolic_expression) :-
 symbolically_interpret(and_op(Le_exp, Ri_exp), 'true') :-   %C semantics of && is always short circuit
     !,
     symbolically_interpret(Le_exp, Le_Symbolic),
-    mytrace,
     ptc_solver__sdl(Le_Symbolic),
     symbolically_interpret(Ri_exp, Ri_Symbolic),
     ptc_solver__sdl(Ri_Symbolic).
