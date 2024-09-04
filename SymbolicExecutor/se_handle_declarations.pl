@@ -68,25 +68,32 @@ declare_return(Return_seav, Type_name) :-
 extract_type(['unsigned'|R], unsigned(Type)) :-
     !,
     extract_type(R, Type).
-extract_type(['int'], 'int') :-
+extract_type(['signed'|R], Type) :-
+    !,
+    extract_type(R, Type).
+extract_type(['int'], int) :-
     !.
-extract_type(['char'], 'char') :-
+extract_type(['char'], char) :-
     !.
-extract_type(['short'], 'short') :-
+extract_type(['short'], short) :-
     !.
-extract_type(['long', 'long'], 'long_long') :-
+extract_type(['short', 'int'], short) :-
     !.
-extract_type(['long', 'double'], 'long_double') :-
+extract_type(['long'], long) :-
     !.
-extract_type(['long'], 'long') :-
+extract_type(['long', 'int'], long) :-
     !.
-extract_type(['float'], 'float') :-
+extract_type(['long', 'long'], long_long) :-
     !.
-extract_type(['double'], 'double') :-
+extract_type(['long', 'double'], long_double) :-
     !.
-extract_type(['bool'], 'bool') :-
+extract_type(['float'], float) :-
     !.
-extract_type(['void'], 'void') :-
+extract_type(['double'], double) :-
+    !.
+extract_type(['bool'], bool) :-
+    !.
+extract_type(['void'], void) :-
     !.
 extract_type(Specifiers, _Type_name) :-
     common_util__error(9, "Not Handled", "Sikraken needs expanding", [('Specifiers', Specifiers)], '9_270724', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).

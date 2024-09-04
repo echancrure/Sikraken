@@ -81,7 +81,7 @@ try_nb_path(_, Iteration_counter, _) :-
     setval(Iteration_counter, 0),
     fail.
 try_nb_path(Nb_of_paths_to_try, Iteration_counter, param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)) :-
-    mytrace,find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code),
+    find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code),
     getval(Iteration_counter, I),
     I1 is I + 1,
     setval(Iteration_counter, I1),
