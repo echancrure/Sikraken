@@ -17,11 +17,11 @@ symbolically_interpret(long_double(Expression), symb(long_double, Expression)) :
 symbolically_interpret(Expression, symb(Integer_type, Expression)) :-   %rules of C for integer constants
     integer(Expression),
     !,
-    ptc_solver__get_last(int, _, _, _, Last_int),
+    ptc_solver__last(int, Last_int),
     (Expression =< Last_int ->
         Integer_type = int  %covers the majority of cases
     ;
-        (ptc_solver__get_last(long, _, _, _, Last_long),
+        (ptc_solver__last(long, Last_long),
          (Expression =< Last_long ->
             Integer_type = long
          ;
@@ -93,25 +93,34 @@ symbolically_interpret(multiply_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_
     symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
-symbolically_interpret(div_op(Le_exp, Ri_exp), Le_Symbolic / Ri_Symbolic) :-
+symbolically_interpret(div_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp / Ri_casted_exp)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
-    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)).
-symbolically_interpret(mod_op(Le_exp, Ri_exp), mod_op(Le_Symbolic, Ri_Symbolic)) :-
+    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
+    implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
+symbolically_interpret(mod_op(Le_exp, Ri_exp), symb(Common_type, mod_op(Le_casted_exp, Ri_casted_exp))) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
-    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)).
-symbolically_interpret(plus_op(Le_exp, Ri_exp), Le_Symbolic + Ri_Symbolic) :-
+    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
+    implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
+symbolically_interpret(plus_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp + Ri_casted_exp)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
-    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)).
-symbolically_interpret(minus_op(Le_exp, Ri_exp), Le_Symbolic - Ri_Symbolic) :-
+    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
+    implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
+symbolically_interpret(minus_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp - Ri_casted_exp)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
-    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)).
-symbolically_interpret(minus_op(Expression), -Symbolic_expression) :-
+    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
+    implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
+symbolically_interpret(minus_op(Expression), symb(Promoted_type, Result)) :-
     !,
-    symbolically_interpret(Expression, symb(Type, Symbolic_expression)).
+    mytrace,
+    symbolically_interpret(Expression, symb(Type, Symbolic_expression)),
+    apply_integral_promotion(Type, Promoted_type),
+    ptc_solver__perform_cast(Promoted_type, Type, -Symbolic_expression, Result).
+
+
 %%%relational operators
 symbolically_interpret(less_op(Le_exp, Ri_exp), Le_Symbolic < Ri_Symbolic) :-
     !,
@@ -145,10 +154,10 @@ symbolically_interpret(postfix_inc_op(Expression), Symbolic_expression) :-
 
 
 symbolically_interpret(and_op(Le_exp, Ri_exp), 'true') :-   %C semantics of && is always short circuit
-    !,
-    symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
+    !,mytrace,
+    symbolically_interpret(Le_exp, Le_Symbolic),
     ptc_solver__sdl(Le_Symbolic),
-    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
+    symbolically_interpret(Ri_exp, Ri_Symbolic),
     ptc_solver__sdl(Ri_Symbolic).
 symbolically_interpret(or_op(Le_exp, Ri_exp), 'true') :-   %C semantics of || is always short circuit
     !,
@@ -164,14 +173,14 @@ symbolically_interpret(or_op(Le_exp, Ri_exp), 'true') :-   %C semantics of || is
        )
     ),
     (
-        (symbolically_interpret(A, symb(Le_type, Le_Symbolic)),
+        (symbolically_interpret(A, Le_Symbolic),
          ptc_solver__sdl(Le_Symbolic)
         )
     ;%deliberate choice point
         (%but only if will lead to new path todo
          symbolically_interpret(not_op(A), Not_Le_Symbolic),
          ptc_solver__sdl(Not_Le_Symbolic),
-         symbolically_interpret(B, symb(Ri_type, Ri_Symbolic)),
+         symbolically_interpret(B, Ri_Symbolic),
          ptc_solver__sdl(Ri_Symbolic)
         )
     ).
@@ -187,7 +196,7 @@ symbolically_interpret(not_op(Le_exp), Symbolic) :-
      Le_exp = not_op(L) ->
         symbolically_interpret(L, Symbolic)
     ;
-        (symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
+        (symbolically_interpret(Le_exp, Le_Symbolic),
          Symbolic = not(Le_Symbolic)
         )
     ).
@@ -200,25 +209,105 @@ implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, L
     ;
         (apply_integral_promotion(Le_type, Le_type_c),
          apply_integral_promotion(Ri_type, Ri_type_c),
-         true
+         integer_convertion(Le_type_c, Ri_type_c, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp)
         )
     ).
-
 %%%
+    integer_convertion(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp) :-
+        (Le_type == Ri_type ->      %both same types: nothing happens
+            (Common_type = Le_type,
+             Le_casted_exp = Le_Symbolic,
+             Ri_casted_exp = Ri_Symbolic
+            )
+        ;    
+         (Le_type \= unsigned(_), Ri_type \= unsigned(_)) ->    %both signed
+            integer_convertion_highest(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp)
+        ;
+         (Le_type = unsigned(_), Ri_type = unsigned(_)) ->      %both unsigned
+            integer_convertion_highest(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp)
+        ;
+            %mixed expression involving signed and unsigned types
+            (common_util__error(10, "mixed expression involving signed and unsigned types", "TODO", [('Le_type', Le_type), ('Ri_type', Ri_type)], '10_040924_4', 'se_symbolically_interpret', 'integer_convertion_highest', no_localisation, no_extra_info)
+            )
+        ).
+%%%
+    %
+    integer_convertion_highest(unsigned(long_long), unsigned(_), Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp) :-
+        perform_cast(unsigned(long_long), Ri_Symbolic, Ri_casted_exp),
+        Common_type = unsigned(long_long),
+        Le_casted_exp = Le_Symbolic.
+    integer_convertion_highest(unsigned(_), unsigned(long_long), Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp) :-
+        perform_cast(unsigned(long_long), Le_Symbolic, Le_casted_exp),
+        Common_type = unsigned(long_long),
+        Ri_casted_exp = Ri_Symbolic.
+    integer_convertion_highest(unsigned(long), unsigned(_), Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp) :-
+        perform_cast(unsigned(long), Ri_Symbolic, Ri_casted_exp),
+        Common_type = unsigned(long),
+        Le_casted_exp = Le_Symbolic.
+    integer_convertion_highest(unsigned(_), unsigned(long), Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp) :-
+        perform_cast(unsigned(long), Le_Symbolic, Le_casted_exp),
+        Common_type = unsigned(long),
+        Ri_casted_exp = Ri_Symbolic.
+    integer_convertion_highest(long_long, _, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp) :-
+        perform_cast(long_long, Ri_Symbolic, Ri_casted_exp),
+        Common_type = long_long,
+        Le_casted_exp = Le_Symbolic.
+    integer_convertion_highest(_, long_long, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp) :-
+        perform_cast(long_long, Le_Symbolic, Le_casted_exp),
+        Common_type = long_long,
+        Ri_casted_exp = Ri_Symbolic.
+    integer_convertion_highest(long, _, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp) :-
+        perform_cast(long, Ri_Symbolic, Ri_casted_exp),
+        Common_type = long,
+        Le_casted_exp = Le_Symbolic.
+    integer_convertion_highest(_, long, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp) :-
+        perform_cast(unsigned(long), Le_Symbolic, Le_casted_exp),
+        Common_type = unsigned(long),
+        Ri_casted_exp = Ri_Symbolic.
+    integer_convertion_highest(Le_type, Ri_type, _, _, _, _, _) :-
+        common_util__error(10, "Should not happen", "Cannot perform symbolic interpretation", [('Le_type', Le_type), ('Ri_type', Ri_type)], '10_040924_3', 'se_symbolically_interpret', 'integer_convertion_highest', no_localisation, no_extra_info).
+%%%
+    %really ugly code, but be careful trying to optimise it, the order of the types is important
+    %hopefully indexed, but may need a helping hand by switching the first 2 arguments
     float_conversion(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp) :-
         (Le_type == long_double ->
-            (perform_cast(long_double, Ri_Symbolic, Ri_casted_exp),
-                Common_type = long_double,
-                Le_casted_exp = Le_Symbolic
+            (perform_cast(Le_type, Ri_Symbolic, Ri_casted_exp),
+             Common_type = Le_type,
+             Le_casted_exp = Le_Symbolic
             )
         ;
          Ri_type == long_double ->
-            (perform_cast(long_double, Le_Symbolic, Le_casted_exp),
-             Common_type = long_double,
+            (perform_cast(Ri_type, Le_Symbolic, Le_casted_exp),
+             Common_type = Ri_type,
              Ri_casted_exp = Ri_Symbolic
             )
         ;
-            
+         Le_type == double ->
+            (perform_cast(Le_type, Ri_Symbolic, Ri_casted_exp),
+             Common_type = Le_type,
+             Le_casted_exp = Le_Symbolic
+            )
+        ;
+         Ri_type == double ->
+            (perform_cast(Ri_type, Le_Symbolic, Le_casted_exp),
+             Common_type = Ri_type,
+             Ri_casted_exp = Ri_Symbolic
+            )
+        ;
+         Le_type == float ->
+            (perform_cast(Le_type, Ri_Symbolic, Ri_casted_exp),
+             Common_type = Le_type,
+             Le_casted_exp = Le_Symbolic
+            )
+        ;
+         Ri_type == float ->
+            (perform_cast(Ri_type, Le_Symbolic, Le_casted_exp),
+             Common_type = Ri_type,
+             Ri_casted_exp = Ri_Symbolic
+            )
+        ;
+            fail
+        ).   
 %%%
     apply_integral_promotion(char, int).
     apply_integral_promotion(unsigned(char), int).

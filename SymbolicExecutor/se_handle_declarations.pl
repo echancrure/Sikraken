@@ -3,7 +3,7 @@ declare_declarators([], _).
 declare_declarators([Declarator|R], Type_name) :-
     %mytrace,
     (nonvar(Declarator), Declarator = initialised(Var, Expression) ->   %added nonvar(...) as a guard 30/07/24
-        symbolically_interpret(Expression, Symbolic)    %todo: handling initialised variables without re-using assignment symbolic execution is probably a bad idea
+        symbolically_interpret(Expression, symb(_Type, Symbolic))    %todo: handling initialised variables without re-using assignment symbolic execution is probably a bad idea
     ;
         (%declaration of non-initialised variable
          %todo check for redefinition which is allowed: see diary 07/08/24
@@ -19,7 +19,7 @@ declare_declarators([Declarator|R], Type_name) :-
         Output = Symbolic           %C pointers variables are not ptc_solver variable: they are handled syntactically e.g. seav(pointer(integer), not_needed, addr(Y_2{se_seav_atts : seav(integer, not_needed, 42)}))
     ;
         (ptc_solver__variable([Output], Type_name),
-         ptc_solver__sdl(Output = Symbolic)
+         ptc_solver__sdl(Output = Symbolic)     %todo use assignment to respect casting
         )
     ),
     seav__update(Clean_var, 'output', Output),
