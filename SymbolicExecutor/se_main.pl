@@ -32,8 +32,7 @@ mytrace.            %call this to start debugging
 % home pc   se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic001, main, debug)
 % laptop    se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug)
 %  
-go_laptop :- se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug).
-go_pc :- se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic002, basic, debug).
+go :- se_main(['/home/chris/Sikraken/', '/home/chris/sv-benchmarks/c/hardness-nfm22/','hardness_codestructure_dependencies_file-0', main, debug, testcomp, 1, 1]).
 go_linux(Target_source_file_name_no_ext, Restart, Tries) :- se_main(['/home/chris/Sikraken/', "/home/chris/sv-benchmarks/c/hardness-nfm22/", Target_source_file_name_no_ext, main, debug, testcomp, Restart, Tries]).
 go_linux(Parsed_dir, Target_source_file_name_no_ext, Restart, Tries) :- se_main(['/home/chris/Sikraken/', Parsed_dir, Target_source_file_name_no_ext, main, debug, testcomp, Restart, Tries]).
 

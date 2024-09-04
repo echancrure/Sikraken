@@ -1,6 +1,6 @@
 Documentation/Sikraken Backlog.gsheet
 Parser/**
-regression_tests/**
+regression_tests/suite-*/
 regression_tests/*.zip
 SampleCode/**/
 SampleCode/a.out
