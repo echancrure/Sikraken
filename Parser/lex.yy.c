@@ -2783,7 +2783,7 @@ void wrap_integer_constants(char * wrapper, char * input, char ** output) {
     }
 }
 
-//add hexademical wrapper and handle f|F|l|L variations
+//add hexademical wrapper if present and handle f|F|l|L variations
 void wrap_floating_point_constants(char * wrapper, char * input, char ** output) {
     int current = strlen(input)-1;
     int has_f = 0, has_l = 0, is_d = 0;

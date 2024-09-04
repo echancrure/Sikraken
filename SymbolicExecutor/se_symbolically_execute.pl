@@ -47,13 +47,13 @@ symbolic_execute(assign(LValue, Expression), Flow) :-
     %mytrace,
     (seav__is_seav(LValue) ->
         (!,
-         symbolically_interpret(Expression, Symbolic_expression),
-         seav__update(LValue, 'output', Symbolic_expression),
+         symbolically_interpret(Expression, symb(_, Symbolic_expression)),
+         seav__update(LValue, 'output', Symbolic_expression),   %todo: casting necessary
          Flow = 'carry_on'
         )
     ;
      LValue = deref(LValue_ptr) ->
-        (symbolically_interpret(LValue_ptr, Symbolic_LValue_ptr),
+        (symbolically_interpret(LValue_ptr, symb(_, Symbolic_LValue_ptr)),
          (Symbolic_LValue_ptr = addr(New_LValue) ->
             symbolic_execute(assign(New_LValue, Expression), Flow)
          ;
@@ -89,6 +89,7 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
                  symbolically_interpret(Condition, Symbolic_condition),
                  ptc_solver__sdl(Symbolic_condition),
                  se_globals__update_ref('current_path_bran', branch(Id, 'true')),
+                 %mytrace, 
                  symbolic_execute(True_statements, Flow)
                 )
             ;% if statement deliberate choice point
@@ -146,9 +147,10 @@ symbolic_execute(label_stmt(_Label, Statement), Flow) :-
     symbolic_execute(Statement, Flow).
 symbolic_execute(return_stmt(Expression), return(Symbolic)) :- 
     !,
-    symbolically_interpret(Expression, Symbolic),
-    ptc_solver__variable([Value], 'int'),
-    ptc_solver__sdl(Value = Symbolic).
+    %mytrace,
+    symbolically_interpret(Expression, symb(_Type, Symbolic)),
+    ptc_solver__variable([Value], 'int'),   %todo this an approximation: may not return an int
+    ptc_solver__sdl(Value = Symbolic).  %todo casting is needed
     %common_util__error(0, "Return Statement Value:", 'no_error_consequences', [('Value', Value)], '0_150824_3', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info).
 symbolic_execute(postfix_inc_op(Expression), 'carry_on') :-
     !,

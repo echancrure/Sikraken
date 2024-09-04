@@ -1,3 +1,9 @@
+symbolically_interpret(Expression, symb(Type, Symbolic_expression)) :-  %need to be at the top so tha tit does not unify with the other predicates below
+    var(Expression),
+    !,
+    seav__is_seav(Expression),
+    seav__get(Expression, 'type', Type),
+    seav__get(Expression, 'output', Symbolic_expression).
 symbolically_interpret(unsigned(Expression), symb(unsigned(int), Expression)) :- %u constant, identified in parser
     !.
 symbolically_interpret(unsigned_long(Expression), symb(unsigned(long), Expression)) :- %ul constant, identified in parser
@@ -29,12 +35,6 @@ symbolically_interpret(Expression, symb(Integer_type, Expression)) :-   %rules o
          )
         )     
     ).  
-symbolically_interpret(Expression, symb(Type, Symbolic_expression)) :-
-    var(Expression),
-    !,
-    seav__is_seav(Expression),
-    seav__get(Expression, 'type', Type),
-    seav__get(Expression, 'output', Symbolic_expression).
 symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) :-
     !,
     se_sub_atts__get(Function, 'body', Body),
@@ -115,7 +115,7 @@ symbolically_interpret(minus_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp
     implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
 symbolically_interpret(minus_op(Expression), symb(Promoted_type, Result)) :-
     !,
-    mytrace,
+    %mytrace,
     symbolically_interpret(Expression, symb(Type, Symbolic_expression)),
     apply_integral_promotion(Type, Promoted_type),
     ptc_solver__perform_cast(Promoted_type, Type, -Symbolic_expression, Result).
@@ -144,8 +144,8 @@ symbolically_interpret(equal_op(Le_exp, Ri_exp), Le_Symbolic = Ri_Symbolic) :-
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)).
 symbolically_interpret(not_equal_op(Le_exp, Ri_exp), Le_Symbolic <> Ri_Symbolic) :-
     !,
-    symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
-    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)).
+    symbolically_interpret(Le_exp, symb(_Le_type, Le_Symbolic)),
+    symbolically_interpret(Ri_exp, symb(_Ri_type, Ri_Symbolic)).
 %%%
 symbolically_interpret(postfix_inc_op(Expression), Symbolic_expression) :-
     !,
@@ -154,7 +154,8 @@ symbolically_interpret(postfix_inc_op(Expression), Symbolic_expression) :-
 
 
 symbolically_interpret(and_op(Le_exp, Ri_exp), 'true') :-   %C semantics of && is always short circuit
-    !,mytrace,
+    !,
+    %mytrace,
     symbolically_interpret(Le_exp, Le_Symbolic),
     ptc_solver__sdl(Le_Symbolic),
     symbolically_interpret(Ri_exp, Ri_Symbolic),
@@ -204,6 +205,7 @@ symbolically_interpret(Unhandled_expression, _Symbolic_expression) :-
     common_util__error(10, "Expression is not handled", "Cannot perform symbolic interpretation", [('Unhandled_expression', Unhandled_expression)], '10_020824', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp) :-
+    trace,
     (float_conversion(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp) ->
         true
     ;
