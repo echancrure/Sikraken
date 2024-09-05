@@ -98,8 +98,10 @@ extract_type(['void'], void) :-
 extract_type(Specifiers, _Type_name) :-
     common_util__error(9, "Not Handled", "Sikraken needs expanding", [('Specifiers', Specifiers)], '9_270724', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+match_parameters_arguments([param_no_decl([void], [])], []) :-
+    !.
 match_parameters_arguments([], []) :-
-        !.
+    !.
 match_parameters_arguments([param(Declaration_specifiers, Parameter)|Rest_parameters], [Argument|Rest_arguments]) :-
     !,
     extract_type(Declaration_specifiers, Type_name),
