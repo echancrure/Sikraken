@@ -1,10 +1,5 @@
-:- module(common_util).
-:- export common_util__error/9, common_util__quick_dev_info/2.
-%%%
 :- use_module('se_globals').
 
-mytrace.            %call this to start debugging
-:- spy mytrace/0.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 common_util__quick_dev_info(Message, Arguments) :-
        printf('user_error', "Dev Info: ", []),

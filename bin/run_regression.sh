@@ -100,6 +100,7 @@ for regression_test_file in "$c_files_directory"/*.c; do
             echo "Error: Coverage mismatch! Expected: $expected_coverage, but got: $coverage_value."
             exit 1
         fi
+
     done
 done
 

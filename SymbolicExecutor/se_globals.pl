@@ -3,7 +3,6 @@
 mytrace.            %call this to start debugging
 :- spy mytrace/0.
 
-:- use_module('common_util').
 :- export se_globals__set_globals/4, se_globals__get_val/2, se_globals__set_val/2, se_globals__get_ref/2, se_globals__set_ref/2.
 :- export se_globals__update_ref/2.
 :- export se_globals__push_scope_stack/0, se_globals__pop_scope_stack/0.

@@ -9,7 +9,7 @@
 
 :- meta_attribute('se_sub_atts', [unify:unify_sub/2, print:print_sub/2]).
 
-:- use_module('common_util').
+:- ensure_loaded('common_util').
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %internal attributed variable handlers
 %called to confirm unification after unification with an another attributed variable or a non-variable

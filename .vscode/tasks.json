@@ -68,8 +68,10 @@
         {
             "label": "Run Regression Tests",
             "type": "shell",
-            "command": "${workspaceFolder}/bin/run_regression.sh",
+            "command": "/usr/bin/time",
             "args": [
+                "-v"
+                "${workspaceFolder}/bin/run_regression.sh"
                 "/home/chris/Sikraken/regression_tests"
             ],
             "group": {

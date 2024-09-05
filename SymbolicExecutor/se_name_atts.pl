@@ -10,8 +10,7 @@
 
 :- meta_attribute('se_name_atts', [unify:unify_name/2, print:print_name/2]).
 
-:- use_module('common_util').
-:- import common_util__error/9 from common_util.
+:- ensure_loaded('common_util').
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %internal attributed variable handlers
