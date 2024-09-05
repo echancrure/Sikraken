@@ -20,6 +20,7 @@
 #endif
 
 #include <stdio.h>
+#include <limits.h>
 
 #include "C_grammar.tab.h"
 
@@ -117,7 +118,7 @@ WS  [ \t\v\n\f]
                             }
                             
 "0"{O}*{IS}?				{if (strcmp(yytext, "0")) wrap_integer_constants("octal", yytext, &yylval.id);
-                             else wrap_integer_constants("", yytext, &yylval.id);   //because it's just the constant 0
+                             else wrap_integer_constants("", yytext, &yylval.id);   //because it's just the constant 0, not an octal
                              return I_CONSTANT;
                             }
 {CP}?"'"([^'\\\n]|{ES})+"'"	{yylval.id = strdup_safe(yytext); return I_CONSTANT;}   //single characters
@@ -257,12 +258,29 @@ void wrap_integer_constants(char * wrapper, char * input, char ** output) {
     int has_wrapper = strcmp(wrapper, "");
     //calculating the length of the result: length of the wrapper + 2 parentheses + length of the prefix, the suffix, the underscore, the parenthesis
     int size = (has_wrapper ? strlen(wrapper) + 2 : 0) + current+1 + 1 + has_u*strlen("unsigned") + has_l*strlen("long") + has_ll*strlen("long_long") + has_u*has_l + has_u*has_ll + (has_u || has_l || has_ll ? 2 : 0);
-    *output = (char *)malloc(size);
+
     char format_string[100];
+
     if (has_wrapper) strcpy(format_string, "%s("); //starts with the integer kind wrapper
     else strcpy(format_string, "");
-    if (!has_u && !has_l && !has_ll)
-        strcat(format_string, "%.*s");
+
+    if (!has_u && !has_l && !has_ll) {              //has no suffix, type depends on value
+        unsigned long constant = strtoul(input, NULL, 0);         //the 0 enables automatic detection of base: decimal, octal or hexadecimal
+        if (constant <= INT_MAX) {
+            strcat(format_string, "int(%.*s)");
+            size += 5;
+        } else if (has_wrapper && constant <= UINT_MAX) {   //different rule for octals and hexademcimals
+            strcat(format_string, "unsigned(%.*s)");
+            size += strlen("unsigned()");
+        }
+         else if (constant <= LONG_MAX) {          //this should be dependent on the target compilation machine size (32 vs 64 bits) for the program under test
+            strcat(format_string, "long(%.*s)");
+            size += 6;
+        } else {
+            strcat(format_string, "unsigned_long(%.*s)");
+            size += strlen("unsigned_long()");
+        }   
+    }
     else if (has_u && !has_l && !has_ll) 
         strcat(format_string, "unsigned(%.*s)");
     else if (has_u && has_l && !has_ll) 
@@ -273,6 +291,8 @@ void wrap_integer_constants(char * wrapper, char * input, char ** output) {
         strcat(format_string, "long(%.*s)");
     else if (!has_u && !has_l && has_ll) 
         strcat(format_string, "long_long(%.*s)");
+     
+    *output = (char *)malloc(size);
     if (has_wrapper) {
         strcat(format_string, ")"); //adds the wrapper end parenthesis
         snprintf(*output, size, format_string, wrapper, current + 1, input);

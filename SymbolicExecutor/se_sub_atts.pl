@@ -5,11 +5,11 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 :- module('se_sub_atts').
 
+%%%
 :- export se_sub_atts__is_sub_atts/1, se_sub_atts__create/4, se_sub_atts__get/3.
 
 :- meta_attribute('se_sub_atts', [unify:unify_sub/2, print:print_sub/2]).
 
-:- ensure_loaded('common_util').
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %internal attributed variable handlers
 %called to confirm unification after unification with an another attributed variable or a non-variable

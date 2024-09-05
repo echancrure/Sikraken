@@ -4,6 +4,8 @@ symbolically_interpret(Expression, symb(Type, Symbolic_expression)) :-  %need to
     seav__is_seav(Expression),
     seav__get(Expression, 'type', Type),
     seav__get(Expression, 'output', Symbolic_expression).
+symbolically_interpret(int(Expression), symb(int, Expression)) :-
+    !.
 symbolically_interpret(unsigned(Expression), symb(unsigned(int), Expression)) :- %u constant, identified in parser
     !.
 symbolically_interpret(unsigned_long(Expression), symb(unsigned(long), Expression)) :- %ul constant, identified in parser
@@ -20,11 +22,11 @@ symbolically_interpret(float(Expression), symb(float, Expression)) :-     %f con
     !.
 symbolically_interpret(long_double(Expression), symb(long_double, Expression)) :-     %l constant, identified in parser
     !.
-symbolically_interpret(Expression, symb(Integer_type, Expression)) :-   %rules of C for integer constants
+/*symbolically_interpret(Expression, symb(Integer_type, Expression)) :-   %rules of C for integer constants
     integer(Expression),
     !,
     Integer_type = int.
- /*
+ 
     ptc_solver__last(int, Last_int),    %todo check for negative values too
     (Expression =< Last_int ->
         Integer_type = int  %covers the majority of cases

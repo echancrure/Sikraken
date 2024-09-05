@@ -1,4 +1,20 @@
 int main() {
+    //large decimal integer constants without suffixes
+    const int large_int = 2147483647;                // Max value for a 32-bit int
+    const long large_long = 9223372036854775807;     // Max value for a 64-bit long (on most platforms)
+    const unsigned long long large_ull = 18446744073709551615; // Max value for unsigned long long
+    
+    // Define large integer constants in hexadecimal
+    const int large_int_hex = 0x7FFFFFFF;              // Max value for a 32-bit int
+    const unsigned int large_unsigned_int = 0xFFFFFFFF; 
+    const long large_long_hex = 0x7FFFFFFFFFFFFFFF;   // Max value for a 64-bit long (on most platforms)
+    const unsigned long long large_ull_hex = 0xFFFFFFFFFFFFFFFF; // Max value for unsigned long long
+
+    // Define large integer constants in octal
+    const int large_int_octal = 017777777777;            // Octal representation of 2147483647
+    const long large_long_octal = 01777777777777777777777; // Octal representation of 9223372036854775807
+    const unsigned long long large_ull_octal = 01777777777777777777777777777777; // Octal representation of 18446744073709551615
+
     // Decimal constants
     int dec1 = 123;
     unsigned int dec2 = 123u;         // unsigned

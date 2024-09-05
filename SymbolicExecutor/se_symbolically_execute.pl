@@ -124,7 +124,7 @@ symbolic_execute(if_stmt(Branch, True_statements), Flow) :-
 symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
     !,
     (
-        (symbolically_interpret(not_equal_op(Condition, 0), Symbolic_condition),
+        (symbolically_interpret(not_equal_op(Condition, int(0)), Symbolic_condition),
          ptc_solver__sdl(Symbolic_condition),
          se_globals__update_ref('current_path_bran', branch(Id, true)),
          symbolic_execute(Statements, Inner_flow), 
@@ -135,7 +135,7 @@ symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
          )
         )
     ;%while loop deliberate choice point
-        (symbolically_interpret(equal_op(Condition, 0), Symbolic_condition),
+        (symbolically_interpret(equal_op(Condition, int(0)), Symbolic_condition),
          ptc_solver__sdl(Symbolic_condition),
          se_globals__update_ref('current_path_bran', branch(Id, false)),
          %(Id == 187 -> mytrace ; true),

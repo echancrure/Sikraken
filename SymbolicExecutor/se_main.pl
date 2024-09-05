@@ -22,10 +22,10 @@ mytrace.            %call this to start debugging
 :- use_module(library('lists')).
 
 :- use_module("./../PTC-Solver/source/ptc_solver").
-:- ensure_loaded('common_util').
+
 :- use_module(['se_globals', 'se_name_atts', 'se_seav_atts', 'se_sub_atts']).
 
-:- compile(['se_handle_declarations', 'se_symbolically_execute', 'se_symbolically_interpret']).
+:- compile(['common_util', 'se_handle_declarations', 'se_symbolically_execute', 'se_symbolically_interpret']).
 :- compile(['se_write_tests_testcomp']).
 :- compile(['se_coverage']).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

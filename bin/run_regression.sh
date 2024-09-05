@@ -92,12 +92,12 @@ for regression_test_file in "$c_files_directory"/*.c; do
         echo "Coverage is: $coverage_value"
 
         if [ "$expected_test_inputs_number" != "$test_nb_value" ]; then
-            echo "Error: Tests generation mismatch! Expected: $expected_expected_test_inputs_number, but got: $test_nb_value."
+            echo "Error: Tests generation mismatch! Expected: $expected_expected_test_inputs_number, but got: $test_nb_value when running: $eclipse_call."
             exit 1
         fi
 
         if [ "$expected_coverage" != "$coverage_value" ]; then
-            echo "Error: Coverage mismatch! Expected: $expected_coverage, but got: $coverage_value."
+            echo "Error: Coverage mismatch! Expected: $expected_coverage, but got: $coverage_value when running: $eclipse_call."
             exit 1
         fi
 

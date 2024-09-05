@@ -5,13 +5,10 @@
 %  E.g. Date_3 has for name 'date:67' or whatever information can be extracted from the parser (line number, filename, column number)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 :- module('se_name_atts').
-
+%%%
 :- export se_name_atts__is_name_atts/1, se_name_atts__create/2, se_name_atts__get/3, se_name_atts__initL/1.
 
 :- meta_attribute('se_name_atts', [unify:unify_name/2, print:print_name/2]).
-
-:- ensure_loaded('common_util').
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %internal attributed variable handlers
 %called to confirm unification after unification with an another attributed variable or a non-variable
