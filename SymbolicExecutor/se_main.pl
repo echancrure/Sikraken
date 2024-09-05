@@ -32,8 +32,8 @@ mytrace.            %call this to start debugging
 % home pc   se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic001, main, debug)
 % laptop    se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug)
 %  
-go :- se_main(['/home/chris/Sikraken/', '/home/chris/sv-benchmarks/c/hardness-nfm22/','hardness_codestructure_dependencies_file-0', main, debug, testcomp, 1, 1]).
-go1 :- se_main(['/home/chris/Sikraken/', '/home/chris/sv-benchmarks/c/eca-rers2012/','Problem03_label00', main, debug, testcomp, 32, 100]).
+go :- se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/','hardness_codestructure_dependencies_file-0', main, debug, testcomp, 1, 1]).
+%go1 :- se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/','Problem03_label00', main, debug, testcomp, 32, 100]).
 go_linux(Target_source_file_name_no_ext, Restart, Tries) :- se_main(['/home/chris/Sikraken/', "/home/chris/sv-benchmarks/c/hardness-nfm22/", Target_source_file_name_no_ext, main, debug, testcomp, Restart, Tries]).
 go_linux(Parsed_dir, Target_source_file_name_no_ext, Restart, Tries) :- se_main(['/home/chris/Sikraken/', Parsed_dir, Target_source_file_name_no_ext, main, debug, testcomp, Restart, Tries]).
 
@@ -100,13 +100,21 @@ call_find_one_path(_, _, _, _) :-
 
 find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
     (Output_mode == 'testcomp' ->
-        ((se_sub_atts__get(Main, 'parameters', []), se_sub_atts__get(Main, 'return_type', 'int')) ->
-            (se_sub_atts__get(Main, 'body', Main_compound_statement),
-             se_globals__update_ref('current_path_bran', start('Target_raw_subprogram_name', true)),
-             symbolic_execute(Main_compound_statement, _)
+        (se_sub_atts__get(Main, 'parameters', Parameters),
+         ((Parameters == [] ; Parameters == [param_no_decl([void], [])]) -> %i.e. main() or main(void)
+            (se_sub_atts__get(Main, 'return_type', Return),
+             (Return == 'int' ->
+                (se_sub_atts__get(Main, 'body', Main_compound_statement),
+                 se_globals__update_ref('current_path_bran', start('Target_raw_subprogram_name', true)),
+                 symbolic_execute(Main_compound_statement, _)
+                )
+             ;
+                common_util__error(10, "Unexpected main return in testcomp mode", "Best not to proceed", [('Return', Return)], '10_050924_1', 'se_main', 'se_main', no_localisation, no_extra_info)
+             )
             )
-        ;
-            common_util__error(10, "Unexpected main format in testcomp mode", "Best not to proceed", [('Main', Main)], '10_140824_1', 'se_main', 'se_main', no_localisation, no_extra_info)
+          ;
+            common_util__error(10, "Unexpected main parameters in testcomp mode", "Best not to proceed", [('Parameters', Parameters)], '10_140824_1', 'se_main', 'se_main', no_localisation, no_extra_info)
+         )
         )
     ;
         (%always symbolically execute void main(void) for now: should be a switch allowing the main to be ignored via a switch if desired

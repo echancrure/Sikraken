@@ -1,7 +1,7 @@
 symbolically_interpret(Expression, symb(Type, Symbolic_expression)) :-  %need to be at the top so tha tit does not unify with the other predicates below
     var(Expression),
+    seav__is_seav(Expression), 
     !,
-    seav__is_seav(Expression),
     seav__get(Expression, 'type', Type),
     seav__get(Expression, 'output', Symbolic_expression).
 symbolically_interpret(int(Expression), symb(int, Expression)) :-   %constant with no suffix
@@ -22,23 +22,6 @@ symbolically_interpret(float(Expression), symb(float, Expression)) :-     %f con
     !.
 symbolically_interpret(long_double(Expression), symb(long_double, Expression)) :-     %l constant, identified in parser
     !.
-/*symbolically_interpret(Expression, symb(Integer_type, Expression)) :-   %rules of C for integer constants
-    integer(Expression),
-    !,
-    Integer_type = int.
- 
-    ptc_solver__last(int, Last_int),    %todo check for negative values too
-    (Expression =< Last_int ->
-        Integer_type = int  %covers the majority of cases
-    ;
-        (ptc_solver__last(long, Last_long),
-         (Expression =< Last_long ->
-            Integer_type = long
-         ;
-            Integer_type = long_long    %only for very large constant 
-         )
-        )     
-    ).*/  
 symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) :-
     !,
     se_sub_atts__get(Function, 'body', Body),

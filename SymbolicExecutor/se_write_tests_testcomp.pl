@@ -70,7 +70,7 @@ terminate_testcomp:-
          concat_string(["suite-", Target_source_file_name_no_ext, ".zip"], Zip_filename),
          (exists(Zip_filename) ->
             (concat_string(["rm ", Zip_filename], Delete_call),
-            exec(Delete_call, [])      %delete existing zip archive if it exists
+             exec(Delete_call, [])      %delete existing zip archive if it exists
             )
          ;
             true
