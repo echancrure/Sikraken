@@ -52,7 +52,7 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
         (se_sub_atts__get(Function, 'parameters', Parameters),
          se_sub_atts__get(Function, 'return_type', Return_type),
          se_globals__push_scope_stack,          %function parameters scope
-         mytrace,match_parameters_arguments(Parameters, Arguments),
+         match_parameters_arguments(Parameters, Arguments),
          symbolic_execute(Body, Flow),
          (Flow = return(Return_expression) ->
             symbolically_interpret(cast(Return_type, Return_expression), Symbolic_expression)
@@ -120,10 +120,13 @@ symbolically_interpret(less_or_eq_op(Le_exp, Ri_exp), Le_Symbolic <= Ri_Symbolic
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)).
-symbolically_interpret(greater_or_eq_op(Le_exp, Ri_exp), Le_Symbolic >= Ri_Symbolic) :-
+symbolically_interpret(greater_or_eq_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
+    mytrace,
     symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
-    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)).
+    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
+    implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
+    ptc_solver__sdl(reif(Le_casted_exp >= Ri_casted_exp, R)).
 symbolically_interpret(equal_op(Le_exp, Ri_exp), Le_Symbolic = Ri_Symbolic) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
@@ -172,9 +175,14 @@ symbolically_interpret(or_op(Le_exp, Ri_exp), 'true') :-   %C semantics of || is
         )
     ).
  
-symbolically_interpret(not_op(Le_exp), Symbolic) :-
+symbolically_interpret(not_op(Le_exp), symb(int, Symbolic)) :-
     !,
-    (Le_exp = and_op(L, R) ->
+    (var(Le_exp) ->         %for SEAVs (often as part of an evaluated reif)
+        (symbolically_interpret(Le_exp, symb(int, Le_Symbolic)),
+         Symbolic = not(Le_Symbolic)
+        )
+    ;
+     Le_exp = and_op(L, R) ->
         symbolically_interpret(or_op(not_op(L), not_op(R)), Symbolic)
     ;
      Le_exp = or_op(L, R) ->
@@ -200,109 +208,76 @@ implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, L
          integer_convertion(Le_type_c, Ri_type_c, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp)
         )
     ).
-%%%
-    integer_convertion(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp) :-
-        (Le_type == Ri_type ->      %both same types: nothing happens
-            (Common_type = Le_type,
-             Le_casted_exp = Le_Symbolic,
-             Ri_casted_exp = Ri_Symbolic
-            )
-        ;    
-         (Le_type \= unsigned(_), Ri_type \= unsigned(_)) ->    %both signed
-            integer_convertion_highest(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp)
-        ;
-         (Le_type = unsigned(_), Ri_type = unsigned(_)) ->      %both unsigned
-            integer_convertion_highest(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp)
-        ;
-            %mixed expression involving signed and unsigned types
-            (common_util__error(10, "mixed expression involving signed and unsigned types", "TODO", [('Le_type', Le_type), ('Ri_type', Ri_type)], '10_040924_4', 'se_symbolically_interpret', 'integer_convertion_highest', no_localisation, no_extra_info)
-            )
-        ).
-%%%
-    %
-    integer_convertion_highest(unsigned(long_long), unsigned(_), Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp) :-
-        perform_cast(unsigned(long_long), Ri_Symbolic, Ri_casted_exp),
-        Common_type = unsigned(long_long),
-        Le_casted_exp = Le_Symbolic.
-    integer_convertion_highest(unsigned(_), unsigned(long_long), Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp) :-
-        perform_cast(unsigned(long_long), Le_Symbolic, Le_casted_exp),
-        Common_type = unsigned(long_long),
-        Ri_casted_exp = Ri_Symbolic.
-    integer_convertion_highest(unsigned(long), unsigned(_), Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp) :-
-        perform_cast(unsigned(long), Ri_Symbolic, Ri_casted_exp),
-        Common_type = unsigned(long),
-        Le_casted_exp = Le_Symbolic.
-    integer_convertion_highest(unsigned(_), unsigned(long), Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp) :-
-        perform_cast(unsigned(long), Le_Symbolic, Le_casted_exp),
-        Common_type = unsigned(long),
-        Ri_casted_exp = Ri_Symbolic.
-    integer_convertion_highest(long_long, _, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp) :-
-        perform_cast(long_long, Ri_Symbolic, Ri_casted_exp),
-        Common_type = long_long,
-        Le_casted_exp = Le_Symbolic.
-    integer_convertion_highest(_, long_long, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp) :-
-        perform_cast(long_long, Le_Symbolic, Le_casted_exp),
-        Common_type = long_long,
-        Ri_casted_exp = Ri_Symbolic.
-    integer_convertion_highest(long, _, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp) :-
-        perform_cast(long, Ri_Symbolic, Ri_casted_exp),
-        Common_type = long,
-        Le_casted_exp = Le_Symbolic.
-    integer_convertion_highest(_, long, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp) :-
-        perform_cast(unsigned(long), Le_Symbolic, Le_casted_exp),
-        Common_type = unsigned(long),
-        Ri_casted_exp = Ri_Symbolic.
-    integer_convertion_highest(Le_type, Ri_type, _, _, _, _, _) :-
-        common_util__error(10, "Should not happen", "Cannot perform symbolic interpretation", [('Le_type', Le_type), ('Ri_type', Ri_type)], '10_040924_3', 'se_symbolically_interpret', 'integer_convertion_highest', no_localisation, no_extra_info).
-%%%
+    %%%
+    integer_convertion(unsigned(long_long), From_type, Le_Symbolic, Ri_Symbolic, unsigned(long_long), Le_Symbolic, Ri_casted_exp) :-
+        !,
+        ptc_solver__perform_cast(unsigned(long_long), From_type, Ri_Symbolic, Ri_casted_exp).
+    integer_convertion(From_type, unsigned(long_long), Le_Symbolic, Ri_Symbolic, unsigned(long_long), Le_casted_exp, Ri_Symbolic) :-
+        !,
+        ptc_solver__perform_cast(unsigned(long_long), From_type, Le_Symbolic, Le_casted_exp).
+    integer_convertion(long_long, From_type, Le_Symbolic, Ri_Symbolic, long_long, Le_Symbolic, Ri_casted_exp) :-
+        !,
+        ptc_solver__perform_cast(long_long, From_type, Ri_Symbolic, Ri_casted_exp).
+    integer_convertion(From_type, long_long, Le_Symbolic, Ri_Symbolic, long_long, Le_casted_exp, Ri_Symbolic) :-
+        !,
+        ptc_solver__perform_cast(long_long, From_type, Le_Symbolic, Le_casted_exp).
+    integer_convertion(unsigned(long), From_type, Le_Symbolic, Ri_Symbolic, unsigned(long), Le_Symbolic, Ri_casted_exp) :-
+        !,
+        ptc_solver__perform_cast(unsigned(long), From_type, Ri_Symbolic, Ri_casted_exp).
+    integer_convertion(From_type, unsigned(long), Le_Symbolic, Ri_Symbolic, unsigned(long), Le_casted_exp, Ri_Symbolic) :-
+        !,
+        ptc_solver__perform_cast(unsigned(long), From_type, Le_Symbolic, Le_casted_exp).
+    integer_convertion(long, From_type, Le_Symbolic, Ri_Symbolic, long, Le_Symbolic, Ri_casted_exp) :-
+        !,
+        ptc_solver__perform_cast(long, From_type, Ri_Symbolic, Ri_casted_exp).
+    integer_convertion(From_type, long, Le_Symbolic, Ri_Symbolic, long, Le_casted_exp, Ri_Symbolic) :-
+        !,
+        ptc_solver__perform_cast(long, From_type, Le_Symbolic, Le_casted_exp).
+    integer_convertion(unsigned(int), From_type, Le_Symbolic, Ri_Symbolic, unsigned(int), Le_Symbolic, Ri_casted_exp) :-
+        !,
+        ptc_solver__perform_cast(unsigned(int), From_type, Ri_Symbolic, Ri_casted_exp).
+    integer_convertion(From_type, unsigned(int), Le_Symbolic, Ri_Symbolic, unsigned(int), Le_casted_exp, Ri_Symbolic) :-
+        !,
+        ptc_solver__perform_cast(unsigned(int), From_type, Le_Symbolic, Le_casted_exp).
+    integer_convertion(Le_type, Ri_type, _, _, _, _, _) :-
+        !,
+        common_util__error(10, "Should not happen", "Cannot perform symbolic interpretation", [('Le_type', Le_type), ('Ri_type', Ri_type)], '10_040924_3', 'se_symbolically_interpret', 'integer_convertion', no_localisation, no_extra_info).
+    %%%
     %really ugly code, but be careful trying to optimise it, the order of the types is important
     %hopefully indexed, but may need a helping hand by switching the first 2 arguments
-    float_conversion(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp) :-
-        (Le_type == long_double ->
-            (perform_cast(Le_type, Ri_Symbolic, Ri_casted_exp),
-             Common_type = Le_type,
-             Le_casted_exp = Le_Symbolic
-            )
-        ;
-         Ri_type == long_double ->
-            (perform_cast(Ri_type, Le_Symbolic, Le_casted_exp),
-             Common_type = Ri_type,
-             Ri_casted_exp = Ri_Symbolic
-            )
-        ;
-         Le_type == double ->
-            (perform_cast(Le_type, Ri_Symbolic, Ri_casted_exp),
-             Common_type = Le_type,
-             Le_casted_exp = Le_Symbolic
-            )
-        ;
-         Ri_type == double ->
-            (perform_cast(Ri_type, Le_Symbolic, Le_casted_exp),
-             Common_type = Ri_type,
-             Ri_casted_exp = Ri_Symbolic
-            )
-        ;
-         Le_type == float ->
-            (perform_cast(Le_type, Ri_Symbolic, Ri_casted_exp),
-             Common_type = Le_type,
-             Le_casted_exp = Le_Symbolic
-            )
-        ;
-         Ri_type == float ->
-            (perform_cast(Ri_type, Le_Symbolic, Le_casted_exp),
-             Common_type = Ri_type,
-             Ri_casted_exp = Ri_Symbolic
-            )
-        ;
-            fail
-        ).   
+    float_conversion(long_double, From_type, Le_Symbolic, Ri_Symbolic, long_double, Le_Symbolic, Ri_casted_exp) :-
+        !,
+        ptc_solver__perform_cast(long_double, From_type, Ri_Symbolic, Ri_casted_exp).
+    float_conversion(From_type, long_double, Le_Symbolic, Ri_Symbolic, long_double, Le_casted_exp, Ri_Symbolic) :-
+        !,
+        ptc_solver__perform_cast(long_double, From_type, Le_Symbolic, Le_casted_exp).
+    float_conversion(double, From_type, Le_Symbolic, Ri_Symbolic, double, Le_Symbolic, Ri_casted_exp) :-
+        !,
+        ptc_solver__perform_cast(double, From_type, Ri_Symbolic, Ri_casted_exp).
+    float_conversion(From_type, double, Le_Symbolic, Ri_Symbolic, double, Le_casted_exp, Ri_Symbolic) :-
+        !,
+        ptc_solver__perform_cast(double, From_type, Le_Symbolic, Le_casted_exp).
+    float_conversion(float, From_type, Le_Symbolic, Ri_Symbolic, float, Le_Symbolic, Ri_casted_exp) :-
+        !,
+        ptc_solver__perform_cast(float, From_type, Ri_Symbolic, Ri_casted_exp).
+    float_conversion(From_type, float, Le_Symbolic, Ri_Symbolic, float, Le_casted_exp, Ri_Symbolic) :-
+        !,
+        ptc_solver__perform_cast(float, From_type, Le_Symbolic, Le_casted_exp).
+    float_conversion(_, _, _, _, _, _, _) :-
+        fail.
 %%%
-    apply_integral_promotion(char, int).
-    apply_integral_promotion(unsigned(char), int).
-    apply_integral_promotion(short, int).
-    apply_integral_promotion(unsigned(short), int).
-    apply_integral_promotion(enum, int).
-    apply_integral_promotion(Other_types_are_unchanged, Other_types_are_unchanged).
+    apply_integral_promotion(char, int) :-
+        !.
+    apply_integral_promotion(unsigned(char), int) :-
+        !.
+    apply_integral_promotion(short, int) :-
+        !.
+    apply_integral_promotion(unsigned(short), int) :-
+        !.
+    apply_integral_promotion(enum, int) :-
+        !.
+    apply_integral_promotion(Other_types_are_unchanged, Other_types_are_unchanged) :-
+        !.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 is_verifier_input_function('UC___VERIFIER_nondet_bool', bool).
 is_verifier_input_function('UC___VERIFIER_nondet_char', char).
