@@ -1,4 +1,5 @@
 :- module('se_globals').
+:- use_module('super_util').
 
 mytrace.            %call this to start debugging
 :- spy mytrace/0.
@@ -22,8 +23,8 @@ se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode,
     setval('phase', 'elaboration'),             %initially we are in the elaboration phase: used during cfg building and elaboration control
     setval('covered_bran', []),
     setval('path_nb', 0),
-    seed(1970),                                 %set for repeatable random behaviour between runs, 1970 is the default seed
-    %random(My_seed), seed(My_seed), common_util__quick_dev_info("Random Seed: %w", My_seed),
+    %seed(1970),                                 %set for repeatable random behaviour between runs, 1970 is the default seed
+    random(My_seed), seed(My_seed), super_util__quick_dev_info("Random Seed: %w", My_seed),
     setval('to_cover', []),                     %list of branches remaining to cover
     setval('test_driver_test_nb', 0),
     setval('abandoned_path_nb', 0),	            %counts the number of timed out and unsuccessful labeling tests
@@ -52,7 +53,7 @@ se_globals__update_ref(Global, Value) :-
     (Global == 'current_path_bran' ->
         (se_globals__get_ref('current_path_bran', Current_path),
          se_globals__set_ref('current_path_bran', [Value|Current_path])
-         %common_util__quick_dev_info("Following branch: %w", [Value]).
+         %super_util__quick_dev_info("Following branch: %w", [Value]).
         )
     ;        
         setref(Global, Value)

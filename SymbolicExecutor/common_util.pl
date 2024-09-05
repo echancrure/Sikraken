@@ -1,12 +1,6 @@
 :- use_module('se_globals').
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-common_util__quick_dev_info(Message, Arguments) :-
-       printf('user_error', "Dev Info: ", []),
-       printf('user_error', Message, Arguments),
-       printf('user_error', "\n", []),
-       flush('user_error').        %systematically flushing ALL debug/development messages is important or they may get displayed in a wrong order when mixed with message from other streams and be out of sync with the ECLiPse tracer
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %The idea behind this complex error message predicate is to allow filtering of warning messages according to severity and allow fine control over the information displayed (e.g. different details for developpers and users)
 %any optional argument can be ommitted by appending 'no_' in front of the corresponding parameter name
 %e.g. common_util__error(7, "Generic package instantiation to be implemented", "The package is unhandled", [("package's name", Name)], 709, mika_symbolic, exec, exec(generic_package_instantiation(...)), "scheduled to be fixed in version 2.4")

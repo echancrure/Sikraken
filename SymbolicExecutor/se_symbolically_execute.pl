@@ -85,7 +85,7 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
          (R2 == 0 -> %randomness to ensure true and false branches are given equal chances
 
             (
-                (%common_util__quick_dev_info("Trying branch: %w", [branch(Id, 'true')]),
+                (%super_util__quick_dev_info("Trying branch: %w", [branch(Id, 'true')]),
                  symbolically_interpret(Condition, Symbolic_condition),
                  ptc_solver__sdl(Symbolic_condition),
                  se_globals__update_ref('current_path_bran', branch(Id, 'true')),
@@ -93,7 +93,7 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
                  symbolic_execute(True_statements, Flow)
                 )
             ;% if statement deliberate choice point
-                (%common_util__quick_dev_info("Trying branch: %w", [branch(Id, 'false')]),
+                (%super_util__quick_dev_info("Trying branch: %w", [branch(Id, 'false')]),
                  symbolically_interpret(not_op(Condition), Symbolic_condition),
                  ptc_solver__sdl(Symbolic_condition),
                  se_globals__update_ref('current_path_bran', branch(Id, 'false')),

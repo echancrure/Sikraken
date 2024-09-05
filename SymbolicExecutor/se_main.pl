@@ -23,7 +23,7 @@ mytrace.            %call this to start debugging
 
 :- use_module("./../PTC-Solver/source/ptc_solver").
 
-:- use_module(['se_globals', 'se_name_atts', 'se_seav_atts', 'se_sub_atts']).
+:- use_module(['super_util', 'se_globals', 'se_name_atts', 'se_seav_atts', 'se_sub_atts']).
 
 :- compile(['common_util', 'se_handle_declarations', 'se_symbolically_execute', 'se_symbolically_interpret']).
 :- compile(['se_write_tests_testcomp']).
@@ -48,7 +48,7 @@ se_main(ArgsL) :-
     print_test_run_log__preamble(ArgsL),
     concat_string([Install_dir, "PTC-Solver/source/"], Solver_install_dir),
     initialise_ptc_solver(Solver_install_dir, 'ilp32'),    %todo for testcomp, memory model should be read from .yml file 
-    common_util__quick_dev_info("Analysing %w", [Target_source_file_name_no_ext]),
+    super_util__quick_dev_info("Analysing %w", [Target_source_file_name_no_ext]),
     se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode),
     capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
     read_parsed_file(Parsed_dir, Target_source_file_name_no_ext, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors

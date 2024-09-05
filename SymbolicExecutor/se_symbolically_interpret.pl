@@ -4,7 +4,7 @@ symbolically_interpret(Expression, symb(Type, Symbolic_expression)) :-  %need to
     seav__is_seav(Expression),
     seav__get(Expression, 'type', Type),
     seav__get(Expression, 'output', Symbolic_expression).
-symbolically_interpret(int(Expression), symb(int, Expression)) :-
+symbolically_interpret(int(Expression), symb(int, Expression)) :-   %constant with no suffix
     !.
 symbolically_interpret(unsigned(Expression), symb(unsigned(int), Expression)) :- %u constant, identified in parser
     !.
@@ -123,7 +123,6 @@ symbolically_interpret(minus_op(Expression), symb(Promoted_type, Result)) :-
     symbolically_interpret(Expression, symb(Type, Symbolic_expression)),
     apply_integral_promotion(Type, Promoted_type),
     ptc_solver__perform_cast(Promoted_type, Type, -Symbolic_expression, Result).
-
 
 %%%relational operators
 symbolically_interpret(less_op(Le_exp, Ri_exp), Le_Symbolic < Ri_Symbolic) :-
