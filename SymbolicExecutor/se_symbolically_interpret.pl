@@ -23,7 +23,9 @@ symbolically_interpret(long_double(Expression), symb(long_double, Expression)) :
 symbolically_interpret(Expression, symb(Integer_type, Expression)) :-   %rules of C for integer constants
     integer(Expression),
     !,
-    ptc_solver__last(int, Last_int),
+    Integer_type = int.
+ /*
+    ptc_solver__last(int, Last_int),    %todo check for negative values too
     (Expression =< Last_int ->
         Integer_type = int  %covers the majority of cases
     ;
@@ -34,7 +36,7 @@ symbolically_interpret(Expression, symb(Integer_type, Expression)) :-   %rules o
             Integer_type = long_long    %only for very large constant 
          )
         )     
-    ).  
+    ).*/  
 symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) :-
     !,
     se_sub_atts__get(Function, 'body', Body),
@@ -205,7 +207,7 @@ symbolically_interpret(Unhandled_expression, _Symbolic_expression) :-
     common_util__error(10, "Expression is not handled", "Cannot perform symbolic interpretation", [('Unhandled_expression', Unhandled_expression)], '10_020824', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp) :-
-    trace,
+    mytrace,
     (float_conversion(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp) ->
         true
     ;

@@ -3,6 +3,7 @@
 mytrace.            %call this to start debugging
 :- spy mytrace/0.
 
+:- use_module('common_util').
 :- export se_globals__set_globals/4, se_globals__get_val/2, se_globals__set_val/2, se_globals__get_ref/2, se_globals__set_ref/2.
 :- export se_globals__update_ref/2.
 :- export se_globals__push_scope_stack/0, se_globals__pop_scope_stack/0.
@@ -22,8 +23,8 @@ se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode,
     setval('phase', 'elaboration'),             %initially we are in the elaboration phase: used during cfg building and elaboration control
     setval('covered_bran', []),
     setval('path_nb', 0),
-    %mytrace,
     seed(1970),                                 %set for repeatable random behaviour between runs, 1970 is the default seed
+    %random(My_seed), seed(My_seed), common_util__quick_dev_info("Random Seed: %w", My_seed),
     setval('to_cover', []),                     %list of branches remaining to cover
     setval('test_driver_test_nb', 0),
     setval('abandoned_path_nb', 0),	            %counts the number of timed out and unsuccessful labeling tests
