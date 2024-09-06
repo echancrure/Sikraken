@@ -65,17 +65,27 @@ symbolic_execute(assign(LValue, Expression), Flow) :-
     ).
 symbolic_execute(function_call(Function, Arguments), 'carry_on') :-
     !,
-    symbolically_interpret(function_call(Function, Arguments), _Symbolic_expression).
+    symbolically_interpret(function_call(Function, Arguments), _Symbolic_expression).   %todo ok for exit and abort but not is it has a non-void return
 symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statements), Flow) :-
     !,
     %(Id == 155 -> mytrace ; true),
     
     se_globals__get_val('covered_bran', Already_covered),
-    ((memberchk(branch(Id, 'true'), Already_covered), True_statements = cmp_stmts([label_stmt(_, stmt(function_call(_, [0])))])) ->
-        (%total hack for now: this arc has been covered and does not lead to anything new (because it exits)
+    ((memberchk(branch(Id, 'true'), Already_covered), 
+        ((True_statements = cmp_stmts([label_stmt(_, stmt(function_call(Exit, [int(0)])))]),
+          se_name_atts__get(Exit, 'name', 'Exit')
+         )
+        ;
+         (True_statements = cmp_stmts([stmt(function_call(Abort, []))]),
+          se_name_atts__get(Abort, 'name', 'Abort')
+         )
+        )
+     ) ->
+        (%until we have a CFG
+         %total hack for now: this arc has been covered and does not lead to anything new (because it exits)
          %so we only try the false branch
             %mytrace,
-            symbolically_interpret(not_op(Condition), Symbolic_condition),
+            symbolically_interpret(not_op(Condition), symb(int, Symbolic_condition)),
             ptc_solver__sdl(Symbolic_condition),
             se_globals__update_ref('current_path_bran', branch(Id, 'false')),
             symbolic_execute(False_statements, Flow) 
@@ -95,7 +105,7 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
                 )
             ;% if statement deliberate choice point
                 (%super_util__quick_dev_info("Trying branch: %w", [branch(Id, 'false')]),
-                 symbolically_interpret(not_op(Condition), Symbolic_condition),
+                 symbolically_interpret(not_op(Condition), symb(int, Symbolic_condition)),
                  ptc_solver__sdl(Symbolic_condition),
                  se_globals__update_ref('current_path_bran', branch(Id, 'false')),
                  symbolic_execute(False_statements, Flow)
@@ -103,13 +113,13 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
             )
          ;
             (
-                (symbolically_interpret(not_op(Condition), Symbolic_condition),
+                (symbolically_interpret(not_op(Condition), symb(int, Symbolic_condition)),
                  ptc_solver__sdl(Symbolic_condition),
                  se_globals__update_ref('current_path_bran', branch(Id, 'false')),
                  symbolic_execute(False_statements, Flow)
                 )
             ;%if statement deliberate choice point
-                (symbolically_interpret(Condition, Symbolic_condition),
+                (symbolically_interpret(Condition, symb(int, Symbolic_condition)),
                  ptc_solver__sdl(Symbolic_condition),
                  se_globals__update_ref('current_path_bran', branch(Id, 'true')),
                  symbolic_execute(True_statements, Flow)
@@ -125,7 +135,7 @@ symbolic_execute(if_stmt(Branch, True_statements), Flow) :-
 symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
     !,
     (
-        (symbolically_interpret(not_equal_op(Condition, int(0)), Symbolic_condition),
+        (symbolically_interpret(not_equal_op(Condition, int(0)), symb(int, Symbolic_condition)),
          ptc_solver__sdl(Symbolic_condition),
          se_globals__update_ref('current_path_bran', branch(Id, true)),
          symbolic_execute(Statements, Inner_flow), 
@@ -136,7 +146,7 @@ symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
          )
         )
     ;%while loop deliberate choice point
-        (symbolically_interpret(equal_op(Condition, int(0)), Symbolic_condition),
+        (symbolically_interpret(equal_op(Condition, int(0)), symb(int, Symbolic_condition)),
          ptc_solver__sdl(Symbolic_condition),
          se_globals__update_ref('current_path_bran', branch(Id, false)),
          %(Id == 187 -> mytrace ; true),
@@ -155,7 +165,7 @@ symbolic_execute(return_stmt(Expression), return(Symbolic)) :-
     %common_util__error(0, "Return Statement Value:", 'no_error_consequences', [('Value', Value)], '0_150824_3', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info).
 symbolic_execute(postfix_inc_op(Expression), 'carry_on') :-
     !,
-    symbolically_interpret(postfix_inc_op(Expression), _).
+    symbolically_interpret(postfix_inc_op(Expression), _).  %this is a statement: we don't care about its evaluation
 symbolic_execute(Unknown_statement, _) :-
     !,
     common_util__error(10, "Unexpected statement", "Could not possibly continue", [('Unknown_statement', Unknown_statement)], '10_150824_2', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info).

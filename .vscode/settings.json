@@ -1,7 +1,9 @@
 {
     "files.associations": {
         "*.pl": "prolog",
-        "stdio.h": "c"
+        ".l": "c",
+        "stdio.h": "c",
+        "random": "c"
     },
     "git.detectSubmodulesLimit": 10
 }

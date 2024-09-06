@@ -36,11 +36,11 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
                  Symbolic_expression = symb(Type, Input_var)
                 )
             ;
-             Function_name == 'Exit' ->
+             (Function_name == 'Exit' ; Function_name == 'Abort') ->
                 (%Arguments = [Exit_code],
                  %common_util__error(0, "Exit Called:", 'no_error_consequences', [('Exit_code', Exit_code)], '0_170824_1', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info),
                  %mytrace,
-                 Symbolic_expression = symb('exit', 'exit'),  %unused, just for symmetry
+                 Symbolic_expression = symb(Function_name, Function_name),  %unused, just for symmetry
                  end_of_path_predicate(_, _),   %only works in 'testcomp'
                  fail
                 )
@@ -107,49 +107,59 @@ symbolically_interpret(minus_op(Expression), symb(Promoted_type, Result)) :-
     apply_integral_promotion(Type, Promoted_type),
     ptc_solver__perform_cast(Promoted_type, Type, -Symbolic_expression, Result).
 
-%%%relational operators
-symbolically_interpret(less_op(Le_exp, Ri_exp), Le_Symbolic < Ri_Symbolic) :-
+%%%relational operators: todo a lot of code is repeated: refactor
+%todo call IC directly rather than go through the the solver again...
+symbolically_interpret(less_op(Le_exp, Ri_exp), symb(Common_type, R)) :-
     !,
-    symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
-    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)).
-symbolically_interpret(greater_op(Le_exp, Ri_exp), Le_Symbolic > Ri_Symbolic) :-
-    !,
-    symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
-    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)).
-symbolically_interpret(less_or_eq_op(Le_exp, Ri_exp), Le_Symbolic <= Ri_Symbolic) :-
-    !,
-    symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
-    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)).
-symbolically_interpret(greater_or_eq_op(Le_exp, Ri_exp), symb(int, R)) :-
-    !,
-    mytrace,
     symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
-    implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
-    ptc_solver__sdl(reif(Le_casted_exp >= Ri_casted_exp, R)).
-symbolically_interpret(equal_op(Le_exp, Ri_exp), Le_Symbolic = Ri_Symbolic) :-
+    implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp),
+    ptc_solver__sdl(reif(Le_casted_exp < Ri_casted_exp, R)).
+symbolically_interpret(greater_op(Le_exp, Ri_exp), symb(Common_type, R)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
-    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)).
-symbolically_interpret(not_equal_op(Le_exp, Ri_exp), Le_Symbolic <> Ri_Symbolic) :-
+    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
+    implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp),
+    ptc_solver__sdl(reif(Le_casted_exp > Ri_casted_exp, R)).
+symbolically_interpret(less_or_eq_op(Le_exp, Ri_exp), symb(Common_type, R)) :-
     !,
-    symbolically_interpret(Le_exp, symb(_Le_type, Le_Symbolic)),
-    symbolically_interpret(Ri_exp, symb(_Ri_type, Ri_Symbolic)).
+    symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
+    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
+    implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp),
+    ptc_solver__sdl(reif(Le_casted_exp <= Ri_casted_exp, R)).
+symbolically_interpret(greater_or_eq_op(Le_exp, Ri_exp), symb(Common_type, R)) :-
+    !,
+    symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
+    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
+    implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp),
+    ptc_solver__sdl(reif(Le_casted_exp >= Ri_casted_exp, R)).
+symbolically_interpret(equal_op(Le_exp, Ri_exp), symb(Common_type, R)) :-
+    !,
+    symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
+    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
+    implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp),
+    ptc_solver__sdl(reif(Le_casted_exp = Ri_casted_exp, R)).
+symbolically_interpret(not_equal_op(Le_exp, Ri_exp), symb(Common_type, R)) :-
+    !,
+    symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
+    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
+    implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp),
+    ptc_solver__sdl(reif(Le_casted_exp <> Ri_casted_exp, R)).
 %%%
 symbolically_interpret(postfix_inc_op(Expression), Symbolic_expression) :-
     !,
-    symbolically_interpret(Expression, symb(Type, Symbolic_expression)),
-    symbolic_execute(assign(Expression, plus_op(Expression, 1)), _).
+    symbolically_interpret(Expression, Symbolic_expression),
+    symbolic_execute(assign(Expression, plus_op(Expression, 1)), _).    %additional side effect
 
 
-symbolically_interpret(and_op(Le_exp, Ri_exp), 'true') :-   %C semantics of && is always short circuit
+symbolically_interpret(and_op(Le_exp, Ri_exp), symb(int, int(1))) :-   %C semantics of && is always short circuit
     !,
     %mytrace,
-    symbolically_interpret(Le_exp, Le_Symbolic),
+    symbolically_interpret(Le_exp, symb(int, Le_Symbolic)),
     ptc_solver__sdl(Le_Symbolic),
-    symbolically_interpret(Ri_exp, Ri_Symbolic),
+    symbolically_interpret(Ri_exp, symb(int, Ri_Symbolic)),
     ptc_solver__sdl(Ri_Symbolic).
-symbolically_interpret(or_op(Le_exp, Ri_exp), 'true') :-   %C semantics of || is always short circuit
+symbolically_interpret(or_op(Le_exp, Ri_exp), symb(int, int(1))) :-   %C semantics of || is always short circuit
     !,
     %mytrace,
     random(2, R2),
@@ -163,12 +173,12 @@ symbolically_interpret(or_op(Le_exp, Ri_exp), 'true') :-   %C semantics of || is
        )
     ),
     (
-        (symbolically_interpret(A, Le_Symbolic),
+        (symbolically_interpret(A, symb(int, Le_Symbolic)),
          ptc_solver__sdl(Le_Symbolic)
         )
     ;%deliberate choice point
         (%but only if will lead to new path todo
-         symbolically_interpret(not_op(A), Not_Le_Symbolic),
+         symbolically_interpret(not_op(A), symb(int, Not_Le_Symbolic)),
          ptc_solver__sdl(Not_Le_Symbolic),
          symbolically_interpret(B, Ri_Symbolic),
          ptc_solver__sdl(Ri_Symbolic)
@@ -183,13 +193,13 @@ symbolically_interpret(not_op(Le_exp), symb(int, Symbolic)) :-
         )
     ;
      Le_exp = and_op(L, R) ->
-        symbolically_interpret(or_op(not_op(L), not_op(R)), Symbolic)
+        symbolically_interpret(or_op(not_op(L), not_op(R)), symb(int, Symbolic))
     ;
      Le_exp = or_op(L, R) ->
-        symbolically_interpret(and_op(not_op(L), not_op(R)), Symbolic)
+        symbolically_interpret(and_op(not_op(L), not_op(R)), symb(int, Symbolic))
     ;
      Le_exp = not_op(L) ->
-        symbolically_interpret(L, Symbolic)
+        symbolically_interpret(L, symb(int, Symbolic))
     ;
         (symbolically_interpret(Le_exp, Le_Symbolic),
          Symbolic = not(Le_Symbolic)
@@ -205,7 +215,15 @@ implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, L
     ;
         (apply_integral_promotion(Le_type, Le_type_c),
          apply_integral_promotion(Ri_type, Ri_type_c),
-         integer_convertion(Le_type_c, Ri_type_c, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp)
+         (Le_type_c \= Ri_type_c ->
+            integer_convertion(Le_type_c, Ri_type_c, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp)
+         ;
+            (%both types are equal no conversion needed
+             Common_type = Le_type_c,
+             Le_casted_exp = Le_Symbolic,
+             Ri_casted_exp = Ri_Symbolic
+            )
+         )
         )
     ).
     %%%

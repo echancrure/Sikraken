@@ -273,7 +273,7 @@ void wrap_integer_constants(char * wrapper, char * input, char ** output) {
             strcat(format_string, "unsigned(%.*s)");
             size += strlen("unsigned()");
         }
-         else if (constant <= LONG_MAX) {          //this should be dependent on the target compilation machine size (32 vs 64 bits) for the program under test
+         else if (constant <= 2147483647L) {          //don't use LONG_MAX, todo this should be dependent on the target compilation machine size (32 vs 64 bits) for the program under test
             strcat(format_string, "long(%.*s)");
             size += 6;
         } else {
