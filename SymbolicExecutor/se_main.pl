@@ -19,6 +19,7 @@ mytrace.            %call this to start debugging
 %%%
 :- (is_predicate(prolog_c/2) -> abolish prolog_c/2 ; dynamic prolog_c/2).   %to ensure clean environment when using 'make' during development 
 
+:- use_module(library(ic)).
 :- use_module(library('lists')).
 
 :- use_module("./../PTC-Solver/source/ptc_solver").
