@@ -222,45 +222,47 @@ implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, L
              Ri_casted_exp = Ri_Symbolic
             )
          ;
-            integer_convertion(Le_type_c, Ri_type_c, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp)
+            integer_conversion(Le_type_c, Ri_type_c, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp)
          )
         )
     ).
     %%%
-    integer_convertion(unsigned(long_long), From_type, Le_Symbolic, Ri_Symbolic, unsigned(long_long), Le_Symbolic, Ri_casted_exp) :-
+    %may need indexing, but order is important so be careful
+    integer_conversion(unsigned(long_long), From_type, Le_Symbolic, Ri_Symbolic, unsigned(long_long), Le_Symbolic, Ri_casted_exp) :-
         !,
         ptc_solver__perform_cast(cast(unsigned(long_long), From_type), Ri_Symbolic, Ri_casted_exp).
-    integer_convertion(From_type, unsigned(long_long), Le_Symbolic, Ri_Symbolic, unsigned(long_long), Le_casted_exp, Ri_Symbolic) :-
+    integer_conversion(From_type, unsigned(long_long), Le_Symbolic, Ri_Symbolic, unsigned(long_long), Le_casted_exp, Ri_Symbolic) :-
         !,
         ptc_solver__perform_cast(cast(unsigned(long_long), From_type), Le_Symbolic, Le_casted_exp).
-    integer_convertion(long_long, From_type, Le_Symbolic, Ri_Symbolic, long_long, Le_Symbolic, Ri_casted_exp) :-
+    integer_conversion(long_long, From_type, Le_Symbolic, Ri_Symbolic, long_long, Le_Symbolic, Ri_casted_exp) :-
         !,
         ptc_solver__perform_cast(cast(long_long, From_type), Ri_Symbolic, Ri_casted_exp).
-    integer_convertion(From_type, long_long, Le_Symbolic, Ri_Symbolic, long_long, Le_casted_exp, Ri_Symbolic) :-
+    integer_conversion(From_type, long_long, Le_Symbolic, Ri_Symbolic, long_long, Le_casted_exp, Ri_Symbolic) :-
         !,
         ptc_solver__perform_cast(cast(long_long, From_type), Le_Symbolic, Le_casted_exp).
-    integer_convertion(unsigned(long), From_type, Le_Symbolic, Ri_Symbolic, unsigned(long), Le_Symbolic, Ri_casted_exp) :-
+    integer_conversion(unsigned(long), From_type, Le_Symbolic, Ri_Symbolic, unsigned(long), Le_Symbolic, Ri_casted_exp) :-
         !,
         ptc_solver__perform_cast(cast(unsigned(long), From_type), Ri_Symbolic, Ri_casted_exp).
-    integer_convertion(From_type, unsigned(long), Le_Symbolic, Ri_Symbolic, unsigned(long), Le_casted_exp, Ri_Symbolic) :-
+    integer_conversion(From_type, unsigned(long), Le_Symbolic, Ri_Symbolic, unsigned(long), Le_casted_exp, Ri_Symbolic) :-
         !,
         ptc_solver__perform_cast(cast(unsigned(long), From_type), Le_Symbolic, Le_casted_exp).
-    integer_convertion(long, From_type, Le_Symbolic, Ri_Symbolic, long, Le_Symbolic, Ri_casted_exp) :-
+    integer_conversion(long, From_type, Le_Symbolic, Ri_Symbolic, long, Le_Symbolic, Ri_casted_exp) :-
         !,
         ptc_solver__perform_cast(cast(long, From_type), Ri_Symbolic, Ri_casted_exp).
-    integer_convertion(From_type, long, Le_Symbolic, Ri_Symbolic, long, Le_casted_exp, Ri_Symbolic) :-
+    integer_conversion(From_type, long, Le_Symbolic, Ri_Symbolic, long, Le_casted_exp, Ri_Symbolic) :-
         !,
         ptc_solver__perform_cast(cast(long, From_type), Le_Symbolic, Le_casted_exp).
-    integer_convertion(unsigned(int), From_type, Le_Symbolic, Ri_Symbolic, unsigned(int), Le_Symbolic, Ri_casted_exp) :-
+    integer_conversion(unsigned(int), From_type, Le_Symbolic, Ri_Symbolic, unsigned(int), Le_Symbolic, Ri_casted_exp) :-
         !,
         ptc_solver__perform_cast(cast(unsigned(int), From_type), Ri_Symbolic, Ri_casted_exp).
-    integer_convertion(From_type, unsigned(int), Le_Symbolic, Ri_Symbolic, unsigned(int), Le_casted_exp, Ri_Symbolic) :-
+    integer_conversion(From_type, unsigned(int), Le_Symbolic, Ri_Symbolic, unsigned(int), Le_casted_exp, Ri_Symbolic) :-
         !,
         ptc_solver__perform_cast(cast(unsigned(int), From_type), Le_Symbolic, Le_casted_exp).
-    integer_convertion(Le_type, Ri_type, _, _, _, _, _) :-
+    integer_conversion(Le_type, Ri_type, _, _, _, _, _) :-
         !,
-        common_util__error(10, "Should not happen", "Cannot perform symbolic interpretation", [('Le_type', Le_type), ('Ri_type', Ri_type)], '10_040924_3', 'se_symbolically_interpret', 'integer_convertion', no_localisation, no_extra_info).
+        common_util__error(10, "Should not happen", "Cannot perform symbolic interpretation", [('Le_type', Le_type), ('Ri_type', Ri_type)], '10_040924_3', 'se_symbolically_interpret', 'integer_conversion', no_localisation, no_extra_info).
     %%%
+    %may need indexing, but order is important so be careful
     float_conversion(long_double, From_type, Le_Symbolic, Ri_Symbolic, long_double, Le_Symbolic, Ri_casted_exp) :-
         !,
         ptc_solver__perform_cast(cast(long_double, From_type), Ri_Symbolic, Ri_casted_exp).
