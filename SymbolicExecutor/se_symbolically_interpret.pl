@@ -114,42 +114,36 @@ symbolically_interpret(less_op(Le_exp, Ri_exp), symb(int, R)) :-
     symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
-    %ptc_solver__sdl(reif(Le_casted_exp < Ri_casted_exp, R)).
     $<(Le_casted_exp, Ri_casted_exp, R).
 symbolically_interpret(greater_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
-    %ptc_solver__sdl(reif(Le_casted_exp > Ri_casted_exp, R)).
     $>(Le_casted_exp, Ri_casted_exp, R).
 symbolically_interpret(less_or_eq_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
-    %ptc_solver__sdl(reif(Le_casted_exp <= Ri_casted_exp, R)).
     $=<(Le_casted_exp, Ri_casted_exp, R).
 symbolically_interpret(greater_or_eq_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
-    %ptc_solver__sdl(reif(Le_casted_exp >= Ri_casted_exp, R)).
     $>=(Le_casted_exp, Ri_casted_exp, R).
 symbolically_interpret(equal_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
-    %ptc_solver__sdl(reif(Le_casted_exp = Ri_casted_exp, R)).
     $=(Le_casted_exp, Ri_casted_exp, R).
 symbolically_interpret(not_equal_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
-    %ptc_solver__sdl(reif(Le_casted_exp <> Ri_casted_exp, R)).
     $\=(Le_casted_exp, Ri_casted_exp, R).
 %%%
 symbolically_interpret(postfix_inc_op(Expression), Symbolic_expression) :-
