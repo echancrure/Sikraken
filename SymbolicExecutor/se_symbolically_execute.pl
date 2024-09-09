@@ -72,7 +72,7 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
     
     se_globals__get_val('covered_bran', Already_covered),
     ((memberchk(branch(Id, 'true'), Already_covered), 
-        ((True_statements = cmp_stmts([label_stmt(_, stmt(function_call(Exit, [int(0)])))]),
+        ((True_statements = cmp_stmts([label_stmt(_, stmt(function_call(Exit, [int(_)])))]),
           se_name_atts__get(Exit, 'name', 'Exit')
          )
         ;
