@@ -48,7 +48,7 @@ se_main(ArgsL) :-
     print_test_run_log__preamble(ArgsL),
     concat_string([Install_dir, "PTC-Solver/source/"], Solver_install_dir),
     initialise_ptc_solver(Solver_install_dir, 'ilp32'),    %todo for testcomp, memory model should be read from .yml file 
-    super_util__quick_dev_info("Analysing %w", [Target_source_file_name_no_ext]),
+    super_util__quick_dev_info("Analysing %w with %w restarts and %w tries.", [Target_source_file_name_no_ext, Restart, Nb_of_paths_to_try]),
     se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode),
     capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
     read_parsed_file(Parsed_dir, Target_source_file_name_no_ext, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors
@@ -221,7 +221,7 @@ label(SEAV_Inputs) :-
         seav__get(Seav, 'input', Input),
         get_all_inputs(R_seavs, R_inputs).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-label_testcomp(Verifier_inputs) :-
+label_testcomp(Verifier_inputs) :- 
     (ptc_solver__label_integers(Verifier_inputs) ->
         true
     ;
@@ -257,7 +257,7 @@ print_test_outputs([SEAV|R]) :-
 print_test_run_log__preamble(ArgsL) :-
     ArgsL = [Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Restart, Nb_of_paths_to_try],
     get_flag('unix_time', Time), 
-    local_time_string(Time, "%a_%d_%m_%Y_%H_%M_%S", Timestamp),
+    local_time_string(Time, "%Y_%m_%d_%H_%M_%S", Timestamp),
     concat_string([Install_dir, "SikrakenDevSpace/experiments/test_run_logs/test_run_", Target_source_file_name_no_ext, "_", Timestamp, ".txt"], Test_run_filename),
     setval('test_run_filename', Test_run_filename), 
     open(Test_run_filename, 'write', 'test_run_stream'),

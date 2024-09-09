@@ -96,7 +96,7 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
 
             (
                 (%super_util__quick_dev_info("Trying branch: %w", [branch(Id, 'true')]),
-                 mytrace,
+                 %mytrace,
                  symbolically_interpret(Condition, symb(int, Symbolic_condition)),
                  ptc_solver__sdl(Symbolic_condition),
                  se_globals__update_ref('current_path_bran', branch(Id, 'true')),

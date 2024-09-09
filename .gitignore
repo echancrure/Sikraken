@@ -14,3 +14,4 @@ Sikraken.code-workspace
 output/
 SymbolicExecutor/try.pl
 *.gcov
+suite-hardness_codestructure_dependencies_file-0.zip

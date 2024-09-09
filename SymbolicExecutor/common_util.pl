@@ -214,5 +214,4 @@ cuepea_print_error_arguments_rest([(Entry, Argument)|R], Debug) :-
             printf(user_error, "                   %w : %w%n", [Entry, Argument])
     ),
     cuepea_print_error_arguments_rest(R, Debug).
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
