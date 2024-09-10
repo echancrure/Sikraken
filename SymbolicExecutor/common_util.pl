@@ -106,7 +106,7 @@ common_util__error2(10, Error_message, Error_consequences, ArgumentsL, Error_cod
                     )
              ),
              printf(user_error, "=>Report error to echancrure@gmail.com to have it addressed.%n", []),
-             printf(user_error, "%###################################%n", []),
+             printf(user_error, "###################################%n", []),
              halt
             )
     ).

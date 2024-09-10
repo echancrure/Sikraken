@@ -2830,7 +2830,7 @@ void wrap_floating_point_constants(char * wrapper, char * input, char ** output)
     if (has_wrapper) strcpy(format_string, "%s("); //starts with the floating point kind wrapper
     else strcpy(format_string, "");
     if (is_d)
-        strcat(format_string, "double(%.*s)");
+        strcat(format_string, "double(%.*s)");      //double is the default type for floating points literals
     else if (has_f) 
         strcat(format_string, "float(%.*s)");
     else if (has_l) 

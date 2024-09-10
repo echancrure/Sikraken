@@ -67,7 +67,7 @@ se_main(ArgsL) :-
                 (try_nb_path(Nb_of_paths_to_try, 'try', param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)) ->
                     fail
                 ;
-                    (common_util__error(9, "Unexpected fail in iteration call: could be a bug or full coverage achieved", "Best not to proceed", [], '10_210824_1', 'se_main', 'se_main', no_localisation, no_extra_info),
+                    (common_util__error(9, "!!!!!!!!!!!!!! Unexpected fail in try_nb_path: either it is a bug [mostly likely] or full coverage was achieved", "Best not to proceed", [], '10_210824_1', 'se_main', 'se_main', no_localisation, no_extra_info),
                      fail   %to make sure top level succeeds...
                     )
                 )
@@ -109,6 +109,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
              (Return == 'int' ->
                 (se_sub_atts__get(Main, 'body', Main_compound_statement),
                  se_globals__update_ref('current_path_bran', start('Target_raw_subprogram_name', true)),
+                 mytrace,
                  symbolic_execute(Main_compound_statement, _Flow)
                 )
              ;

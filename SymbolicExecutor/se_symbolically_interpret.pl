@@ -23,7 +23,7 @@ symbolically_interpret(float(Expression), symb(float, Expression)) :-     %f con
 symbolically_interpret(long_double(Expression), symb(long_double, Expression)) :-     %l constant, identified in parser
     !.
 symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) :-
-    !,mytrace,
+    !,
     (se_sub_atts__is_sub_atts(Function) ->
         (se_sub_atts__get(Function, 'body', Body),
          (Body == 'no_body_is_extern' -> %calling an extern function with no body
@@ -42,7 +42,7 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
                     %common_util__error(0, "Exit Called:", 'no_error_consequences', [('Exit_code', Exit_code)], '0_170824_1', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info),
                     %mytrace,
                     Symbolic_expression = symb(Function_name, Function_name),  %unused, just for symmetry
-                    end_of_path_predicate(_, _),   %only works in 'testcomp'
+                    end_of_path_predicate(_, _),   %only works in 'testcomp'    we bypass everything and go straight
                     fail
                     )
                 ;
@@ -69,9 +69,10 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
          common_util__error(10, "Calling a function that does not exist", "Seriously wrong; Suggest add include or declare as extern", [('Function_name', Function_name)], '10_100924_1', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info)
         )
     ).
-symbolically_interpret(cast(Type, Return_expression), symb(Type, Symbolic_expression)) :-
-    !,
-    Symbolic_expression = Return_expression.    %for now
+symbolically_interpret(cast(To_type, Expression), symb(To_type, Casted)) :-
+    !,mytrace,
+    symbolically_interpret(Expression, symb(From_type, Symbolic)),
+    ptc_solver__perform_cast(cast(To_type, From_type), Symbolic, Casted).
 symbolically_interpret(addr(Expression), symb(pointer, addr(Expression))) :-
     !.
 symbolically_interpret(deref(Expression), Symbolic_expression) :-

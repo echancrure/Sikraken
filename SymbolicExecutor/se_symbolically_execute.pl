@@ -156,13 +156,9 @@ symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
 symbolic_execute(label_stmt(_Label, Statement), Flow) :- 
     !,
     symbolic_execute(Statement, Flow).
-symbolic_execute(return_stmt(Expression), return(Symbolic)) :- 
-    !,
-    %mytrace,
-    symbolically_interpret(Expression, symb(_Type, Symbolic)),
-    ptc_solver__variable([Value], 'int'),   %todo this an approximation: may not return an int
-    ptc_solver__sdl(Value = Symbolic).  %todo casting is needed
-    %common_util__error(0, "Return Statement Value:", 'no_error_consequences', [('Value', Value)], '0_150824_3', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info).
+symbolic_execute(return_stmt(Expression), return(Expression)) :-    %will be handled in post function call
+    mytrace,
+    !.
 symbolic_execute(postfix_inc_op(Expression), 'carry_on') :-
     !,
     symbolically_interpret(postfix_inc_op(Expression), _).  %this is a statement: we don't care about its evaluation
