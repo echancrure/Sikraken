@@ -12,7 +12,7 @@ mytrace.            %call this to start debugging
 :- local reference('current_path_bran', []).    %list of branches followed so far
 :- local reference('call_stack_bran', []).      %list of functions entered so far
 :- local reference('scope_stack', [scope(0, dummy)]).          %[scope(level_nb|Var)|Older] with Var only used for delaying and awakening, see SEAV module
-:- local reference('verifier_inputs', []).      %only used in 'testcomp' testing mode to track the order of the verifier variables
+:- local reference('verifier_inputs', []).      %for testcomp: the chronogical list of verifier variables created in the form [verif(Type, Input)|...] 
 
 :- dynamic covered_bran/1, path_nb/1.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

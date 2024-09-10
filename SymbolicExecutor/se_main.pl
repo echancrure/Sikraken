@@ -109,7 +109,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
              (Return == 'int' ->
                 (se_sub_atts__get(Main, 'body', Main_compound_statement),
                  se_globals__update_ref('current_path_bran', start('Target_raw_subprogram_name', true)),
-                 mytrace,
+                 %mytrace,
                  symbolic_execute(Main_compound_statement, _Flow)
                 )
              ;
@@ -161,10 +161,10 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
             (se_globals__get_val('output_mode', Output_mode),
              (Output_mode = 'testcomp' ->
                 (se_globals__get_ref('verifier_inputs', Verifier_inputs),
-                 label_testcomp(Verifier_inputs)
+                 label_testcomp(Verifier_inputs, Labeled_inputs)
                 )
              ;
-                true    %todo
+                common_util__error(10, "Unexpected output mode", "Only testcomp format is supported for now", [('Output_mode', Output_mode)], '10_100924_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info)
              ),
              se_globals__get_val('path_nb', Test_nb),
              Inc_test_nb is Test_nb + 1,
@@ -174,14 +174,14 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
              se_globals__set_val('covered_bran', Covered),
              common_util__error(0, "End of path", 'no_error_consequences', [('Path Nb', Inc_test_nb), ('Newly_covered', Newly_covered), ('Current_path', Current_path)], '0_190824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info),
              (Output_mode == 'testcomp' ->
-                print_test_inputs_testcomp(Verifier_inputs)   %but don't print expected outputs
+                print_test_inputs_testcomp(Labeled_inputs)   %but don't print expected outputs
              ;
                 (print_test_inputs(SEAV_Inputs),
-                se_globals__pop_scope_stack,    %only after labeling and printed to preserve parameters
-                term_variables(Parsed_prolog_code, All_Ids),
-                get_all_outputs(All_Ids, All_seavs),
-                print_test_outputs(All_seavs),    
-                flush(user_output)
+                 se_globals__pop_scope_stack,    %only after labeling and printed to preserve parameters
+                 term_variables(Parsed_prolog_code, All_Ids),
+                 get_all_outputs(All_Ids, All_seavs),
+                 print_test_outputs(All_seavs),    
+                 flush(user_output)
                 )
              )
             )
@@ -225,15 +225,39 @@ label(SEAV_Inputs) :-
         seav__get(Seav, 'input', Input),
         get_all_inputs(R_seavs, R_inputs).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-label_testcomp(Verifier_inputs) :- 
-    (ptc_solver__label_integers(Verifier_inputs) ->
-        true
+%Verifier_inputs is of the form [verif(Type, Input)|...] 
+label_testcomp(Verifier_inputs, Labeled_inputs) :- 
+    mytrace,
+    partition(Verifier_inputs, Integers, Floats, Grounded_floats, Labeled_inputs),
+    (ptc_solver__label_integers(Integers) ->
+        (ptc_solver__label_reals(Floats, Grounded_floats) ->    %integers and floats labeling kept separate for now
+            true
+        ;
+            (common_util__error(0, "Floating point numbers labeling failed", "Perhaps worth investigating", [], '0_100924', 'se_main', 'label_testcomp', no_localisation, no_extra_info),
+             fail
+            )
+        )
     ;
-        (common_util__error(0, "Labeling failed", "Should only happen for reals or non-linear integers", [], '0_200824', 'se_main', 'label_testcomp', no_localisation, no_extra_info),
+        (common_util__error(0, "Integer labeling failed", "Should only happen for reals or non-linear integers", [], '0_200824', 'se_main', 'label_testcomp', no_localisation, no_extra_info),
          fail
         )
     ),
     !.
+    %%%
+    partition([], [], [], [], []).
+    partition([verif(Type, Input)|R], Integers_out, Floats_out, Grounded_floats, [Labeled_input|R_Labeled]) :-
+        ((Type == float ; Type == double ; Type == long_double) ->
+            (Floats_out = [Input|R_Floats],
+             Grounded_floats =[Ground_float|R_Grounded_floats],    %a list of vars grounded to floating point numbers during labeling
+             Labeled_input = Ground_float,
+             partition(R, Integers_out, R_Floats, R_Grounded_floats, R_Labeled)
+            )
+        ;
+            (Integers_out = [Input|R_Integers],
+             Labeled_input = Input,
+             partition(R, R_Integers, Floats_out, Grounded_floats, R_Labeled)
+            )
+        ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 get_all_outputs([], []).
 get_all_outputs([Id|R_ids], All_outputs) :-

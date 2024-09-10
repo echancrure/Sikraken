@@ -32,7 +32,7 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
                     (%mytrace,
                     ptc_solver__variable([Input_var], Type),
                     se_globals__get_ref('verifier_inputs', Verifier_inputs),
-                    append(Verifier_inputs, [Input_var], New_verifier_inputs),
+                    append(Verifier_inputs, [verif(Type, Input_var)], New_verifier_inputs),
                     se_globals__set_ref('verifier_inputs', New_verifier_inputs),
                     Symbolic_expression = symb(Type, Input_var)
                     )
@@ -70,7 +70,8 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
         )
     ).
 symbolically_interpret(cast(To_type, Expression), symb(To_type, Casted)) :-
-    !,mytrace,
+    !,
+    %mytrace,
     symbolically_interpret(Expression, symb(From_type, Symbolic)),
     ptc_solver__perform_cast(cast(To_type, From_type), Symbolic, Casted).
 symbolically_interpret(addr(Expression), symb(pointer, addr(Expression))) :-

@@ -44,7 +44,6 @@ symbolic_execute(stmt(Expression_statement), Flow) :-
     symbolic_execute(Expression_statement, Flow).
 symbolic_execute(assign(LValue, Expression), Flow) :-
     !,
-    mytrace,
     (seav__is_seav(LValue) ->
         (!,
          seav__get(LValue, 'type', To_type),
@@ -157,8 +156,7 @@ symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
 symbolic_execute(label_stmt(_Label, Statement), Flow) :- 
     !,
     symbolic_execute(Statement, Flow).
-symbolic_execute(return_stmt(Expression), return(Expression)) :-    %will be handled in post function call
-    mytrace,
+symbolic_execute(return_stmt(Expression), return(Expression)) :-    %will be handled in post function call by checking Flow
     !.
 symbolic_execute(postfix_inc_op(Expression), 'carry_on') :-
     !,

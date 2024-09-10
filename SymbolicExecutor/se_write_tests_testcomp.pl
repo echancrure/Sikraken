@@ -42,8 +42,8 @@ print_preamble_testcomp(Parsed_dir) :-
         get_flag(unix_time, T), 
         local_time_string(T, "%c", Date_time).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%create a new test case .xml file
-print_test_inputs_testcomp(Verifier_inputs) :-
+%create a new test input vector in foo.xml file
+print_test_inputs_testcomp(Labeled_inputs) :-
     se_globals__get_val('path_nb', Test_nb),
     concat_atom(['test_input-', Test_nb, '.xml'], Filename),
     open(Filename, 'write', 'test_input_stream'),
@@ -51,7 +51,7 @@ print_test_inputs_testcomp(Verifier_inputs) :-
     printf('test_input_stream', "<!DOCTYPE testcase PUBLIC \"+//IDN sosy-lab.org//DTD test-format testcase 1.1//EN\" \"https://sosy-lab.org/test-format/testcase-1.1.dtd\">\n", []),
     printf('test_input_stream', "<testcase>\n", []),
     %mytrace,
-    print_inputs(Verifier_inputs),
+    print_inputs(Labeled_inputs),
     printf('test_input_stream', "</testcase>", []),
     close('test_input_stream').
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
