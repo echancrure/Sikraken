@@ -44,11 +44,12 @@ symbolic_execute(stmt(Expression_statement), Flow) :-
     symbolic_execute(Expression_statement, Flow).
 symbolic_execute(assign(LValue, Expression), Flow) :-
     !,
-    %mytrace,
+    mytrace,
     (seav__is_seav(LValue) ->
         (!,
-         symbolically_interpret(Expression, symb(_, Symbolic_expression)),
-         seav__update(LValue, 'output', Symbolic_expression),   %todo: casting necessary
+         seav__get(LValue, 'type', To_type),
+         symbolically_interpret(cast(To_type, Expression), symb(To_type, Casted)),
+         seav__update(LValue, 'output', Casted),
          Flow = 'carry_on'
         )
     ;
