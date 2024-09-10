@@ -23,43 +23,50 @@ symbolically_interpret(float(Expression), symb(float, Expression)) :-     %f con
 symbolically_interpret(long_double(Expression), symb(long_double, Expression)) :-     %l constant, identified in parser
     !.
 symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) :-
-    !,
-    se_sub_atts__get(Function, 'body', Body),
-    (Body == 'no_body_is_extern' -> %calling an extern function with no body
-        (se_name_atts__get(Function, 'name', Function_name),
-            (is_verifier_input_function(Function_name, Type) ->
-                (%mytrace,
-                 ptc_solver__variable([Input_var], Type),
-                 se_globals__get_ref('verifier_inputs', Verifier_inputs),
-                 append(Verifier_inputs, [Input_var], New_verifier_inputs),
-                 se_globals__set_ref('verifier_inputs', New_verifier_inputs),
-                 Symbolic_expression = symb(Type, Input_var)
+    !,mytrace,
+    (se_sub_atts__is_sub_atts(Function) ->
+        (se_sub_atts__get(Function, 'body', Body),
+         (Body == 'no_body_is_extern' -> %calling an extern function with no body
+            (se_name_atts__get(Function, 'name', Function_name),
+                (is_verifier_input_function(Function_name, Type) ->
+                    (%mytrace,
+                    ptc_solver__variable([Input_var], Type),
+                    se_globals__get_ref('verifier_inputs', Verifier_inputs),
+                    append(Verifier_inputs, [Input_var], New_verifier_inputs),
+                    se_globals__set_ref('verifier_inputs', New_verifier_inputs),
+                    Symbolic_expression = symb(Type, Input_var)
+                    )
+                ;
+                (Function_name == 'Exit' ; Function_name == 'Abort') ->
+                    (%Arguments = [Exit_code],
+                    %common_util__error(0, "Exit Called:", 'no_error_consequences', [('Exit_code', Exit_code)], '0_170824_1', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info),
+                    %mytrace,
+                    Symbolic_expression = symb(Function_name, Function_name),  %unused, just for symmetry
+                    end_of_path_predicate(_, _),   %only works in 'testcomp'
+                    fail
+                    )
+                ;
+                    common_util__error(10, "Function call to unknown external function", "Cannot perform symbolic interpretation", [('Function_name', Function_name)], '10_150824_3', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info)
                 )
-            ;
-             (Function_name == 'Exit' ; Function_name == 'Abort') ->
-                (%Arguments = [Exit_code],
-                 %common_util__error(0, "Exit Called:", 'no_error_consequences', [('Exit_code', Exit_code)], '0_170824_1', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info),
-                 %mytrace,
-                 Symbolic_expression = symb(Function_name, Function_name),  %unused, just for symmetry
-                 end_of_path_predicate(_, _),   %only works in 'testcomp'
-                 fail
-                )
-            ;
-                common_util__error(10, "Function call to unknown external function", "Cannot perform symbolic interpretation", [('Function_name', Function_name)], '10_150824_3', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info)
             )
+         ;
+            (se_sub_atts__get(Function, 'parameters', Parameters),
+             se_sub_atts__get(Function, 'return_type', Return_type),
+             se_globals__push_scope_stack,          %function parameters scope
+             match_parameters_arguments(Parameters, Arguments),
+             symbolic_execute(Body, Flow),
+             (Flow = return(Return_expression) ->
+                symbolically_interpret(cast(Return_type, Return_expression), Symbolic_expression)
+             ;
+                Symbolic_expression = symb('void', 'void')   
+             ),
+             se_globals__pop_scope_stack            %function parameters scope
+            )
+         )
         )
     ;
-        (se_sub_atts__get(Function, 'parameters', Parameters),
-         se_sub_atts__get(Function, 'return_type', Return_type),
-         se_globals__push_scope_stack,          %function parameters scope
-         match_parameters_arguments(Parameters, Arguments),
-         symbolic_execute(Body, Flow),
-         (Flow = return(Return_expression) ->
-            symbolically_interpret(cast(Return_type, Return_expression), Symbolic_expression)
-         ;
-            Symbolic_expression = symb('void', 'void')   
-         ),
-         se_globals__pop_scope_stack            %function parameters scope
+        (se_name_atts__get(Function, 'name', Function_name),
+         common_util__error(10, "Calling a function that does not exist", "Seriously wrong; Suggest add include or declare as extern", [('Function_name', Function_name)], '10_100924_1', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info)
         )
     ).
 symbolically_interpret(cast(Type, Return_expression), symb(Type, Symbolic_expression)) :-
