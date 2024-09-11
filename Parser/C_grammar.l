@@ -25,6 +25,7 @@
 #include "C_grammar.tab.h"
 
 extern int is_typedef_name(char*);
+extern long int TARGET_LONG_MAX;
 
 void read_comment();
 int differentiate_identifiers(char *);
@@ -273,11 +274,11 @@ void wrap_integer_constants(char * wrapper, char * input, char ** output) {
             strcat(format_string, "unsigned(%.*s)");
             size += strlen("unsigned()");
         }
-         else if (constant <= 2147483647L) {          //don't use LONG_MAX, todo this should be dependent on the target compilation machine size (32 vs 64 bits) for the program under test
+         else if (constant <= TARGET_LONG_MAX) {          //don't use LONG_MAX, values dependents on the target memory model size (32 vs 64 bits) of the program under test, not of the compiler used to generate the parser
             strcat(format_string, "long(%.*s)");
             size += 6;
         } else {
-            strcat(format_string, "unsigned_long(%.*s)");
+            strcat(format_string, "unsigned_long(%.*s)");   //todo check how long long constants without suffix are handled in gcc/ansi C currently set as unsigned long which is big enough
             size += strlen("unsigned_long()");
         }   
     }

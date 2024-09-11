@@ -309,8 +309,6 @@ print_test_run_log__preamble(ArgsL) :-
     printf('test_run_stream', "\tTests inputs target format:\t%w\n", [Output_mode]),
     printf('test_run_stream', "\tTarget function:\t%w\n", [Target_raw_subprogram_name]),   
     printf('test_run_stream', "\tTarget C file:\t%w (in folder:%w)\n", [Target_source_file_name_no_ext, Parsed_dir]),
-    
-
     printf('test_run_stream', "\tNb of restarts:\t\t%w\n", [Restart]),
     printf('test_run_stream', "\tNb of path to try:\t%w\n", [Nb_of_paths_to_try]),
     close('test_run_stream').

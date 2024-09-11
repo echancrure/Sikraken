@@ -33,15 +33,33 @@ for regression_test_file in "$c_files_directory"/*.c; do
     # Extract the base name of the file (without the path and extension)
     base_name=$(basename "$regression_test_file" .c)
     config_file="$c_files_directory"/"$base_name".json
+    yml_file="$c_files_directory"/"$base_name".yml
 
-    # Check if the configuration file exists
+    # Check if our configuration file exists
     if [ ! -f "$config_file" ]; then
         echo "Sikraken regression testing ERROR: Configuration file $config_file does not exist"
         exit 1
     fi
 
-    #preprocess using gcc and parse using Sikraken's parser the regression test
-    ./bin/call_parser.sh $c_files_directory "$base_name".c
+    # Check if the testcomp yml file exists
+    if [ ! -f "$yml_file" ]; then
+        echo "Sikraken regression testing WARNING: .yml file $yml_file does not exist, assuming ILP32"
+    else
+        data_model=$(grep "data_model:" "$yml_file" | awk '{print $2}')
+    fi
+
+    # Generate GCC flag based on the value of data_model
+    if [ "$data_model" == "ILP32" ]; then
+        gcc_flag="-m32"
+    elif [ "$data_model" == "ILP64" ]; then
+        gcc_flag="-m64"
+    else
+        echo "Unsupported data model: $data_model"
+        exit 1
+    fi
+
+    #preprocess the regression test using gcc and parse using Sikraken's parser
+    ./bin/call_parser.sh $c_files_directory "$base_name".c $gcc_flag
     if [ $? -ne 0 ]; then
         echo "Sikraken regression testing ERROR: Sikraken parsing of $regression_test_file failed"
         exit 1

@@ -36,7 +36,9 @@ extern char *yytext;
 #define MAX_ID_LENGTH 255
 #define MAX_PATH 256
 
-int debugMode = 0;				//flag to indicate if we are in debug mode set by by -d command line switch
+int debugMode = 0;				//flag to indicate if we are in debug mode set by -d command line switch
+int dataModel = 32;				//flag to indicate data model used in the C code under analysis; set by -m32 or -m64 on the command line; default is 32
+long int TARGET_LONG_MAX = 2147483647L; //the default LONG_MAX for the code under test if dataModel = 32
 FILE* pl_file;					//the file of containing the Prolog predicated after parsing the target C file
 char i_file_uri[MAX_PATH];
 FILE *i_file;
@@ -1224,6 +1226,12 @@ int main(int argc, char *argv[]) {
 			case 'd':
 				debugMode = 1;	//we are in debug mode : will affect output of warnings amongst other things
 				break;
+			case 'm':
+				if (argv[i][2] == '6' && argv[i][3] == '4') {
+					dataModel = 64;		//anything else is assumed default i.e. 32 bit
+					TARGET_LONG_MAX = 9223372036854775807LL;	//i.e. LONG_MAX for 64 bits target (using LL in case compiler is running on a 32bit machine)
+				}
+				break;
 			default:
 				fprintf(stderr, "Sikraken parser: Unsupported flag '-%s', ignoring.\n", argv[i]);
 			}
@@ -1233,6 +1241,8 @@ int main(int argc, char *argv[]) {
 			strcpy_safe(filename_no_ext, MAX_PATH, argv[i]);
 		}
 	}
+	fprintf(stdout, "Sikraken parser: using %i bits data model.\n", dataModel); 
+
 	sprintf_safe(i_file_uri, 3*MAX_PATH, "%s/%s.i", C_file_path, filename_no_ext);
 	if (fopen_safe(&i_file, i_file_uri, "r") != 0) {
 		fprintf(stderr, ".i file could not be opened for reading at: %s\n", i_file_uri);
