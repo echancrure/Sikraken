@@ -51,8 +51,10 @@ for regression_test_file in "$c_files_directory"/*.c; do
     # Generate GCC flag based on the value of data_model
     if [ "$data_model" == "ILP32" ]; then
         gcc_flag="-m32"
+        testcov_data_model="-32"
     elif [ "$data_model" == "ILP64" ]; then
         gcc_flag="-m64"
+        testcov_data_model="-64"
     else
         echo "Unsupported data model: $data_model"
         exit 1
@@ -83,7 +85,7 @@ for regression_test_file in "$c_files_directory"/*.c; do
         expected_coverage=$(echo "$config" | jq -r '.expected_coverage')
 
         #generate test inputs
-        eclipse_call="se_main(['/home/chris/Sikraken/', '"$c_files_directory"/', '"$base_name"', main, release, testcomp, $restarts, $tries])"
+        eclipse_call="se_main(['/home/chris/Sikraken/', '"$c_files_directory"/', '"$base_name"', main, release, testcomp, '$gcc_flag', $restarts, $tries])"
         eclipse -f ./SymbolicExecutor/se_main.pl -e "$eclipse_call"
         if [ $? -ne 0 ]; then
             echo "Sikraken regression testing ERROR: call to ECLiPSe $eclipse_call failed"
@@ -93,7 +95,7 @@ for regression_test_file in "$c_files_directory"/*.c; do
         fi
 
         #validate test inputs
-        testcov_output=$(testcov --no-isolation --test-suite "$c_files_directory""/suite-""$base_name"".zip" "$regression_test_file")
+        testcov_output=$(testcov $testcov_data_model --no-isolation --test-suite "$c_files_directory""/suite-""$base_name"".zip" "$regression_test_file")
         if [ $? -ne 0 ]; then
             echo "Sikraken regression testing ERROR: TestCov test inputs validation of $regression_test_file failed"
             exit 1

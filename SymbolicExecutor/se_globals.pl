@@ -4,7 +4,7 @@
 mytrace.            %call this to start debugging
 :- spy mytrace/0.
 
-:- export se_globals__set_globals/4, se_globals__get_val/2, se_globals__set_val/2, se_globals__get_ref/2, se_globals__set_ref/2.
+:- export se_globals__set_globals/5, se_globals__get_val/2, se_globals__set_val/2, se_globals__get_ref/2, se_globals__set_ref/2.
 :- export se_globals__update_ref/2.
 :- export se_globals__push_scope_stack/0, se_globals__pop_scope_stack/0.
 
@@ -17,7 +17,7 @@ mytrace.            %call this to start debugging
 :- dynamic covered_bran/1, path_nb/1.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %declaring global non-logical variables: not undone on backtracking
-se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode) :-    
+se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode, Data_model) :-    
     setval('errorMessageNb', 0),	            %number of error messages generated: used to set trace_points in debug mode only
     setval('debug_info', 'pre_symbolic_execution'),    %used in debug mode only to hold the current processing position of the symbolic executor: a phase, file, or function being handled
     setval('phase', 'elaboration'),             %initially we are in the elaboration phase: used during cfg building and elaboration control
@@ -33,6 +33,7 @@ se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode,
     setval('testcomp_test_suite_folder', ""),
     setval('debug_mode', Debug_mode),           %'debug' or 'release'
     setval('output_mode', Output_mode),         %'testcomp' or something else 
+    setval('data_model', Data_model),           %'-m32'|'m64'
     setval('message_mode', Debug_mode),         %debug or release todo: remove, just use debug_mode
     setval('already_printed', []),              %list of already printed error messages : used in release mode only
     !.

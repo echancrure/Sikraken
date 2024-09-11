@@ -30,27 +30,25 @@ mytrace.            %call this to start debugging
 :- compile(['se_write_tests_testcomp']).
 :- compile(['se_coverage']).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% home pc   se_main('//C/Users/Chris2/GoogleDrive/Sikraken/', '//C/Users/Chris2/GoogleDrive/Sikraken/SampleCode/', basic001, main, debug)
-% laptop    se_main('//C/Users/echan/My Drive/Sikraken/', '//C/Users/echan/My Drive/Sikraken/SampleCode/', basic001, basic, debug)
 %  
-go :- se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/','hardness_codestructure_dependencies_file-0', main, debug, testcomp, 1, 1]).
-%go1 :- se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/','Problem03_label00', main, debug, testcomp, 32, 100]).
-go_linux(Target_source_file_name_no_ext, Restart, Tries) :- se_main(['/home/chris/Sikraken/', "/home/chris/sv-benchmarks/c/hardness-nfm22/", Target_source_file_name_no_ext, main, debug, testcomp, Restart, Tries]).
-go_linux(Parsed_dir, Target_source_file_name_no_ext, Restart, Tries) :- se_main(['/home/chris/Sikraken/', Parsed_dir, Target_source_file_name_no_ext, main, debug, testcomp, Restart, Tries]).
+go :- se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/','hardness_codestructure_dependencies_file-0', main, debug, testcomp, '-m32', 1, 1]).
+%go1 :- se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/','Problem03_label00', main, debug, testcomp, '-m32', 32, 100]).
+go_linux(Target_source_file_name_no_ext, Restart, Tries) :- se_main(['/home/chris/Sikraken/', "/home/chris/sv-benchmarks/c/hardness-nfm22/", Target_source_file_name_no_ext, main, debug, testcomp, '-m32', Restart, Tries]).
+go_linux(Parsed_dir, Target_source_file_name_no_ext, Restart, Tries) :- se_main(['/home/chris/Sikraken/', Parsed_dir, Target_source_file_name_no_ext, main, debug, testcomp, '-m32', Restart, Tries]).
 
 go(Restart, Nb_of_paths_to_try) :- go_linux('hardness_codestructure_dependencies_file-0', Restart, Nb_of_paths_to_try).
 
 se_main(ArgsL) :-
-    (ArgsL = [Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Restart, Nb_of_paths_to_try] ->
+    (ArgsL = [Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Restart, Nb_of_paths_to_try] ->
         true
     ;
         common_util__error(10, "Calling se_main/? with invalid argument list", "Review calling syntax of se_main/?", [], '10_240824_1', 'se_main', 'se_main', no_localisation, no_extra_info)
     ),
     print_test_run_log__preamble(ArgsL),
-    concat_string([Install_dir, "PTC-Solver/source/"], Solver_install_dir),
-    initialise_ptc_solver(Solver_install_dir, 'ilp32'),    %todo for testcomp, memory model should be read from .yml file 
+    %concat_string([Install_dir, "PTC-Solver/source/"], Solver_install_dir),
     super_util__quick_dev_info("Analysing %w with %w restarts and %w tries.", [Target_source_file_name_no_ext, Restart, Nb_of_paths_to_try]),
-    se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode),
+    se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode, Data_model),
+    initialise_ptc_solver,
     capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
     read_parsed_file(Parsed_dir, Target_source_file_name_no_ext, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors
     symbolic_execute(Parsed_prolog_code, _),   %always symbolically execute all global declarations for now: initialisations could be ignored via a switch if desired
@@ -187,9 +185,10 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
             )
         ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-initialise_ptc_solver(Solver_install_dir, Memory_model) :-
+initialise_ptc_solver :-
     ptc_solver__clean_up,
-    ptc_solver__default_declarations(Solver_install_dir, Memory_model).
+    se_globals__get_val('data_model', Data_model),
+    ptc_solver__default_declarations(Data_model).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 read_parsed_file(Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, CProlog, Main, Target_subprogram_var) :-
     concat_atom([Parsed_dir, Target_source_file_name_no_ext, '.pl'], Parsed_filename),
@@ -283,7 +282,7 @@ print_test_outputs([SEAV|R]) :-
     print_test_outputs(R).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 print_test_run_log__preamble(ArgsL) :-
-    ArgsL = [Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Restart, Nb_of_paths_to_try],
+    ArgsL = [Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Restart, Nb_of_paths_to_try],
     get_flag('unix_time', Time), 
     local_time_string(Time, "%Y_%m_%d_%H_%M_%S", Timestamp),
     concat_string([Install_dir, "SikrakenDevSpace/experiments/test_run_logs/test_run_", Target_source_file_name_no_ext, "_", Timestamp, ".txt"], Test_run_filename),
@@ -302,11 +301,12 @@ print_test_run_log__preamble(ArgsL) :-
     printf('test_run_stream', "\tECLiPSe version:\t%w\n", [Version]),
     printf('test_run_stream', "\tdebug_compile:\t\t%w\n", [Debug_compile]),
     printf('test_run_stream', "\tdebugging:\t\t\t%w\n", [Debugging]),
-    printf('test_run_stream', "\tMaximum allowed local/control user stack:\t%wMB\n", [Max_local_control_in_MB]),
+    printf('test_run_stream', "\tCalculated maximum allowed local/control user stack:\t%wMB\n", [Max_local_control_in_MB]),
     printf('test_run_stream', "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
     printf('test_run_stream', "Sikraken Session Configurations at: %w\n", [Timestamp]),
     printf('test_run_stream', "\tRun mode:\t%w\n", [Debug_mode]),
     printf('test_run_stream', "\tTests inputs target format:\t%w\n", [Output_mode]),
+    printf('test_run_stream', "\tTarget data model:\t%w\n", [Data_model]),
     printf('test_run_stream', "\tTarget function:\t%w\n", [Target_raw_subprogram_name]),   
     printf('test_run_stream', "\tTarget C file:\t%w (in folder:%w)\n", [Target_source_file_name_no_ext, Parsed_dir]),
     printf('test_run_stream', "\tNb of restarts:\t\t%w\n", [Restart]),
