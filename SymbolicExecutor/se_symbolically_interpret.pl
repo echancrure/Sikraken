@@ -117,43 +117,54 @@ symbolically_interpret(minus_op(Expression), symb(Promoted_type, Result)) :-
     ptc_solver__perform_cast(cast(Type, Promoted_type), -Symbolic_expression, Result).
 
 %%%relational operators: todo a lot of code is repeated: refactor
-%todo call IC directly rather than go through the the solver again...
 symbolically_interpret(less_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
-    $<(Le_casted_exp, Ri_casted_exp, R).
+    my_eval(Le_casted_exp, Le_eval),
+    my_eval(Ri_casted_exp, Ri_eval),
+    $<(Le_eval, Ri_eval, R).
 symbolically_interpret(greater_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
-    $>(Le_casted_exp, Ri_casted_exp, R).
+    my_eval(Le_casted_exp, Le_eval),
+    my_eval(Ri_casted_exp, Ri_eval),
+    $>(Le_eval, Ri_eval, R).
 symbolically_interpret(less_or_eq_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
-    $=<(Le_casted_exp, Ri_casted_exp, R).
+    my_eval(Le_casted_exp, Le_eval),
+    my_eval(Ri_casted_exp, Ri_eval),
+    $=<(Le_eval, Ri_eval, R).
 symbolically_interpret(greater_or_eq_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
-    $>=(Le_casted_exp, Ri_casted_exp, R).
+    my_eval(Le_casted_exp, Le_eval),
+    my_eval(Ri_casted_exp, Ri_eval),
+    $>=(Le_eval, Ri_eval, R).
 symbolically_interpret(equal_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
-    $=(Le_casted_exp, Ri_casted_exp, R).
+    my_eval(Le_casted_exp, Le_eval),
+    my_eval(Ri_casted_exp, Ri_eval),
+    $=(Le_eval, Ri_eval, R).
 symbolically_interpret(not_equal_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
-    $\=(Le_casted_exp, Ri_casted_exp, R).
+    my_eval(Le_casted_exp, Le_eval),
+    my_eval(Ri_casted_exp, Ri_eval),
+    $\=(Le_eval, Ri_eval, R).
 %%%
 symbolically_interpret(postfix_inc_op(Expression), Symbolic_expression) :-
     !,
@@ -215,6 +226,14 @@ symbolically_interpret(not_op(Le_exp), symb(int, Symbolic)) :-
     ).
 symbolically_interpret(Unhandled_expression, _Symbolic_expression) :-
     common_util__error(10, "Expression is not handled", "Cannot perform symbolic interpretation", [('Unhandled_expression', Unhandled_expression)], '10_020824', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+my_eval(X, X) :-
+    number(X),
+    !.
+my_eval(X, X) :-
+    var(X),
+    !.
+my_eval(X, eval(X)). 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 implicit_type_casting(Same_type, Same_type, Le_Symbolic, Ri_Symbolic, Same_type, Le_Symbolic, Ri_Symbolic) :-   %Types are equal: no casting needed
     !.
