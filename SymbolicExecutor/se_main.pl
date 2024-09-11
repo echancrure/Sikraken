@@ -32,8 +32,8 @@ mytrace.            %call this to start debugging
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  
 go :- se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/','hardness_codestructure_dependencies_file-0', main, debug, testcomp, '-m32', 1, 1]).
-%go1 :- se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/','Problem03_label00', main, debug, testcomp, '-m32', 32, 100]).
-go_linux(Target_source_file_name_no_ext, Restart, Tries) :- se_main(['/home/chris/Sikraken/', "/home/chris/sv-benchmarks/c/hardness-nfm22/", Target_source_file_name_no_ext, main, debug, testcomp, '-m32', Restart, Tries]).
+%go1 :- se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/regression_tests/','Problem03_label00', main, debug, testcomp, '-m32', 32, 100]).
+go_linux(Target_source_file_name_no_ext, Restart, Tries) :- se_main(['/home/chris/Sikraken/', "/home/chris/Sikraken/SampleCode/", Target_source_file_name_no_ext, main, debug, testcomp, '-m32', Restart, Tries]).
 go_linux(Parsed_dir, Target_source_file_name_no_ext, Restart, Tries) :- se_main(['/home/chris/Sikraken/', Parsed_dir, Target_source_file_name_no_ext, main, debug, testcomp, '-m32', Restart, Tries]).
 
 go(Restart, Nb_of_paths_to_try) :- go_linux('hardness_codestructure_dependencies_file-0', Restart, Nb_of_paths_to_try).

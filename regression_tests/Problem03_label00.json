@@ -6,17 +6,17 @@
         "restarts": 1,
         "tries": 10,
         "expected_run_time": 30,
-        "expected_test_inputs_number": 10,
-        "expected_coverage": 16.22
+        "expected_test_inputs_number": 11,
+        "expected_coverage": 15.54
       }, 
       {
         "id": "run2",
         "description": "Should reach the max 46.96%",
-        "restarts": 32,
-        "tries": 100,
+        "restarts": 128,
+        "tries": 25,
         "expected_run_time": 150,
-        "expected_test_inputs_number": 77,
-        "expected_coverage": 46.62
+        "expected_test_inputs_number": 84,
+        "expected_coverage": 46.96
       }
     ]
   }

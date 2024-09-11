@@ -86,29 +86,29 @@ symbolically_interpret(deref(Expression), Symbolic_expression) :-
     ).
 symbolically_interpret(multiply_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp * Ri_casted_exp)) :-
     !,
-    symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
-    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
-    implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
+    symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
+    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
+    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
 symbolically_interpret(div_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp / Ri_casted_exp)) :-
     !,
-    symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
-    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
-    implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
+    symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
+    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
+    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
 symbolically_interpret(mod_op(Le_exp, Ri_exp), symb(Common_type, mod_op(Le_casted_exp, Ri_casted_exp))) :-
     !,
-    symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
-    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
-    implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
+    symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
+    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
+    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
 symbolically_interpret(plus_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp + Ri_casted_exp)) :-
     !,
-    symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
-    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
-    implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
+    symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
+    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
+    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
 symbolically_interpret(minus_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp - Ri_casted_exp)) :-
     !,
-    symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
-    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
-    implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
+    symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
+    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
+    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
 symbolically_interpret(minus_op(Expression), symb(Promoted_type, Result)) :-
     !,
     %mytrace,
@@ -119,49 +119,49 @@ symbolically_interpret(minus_op(Expression), symb(Promoted_type, Result)) :-
 %%%relational operators: todo a lot of code is repeated: refactor
 symbolically_interpret(less_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
-    symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
-    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
-    implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
+    symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
+    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
+    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
     my_eval(Le_casted_exp, Le_eval),
     my_eval(Ri_casted_exp, Ri_eval),
     $<(Le_eval, Ri_eval, R).
 symbolically_interpret(greater_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
-    symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
-    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
-    implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
+    symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
+    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
+    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
     my_eval(Le_casted_exp, Le_eval),
     my_eval(Ri_casted_exp, Ri_eval),
     $>(Le_eval, Ri_eval, R).
 symbolically_interpret(less_or_eq_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
-    symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
-    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
-    implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
+    symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
+    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
+    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
     my_eval(Le_casted_exp, Le_eval),
     my_eval(Ri_casted_exp, Ri_eval),
     $=<(Le_eval, Ri_eval, R).
 symbolically_interpret(greater_or_eq_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
-    symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
-    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
-    implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
+    symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
+    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
+    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
     my_eval(Le_casted_exp, Le_eval),
     my_eval(Ri_casted_exp, Ri_eval),
     $>=(Le_eval, Ri_eval, R).
 symbolically_interpret(equal_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
-    symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
-    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
-    implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
+    symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
+    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
+    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
     my_eval(Le_casted_exp, Le_eval),
     my_eval(Ri_casted_exp, Ri_eval),
     $=(Le_eval, Ri_eval, R).
 symbolically_interpret(not_equal_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
-    symbolically_interpret(Le_exp, symb(Le_type, Le_Symbolic)),
-    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_Symbolic)),
-    implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
+    symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
+    symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
+    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
     my_eval(Le_casted_exp, Le_eval),
     my_eval(Ri_casted_exp, Ri_eval),
     $\=(Le_eval, Ri_eval, R).
@@ -174,13 +174,41 @@ symbolically_interpret(postfix_inc_op(Expression), Symbolic_expression) :-
 symbolically_interpret(and_op(Le_exp, Ri_exp), symb(int, 1)) :-   %C semantics of && is always short circuit
     !,
     %mytrace,
-    symbolically_interpret(Le_exp, symb(int, Le_Symbolic)),
-    ptc_solver__sdl(Le_Symbolic),
-    symbolically_interpret(Ri_exp, symb(int, Ri_Symbolic)),
-    ptc_solver__sdl(Ri_Symbolic).
+    symbolically_interpret(Le_exp, symb(int, Le_symbolic)),
+    ptc_solver__sdl(Le_symbolic),
+    symbolically_interpret(Ri_exp, symb(int, Ri_symbolic)),
+    ptc_solver__sdl(Ri_symbolic).
+%todo: check, why do wse always impose that it must be true? what if part of an expression (x = ((y==1) || (y==42));)
 symbolically_interpret(or_op(Le_exp, Ri_exp), symb(int, 1)) :-   %C semantics of || is always short circuit
     !,
-    %mytrace,
+    mytrace,
+    random(2, R2),
+    (R2 == 0 ->
+        (
+            (symbolically_interpret(Le_exp, symb(int, Le_symbolic)),
+             ptc_solver__sdl(Le_symbolic)
+            )
+        ;%deliberate choice point
+            (symbolically_interpret(not_op(Le_exp), symb(int, Not_le_symbolic)),
+             ptc_solver__sdl(Not_le_symbolic),
+             symbolically_interpret(Ri_exp, symb(int, Ri_symbolic)),
+             ptc_solver__sdl(Ri_symbolic)
+            )
+        )
+    ;
+        (
+            (symbolically_interpret(not_op(Le_exp), symb(int, Not_le_symbolic)),
+             ptc_solver__sdl(Not_le_symbolic),
+             symbolically_interpret(Ri_exp, symb(int, Ri_symbolic)),
+             ptc_solver__sdl(Ri_symbolic)
+            )
+        ;%deliberate choice point
+            (symbolically_interpret(Le_exp, symb(int, Le_symbolic)),
+             ptc_solver__sdl(Le_symbolic)
+            )
+        )
+    ).
+/*
     random(2, R2),  %todo does this randomness still respects short-circuit evaluation of or operators? It seems to allow Ri true without imposing Le false... when R2  == 1
     (R2 == 0 ->
         (A = Le_exp,
@@ -192,23 +220,24 @@ symbolically_interpret(or_op(Le_exp, Ri_exp), symb(int, 1)) :-   %C semantics of
        )
     ),
     (
-        (symbolically_interpret(A, symb(int, Le_Symbolic)),
-         ptc_solver__sdl(Le_Symbolic)
+        (symbolically_interpret(A, symb(int, Le_symbolic)),     %symbolically_interpret(A, symb(int, Le_symbolic)) could be performed only once
+         ptc_solver__sdl(Le_symbolic)
         )
     ;%deliberate choice point
         (%but only if will lead to new path todo
          symbolically_interpret(not_op(A), symb(int, Not_Le_Symbolic)),
          ptc_solver__sdl(Not_Le_Symbolic),
-         symbolically_interpret(B, symb(int, Ri_Symbolic)),
-         ptc_solver__sdl(Ri_Symbolic)
+         symbolically_interpret(B, symb(int, Ri_symbolic)),
+         ptc_solver__sdl(Ri_symbolic)
         )
     ).
+*/
  
 symbolically_interpret(not_op(Le_exp), symb(int, Symbolic)) :-
     !,
     (var(Le_exp) ->         %for SEAVs (often as part of an evaluated reif)
-        (symbolically_interpret(Le_exp, symb(int, Le_Symbolic)),
-         Symbolic = not(Le_Symbolic)
+        (symbolically_interpret(Le_exp, symb(int, Le_symbolic)),
+         Symbolic = not(Le_symbolic)
         )
     ;
      Le_exp = and_op(L, R) ->
@@ -220,8 +249,24 @@ symbolically_interpret(not_op(Le_exp), symb(int, Symbolic)) :-
      Le_exp = not_op(L) ->  %double negation
         symbolically_interpret(L, symb(int, Symbolic))
     ;
-        (symbolically_interpret(Le_exp, symb(int, Le_Symbolic)),
-         Symbolic = not(Le_Symbolic)
+        (symbolically_interpret(Le_exp, symb(int, Le_symbolic)),
+         Symbolic = not(Le_symbolic)
+        )
+    ).
+symbolically_interpret(cond_ex(Cond, True_exp, False_exp), symb(Common_type, Symbolic)) :-
+    !,
+    mytrace,
+    %resulting Common_type is not sound: according to C standard type of the overall conditional expression is the common type of the True and False expressions, 
+    %but because we do not extract types statitically extracting both types would mean symbolically executing both expressions which due to side effects, would be even more unsound
+    %todo revisit when type extraction can be performed statically: e.g. in parser or during CFG building   
+    symbolically_interpret(Cond, symb(int, Cond_Symbolic)),
+    (
+        (ptc_solver__sdl(Cond_Symbolic),
+         symbolically_interpret(True_exp, symb(Common_type, Symbolic))
+        )
+    ;
+        (ptc_solver__sdl(not(Cond_Symbolic)),
+         symbolically_interpret(False_exp, symb(Common_type, Symbolic))
         )
     ).
 symbolically_interpret(Unhandled_expression, _Symbolic_expression) :-
@@ -235,80 +280,80 @@ my_eval(X, X) :-
     !.
 my_eval(X, eval(X)). 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-implicit_type_casting(Same_type, Same_type, Le_Symbolic, Ri_Symbolic, Same_type, Le_Symbolic, Ri_Symbolic) :-   %Types are equal: no casting needed
+implicit_type_casting(Same_type, Same_type, Le_symbolic, Ri_symbolic, Same_type, Le_symbolic, Ri_symbolic) :-   %Types are equal: no casting needed
     !.
-implicit_type_casting(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp) :-
+implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp) :-
     %mytrace,
-    (float_conversion(Le_type, Ri_type, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp) ->
+    (float_conversion(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp) ->
         true
     ;
         (apply_integral_promotion(Le_type, Le_type_c),
          apply_integral_promotion(Ri_type, Ri_type_c),
          (Le_type_c == Ri_type_c ->     %both integral types are equal after promotion: no casting needed
             (Common_type = Le_type_c,
-             Le_casted_exp = Le_Symbolic,
-             Ri_casted_exp = Ri_Symbolic
+             Le_casted_exp = Le_symbolic,
+             Ri_casted_exp = Ri_symbolic
             )
          ;
-            integer_conversion(Le_type_c, Ri_type_c, Le_Symbolic, Ri_Symbolic, Common_type, Le_casted_exp, Ri_casted_exp)
+            integer_conversion(Le_type_c, Ri_type_c, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp)
          )
         )
     ).
     %%%
     %may need indexing, but order is important so be careful
-    integer_conversion(unsigned(long_long), From_type, Le_Symbolic, Ri_Symbolic, unsigned(long_long), Le_Symbolic, Ri_casted_exp) :-
+    integer_conversion(unsigned(long_long), From_type, Le_symbolic, Ri_symbolic, unsigned(long_long), Le_symbolic, Ri_casted_exp) :-
         !,
-        ptc_solver__perform_cast(cast(unsigned(long_long), From_type), Ri_Symbolic, Ri_casted_exp).
-    integer_conversion(From_type, unsigned(long_long), Le_Symbolic, Ri_Symbolic, unsigned(long_long), Le_casted_exp, Ri_Symbolic) :-
+        ptc_solver__perform_cast(cast(unsigned(long_long), From_type), Ri_symbolic, Ri_casted_exp).
+    integer_conversion(From_type, unsigned(long_long), Le_symbolic, Ri_symbolic, unsigned(long_long), Le_casted_exp, Ri_symbolic) :-
         !,
-        ptc_solver__perform_cast(cast(unsigned(long_long), From_type), Le_Symbolic, Le_casted_exp).
-    integer_conversion(long_long, From_type, Le_Symbolic, Ri_Symbolic, long_long, Le_Symbolic, Ri_casted_exp) :-
+        ptc_solver__perform_cast(cast(unsigned(long_long), From_type), Le_symbolic, Le_casted_exp).
+    integer_conversion(long_long, From_type, Le_symbolic, Ri_symbolic, long_long, Le_symbolic, Ri_casted_exp) :-
         !,
-        ptc_solver__perform_cast(cast(long_long, From_type), Ri_Symbolic, Ri_casted_exp).
-    integer_conversion(From_type, long_long, Le_Symbolic, Ri_Symbolic, long_long, Le_casted_exp, Ri_Symbolic) :-
+        ptc_solver__perform_cast(cast(long_long, From_type), Ri_symbolic, Ri_casted_exp).
+    integer_conversion(From_type, long_long, Le_symbolic, Ri_symbolic, long_long, Le_casted_exp, Ri_symbolic) :-
         !,
-        ptc_solver__perform_cast(cast(long_long, From_type), Le_Symbolic, Le_casted_exp).
-    integer_conversion(unsigned(long), From_type, Le_Symbolic, Ri_Symbolic, unsigned(long), Le_Symbolic, Ri_casted_exp) :-
+        ptc_solver__perform_cast(cast(long_long, From_type), Le_symbolic, Le_casted_exp).
+    integer_conversion(unsigned(long), From_type, Le_symbolic, Ri_symbolic, unsigned(long), Le_symbolic, Ri_casted_exp) :-
         !,
-        ptc_solver__perform_cast(cast(unsigned(long), From_type), Ri_Symbolic, Ri_casted_exp).
-    integer_conversion(From_type, unsigned(long), Le_Symbolic, Ri_Symbolic, unsigned(long), Le_casted_exp, Ri_Symbolic) :-
+        ptc_solver__perform_cast(cast(unsigned(long), From_type), Ri_symbolic, Ri_casted_exp).
+    integer_conversion(From_type, unsigned(long), Le_symbolic, Ri_symbolic, unsigned(long), Le_casted_exp, Ri_symbolic) :-
         !,
-        ptc_solver__perform_cast(cast(unsigned(long), From_type), Le_Symbolic, Le_casted_exp).
-    integer_conversion(long, From_type, Le_Symbolic, Ri_Symbolic, long, Le_Symbolic, Ri_casted_exp) :-
+        ptc_solver__perform_cast(cast(unsigned(long), From_type), Le_symbolic, Le_casted_exp).
+    integer_conversion(long, From_type, Le_symbolic, Ri_symbolic, long, Le_symbolic, Ri_casted_exp) :-
         !,
-        ptc_solver__perform_cast(cast(long, From_type), Ri_Symbolic, Ri_casted_exp).
-    integer_conversion(From_type, long, Le_Symbolic, Ri_Symbolic, long, Le_casted_exp, Ri_Symbolic) :-
+        ptc_solver__perform_cast(cast(long, From_type), Ri_symbolic, Ri_casted_exp).
+    integer_conversion(From_type, long, Le_symbolic, Ri_symbolic, long, Le_casted_exp, Ri_symbolic) :-
         !,
-        ptc_solver__perform_cast(cast(long, From_type), Le_Symbolic, Le_casted_exp).
-    integer_conversion(unsigned(int), From_type, Le_Symbolic, Ri_Symbolic, unsigned(int), Le_Symbolic, Ri_casted_exp) :-
+        ptc_solver__perform_cast(cast(long, From_type), Le_symbolic, Le_casted_exp).
+    integer_conversion(unsigned(int), From_type, Le_symbolic, Ri_symbolic, unsigned(int), Le_symbolic, Ri_casted_exp) :-
         !,
-        ptc_solver__perform_cast(cast(unsigned(int), From_type), Ri_Symbolic, Ri_casted_exp).
-    integer_conversion(From_type, unsigned(int), Le_Symbolic, Ri_Symbolic, unsigned(int), Le_casted_exp, Ri_Symbolic) :-
+        ptc_solver__perform_cast(cast(unsigned(int), From_type), Ri_symbolic, Ri_casted_exp).
+    integer_conversion(From_type, unsigned(int), Le_symbolic, Ri_symbolic, unsigned(int), Le_casted_exp, Ri_symbolic) :-
         !,
-        ptc_solver__perform_cast(cast(unsigned(int), From_type), Le_Symbolic, Le_casted_exp).
+        ptc_solver__perform_cast(cast(unsigned(int), From_type), Le_symbolic, Le_casted_exp).
     integer_conversion(Le_type, Ri_type, _, _, _, _, _) :-
         !,
         common_util__error(10, "Should not happen", "Cannot perform symbolic interpretation", [('Le_type', Le_type), ('Ri_type', Ri_type)], '10_040924_3', 'se_symbolically_interpret', 'integer_conversion', no_localisation, no_extra_info).
     %%%
     %may need indexing, but order is important so be careful
-    float_conversion(long_double, From_type, Le_Symbolic, Ri_Symbolic, long_double, Le_Symbolic, Ri_casted_exp) :-
+    float_conversion(long_double, From_type, Le_symbolic, Ri_symbolic, long_double, Le_symbolic, Ri_casted_exp) :-
         !,
-        ptc_solver__perform_cast(cast(long_double, From_type), Ri_Symbolic, Ri_casted_exp).
-    float_conversion(From_type, long_double, Le_Symbolic, Ri_Symbolic, long_double, Le_casted_exp, Ri_Symbolic) :-
+        ptc_solver__perform_cast(cast(long_double, From_type), Ri_symbolic, Ri_casted_exp).
+    float_conversion(From_type, long_double, Le_symbolic, Ri_symbolic, long_double, Le_casted_exp, Ri_symbolic) :-
         !,
-        ptc_solver__perform_cast(cast(long_double, From_type), Le_Symbolic, Le_casted_exp).
-    float_conversion(double, From_type, Le_Symbolic, Ri_Symbolic, double, Le_Symbolic, Ri_casted_exp) :-
+        ptc_solver__perform_cast(cast(long_double, From_type), Le_symbolic, Le_casted_exp).
+    float_conversion(double, From_type, Le_symbolic, Ri_symbolic, double, Le_symbolic, Ri_casted_exp) :-
         !,
-        ptc_solver__perform_cast(cast(double, From_type), Ri_Symbolic, Ri_casted_exp).
-    float_conversion(From_type, double, Le_Symbolic, Ri_Symbolic, double, Le_casted_exp, Ri_Symbolic) :-
+        ptc_solver__perform_cast(cast(double, From_type), Ri_symbolic, Ri_casted_exp).
+    float_conversion(From_type, double, Le_symbolic, Ri_symbolic, double, Le_casted_exp, Ri_symbolic) :-
         !,
-        ptc_solver__perform_cast(cast(double, From_type), Le_Symbolic, Le_casted_exp).
-    float_conversion(float, From_type, Le_Symbolic, Ri_Symbolic, float, Le_Symbolic, Ri_casted_exp) :-
+        ptc_solver__perform_cast(cast(double, From_type), Le_symbolic, Le_casted_exp).
+    float_conversion(float, From_type, Le_symbolic, Ri_symbolic, float, Le_symbolic, Ri_casted_exp) :-
         !,
-        ptc_solver__perform_cast(cast(float, From_type), Ri_Symbolic, Ri_casted_exp).
-    float_conversion(From_type, float, Le_Symbolic, Ri_Symbolic, float, Le_casted_exp, Ri_Symbolic) :-
+        ptc_solver__perform_cast(cast(float, From_type), Ri_symbolic, Ri_casted_exp).
+    float_conversion(From_type, float, Le_symbolic, Ri_symbolic, float, Le_casted_exp, Ri_symbolic) :-
         !,
-        ptc_solver__perform_cast(cast(float, From_type), Le_Symbolic, Le_casted_exp).
+        ptc_solver__perform_cast(cast(float, From_type), Le_symbolic, Le_casted_exp).
     float_conversion(_, _, _, _, _, _, _) :-
         fail.
 %%%
