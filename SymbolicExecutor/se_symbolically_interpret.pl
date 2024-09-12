@@ -253,19 +253,21 @@ symbolically_interpret(not_op(Le_exp), symb(int, Symbolic)) :-
          Symbolic = not(Le_symbolic)
         )
     ).
-symbolically_interpret(cond_ex(Cond, True_exp, False_exp), symb(Common_type, Symbolic)) :-
+symbolically_interpret(cond_exp(branch(Id, Condition), True_exp, False_exp), symb(Common_type, Symbolic)) :-
     !,
-    mytrace,
+    %mytrace,
     %resulting Common_type is not sound: according to C standard type of the overall conditional expression is the common type of the True and False expressions, 
     %but because we do not extract types statitically extracting both types would mean symbolically executing both expressions which due to side effects, would be even more unsound
     %todo revisit when type extraction can be performed statically: e.g. in parser or during CFG building   
-    symbolically_interpret(Cond, symb(int, Cond_Symbolic)),
+    symbolically_interpret(Condition, symb(int, Cond_Symbolic)),
     (
         (ptc_solver__sdl(Cond_Symbolic),
+         se_globals__update_ref('current_path_bran', branch(Id, 'true')),
          symbolically_interpret(True_exp, symb(Common_type, Symbolic))
         )
     ;
         (ptc_solver__sdl(not(Cond_Symbolic)),
+         se_globals__update_ref('current_path_bran', branch(Id, 'false')),
          symbolically_interpret(False_exp, symb(Common_type, Symbolic))
         )
     ).

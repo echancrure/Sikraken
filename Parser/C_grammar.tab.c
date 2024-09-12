@@ -2742,9 +2742,9 @@ yyreduce:
 
   case 80: /* conditional_expression: logical_or_expression '?' expression ':' conditional_expression  */
 #line 441 "C_grammar.y"
-                {size_t const size = strlen("cond_exp(, , )") + strlen((yyvsp[-4].id)) + strlen((yyvsp[-2].id)) + strlen((yyvsp[0].id)) + 1;
+                {size_t const size = strlen("cond_exp(branch(, ), , )") + 42 + strlen((yyvsp[-4].id)) + strlen((yyvsp[-2].id)) + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
-		 sprintf_safe((yyval.id), size, "cond_exp(%s, %s, %s)", (yyvsp[-4].id), (yyvsp[-2].id), (yyvsp[0].id));
+		 sprintf_safe((yyval.id), size, "cond_exp(branch(%d, %s), %s, %s)", branch_nb++, (yyvsp[-4].id), (yyvsp[-2].id), (yyvsp[0].id));
 		 free((yyvsp[-4].id));
 		 free((yyvsp[-2].id));
 		 free((yyvsp[0].id));
