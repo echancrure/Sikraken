@@ -949,8 +949,10 @@ identifier_list
 type_name
 	: specifier_qualifier_list abstract_declarator	{simple_str_lit_copy(&$$, "typenamedummy1");}
 	| specifier_qualifier_list
-		{
-			simple_str_copy(&$$, $1);
+		{size_t const size = strlen("[]") + strlen($1) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_safe($$, size, "[%s]", $1);
+	     free($1);
 		}
 	;
 

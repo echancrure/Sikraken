@@ -75,13 +75,13 @@ extract_type(['int'], int) :-
     !.
 extract_type(['char'], char) :-
     !.
-extract_type(['short'], short) :-
-    !.
 extract_type(['short', 'int'], short) :-
     !.
-extract_type(['long'], long) :-
+extract_type(['short'], short) :-
     !.
 extract_type(['long', 'int'], long) :-
+    !.
+extract_type(['long'], long) :-
     !.
 extract_type(['long', 'long'], long_long) :-
     !.

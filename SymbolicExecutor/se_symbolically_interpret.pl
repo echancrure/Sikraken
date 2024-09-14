@@ -69,9 +69,14 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
          common_util__error(10, "Calling a function that does not exist", "Seriously wrong; Suggest add include or declare as extern", [('Function_name', Function_name)], '10_100924_1', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info)
         )
     ).
-symbolically_interpret(cast(To_type, Expression), symb(To_type, Casted)) :-
+symbolically_interpret(cast(Raw_typeL, Expression), symb(To_type, Casted)) :-
     !,
-    %mytrace,
+    
+    (is_list(Raw_typeL) ->
+         ( mytrace, extract_type(Raw_typeL, To_type))    %from the parsed file, needs to be sanitised
+    ;
+        To_type = Raw_typeL     %an internal call, already transformed
+    ),
     symbolically_interpret(Expression, symb(From_type, Symbolic)),
     ptc_solver__perform_cast(cast(To_type, From_type), Symbolic, Casted).
 symbolically_interpret(addr(Expression), symb(pointer, addr(Expression))) :-
@@ -86,7 +91,7 @@ symbolically_interpret(deref(Expression), Symbolic_expression) :-
     ).
 symbolically_interpret(multiply_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp * Ri_casted_exp)) :-
     !,
-    mytrace,
+    %mytrace,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
