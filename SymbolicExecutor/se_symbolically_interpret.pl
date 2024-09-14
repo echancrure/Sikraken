@@ -86,6 +86,7 @@ symbolically_interpret(deref(Expression), Symbolic_expression) :-
     ).
 symbolically_interpret(multiply_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp * Ri_casted_exp)) :-
     !,
+    mytrace,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
@@ -122,49 +123,114 @@ symbolically_interpret(less_op(Le_exp, Ri_exp), symb(int, R)) :-
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
-    my_eval(Le_casted_exp, Le_eval),
-    my_eval(Ri_casted_exp, Ri_eval),
-    $<(Le_eval, Ri_eval, R).
+    (compound(Ri_casted_exp) ->
+        (compound(Le_casted_exp) ->
+            R #= (eval(Le_casted_exp) $< eval(Ri_casted_exp))
+        ;
+            R #= (Le_casted_exp $< eval(Ri_casted_exp))
+        )
+    ;
+        (compound(Le_casted_exp) ->
+            R #= (eval(Le_casted_exp) $< Ri_casted_exp)
+        ;
+            R #= (Le_casted_exp $< Ri_casted_exp)
+        )
+    ).
 symbolically_interpret(greater_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
-    my_eval(Le_casted_exp, Le_eval),
-    my_eval(Ri_casted_exp, Ri_eval),
-    $>(Le_eval, Ri_eval, R).
+    (compound(Ri_casted_exp) ->
+        (compound(Le_casted_exp) ->
+            R #= (eval(Le_casted_exp) $> eval(Ri_casted_exp))
+        ;
+            R #= (Le_casted_exp $> eval(Ri_casted_exp))
+        )
+    ;
+        (compound(Le_casted_exp) ->
+            R #= (eval(Le_casted_exp) $> Ri_casted_exp)
+        ;
+            R #= (Le_casted_exp $> Ri_casted_exp)
+        )
+    ).
 symbolically_interpret(less_or_eq_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
-    my_eval(Le_casted_exp, Le_eval),
-    my_eval(Ri_casted_exp, Ri_eval),
-    $=<(Le_eval, Ri_eval, R).
+    (compound(Ri_casted_exp) ->
+        (compound(Le_casted_exp) ->
+            R #= (eval(Le_casted_exp) $=< eval(Ri_casted_exp))
+        ;
+            R #= (Le_casted_exp $=< eval(Ri_casted_exp))
+        )
+    ;
+        (compound(Le_casted_exp) ->
+            R #= (eval(Le_casted_exp) $=< Ri_casted_exp)
+        ;
+            R #= (Le_casted_exp $=< Ri_casted_exp)
+        )
+    ).
 symbolically_interpret(greater_or_eq_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
-    my_eval(Le_casted_exp, Le_eval),
-    my_eval(Ri_casted_exp, Ri_eval),
-    $>=(Le_eval, Ri_eval, R).
+    (compound(Ri_casted_exp) ->
+        (compound(Le_casted_exp) ->
+            R #= (eval(Le_casted_exp) $>= eval(Ri_casted_exp))
+        ;
+            R #= (Le_casted_exp $>= eval(Ri_casted_exp))
+        )
+    ;
+        (compound(Le_casted_exp) ->
+            R #= (eval(Le_casted_exp) $>= Ri_casted_exp)
+        ;
+            R #= (Le_casted_exp $>= Ri_casted_exp)
+        )
+    ).
+    %my_eval(Le_casted_exp, Le_eval),
+    %my_eval(Ri_casted_exp, Ri_eval),
+    %R #= (Le_eval $>= Ri_eval).
+    %R #= (eval(Le_casted_exp) $>= eval(Ri_casted_exp)).
+    %R #= (Le_casted_exp $>= Ri_casted_exp).
 symbolically_interpret(equal_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
-    my_eval(Le_casted_exp, Le_eval),
-    my_eval(Ri_casted_exp, Ri_eval),
-    $=(Le_eval, Ri_eval, R).
+    (compound(Ri_casted_exp) ->
+        (compound(Le_casted_exp) ->
+            R #= (eval(Le_casted_exp) $= eval(Ri_casted_exp))
+        ;
+            R #= (Le_casted_exp $= eval(Ri_casted_exp))
+        )
+    ;
+        (compound(Le_casted_exp) ->
+            R #= (eval(Le_casted_exp) $= Ri_casted_exp)
+        ;
+            R #= (Le_casted_exp $= Ri_casted_exp)
+        )
+    ).
 symbolically_interpret(not_equal_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
-    my_eval(Le_casted_exp, Le_eval),
-    my_eval(Ri_casted_exp, Ri_eval),
-    $\=(Le_eval, Ri_eval, R).
+    (compound(Ri_casted_exp) ->
+        (compound(Le_casted_exp) ->
+            R #= (eval(Le_casted_exp) $\= eval(Ri_casted_exp))
+        ;
+            R #= (Le_casted_exp $\= eval(Ri_casted_exp))
+        )
+    ;
+        (compound(Le_casted_exp) ->
+            R #= (eval(Le_casted_exp) $\= Ri_casted_exp)
+        ;
+            R #= (Le_casted_exp $\= Ri_casted_exp)
+        )
+    ).
 %%%
 symbolically_interpret(postfix_inc_op(Expression), Symbolic_expression) :-
     !,
@@ -181,7 +247,7 @@ symbolically_interpret(and_op(Le_exp, Ri_exp), symb(int, 1)) :-   %C semantics o
 %todo: check, why do wse always impose that it must be true? what if part of an expression (x = ((y==1) || (y==42));)
 symbolically_interpret(or_op(Le_exp, Ri_exp), symb(int, 1)) :-   %C semantics of || is always short circuit
     !,
-    mytrace,
+    %mytrace,
     random(2, R2),
     (R2 == 0 ->
         (
@@ -208,30 +274,6 @@ symbolically_interpret(or_op(Le_exp, Ri_exp), symb(int, 1)) :-   %C semantics of
             )
         )
     ).
-/*
-    random(2, R2),  %todo does this randomness still respects short-circuit evaluation of or operators? It seems to allow Ri true without imposing Le false... when R2  == 1
-    (R2 == 0 ->
-        (A = Le_exp,
-         B = Ri_exp
-        )
-    ;
-        (A = Ri_exp,
-         B = Le_exp
-       )
-    ),
-    (
-        (symbolically_interpret(A, symb(int, Le_symbolic)),     %symbolically_interpret(A, symb(int, Le_symbolic)) could be performed only once
-         ptc_solver__sdl(Le_symbolic)
-        )
-    ;%deliberate choice point
-        (%but only if will lead to new path todo
-         symbolically_interpret(not_op(A), symb(int, Not_Le_Symbolic)),
-         ptc_solver__sdl(Not_Le_Symbolic),
-         symbolically_interpret(B, symb(int, Ri_symbolic)),
-         ptc_solver__sdl(Ri_symbolic)
-        )
-    ).
-*/
  
 symbolically_interpret(not_op(Le_exp), symb(int, Symbolic)) :-
     !,
@@ -273,14 +315,6 @@ symbolically_interpret(cond_exp(branch(Id, Condition), True_exp, False_exp), sym
     ).
 symbolically_interpret(Unhandled_expression, _Symbolic_expression) :-
     common_util__error(10, "Expression is not handled", "Cannot perform symbolic interpretation", [('Unhandled_expression', Unhandled_expression)], '10_020824', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-my_eval(X, X) :-
-    number(X),
-    !.
-my_eval(X, X) :-
-    var(X),
-    !.
-my_eval(X, eval(X)). 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 implicit_type_casting(Same_type, Same_type, Le_symbolic, Ri_symbolic, Same_type, Le_symbolic, Ri_symbolic) :-   %Types are equal: no casting needed
     !.

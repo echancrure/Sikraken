@@ -949,7 +949,9 @@ identifier_list
 type_name
 	: specifier_qualifier_list abstract_declarator	{simple_str_lit_copy(&$$, "typenamedummy1");}
 	| specifier_qualifier_list
-		{simple_str_copy(&$$, $1);}
+		{
+			simple_str_copy(&$$, $1);
+		}
 	;
 
 abstract_declarator
