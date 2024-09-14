@@ -123,114 +123,37 @@ symbolically_interpret(less_op(Le_exp, Ri_exp), symb(int, R)) :-
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
-    (compound(Ri_casted_exp) ->
-        (compound(Le_casted_exp) ->
-            R #= (eval(Le_casted_exp) $< eval(Ri_casted_exp))
-        ;
-            R #= (Le_casted_exp $< eval(Ri_casted_exp))
-        )
-    ;
-        (compound(Le_casted_exp) ->
-            R #= (eval(Le_casted_exp) $< Ri_casted_exp)
-        ;
-            R #= (Le_casted_exp $< Ri_casted_exp)
-        )
-    ).
+    ptc_solver__relation(<, Le_casted_exp, Ri_casted_exp, R).
 symbolically_interpret(greater_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
-    (compound(Ri_casted_exp) ->
-        (compound(Le_casted_exp) ->
-            R #= (eval(Le_casted_exp) $> eval(Ri_casted_exp))
-        ;
-            R #= (Le_casted_exp $> eval(Ri_casted_exp))
-        )
-    ;
-        (compound(Le_casted_exp) ->
-            R #= (eval(Le_casted_exp) $> Ri_casted_exp)
-        ;
-            R #= (Le_casted_exp $> Ri_casted_exp)
-        )
-    ).
+    ptc_solver__relation(>, Le_casted_exp, Ri_casted_exp, R).
 symbolically_interpret(less_or_eq_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
-    (compound(Ri_casted_exp) ->
-        (compound(Le_casted_exp) ->
-            R #= (eval(Le_casted_exp) $=< eval(Ri_casted_exp))
-        ;
-            R #= (Le_casted_exp $=< eval(Ri_casted_exp))
-        )
-    ;
-        (compound(Le_casted_exp) ->
-            R #= (eval(Le_casted_exp) $=< Ri_casted_exp)
-        ;
-            R #= (Le_casted_exp $=< Ri_casted_exp)
-        )
-    ).
+    ptc_solver__relation(=<, Le_casted_exp, Ri_casted_exp, R).
 symbolically_interpret(greater_or_eq_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
-    (compound(Ri_casted_exp) ->
-        (compound(Le_casted_exp) ->
-            R #= (eval(Le_casted_exp) $>= eval(Ri_casted_exp))
-        ;
-            R #= (Le_casted_exp $>= eval(Ri_casted_exp))
-        )
-    ;
-        (compound(Le_casted_exp) ->
-            R #= (eval(Le_casted_exp) $>= Ri_casted_exp)
-        ;
-            R #= (Le_casted_exp $>= Ri_casted_exp)
-        )
-    ).
-    %my_eval(Le_casted_exp, Le_eval),
-    %my_eval(Ri_casted_exp, Ri_eval),
-    %R #= (Le_eval $>= Ri_eval).
-    %R #= (eval(Le_casted_exp) $>= eval(Ri_casted_exp)).
-    %R #= (Le_casted_exp $>= Ri_casted_exp).
+    ptc_solver__relation(>=, Le_casted_exp, Ri_casted_exp, R).
 symbolically_interpret(equal_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
-    (compound(Ri_casted_exp) ->
-        (compound(Le_casted_exp) ->
-            R #= (eval(Le_casted_exp) $= eval(Ri_casted_exp))
-        ;
-            R #= (Le_casted_exp $= eval(Ri_casted_exp))
-        )
-    ;
-        (compound(Le_casted_exp) ->
-            R #= (eval(Le_casted_exp) $= Ri_casted_exp)
-        ;
-            R #= (Le_casted_exp $= Ri_casted_exp)
-        )
-    ).
+    ptc_solver__relation(=, Le_casted_exp, Ri_casted_exp, R).
 symbolically_interpret(not_equal_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
-    (compound(Ri_casted_exp) ->
-        (compound(Le_casted_exp) ->
-            R #= (eval(Le_casted_exp) $\= eval(Ri_casted_exp))
-        ;
-            R #= (Le_casted_exp $\= eval(Ri_casted_exp))
-        )
-    ;
-        (compound(Le_casted_exp) ->
-            R #= (eval(Le_casted_exp) $\= Ri_casted_exp)
-        ;
-            R #= (Le_casted_exp $\= Ri_casted_exp)
-        )
-    ).
+    ptc_solver__relation(\=, Le_casted_exp, Ri_casted_exp, R).
 %%%
 symbolically_interpret(postfix_inc_op(Expression), Symbolic_expression) :-
     !,
