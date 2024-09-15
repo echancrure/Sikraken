@@ -149,10 +149,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
         atom_string(Output, Output_string).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     end_of_path_predicate(SEAV_Inputs, Parsed_prolog_code) :-
-        se_globals__get_ref('current_path_bran', Current_path),
-        prune_instances(Current_path, Current_path_no_duplicates),
-        se_globals__get_val('covered_bran', Already_covered),
-        subtract(Current_path_no_duplicates, Already_covered, Newly_covered),
+        se_coverage__bran_newly_covered(Newly_covered),
         (Newly_covered == [] -> %no need to label: saves labelling run and test execution time
             true %common_util__error(0, "End of path: no new branches", 'no_error_consequences', [], '0_210824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info)
         ;
@@ -167,7 +164,10 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
              se_globals__get_val('path_nb', Test_nb),
              Inc_test_nb is Test_nb + 1,
              %(Inc_test_nb == 3 -> mytrace ; true),
-             se_globals__set_val('path_nb', Inc_test_nb),        
+             se_globals__set_val('path_nb', Inc_test_nb),
+             se_globals__get_ref('current_path_bran', Current_path),
+             prune_instances(Current_path, Current_path_no_duplicates),
+             se_globals__get_val('covered_bran', Already_covered),
              union(Already_covered, Current_path_no_duplicates, Covered),
              se_globals__set_val('covered_bran', Covered),
              common_util__error(0, "End of path", 'no_error_consequences', [('Path Nb', Inc_test_nb), ('Newly_covered', Newly_covered), ('Current_path', Current_path)], '0_190824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info),

@@ -58,7 +58,7 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
              (Flow = return(Return_expression) ->
                 symbolically_interpret(cast(Return_type, Return_expression), Symbolic_expression)
              ;
-                Symbolic_expression = symb('void', 'void')   
+                Symbolic_expression = symb('void', 'void')   %e.g. via a fall through or a simple return statement with no expression
              ),
              se_globals__pop_scope_stack            %function parameters scope
             )

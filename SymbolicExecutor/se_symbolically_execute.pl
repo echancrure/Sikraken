@@ -69,21 +69,20 @@ symbolic_execute(function_call(Function, Arguments), 'carry_on') :-
 symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statements), Flow) :-
     !,
     %(Id == 155 -> mytrace ; true),
-    
-    se_globals__get_val('covered_bran', Already_covered),
-    ((memberchk(branch(Id, 'true'), Already_covered), 
-        ((True_statements = cmp_stmts([label_stmt(_, stmt(function_call(Exit, [int(_)])))]),
-          se_name_atts__get(Exit, 'name', 'Exit')
-         )
-        ;
-         (True_statements = cmp_stmts([stmt(function_call(Abort, []))]),
-          se_name_atts__get(Abort, 'name', 'Abort')
-         )
-        )
+    ((se_coverage__bran_is_already_covered(branch(Id, 'true')),
+      ((True_statements = cmp_stmts([label_stmt(_, stmt(function_call(Exit, [int(_)])))]),
+        se_name_atts__get(Exit, 'name', 'Exit')
+       )
+      ;
+       (True_statements = cmp_stmts([stmt(function_call(Abort, []))]),
+        se_name_atts__get(Abort, 'name', 'Abort')
+       )
+      )
+      
+      %,se_coverage__bran_newly_covered([]) %this is probably the most costly check: leave it at the end
      ) ->
         (%until we have a CFG
-         %total hack for now: this arc has been covered and does not lead to anything new (because it exits)
-         %so we only try the false branch
+         %nothing new covered so far, true branch is already covered and leads to exit or abort so we skip the true branch and only try the false branch
             %mytrace,
             symbolically_interpret(not_op(Condition), symb(int, Symbolic_condition)),
             ptc_solver__sdl(Symbolic_condition),
@@ -157,6 +156,9 @@ symbolic_execute(label_stmt(_Label, Statement), Flow) :-
     !,
     symbolic_execute(Statement, Flow).
 symbolic_execute(return_stmt(Expression), return(Expression)) :-    %will be handled in post function call by checking Flow
+    !.
+symbolic_execute(return_stmt, return) :-    %a return with no expression
+    mytrace,
     !.
 symbolic_execute(postfix_inc_op(Expression), 'carry_on') :-
     !,
