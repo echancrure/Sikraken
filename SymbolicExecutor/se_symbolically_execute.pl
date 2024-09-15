@@ -69,7 +69,7 @@ symbolic_execute(function_call(Function, Arguments), 'carry_on') :-
 symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statements), Flow) :-
     !,
     %(Id == 155 -> mytrace ; true),
-    ((se_coverage__bran_is_already_covered(branch(Id, 'true')),
+    ((
       ((True_statements = cmp_stmts([label_stmt(_, stmt(function_call(Exit, [int(_)])))]),
         se_name_atts__get(Exit, 'name', 'Exit')
        )
@@ -77,8 +77,9 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
        (True_statements = cmp_stmts([stmt(function_call(Abort, []))]),
         se_name_atts__get(Abort, 'name', 'Abort')
        )
-      )
-      
+      ),
+      se_coverage__bran_is_already_covered(branch(Id, 'true'))  %costly left last
+      %unsoundness if below is commented out
       %,se_coverage__bran_newly_covered([]) %this is probably the most costly check: leave it at the end
      ) ->
         (%until we have a CFG
