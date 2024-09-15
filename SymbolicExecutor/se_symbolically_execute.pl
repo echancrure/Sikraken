@@ -159,7 +159,7 @@ symbolic_execute(label_stmt(_Label, Statement), Flow) :-
 symbolic_execute(return_stmt(Expression), return(Expression)) :-    %will be handled in post function call by checking Flow
     !.
 symbolic_execute(return_stmt, return) :-    %a return with no expression
-    mytrace,
+    %mytrace,
     !.
 symbolic_execute(postfix_inc_op(Expression), 'carry_on') :-
     !,

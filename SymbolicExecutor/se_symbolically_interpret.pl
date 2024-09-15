@@ -30,20 +30,20 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
             (se_name_atts__get(Function, 'name', Function_name),
                 (is_verifier_input_function(Function_name, Type) ->
                     (%mytrace,
-                    ptc_solver__variable([Input_var], Type),
-                    se_globals__get_ref('verifier_inputs', Verifier_inputs),
-                    append(Verifier_inputs, [verif(Type, Input_var)], New_verifier_inputs),
-                    se_globals__set_ref('verifier_inputs', New_verifier_inputs),
-                    Symbolic_expression = symb(Type, Input_var)
+                     ptc_solver__variable([Input_var], Type),
+                     se_globals__get_ref('verifier_inputs', Verifier_inputs),
+                     append(Verifier_inputs, [verif(Type, Input_var)], New_verifier_inputs),
+                     se_globals__set_ref('verifier_inputs', New_verifier_inputs),
+                     Symbolic_expression = symb(Type, Input_var)
                     )
                 ;
                 (Function_name == 'Exit' ; Function_name == 'Abort') ->
                     (%Arguments = [Exit_code],
                     %common_util__error(0, "Exit Called:", 'no_error_consequences', [('Exit_code', Exit_code)], '0_170824_1', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info),
                     %mytrace,
-                    Symbolic_expression = symb(Function_name, Function_name),  %unused, just for symmetry
-                    end_of_path_predicate(_, _),   %only works in 'testcomp'    we bypass everything and go straight
-                    fail
+                     Symbolic_expression = symb(Function_name, Function_name),  %unused, just for symmetry
+                     end_of_path_predicate(_, _),   %only works in 'testcomp'    we bypass everything and go straight
+                     fail
                     )
                 ;
                     common_util__error(10, "Function call to unknown external function", "Cannot perform symbolic interpretation", [('Function_name', Function_name)], '10_150824_3', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info)
@@ -73,7 +73,9 @@ symbolically_interpret(cast(Raw_typeL, Expression), symb(To_type, Casted)) :-
     !,
     
     (is_list(Raw_typeL) ->
-         ( mytrace, extract_type(Raw_typeL, To_type))    %from the parsed file, needs to be sanitised
+        (%mytrace, 
+         extract_type(Raw_typeL, To_type)    %from the parsed file, needs to be sanitised
+        )
     ;
         To_type = Raw_typeL     %an internal call, already transformed
     ),
