@@ -218,7 +218,7 @@ label(SEAV_Inputs) :-
     get_all_inputs(SEAV_Inputs, InputsL),
     ptc_solver__label_integers(InputsL),
     !.
-    %%%
+    %%% 
     get_all_inputs([], []).
     get_all_inputs([Seav|R_seavs], [Input|R_inputs]) :-
         seav__get(Seav, 'input', Input),
