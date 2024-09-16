@@ -12,7 +12,7 @@
     {
       "id": "run2",
       "description": "Should reach the max 46.96%",
-      "restarts": 128,
+      "restarts": 23,
       "tries": 25,
       "expected_run_time": 150,
       "expected_test_inputs_number": 81,
