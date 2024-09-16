@@ -226,7 +226,7 @@ label(SEAV_Inputs) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Verifier_inputs is of the form [verif(Type, Input)|...] 
 label_testcomp(Verifier_inputs, Labeled_inputs) :- 
-    %mytrace,
+    mytrace,
     partition(Verifier_inputs, Integers, Floats, Grounded_floats, Labeled_inputs),
     (ptc_solver__label_integers(Integers) ->
         (ptc_solver__label_reals(Floats, Grounded_floats) ->    %integers and floats labeling kept separate for now
@@ -252,7 +252,7 @@ label_testcomp(Verifier_inputs, Labeled_inputs) :-
              partition(R, Integers_out, R_Floats, R_Grounded_floats, R_Labeled)
             )
         ;
-            (Integers_out = [Input|R_Integers],
+            (Integers_out = [verif(Type, Input)|R_Integers],
              Labeled_input = Input,
              partition(R, R_Integers, Floats_out, Grounded_floats, R_Labeled)
             )
