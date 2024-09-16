@@ -78,9 +78,8 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
         se_name_atts__get(Abort, 'name', 'Abort')
        )
       ),
-      se_coverage__bran_is_already_covered(branch(Id, 'true'))  %costly left last
-      %unsoundness if below is commented out
-      %,se_coverage__bran_newly_covered([]) %this is probably the most costly check: leave it at the end
+      se_coverage__bran_is_already_covered(branch(Id, 'true')),  %costly so left at the end
+      se_coverage__bran_newly_covered([])   %this is probably the most costly check: leave it last [unsound if commented out]
      ) ->
         (%until we have a CFG
          %nothing new covered so far, true branch is already covered and leads to exit or abort so we skip the true branch and only try the false branch
@@ -157,7 +156,7 @@ symbolic_execute(label_stmt(_Label, Statement), Flow) :-
     !,
     symbolic_execute(Statement, Flow).
 symbolic_execute(return_stmt(Expression), return(Expression)) :-    %will be handled in post function call by checking Flow
-    !.
+    !.  %todo it would make more sense to symbolically execute expression here rather than outside: more logical
 symbolic_execute(return_stmt, return) :-    %a return with no expression
     %mytrace,
     !.
