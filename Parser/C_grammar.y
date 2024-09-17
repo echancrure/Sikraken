@@ -1114,7 +1114,7 @@ block_item			//printed out
 	;
 
 expression_statement	//printed out
-	: ';'				{fprintf(pl_file, "stmt()");}
+	: ';'				{fprintf(pl_file, "stmt([])");}
 	| expression ';'	{fprintf(pl_file, "\nstmt(%s)", $1); free($1);}
 	;
 

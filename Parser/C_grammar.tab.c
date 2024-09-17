@@ -3873,7 +3873,7 @@ yyreduce:
 
   case 264: /* expression_statement: ';'  */
 #line 1117 "C_grammar.y"
-                                        {fprintf(pl_file, "stmt()");}
+                                        {fprintf(pl_file, "stmt([])");}
 #line 3878 "C_grammar.tab.c"
     break;
 
