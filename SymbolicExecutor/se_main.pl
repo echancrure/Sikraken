@@ -237,7 +237,7 @@ label_testcomp(Verifier_inputs, Labeled_inputs) :-
             )
         )
     ;
-        (common_util__error(0, "Integer labeling failed", "Should only happen for reals or non-linear integers", [], '0_200824', 'se_main', 'label_testcomp', no_localisation, no_extra_info),
+        (common_util__error(0, "Integer labeling failed", "Should be rare: e.g. non-linear, out of bounds", [], '0_200824', 'se_main', 'label_testcomp', no_localisation, no_extra_info),
          fail
         )
     ),

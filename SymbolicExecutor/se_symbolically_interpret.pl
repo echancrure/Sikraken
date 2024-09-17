@@ -122,8 +122,11 @@ symbolically_interpret(minus_op(Expression), symb(Promoted_type, Result)) :-
     %mytrace,
     symbolically_interpret(Expression, symb(Type, Symbolic_expression)),
     apply_integral_promotion(Type, Promoted_type),  %special case if Promoted_type is unsigned(int), unsigned(long) or unsigned(long_long)
-    ptc_solver__perform_cast(cast(Type, Promoted_type), -Symbolic_expression, Result).
-
+    (Promoted_type = unsigned(Signed_type) ->
+        ptc_solver__perform_cast(cast(Promoted_type, Signed_type), -Symbolic_expression, Result)
+    ;
+        ptc_solver__perform_cast(cast(Type, Promoted_type), -Symbolic_expression, Result)
+    ).
 %%%relational operators: todo a lot of code is repeated: refactor
 symbolically_interpret(less_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
