@@ -57,7 +57,9 @@ se_main(ArgsL) :-
     (for(I, 1, Restart), loop_name('restart'), param(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code, Nb_of_paths_to_try) 
      do (
             (Debug_mode = 'debug' -> 
-                printf(user_error, "Restart number: %w%n", [I]) 
+                (printf(user_error, "Restart number: %w%n", [I])
+                 ,mytrace
+                ) 
             ; 
                 true
             ),

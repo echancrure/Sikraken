@@ -6,8 +6,8 @@
       "restarts": 1,
       "tries": 10,
       "expected_run_time": 30,
-      "expected_test_inputs_number": 11,
-      "expected_coverage": 15.54
+      "expected_test_inputs_number": 9,
+      "expected_coverage": 15.54 
     }, 
     {
       "id": "run2",

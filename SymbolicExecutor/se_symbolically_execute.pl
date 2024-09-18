@@ -69,6 +69,8 @@ symbolic_execute(function_call(Function, Arguments), 'carry_on') :-
 symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statements), Flow) :-
     !,
     %(Id == 155 -> mytrace ; true),
+    mytrace,
+    symbolically_interpret(Condition, symb(int, Condition_value)),
     ((
       ((True_statements = cmp_stmts([label_stmt(_, stmt(function_call(Exit, [int(_)])))]),
         se_name_atts__get(Exit, 'name', 'Exit')
@@ -78,48 +80,43 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
         se_name_atts__get(Abort, 'name', 'Abort')
        )
       ),
+    %todo change this (by adding a cut?) as if any of below fails, induces uncessariry backtracking
+       !,
       se_coverage__bran_is_already_covered(branch(Id, 'true')),  %costly so left at the end
       se_coverage__bran_newly_covered([])   %this is probably the most costly check: leave it last [unsound if commented out]
      ) ->
         (%until we have a CFG
          %nothing new covered so far, true branch is already covered and leads to exit or abort so we skip the true branch and only try the false branch
             %mytrace,
-            symbolically_interpret(not_op(Condition), symb(int, Symbolic_condition)),
-            ptc_solver__sdl(Symbolic_condition),
+            ptc_solver__sdl(not(Condition_value)),
             se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-            symbolic_execute(False_statements, Flow) 
+            symbolic_execute(False_statements, Flow)
         )
     ;
         (random(2, R2), %i.e. between 0 and 2-1, so only 2 values allowed 0 or 1
          (R2 == 0 -> %randomness to ensure true and false branches are given equal chances
-
             (
                 (%super_util__quick_dev_info("Trying branch: %w", [branch(Id, 'true')]),
                  %mytrace,
-                 symbolically_interpret(Condition, symb(int, Symbolic_condition)),
-                 ptc_solver__sdl(Symbolic_condition),
+                 ptc_solver__sdl(Condition_value),
                  se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-                 %mytrace, 
                  symbolic_execute(True_statements, Flow)
                 )
             ;% if statement deliberate choice point
                 (%super_util__quick_dev_info("Trying branch: %w", [branch(Id, 'false')]),
-                 symbolically_interpret(not_op(Condition), symb(int, Symbolic_condition)),
-                 ptc_solver__sdl(Symbolic_condition),
+                 ptc_solver__sdl(not(Condition_value)),
                  se_globals__update_ref('current_path_bran', branch(Id, 'false')),
                  symbolic_execute(False_statements, Flow)
                 )
             )
          ;
             (
-                (symbolically_interpret(not_op(Condition), symb(int, Symbolic_condition)),
-                 ptc_solver__sdl(Symbolic_condition),
+                (ptc_solver__sdl(not(Condition_value)),
                  se_globals__update_ref('current_path_bran', branch(Id, 'false')),
                  symbolic_execute(False_statements, Flow)
                 )
             ;%if statement deliberate choice point
-                (symbolically_interpret(Condition, symb(int, Symbolic_condition)),
-                 ptc_solver__sdl(Symbolic_condition),
+                (ptc_solver__sdl(Condition_value),
                  se_globals__update_ref('current_path_bran', branch(Id, 'true')),
                  symbolic_execute(True_statements, Flow)
                 )

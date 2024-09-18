@@ -25,7 +25,13 @@ print_preamble_testcomp(Parsed_dir) :-
     get_hash(Filename, Hash),
     printf('metadata_stream', "\t<programhash>%w</programhash>\n", [Hash]),
     printf('metadata_stream', "\t<entryfunction>main</entryfunction>\n", []),
-    printf('metadata_stream', "\t<architecture>32bit</architecture>\n", []),
+    se_globals__get_val('data_model', Data_model),
+    (Data_model = '-m32' ->
+        Data_model_str = "32bit"
+    ;
+        Data_model_str = "64bit"
+    ),
+    printf('metadata_stream', "\t<architecture>%w</architecture>\n", [Data_model_str]),
     get_Date_time(Date_time),
     printf('metadata_stream', "\t<creationtime>%w</creationtime>\n", [Date_time]),
     printf('metadata_stream', "</test-metadata>", []),

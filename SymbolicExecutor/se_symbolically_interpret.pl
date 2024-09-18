@@ -169,45 +169,55 @@ symbolically_interpret(postfix_inc_op(Expression), Symbolic_expression) :-
     !,
     symbolically_interpret(Expression, Symbolic_expression),
     symbolic_execute(assign(Expression, plus_op(Expression, 1)), _).    %additional side effect
-
-symbolically_interpret(and_op(Le_exp, Ri_exp), symb(int, 1)) :-   %C semantics of && is always short circuit
+%%%
+%L and R: C semantics of && is always short circuit
+%either L is true and overall truth is R's
+%or L is false and overall truth is false
+symbolically_interpret(and_op(Le_exp, Ri_exp), symb(int, R)) :-   
     !,
     %mytrace,
-    symbolically_interpret(Le_exp, symb(int, Le_symbolic)),
-    ptc_solver__sdl(Le_symbolic),
-    symbolically_interpret(Ri_exp, symb(int, Ri_symbolic)),
-    ptc_solver__sdl(Ri_symbolic).
-%todo: check, why do wse always impose that it must be true? what if part of an expression (x = ((y==1) || (y==42));)
-symbolically_interpret(or_op(Le_exp, Ri_exp), symb(int, 1)) :-   %C semantics of || is always short circuit
-    !,
-    %mytrace,
-    random(2, R2),
-    (R2 == 0 ->
-        (
-            (symbolically_interpret(Le_exp, symb(int, Le_symbolic)),
-             ptc_solver__sdl(Le_symbolic)
-            )
-        ;%deliberate choice point
-            (symbolically_interpret(not_op(Le_exp), symb(int, Not_le_symbolic)),
-             ptc_solver__sdl(Not_le_symbolic),
-             symbolically_interpret(Ri_exp, symb(int, Ri_symbolic)),
-             ptc_solver__sdl(Ri_symbolic)
-            )
-        )
+    symbolically_interpret(Le_exp, symb(int, Le_symbolic)), %only performed once as it should
+    (Le_symbolic == 1 ->        %to avoid creating unnecessary choice point 
+        symbolically_interpret(Ri_exp, symb(int, R))
     ;
+     Le_symbolic == 0 ->        %to avoid creating unnecessary choice point 
+        R #= 0
+    ;    
         (
-            (symbolically_interpret(not_op(Le_exp), symb(int, Not_le_symbolic)),
-             ptc_solver__sdl(Not_le_symbolic),
-             symbolically_interpret(Ri_exp, symb(int, Ri_symbolic)),
-             ptc_solver__sdl(Ri_symbolic)
+            (ptc_solver__sdl(Le_symbolic),
+             symbolically_interpret(Ri_exp, symb(int, R))
             )
         ;%deliberate choice point
-            (symbolically_interpret(Le_exp, symb(int, Le_symbolic)),
-             ptc_solver__sdl(Le_symbolic)
+            (ptc_solver__sdl(not(Le_symbolic)),
+             R #= 0
             )
         )
     ).
- 
+%%%
+%L or R: C semantics of || is always short circuit
+%either L is true and overall truth is true
+%or L is false and overall truth is R's
+symbolically_interpret(or_op(Le_exp, Ri_exp), symb(int, R)) :-   
+    !,
+    %mytrace,
+    symbolically_interpret(Le_exp, symb(int, Le_symbolic)), %only performed once as it should
+    (Le_symbolic == 1 ->    %to avoid creating unnecessary choice point 
+        R #= 1
+    ;
+     Le_symbolic == 0 ->    %to avoid creating unnecessary choice point 
+        symbolically_interpret(Ri_exp, symb(int, R))
+    ;
+        (
+            (ptc_solver__sdl(Le_symbolic),
+             R #= 1
+            )
+        ;%deliberate choice point
+            (ptc_solver__sdl(not(Le_symbolic)),
+             symbolically_interpret(Ri_exp, symb(int, R))
+            )
+        )
+    ).
+%%%
 symbolically_interpret(not_op(Le_exp), symb(int, Symbolic)) :-
     !,
     (var(Le_exp) ->         %for SEAVs (often as part of an evaluated reif)
