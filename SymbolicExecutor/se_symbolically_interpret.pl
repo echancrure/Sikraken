@@ -168,7 +168,11 @@ symbolically_interpret(not_equal_op(Le_exp, Ri_exp), symb(int, R)) :-
 symbolically_interpret(postfix_inc_op(Expression), Symbolic_expression) :-
     !,
     symbolically_interpret(Expression, Symbolic_expression),
-    symbolic_execute(assign(Expression, plus_op(Expression, 1)), _).    %additional side effect
+    symbolic_execute(assign(Expression, plus_op(Expression, int(1))), _).       %todo Expression should only be symbolic executed once
+symbolically_interpret(postfix_dec_op(Expression), Symbolic_expression) :-
+    !,
+    symbolically_interpret(Expression, Symbolic_expression),
+    symbolic_execute(assign(Expression, minus_op(Expression, int(1))), _).      %todo Expression should only be symbolic executed once
 %%%
 %L and R: C semantics of && is always short circuit
 %either L is true and overall truth is R's
@@ -176,16 +180,16 @@ symbolically_interpret(postfix_inc_op(Expression), Symbolic_expression) :-
 symbolically_interpret(and_op(Le_exp, Ri_exp), symb(int, R)) :-   
     !,
     %mytrace,
-    symbolically_interpret(Le_exp, symb(int, Le_symbolic)), %only performed once as it should
+    symbolically_interpret(Le_exp, symb(_, Le_symbolic)), %only performed once as it should
     (Le_symbolic == 1 ->        %to avoid creating unnecessary choice point 
-        symbolically_interpret(Ri_exp, symb(int, R))
+        symbolically_interpret(Ri_exp, symb(_, R))
     ;
      Le_symbolic == 0 ->        %to avoid creating unnecessary choice point 
         R #= 0
     ;    
         (
             (ptc_solver__sdl(Le_symbolic),
-             symbolically_interpret(Ri_exp, symb(int, R))
+             symbolically_interpret(Ri_exp, symb(_, R))
             )
         ;%deliberate choice point
             (ptc_solver__sdl(not(Le_symbolic)),
@@ -200,12 +204,12 @@ symbolically_interpret(and_op(Le_exp, Ri_exp), symb(int, R)) :-
 symbolically_interpret(or_op(Le_exp, Ri_exp), symb(int, R)) :-   
     !,
     %mytrace,
-    symbolically_interpret(Le_exp, symb(int, Le_symbolic)), %only performed once as it should
+    symbolically_interpret(Le_exp, symb(_, Le_symbolic)), %only performed once as it should
     (Le_symbolic == 1 ->    %to avoid creating unnecessary choice point 
         R #= 1
     ;
      Le_symbolic == 0 ->    %to avoid creating unnecessary choice point 
-        symbolically_interpret(Ri_exp, symb(int, R))
+        symbolically_interpret(Ri_exp, symb(_, R))
     ;
         (
             (ptc_solver__sdl(Le_symbolic),
@@ -213,38 +217,41 @@ symbolically_interpret(or_op(Le_exp, Ri_exp), symb(int, R)) :-
             )
         ;%deliberate choice point
             (ptc_solver__sdl(not(Le_symbolic)),
-             symbolically_interpret(Ri_exp, symb(int, R))
+             symbolically_interpret(Ri_exp, symb(_, R))
             )
         )
     ).
 %%%
-symbolically_interpret(not_op(Le_exp), symb(int, Symbolic)) :-
+%
+symbolically_interpret(not_op(Le_exp), symb(int, R)) :-
     !,
-    (var(Le_exp) ->         %for SEAVs (often as part of an evaluated reif)
-        (symbolically_interpret(Le_exp, symb(int, Le_symbolic)),
-         Symbolic = not(Le_symbolic)
+    %mytrace,
+    (var(Le_exp) ->
+        (symbolically_interpret(Le_exp, symb(_, Le_symbolic)),
+         R #= neg(Le_symbolic)
         )
     ;
-     Le_exp = and_op(L, R) ->
-        symbolically_interpret(or_op(not_op(L), not_op(R)), symb(int, Symbolic))
+     Le_exp = and_op(Le, Ri) ->
+        symbolically_interpret(or_op(not_op(Le), not_op(Ri)), symb(_, R))
     ;
-     Le_exp = or_op(L, R) ->
-        symbolically_interpret(and_op(not_op(L), not_op(R)), symb(int, Symbolic))
+     Le_exp = or_op(Le, Ri) ->
+        symbolically_interpret(and_op(not_op(Le), not_op(Ri)), symb(_, R))
     ;
-     Le_exp = not_op(L) ->  %double negation
-        symbolically_interpret(L, symb(int, Symbolic))
+     Le_exp = not_op(Le) ->  %double negation
+        symbolically_interpret(Le, symb(_, R))
     ;
-        (symbolically_interpret(Le_exp, symb(int, Le_symbolic)),
-         Symbolic = not(Le_symbolic)
+        (symbolically_interpret(Le_exp, symb(_, Le_symbolic)),
+         R #= neg(Le_symbolic)
         )
     ).
+%handling of conditional expression construct in C "(cond) ? true_exp : false_exp"
 symbolically_interpret(cond_exp(branch(Id, Condition), True_exp, False_exp), symb(Common_type, Symbolic)) :-
     !,
     %mytrace,
     %resulting Common_type is not sound: according to C standard type of the overall conditional expression is the common type of the True and False expressions, 
     %but because we do not extract types statitically extracting both types would mean symbolically executing both expressions which due to side effects, would be even more unsound
     %todo revisit when type extraction can be performed statically: e.g. in parser or during CFG building   
-    symbolically_interpret(Condition, symb(int, Cond_Symbolic)),
+    symbolically_interpret(Condition, symb(_, Cond_Symbolic)),
     (
         (ptc_solver__sdl(Cond_Symbolic),
          se_globals__update_ref('current_path_bran', branch(Id, 'true')),

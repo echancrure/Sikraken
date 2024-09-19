@@ -69,8 +69,8 @@ symbolic_execute(function_call(Function, Arguments), 'carry_on') :-
 symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statements), Flow) :-
     !,
     %(Id == 155 -> mytrace ; true),
-    mytrace,
-    symbolically_interpret(Condition, symb(int, Condition_value)),
+    %mytrace,
+    symbolically_interpret(Condition, symb(_, Condition_value)),
     ((
       ((True_statements = cmp_stmts([label_stmt(_, stmt(function_call(Exit, [int(_)])))]),
         se_name_atts__get(Exit, 'name', 'Exit')
@@ -131,7 +131,7 @@ symbolic_execute(if_stmt(Branch, True_statements), Flow) :-
 symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
     !,
     (
-        (symbolically_interpret(not_equal_op(Condition, int(0)), symb(int, Symbolic_condition)),
+        (symbolically_interpret(not_equal_op(Condition, int(0)), symb(_, Symbolic_condition)),
          ptc_solver__sdl(Symbolic_condition),
          se_globals__update_ref('current_path_bran', branch(Id, 'true')),
          symbolic_execute(Statements, Inner_flow), 
@@ -142,7 +142,7 @@ symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
          )
         )
     ;%while loop deliberate choice point
-        (symbolically_interpret(equal_op(Condition, int(0)), symb(int, Symbolic_condition)),
+        (symbolically_interpret(equal_op(Condition, int(0)), symb(_, Symbolic_condition)),
          ptc_solver__sdl(Symbolic_condition),
          se_globals__update_ref('current_path_bran', branch(Id, 'false')),
          %(Id == 187 -> mytrace ; true),
@@ -160,6 +160,9 @@ symbolic_execute(return_stmt, return) :-    %a return with no expression
 symbolic_execute(postfix_inc_op(Expression), 'carry_on') :-
     !,
     symbolically_interpret(postfix_inc_op(Expression), _).  %this is a statement: we don't care about its evaluation
+symbolic_execute(postfix_dec_op(Expression), 'carry_on') :-
+    !,
+    symbolically_interpret(postfix_dec_op(Expression), _).  %this is a statement: we don't care about its evaluation    
 symbolic_execute(Unknown_statement, _) :-
     !,
     common_util__error(10, "Unexpected statement", "Could not possibly continue", [('Unknown_statement', Unknown_statement)], '10_150824_2', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info).

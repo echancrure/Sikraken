@@ -58,7 +58,7 @@ se_main(ArgsL) :-
      do (
             (Debug_mode = 'debug' -> 
                 (printf(user_error, "Restart number: %w%n", [I])
-                 ,mytrace
+                 %,mytrace
                 ) 
             ; 
                 true
@@ -165,7 +165,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
              ),
              se_globals__get_val('path_nb', Test_nb),
              Inc_test_nb is Test_nb + 1,
-             %(Inc_test_nb == 3 -> mytrace ; true),
+             (Inc_test_nb == 2 -> mytrace ; true),
              se_globals__set_val('path_nb', Inc_test_nb),
              se_globals__get_ref('current_path_bran', Current_path),
              prune_instances(Current_path, Current_path_no_duplicates),
@@ -228,7 +228,7 @@ label(SEAV_Inputs) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Verifier_inputs is of the form [verif(Type, Input)|...] 
 label_testcomp(Verifier_inputs, Labeled_inputs) :- 
-    mytrace,
+    %mytrace,
     partition(Verifier_inputs, Integers, Floats, Grounded_floats, Labeled_inputs),
     (ptc_solver__label_integers(Integers) ->
         (ptc_solver__label_reals(Floats, Grounded_floats) ->    %integers and floats labeling kept separate for now
