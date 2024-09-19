@@ -158,31 +158,35 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
             (se_globals__get_val('output_mode', Output_mode),
              (Output_mode = 'testcomp' ->
                 (se_globals__get_ref('verifier_inputs', Verifier_inputs),
-                 label_testcomp(Verifier_inputs, Labeled_inputs)
+                 (label_testcomp(Verifier_inputs, Labeled_inputs) ->
+                    (se_globals__get_val('path_nb', Test_nb),
+                     Inc_test_nb is Test_nb + 1,
+                     (Inc_test_nb == 2 -> mytrace ; true),
+                     se_globals__set_val('path_nb', Inc_test_nb),
+                     se_globals__get_ref('current_path_bran', Current_path),
+                     prune_instances(Current_path, Current_path_no_duplicates),
+                     se_globals__get_val('covered_bran', Already_covered),
+                     union(Already_covered, Current_path_no_duplicates, Covered),
+                     se_globals__set_val('covered_bran', Covered),
+                     common_util__error(0, "End of path", 'no_error_consequences', [('Path Nb', Inc_test_nb), ('Newly_covered', Newly_covered), ('Current_path', Current_path)], '0_190824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info),
+                     (Output_mode == 'testcomp' ->
+                        print_test_inputs_testcomp(Labeled_inputs)   %but don't print expected outputs
+                     ;
+                        (print_test_inputs(SEAV_Inputs),
+                         se_globals__pop_scope_stack,    %only after labeling and printed to preserve parameters
+                         term_variables(Parsed_prolog_code, All_Ids),
+                         get_all_outputs(All_Ids, All_seavs),
+                         print_test_outputs(All_seavs),    
+                         flush(user_output)
+                        )
+                     )
+                    )
+                 ;
+                    true    %labeling failed (perhaps floating points could not be labeled or there was no solution to integer non-linear constraints, who knows), we succeed to count it as a valid attempt
+                 )
                 )
              ;
                 common_util__error(10, "Unexpected output mode", "Only testcomp format is supported for now", [('Output_mode', Output_mode)], '10_100924_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info)
-             ),
-             se_globals__get_val('path_nb', Test_nb),
-             Inc_test_nb is Test_nb + 1,
-             (Inc_test_nb == 2 -> mytrace ; true),
-             se_globals__set_val('path_nb', Inc_test_nb),
-             se_globals__get_ref('current_path_bran', Current_path),
-             prune_instances(Current_path, Current_path_no_duplicates),
-             se_globals__get_val('covered_bran', Already_covered),
-             union(Already_covered, Current_path_no_duplicates, Covered),
-             se_globals__set_val('covered_bran', Covered),
-             common_util__error(0, "End of path", 'no_error_consequences', [('Path Nb', Inc_test_nb), ('Newly_covered', Newly_covered), ('Current_path', Current_path)], '0_190824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info),
-             (Output_mode == 'testcomp' ->
-                print_test_inputs_testcomp(Labeled_inputs)   %but don't print expected outputs
-             ;
-                (print_test_inputs(SEAV_Inputs),
-                 se_globals__pop_scope_stack,    %only after labeling and printed to preserve parameters
-                 term_variables(Parsed_prolog_code, All_Ids),
-                 get_all_outputs(All_Ids, All_seavs),
-                 print_test_outputs(All_seavs),    
-                 flush(user_output)
-                )
              )
             )
         ).

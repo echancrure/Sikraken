@@ -39,9 +39,17 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
                 ;
                 (Function_name == 'Exit' ; Function_name == 'Abort') ->
                     (%Arguments = [Exit_code],
-                    %common_util__error(0, "Exit Called:", 'no_error_consequences', [('Exit_code', Exit_code)], '0_170824_1', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info),
-                    %mytrace,
-                     Symbolic_expression = symb(Function_name, Function_name),  %unused, just for symmetry
+                     %common_util__error(0, "Exit Called:", 'no_error_consequences', [('Exit_code', Exit_code)], '0_170824_1', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info),
+                     %mytrace,
+                     Symbolic_expression = symb(void, Function_name),  %unused, just for symmetry
+                     end_of_path_predicate(_, _),   %only works in 'testcomp'    we bypass everything and go straight
+                     %problem when labeling fails... when should not retry
+                     fail
+                    )
+                ;
+                 Function_name == 'UC___assert_fail' -> %has 4 parameters which we ignore: simply generating a test and backtracking as for 'Exit' and 'Abort'
+                    (mytrace,
+                     Symbolic_expression = symb(void, Function_name),  %unused, just for symmetry
                      end_of_path_predicate(_, _),   %only works in 'testcomp'    we bypass everything and go straight
                      fail
                     )
