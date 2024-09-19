@@ -195,14 +195,32 @@ symbolically_interpret(and_op(Le_exp, Ri_exp), symb(int, R)) :-
      Le_symbolic == 0 ->        %to avoid creating unnecessary choice point 
         R #= 0
     ;    
-        (
-            (ptc_solver__sdl(Le_symbolic),
-             symbolically_interpret(Ri_exp, symb(_, R))
+        (random(2, R2), %i.e. between 0 and 2-1, so only 2 values allowed 0 or 1
+         (R2 == 0 -> %randomness to ensure true and false branches are given equal chances
+            (
+                (
+                    (ptc_solver__sdl(Le_symbolic),
+                    symbolically_interpret(Ri_exp, symb(_, R))
+                    )
+                ;%deliberate choice point
+                    (ptc_solver__sdl(not(Le_symbolic)),
+                    R #= 0
+                    )
+                )
             )
-        ;%deliberate choice point
-            (ptc_solver__sdl(not(Le_symbolic)),
-             R #= 0
+         ;
+            (
+                (
+                    (ptc_solver__sdl(not(Le_symbolic)),
+                     R #= 0
+                    )
+                ;%deliberate choice point
+                    (ptc_solver__sdl(Le_symbolic),
+                     symbolically_interpret(Ri_exp, symb(_, R))
+                    )
+                )
             )
+         )
         )
     ).
 %%%
@@ -219,15 +237,33 @@ symbolically_interpret(or_op(Le_exp, Ri_exp), symb(int, R)) :-
      Le_symbolic == 0 ->    %to avoid creating unnecessary choice point 
         symbolically_interpret(Ri_exp, symb(_, R))
     ;
-        (
-            (ptc_solver__sdl(Le_symbolic),
-             R #= 1
+        (random(2, R2), %i.e. between 0 and 2-1, so only 2 values allowed 0 or 1
+         (R2 == 0 -> %randomness to ensure true and false branches are given equal chances
+            (
+                (
+                    (ptc_solver__sdl(Le_symbolic),
+                     R #= 1
+                    )
+                ;%deliberate choice point
+                    (ptc_solver__sdl(not(Le_symbolic)),
+                     symbolically_interpret(Ri_exp, symb(_, R))
+                    )
+                )
             )
-        ;%deliberate choice point
-            (ptc_solver__sdl(not(Le_symbolic)),
-             symbolically_interpret(Ri_exp, symb(_, R))
+        ;
+            (
+                (
+                    (ptc_solver__sdl(not(Le_symbolic)),
+                     symbolically_interpret(Ri_exp, symb(_, R))
+                    )
+                ;%deliberate choice point
+                    (ptc_solver__sdl(Le_symbolic),
+                     R #= 1
+                    )
+                )
             )
         )
+       )
     ).
 %%%
 %

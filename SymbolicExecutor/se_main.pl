@@ -53,8 +53,16 @@ se_main(ArgsL) :-
     read_parsed_file(Parsed_dir, Target_source_file_name_no_ext, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors
     symbolic_execute(Parsed_prolog_code, _),   %always symbolically execute all global declarations for now: initialisations could be ignored via a switch if desired
     print_preamble_testcomp(Parsed_dir),
+    (catch(search_CFG(Restart, param(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code, Nb_of_paths_to_try)), global_trail_overflow, overflow_caught(Output_mode)) ->
+        true
+    ;
+        common_util__error(10, "somehow the top search failed", "Best not to proceed", [], '10_190924_1', 'se_main', 'se_main', no_localisation, no_extra_info)
+    ),
+    log_and_zip(Output_mode).
 
-    (for(I, 1, Restart), loop_name('restart'), param(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code, Nb_of_paths_to_try) 
+%%%
+search_CFG(Restart, param(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code, Nb_of_paths_to_try)) :-
+    (for(I, 1, Restart), loop_name('restart'), param(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code, Nb_of_paths_to_try)
      do (
             (Debug_mode = 'debug' -> 
                 (printf(user_error, "Restart number: %w%n", [I])
@@ -73,14 +81,20 @@ se_main(ArgsL) :-
                 )
             )
         )
-    ),
-    (Output_mode == 'testcomp' ->
-        terminate_testcomp
-    ;
-        printf(user_output, "\nSUCCESS", [])
-    ),
-    print_test_run_log__terminate.
-
+    ).
+    %%%
+    log_and_zip(Output_mode) :-
+        (Output_mode == 'testcomp' ->
+            terminate_testcomp
+        ;
+            printf(user_output, "\nSUCCESS", [])
+        ),
+        print_test_run_log__terminate.
+    %%%
+    overflow_caught(Output_mode) :-
+        common_util__error(9, "!!!!!!!!!!!!!! Stack overflow during search caught", "Review / increase initial stack", [], '9_190924_1', 'se_main', 'se_main', no_localisation, no_extra_info),
+        log_and_zip(Output_mode).
+%%%
 try_nb_path(_, Iteration_counter, _) :-
     setval(Iteration_counter, 0),
     fail.
@@ -153,7 +167,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
     end_of_path_predicate(SEAV_Inputs, Parsed_prolog_code) :-
         se_coverage__bran_newly_covered(Newly_covered),
         (Newly_covered == [] -> %no need to label: saves labelling run and test execution time
-            true %common_util__error(0, "End of path: no new branches", 'no_error_consequences', [], '0_210824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info)
+            common_util__error(0, "End of path: no new branches", 'no_error_consequences', [], '0_210824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info)
         ;
             (se_globals__get_val('output_mode', Output_mode),
              (Output_mode = 'testcomp' ->
@@ -161,7 +175,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
                  (label_testcomp(Verifier_inputs, Labeled_inputs) ->
                     (se_globals__get_val('path_nb', Test_nb),
                      Inc_test_nb is Test_nb + 1,
-                     (Inc_test_nb == 2 -> mytrace ; true),
+                     (Inc_test_nb == 9 -> mytrace ; true),
                      se_globals__set_val('path_nb', Inc_test_nb),
                      se_globals__get_ref('current_path_bran', Current_path),
                      prune_instances(Current_path, Current_path_no_duplicates),
