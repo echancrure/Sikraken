@@ -167,7 +167,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
     end_of_path_predicate(SEAV_Inputs, Parsed_prolog_code) :-
         se_coverage__bran_newly_covered(Newly_covered),
         (Newly_covered == [] -> %no need to label: saves labelling run and test execution time
-            common_util__error(0, "End of path: no new branches", 'no_error_consequences', [], '0_210824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info)
+            true %common_util__error(0, "End of path: no new branches", 'no_error_consequences', [], '0_210824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info)
         ;
             (se_globals__get_val('output_mode', Output_mode),
              (Output_mode = 'testcomp' ->

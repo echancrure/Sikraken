@@ -16,7 +16,7 @@
         "tries": 3,
         "expected_run_time": 40,
         "expected_test_inputs_number": 3,
-        "expected_coverage": 0.65
+        "expected_coverage": 0.66
       }
     ]
   }
