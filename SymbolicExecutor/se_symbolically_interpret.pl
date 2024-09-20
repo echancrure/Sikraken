@@ -1,4 +1,4 @@
-symbolically_interpret(Expression, symb(Type, Symbolic_expression)) :-  %need to be at the top so tha tit does not unify with the other predicates below
+symbolically_interpret(Expression, symb(Type, Symbolic_expression)) :-  %need to be at the top so that it does not unify with the other predicates below
     var(Expression),
     seav__is_seav(Expression), 
     !,
@@ -79,7 +79,6 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
     ).
 symbolically_interpret(cast(Raw_typeL, Expression), symb(To_type, Casted)) :-
     !,
-    
     (is_list(Raw_typeL) ->
         (%mytrace, 
          extract_type(Raw_typeL, To_type)    %from the parsed file, needs to be sanitised
@@ -200,11 +199,11 @@ symbolically_interpret(and_op(Le_exp, Ri_exp), symb(int, R)) :-
             (
                 (
                     (ptc_solver__sdl(Le_symbolic),
-                    symbolically_interpret(Ri_exp, symb(_, R))
+                     symbolically_interpret(Ri_exp, symb(_, R))
                     )
                 ;%deliberate choice point
                     (ptc_solver__sdl(not(Le_symbolic)),
-                    R #= 0
+                     R #= 0
                     )
                 )
             )
@@ -296,15 +295,26 @@ symbolically_interpret(cond_exp(branch(Id, Condition), True_exp, False_exp), sym
     %but because we do not extract types statitically extracting both types would mean symbolically executing both expressions which due to side effects, would be even more unsound
     %todo revisit when type extraction can be performed statically: e.g. in parser or during CFG building   
     symbolically_interpret(Condition, symb(_, Cond_Symbolic)),
-    (
-        (ptc_solver__sdl(Cond_Symbolic),
-         se_globals__update_ref('current_path_bran', branch(Id, 'true')),
+    (Cond_Symbolic == 1 ->    %to avoid creating unnecessary choice point 
+        (se_globals__update_ref('current_path_bran', branch(Id, 'true')),
          symbolically_interpret(True_exp, symb(Common_type, Symbolic))
         )
     ;
-        (ptc_solver__sdl(not(Cond_Symbolic)),
-         se_globals__update_ref('current_path_bran', branch(Id, 'false')),
+     Cond_Symbolic == 0 ->    %to avoid creating unnecessary choice point 
+        (se_globals__update_ref('current_path_bran', branch(Id, 'false')),
          symbolically_interpret(False_exp, symb(Common_type, Symbolic))
+        )
+    ;
+        (%todo add randonmess
+            (ptc_solver__sdl(Cond_Symbolic),
+            se_globals__update_ref('current_path_bran', branch(Id, 'true')),
+            symbolically_interpret(True_exp, symb(Common_type, Symbolic))
+            )
+        ;%deliberate choice point
+            (ptc_solver__sdl(not(Cond_Symbolic)),
+            se_globals__update_ref('current_path_bran', branch(Id, 'false')),
+            symbolically_interpret(False_exp, symb(Common_type, Symbolic))
+            )
         )
     ).
 symbolically_interpret(Unhandled_expression, _Symbolic_expression) :-

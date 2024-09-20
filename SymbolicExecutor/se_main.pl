@@ -53,7 +53,7 @@ se_main(ArgsL) :-
     read_parsed_file(Parsed_dir, Target_source_file_name_no_ext, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors
     symbolic_execute(Parsed_prolog_code, _),   %always symbolically execute all global declarations for now: initialisations could be ignored via a switch if desired
     print_preamble_testcomp(Parsed_dir),
-    (catch(search_CFG(Restart, param(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code, Nb_of_paths_to_try)), global_trail_overflow, overflow_caught(Output_mode)) ->
+    (catch(search_CFG(Restart, param(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code, Nb_of_paths_to_try)), 'global_trail_overflow', overflow_caught('global_trail_overflow', Output_mode)) ->
         true
     ;
         common_util__error(10, "somehow the top search failed", "Best not to proceed", [], '10_190924_1', 'se_main', 'se_main', no_localisation, no_extra_info)
@@ -82,7 +82,7 @@ search_CFG(Restart, param(Debug_mode, Output_mode, Main, Target_subprogram_var, 
             )
         )
     ).
-    %%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     log_and_zip(Output_mode) :-
         (Output_mode == 'testcomp' ->
             terminate_testcomp
@@ -90,9 +90,9 @@ search_CFG(Restart, param(Debug_mode, Output_mode, Main, Target_subprogram_var, 
             printf(user_output, "\nSUCCESS", [])
         ),
         print_test_run_log__terminate.
-    %%%
-    overflow_caught(Output_mode) :-
-        common_util__error(9, "!!!!!!!!!!!!!! Stack overflow during search caught", "Review / increase initial stack", [], '9_190924_1', 'se_main', 'se_main', no_localisation, no_extra_info),
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    overflow_caught(Overflow_type, Output_mode) :-
+        common_util__error(9, "!!!!!!!!!!!!!! Stack overflow during search caught", "Review symbolic executio and/or increase initial ECLiPSe stack", [('Overflow_type', Overflow_type)], '9_190924_1', 'se_main', 'se_main', no_localisation, no_extra_info),
         log_and_zip(Output_mode).
 %%%
 try_nb_path(_, Iteration_counter, _) :-

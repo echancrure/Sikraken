@@ -82,15 +82,15 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
         )
     ;   
      (
-        ((True_statements = cmp_stmts([label_stmt(_, stmt(function_call(Exit, [int(_)])))]),
-            se_name_atts__get(Exit, 'name', 'Exit')
+        (   (True_statements = cmp_stmts([label_stmt(_, stmt(function_call(Exit, [int(_)])))]),
+             se_name_atts__get(Exit, 'name', 'Exit')
             )
         ;
             (True_statements = cmp_stmts([stmt(function_call(Abort, []))]),
-            se_name_atts__get(Abort, 'name', 'Abort')
+             se_name_atts__get(Abort, 'name', 'Abort')
             )
         ),
-            !,   % added as if any of below fails, induces uncessariry backtracking above
+        !,   % added as if any of below fails, induces uncessariry backtracking above
         se_coverage__bran_is_already_covered(branch(Id, 'true')),  %costly so left at the end
         se_coverage__bran_newly_covered([])   %this is probably the most costly check: leave it last [unsound if commented out]
      ) ->
