@@ -44,6 +44,7 @@ for regression_test_file in "$c_files_directory"/*.c; do
     # Check if the testcomp yml file exists
     if [ ! -f "$yml_file" ]; then
         echo "Sikraken regression testing WARNING: .yml file $yml_file does not exist, assuming ILP32"
+        data_model="ILP32"
     else
         data_model=$(grep "data_model:" "$yml_file" | awk '{print $2}')
     fi
@@ -56,7 +57,7 @@ for regression_test_file in "$c_files_directory"/*.c; do
         gcc_flag="-m64"
         testcov_data_model="-64"
     else
-        echo "Unsupported data model: $data_model"
+        echo "Sikraken regression testing ERROR: Unsupported data model: $data_model"
         exit 1
     fi
 
