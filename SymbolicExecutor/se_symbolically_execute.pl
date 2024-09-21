@@ -155,21 +155,42 @@ symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
          Flow = 'carry_on'  %loop exits
         )
     ;    
-        (%todo add randomness
-            (ptc_solver__sdl(Condition_value),
-             se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-             symbolic_execute(Statements, Inner_flow), 
-             (Inner_flow == 'carry_on' ->
-                symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow)
-             ;
-                Flow = Inner_flow
-             )
+        (random(2, R2), %i.e. between 0 and 2-1, so only 2 values allowed 0 or 1
+         (R2 == 0 -> %randomness to ensure true and false branches are given equal chances
+            (
+                (ptc_solver__sdl(Condition_value),
+                 se_globals__update_ref('current_path_bran', branch(Id, 'true')),
+                 symbolic_execute(Statements, Inner_flow), 
+                 (Inner_flow == 'carry_on' ->
+                    symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow)
+                 ; 
+                    Flow = Inner_flow
+                 )
+                )
+            ;%while loop deliberate choice point
+                (ptc_solver__sdl(not(Condition_value)),
+                 se_globals__update_ref('current_path_bran', branch(Id, 'false')),
+                 Flow = 'carry_on'  %loop exits
+                )
             )
-        ;%while loop deliberate choice point
-            (ptc_solver__sdl(not(Condition_value)),
-             se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-             Flow = 'carry_on'  %loop exits
+        ;
+            (
+                (ptc_solver__sdl(not(Condition_value)),
+                 se_globals__update_ref('current_path_bran', branch(Id, 'false')),
+                 Flow = 'carry_on'  %loop exits
+                )
+            ;%while loop deliberate choice point
+                (ptc_solver__sdl(Condition_value),
+                 se_globals__update_ref('current_path_bran', branch(Id, 'true')),
+                 symbolic_execute(Statements, Inner_flow), 
+                 (Inner_flow == 'carry_on' ->
+                    symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow)
+                 ; 
+                    Flow = Inner_flow
+                 )
+                )
             )
+         )
         )
     ).
 symbolic_execute(label_stmt(_Label, Statement), Flow) :- 
