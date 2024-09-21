@@ -186,10 +186,12 @@ symbolically_interpret(postfix_dec_op(Expression), Symbolic_expression) :-
 %or L is false and overall truth is false
 symbolically_interpret(and_op(Le_exp, Ri_exp), symb(int, R)) :-   
     !,
-    %mytrace,
+    %mytrace, 
     symbolically_interpret(Le_exp, symb(_, Le_symbolic)), %only performed once as it should
     (Le_symbolic == 1 ->        %to avoid creating unnecessary choice point 
-        symbolically_interpret(Ri_exp, symb(_, R))
+        (R #:: 0..1,
+         symbolically_interpret(Ri_exp, symb(_, R))
+        )
     ;
      Le_symbolic == 0 ->        %to avoid creating unnecessary choice point 
         R #= 0
@@ -199,6 +201,7 @@ symbolically_interpret(and_op(Le_exp, Ri_exp), symb(int, R)) :-
             (
                 (
                     (ptc_solver__sdl(Le_symbolic),
+                     R #:: 0..1,
                      symbolically_interpret(Ri_exp, symb(_, R))
                     )
                 ;%deliberate choice point
@@ -215,6 +218,7 @@ symbolically_interpret(and_op(Le_exp, Ri_exp), symb(int, R)) :-
                     )
                 ;%deliberate choice point
                     (ptc_solver__sdl(Le_symbolic),
+                     R #:: 0..1,
                      symbolically_interpret(Ri_exp, symb(_, R))
                     )
                 )
@@ -234,7 +238,9 @@ symbolically_interpret(or_op(Le_exp, Ri_exp), symb(int, R)) :-
         R #= 1
     ;
      Le_symbolic == 0 ->    %to avoid creating unnecessary choice point 
-        symbolically_interpret(Ri_exp, symb(_, R))
+        (R #:: 0..1,
+         symbolically_interpret(Ri_exp, symb(_, R))
+        )
     ;
         (random(2, R2), %i.e. between 0 and 2-1, so only 2 values allowed 0 or 1
          (R2 == 0 -> %randomness to ensure true and false branches are given equal chances
@@ -245,6 +251,7 @@ symbolically_interpret(or_op(Le_exp, Ri_exp), symb(int, R)) :-
                     )
                 ;%deliberate choice point
                     (ptc_solver__sdl(not(Le_symbolic)),
+                     R #:: 0..1,
                      symbolically_interpret(Ri_exp, symb(_, R))
                     )
                 )
@@ -253,6 +260,7 @@ symbolically_interpret(or_op(Le_exp, Ri_exp), symb(int, R)) :-
             (
                 (
                     (ptc_solver__sdl(not(Le_symbolic)),
+                     R #:: 0..1,
                      symbolically_interpret(Ri_exp, symb(_, R))
                     )
                 ;%deliberate choice point
@@ -268,7 +276,7 @@ symbolically_interpret(or_op(Le_exp, Ri_exp), symb(int, R)) :-
 %
 symbolically_interpret(not_op(Le_exp), symb(int, R)) :-
     !,
-    %mytrace,
+    R #:: 0..1,
     (var(Le_exp) ->
         (symbolically_interpret(Le_exp, symb(_, Le_symbolic)),
          R #= neg(Le_symbolic)
