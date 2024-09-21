@@ -93,14 +93,8 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
         !,   % added as if any of below fails, induces uncessariry backtracking above
         se_coverage__bran_is_already_covered(branch(Id, 'true')),  %costly so left at the end
         se_coverage__bran_newly_covered([])   %this is probably the most costly check: leave it last [unsound if commented out]
-     ) ->
-        (%until we have a CFG
-         %nothing new covered so far, true branch is already covered and leads to exit or abort so we skip the true branch and only try the false branch
-         %mytrace,
-         ptc_solver__sdl(not(Condition_value)),
-         se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-         symbolic_execute(False_statements, Flow)
-        )
+     ) ->   %until we have a CFG nothing new covered so far, true branch is already covered and leads to exit or abort so we skip the true branch and only try the false branch
+        traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow)
     ; 
         (random(2, R2), %i.e. between 0 and 2-1, so only 2 values allowed 0 or 1
             (R2 == 0 -> %randomness to ensure true and false branches are given equal chances
@@ -113,17 +107,12 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
                     )
                 ;% if statement deliberate choice point
                     (%super_util__quick_dev_info("Trying branch: %w", [branch(Id, 'false')]),
-                     ptc_solver__sdl(not(Condition_value)),
-                     se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-                     symbolic_execute(False_statements, Flow)
+                     traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow)
                     )
                 )
             ;
                 (
-                    (ptc_solver__sdl(not(Condition_value)),
-                     se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-                     symbolic_execute(False_statements, Flow)
-                    )
+                    traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow)
                 ;%if statement deliberate choice point
                     (ptc_solver__sdl(Condition_value),
                      se_globals__update_ref('current_path_bran', branch(Id, 'true')),
@@ -133,7 +122,6 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
             )
         )
     ).
-
 symbolic_execute(if_stmt(Branch, True_statements), Flow) :-
     !,
     symbolic_execute(if_stmt(Branch, True_statements, []), Flow).
@@ -210,4 +198,9 @@ symbolic_execute(postfix_dec_op(Expression), 'carry_on') :-
 symbolic_execute(Unknown_statement, _) :-
     !,
     common_util__error(10, "Unexpected statement", "Could not possibly continue", [('Unknown_statement', Unknown_statement)], '10_150824_2', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+traverse(Condition, Arc, Statements, Flow) :-
+    ptc_solver__sdl(Condition),
+    se_globals__update_ref('current_path_bran', Arc),
+    symbolic_execute(Statements, Flow).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
