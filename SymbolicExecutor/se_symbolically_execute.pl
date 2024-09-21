@@ -85,7 +85,7 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
         (   (True_statements = cmp_stmts([label_stmt(_, stmt(function_call(Exit, [int(_)])))]),
              se_name_atts__get(Exit, 'name', 'Exit')
             )
-        ;
+        ;%just or
             (True_statements = cmp_stmts([stmt(function_call(Abort, []))]),
              se_name_atts__get(Abort, 'name', 'Abort')
             )
@@ -96,28 +96,18 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
      ) ->   %until we have a CFG nothing new covered so far, true branch is already covered and leads to exit or abort so we skip the true branch and only try the false branch
         traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow)
     ; 
-        (random(2, R2), %i.e. between 0 and 2-1, so only 2 values allowed 0 or 1
-            (R2 == 0 -> %randomness to ensure true and false branches are given equal chances
+        (random(2, R2),
+            (R2 == 0 ->
                 (
-                    (%super_util__quick_dev_info("Trying branch: %w", [branch(Id, 'true')]),
-                    %mytrace,
-                     ptc_solver__sdl(Condition_value),
-                     se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-                     symbolic_execute(True_statements, Flow)
-                    )
-                ;% if statement deliberate choice point
-                    (%super_util__quick_dev_info("Trying branch: %w", [branch(Id, 'false')]),
-                     traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow)
-                    )
+                    traverse(Condition_value, branch(Id, 'true'), True_statements, Flow)
+                ;%if statement deliberate choice point
+                    traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow)
                 )
             ;
                 (
                     traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow)
                 ;%if statement deliberate choice point
-                    (ptc_solver__sdl(Condition_value),
-                     se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-                     symbolic_execute(True_statements, Flow)
-                    )
+                    traverse(Condition_value, branch(Id, 'true'), True_statements, Flow)
                 )
             )
         )
@@ -146,9 +136,7 @@ symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
         (random(2, R2), %i.e. between 0 and 2-1, so only 2 values allowed 0 or 1
          (R2 == 0 -> %randomness to ensure true and false branches are given equal chances
             (
-                (ptc_solver__sdl(Condition_value),
-                 se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-                 symbolic_execute(Statements, Inner_flow), 
+                (traverse(Condition_value, branch(Id, 'true'), Statements, Inner_flow),
                  (Inner_flow == 'carry_on' ->
                     symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow)
                  ; 
@@ -168,9 +156,7 @@ symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
                  Flow = 'carry_on'  %loop exits
                 )
             ;%while loop deliberate choice point
-                (ptc_solver__sdl(Condition_value),
-                 se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-                 symbolic_execute(Statements, Inner_flow), 
+                (traverse(Condition_value, branch(Id, 'true'), Statements, Inner_flow),
                  (Inner_flow == 'carry_on' ->
                     symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow)
                  ; 
