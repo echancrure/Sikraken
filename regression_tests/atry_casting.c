@@ -1,7 +1,7 @@
 extern void exit(int);
+extern int __VERIFIER_nondet_int();
 
 int main() {
-    extern int __VERIFIER_nondet_int();
     // 1. Implicit conversion (integer promotion)
     char c = 120;
     int i = c;  // char promoted to int

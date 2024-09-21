@@ -92,8 +92,8 @@ search_CFG(Restart, param(Debug_mode, Output_mode, Main, Target_subprogram_var, 
         print_test_run_log__terminate.
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     overflow_caught(Overflow_type, Output_mode) :-
-        common_util__error(9, "!!!!!!!!!!!!!! Stack overflow during search caught", "Review symbolic executio and/or increase initial ECLiPSe stack", [('Overflow_type', Overflow_type)], '9_190924_1', 'se_main', 'se_main', no_localisation, no_extra_info),
-        log_and_zip(Output_mode).
+        log_and_zip(Output_mode),
+        common_util__error(9, "!!!!!!!!!!!!!! Stack overflow during search caught", "Review symbolic executio and/or increase initial ECLiPSe stack", [('Overflow_type', Overflow_type)], '9_190924_1', 'se_main', 'se_main', no_localisation, no_extra_info).
 %%%
 try_nb_path(_, Iteration_counter, _) :-
     setval(Iteration_counter, 0),
@@ -172,6 +172,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
             (se_globals__get_val('output_mode', Output_mode),
              (Output_mode = 'testcomp' ->
                 (se_globals__get_ref('verifier_inputs', Verifier_inputs),
+                 mytrace,
                  (label_testcomp(Verifier_inputs, Labeled_inputs) ->
                     (se_globals__get_val('path_nb', Test_nb),
                      Inc_test_nb is Test_nb + 1,

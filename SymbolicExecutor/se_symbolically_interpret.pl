@@ -305,20 +305,41 @@ symbolically_interpret(cond_exp(branch(Id, Condition), True_exp, False_exp), sym
          symbolically_interpret(False_exp, symb(Common_type, Symbolic))
         )
     ;
-        (%todo add randonmess
-            (ptc_solver__sdl(Cond_Symbolic),
-            se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-            symbolically_interpret(True_exp, symb(Common_type, Symbolic))
+        (random(2, R2), %i.e. between 0 and 2-1, so only 2 values allowed 0 or 1
+         %R2 = 0, 
+         mytrace,
+         (R2 == 0 -> %randomness to ensure true and false expressions are given equal chances
+            (
+                (ptc_solver__sdl(Cond_Symbolic),
+                 se_globals__update_ref('current_path_bran', branch(Id, 'true')),
+                 symbolically_interpret(True_exp, symb(Common_type, Symbolic))
+                )
+            ;%deliberate choice point
+                (ptc_solver__sdl(not(Cond_Symbolic)),
+                 se_globals__update_ref('current_path_bran', branch(Id, 'false')),
+                 symbolically_interpret(False_exp, symb(Common_type, Symbolic))
+                )
             )
-        ;%deliberate choice point
-            (ptc_solver__sdl(not(Cond_Symbolic)),
-            se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-            symbolically_interpret(False_exp, symb(Common_type, Symbolic))
+         ;
+            (
+                (ptc_solver__sdl(not(Cond_Symbolic)),
+                 se_globals__update_ref('current_path_bran', branch(Id, 'false')),
+                 symbolically_interpret(False_exp, symb(Common_type, Symbolic))
+                )
+            ;%deliberate choice point
+                (ptc_solver__sdl(Cond_Symbolic),
+                 se_globals__update_ref('current_path_bran', branch(Id, 'true')),
+                 symbolically_interpret(True_exp, symb(Common_type, Symbolic))
+                )
             )
+         )
         )
     ).
 symbolically_interpret(Unhandled_expression, _Symbolic_expression) :-
     common_util__error(10, "Expression is not handled", "Cannot perform symbolic interpretation", [('Unhandled_expression', Unhandled_expression)], '10_020824', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 implicit_type_casting(Same_type, Same_type, Le_symbolic, Ri_symbolic, Same_type, Le_symbolic, Ri_symbolic) :-   %Types are equal: no casting needed
     !.

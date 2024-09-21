@@ -155,7 +155,7 @@ symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
          Flow = 'carry_on'  %loop exits
         )
     ;    
-        (
+        (%todo add randomness
             (ptc_solver__sdl(Condition_value),
              se_globals__update_ref('current_path_bran', branch(Id, 'true')),
              symbolic_execute(Statements, Inner_flow), 
