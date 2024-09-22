@@ -98,7 +98,7 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
         ;
             ((mytrace,
              %either labeling succeeded and a testinput was generated, and everything that was to be covered has now been covered
-             %or labling failed 
+             %or labeling failed 
              traverse(Condition_value, branch(Id, 'true'), True_statements, Flow) -> %something new has been covered and we can exit right now: we do
                 true
             ;
