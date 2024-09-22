@@ -109,6 +109,7 @@ try_nb_path(Nb_of_paths_to_try, Iteration_counter, param(Output_mode, Main, Targ
         fail    %will generate more solutions by backtracking through find_one_path (and eventually symbolic_execution)
     ).
 
+%never called...
 call_find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
     find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code),
     fail.
