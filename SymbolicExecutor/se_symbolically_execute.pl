@@ -81,36 +81,38 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
             symbolic_execute(False_statements, Flow)
         )
     ;   
-     (
-        (   (True_statements = cmp_stmts([label_stmt(_, stmt(function_call(Exit, [int(_)])))]),
-             se_name_atts__get(Exit, 'name', 'Exit')
+     (  %until we have a CFG: this is quick hack easy to check that should be generalised based on what covered to date and potential successors
+        (True_statements = cmp_stmts([label_stmt(_, stmt(function_call(Exit, [int(_)])))]),
+            se_name_atts__get(Exit, 'name', 'Exit')
+        )
+     ;%just or
+        (True_statements = cmp_stmts([stmt(function_call(Abort, []))]),
+            se_name_atts__get(Abort, 'name', 'Abort')
+        )
+     ) ->
+        ((se_coverage__bran_is_already_covered(branch(Id, 'true')),  %costly so left at the end
+          se_coverage__bran_newly_covered([])   %this is probably the most costly check: leave it last [unsound if commented out]
+         ) ->
+            traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow) % nothing new covered so far, true branch is already covered and leads to exit or abort so we skip the true branch and only try the false branch
+        ;
+            traverse(Condition_value, branch(Id, 'true'), True_statements, Flow) %something new has been covered and we can exit right now: we do
+        )
+    ;     
+     (random(2, R2),
+        (R2 == 0 ->
+            (
+                traverse(Condition_value, branch(Id, 'true'), True_statements, Flow)
+            ;%if statement deliberate choice point
+                traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow)
             )
-        ;%just or
-            (True_statements = cmp_stmts([stmt(function_call(Abort, []))]),
-             se_name_atts__get(Abort, 'name', 'Abort')
-            )
-        ),
-        !,   % added as if any of below fails, induces uncessariry backtracking above
-        se_coverage__bran_is_already_covered(branch(Id, 'true')),  %costly so left at the end
-        se_coverage__bran_newly_covered([])   %this is probably the most costly check: leave it last [unsound if commented out]
-     ) ->   %until we have a CFG nothing new covered so far, true branch is already covered and leads to exit or abort so we skip the true branch and only try the false branch
-        traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow)
-    ; 
-        (random(2, R2),
-            (R2 == 0 ->
-                (
-                    traverse(Condition_value, branch(Id, 'true'), True_statements, Flow)
-                ;%if statement deliberate choice point
-                    traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow)
-                )
-            ;
-                (
-                    traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow)
-                ;%if statement deliberate choice point
-                    traverse(Condition_value, branch(Id, 'true'), True_statements, Flow)
-                )
+        ;
+            (
+                traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow)
+            ;%if statement deliberate choice point
+                traverse(Condition_value, branch(Id, 'true'), True_statements, Flow)
             )
         )
+     )
     ).
 symbolic_execute(if_stmt(Branch, True_statements), Flow) :-
     !,
