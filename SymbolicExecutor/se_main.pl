@@ -19,8 +19,9 @@ mytrace.            %call this to start debugging
 %%%
 :- (is_predicate(prolog_c/2) -> abolish prolog_c/2 ; dynamic prolog_c/2).   %to ensure clean environment when using 'make' during development 
 
-:- use_module(library(ic)).
+:- use_module(library('ic')).
 :- use_module(library('lists')).
+:- use_module(library('timeout')).
 
 :- use_module("./../PTC-Solver/source/ptc_solver").
 
@@ -31,12 +32,10 @@ mytrace.            %call this to start debugging
 :- compile(['se_coverage']).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  
-go :- se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/','hardness_codestructure_dependencies_file-0', main, debug, testcomp, '-m32', 1, 1]).
+go(Restart, Tries) :- se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/','hardness_codestructure_dependencies_file-0', main, release, testcomp, '-m32', Restart, Tries]).
 %go1 :- se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/regression_tests/','Problem03_label00', main, debug, testcomp, '-m32', 30, 25]).
 go_linux(Target_source_file_name_no_ext, Restart, Tries) :- se_main(['/home/chris/Sikraken/', "/home/chris/Sikraken/SampleCode/", Target_source_file_name_no_ext, main, debug, testcomp, '-m32', Restart, Tries]).
 go_linux(Parsed_dir, Target_source_file_name_no_ext, Restart, Tries) :- se_main(['/home/chris/Sikraken/', Parsed_dir, Target_source_file_name_no_ext, main, debug, testcomp, '-m32', Restart, Tries]).
-
-go(Restart, Nb_of_paths_to_try) :- go_linux('hardness_codestructure_dependencies_file-0', Restart, Nb_of_paths_to_try).
 
 se_main(ArgsL) :-
     (ArgsL = [Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Restart, Nb_of_paths_to_try] ->
@@ -56,7 +55,7 @@ se_main(ArgsL) :-
     (catch(search_CFG(Restart, param(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code, Nb_of_paths_to_try)), 'global_trail_overflow', overflow_caught('global_trail_overflow', Output_mode)) ->
         true
     ;
-        common_util__error(10, "somehow the top search failed", "Best not to proceed", [], '10_190924_1', 'se_main', 'se_main', no_localisation, no_extra_info)
+        common_util__error(10, "global_trail_overflow trigerred", "Investigate and/or increase global strail stack size", [], '10_190924_1', 'se_main', 'se_main', no_localisation, no_extra_info)
     ),
     log_and_zip(Output_mode).
 
@@ -99,22 +98,23 @@ try_nb_path(_, Iteration_counter, _) :-
     setval(Iteration_counter, 0),
     fail.
 try_nb_path(Nb_of_paths_to_try, Iteration_counter, param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)) :-
-    find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code),
+    Time_limit = 30,
+    timeout(    find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code),
+                Time_limit,
+                super_util__quick_dev_info("Timer trigerred", []),
+                'per_solution',
+                _Timer,
+                _Due_time,
+                _Time_remaining
+           ),
     getval(Iteration_counter, I),
     I1 is I + 1,
     setval(Iteration_counter, I1),
     (Nb_of_paths_to_try == I1 ->
-        true    %target number of test inputs generated 
+        true    %reached target number of test inputs generated 
     ;
         fail    %will generate more solutions by backtracking through find_one_path (and eventually symbolic_execution)
     ).
-
-%never called...
-call_find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
-    find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code),
-    fail.
-call_find_one_path(_, _, _, _) :-
-    !.
 
 find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
     (Output_mode == 'testcomp' ->

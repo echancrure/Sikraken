@@ -1,7 +1,7 @@
 {
     "configurations": [
       {
-        "id": "run2",
+        "id": "run1",
         "description": "Hard, slow testcov execution",
         "restarts": 1,
         "tries": 2,
@@ -10,12 +10,12 @@
         "expected_coverage": 0.63
       },
       {
-        "id": "run3",
-        "description": "Not much increase in coverage",
-        "restarts": 1,
-        "tries": 3,
+        "id": "run2",
+        "description": "Not much increase in coverage: need to go deep",
+        "restarts": 2,
+        "tries": 2,
         "expected_run_time": 40,
-        "expected_test_inputs_number": 3,
+        "expected_test_inputs_number": 4,
         "expected_coverage": 0.66
       }
     ]
