@@ -63,7 +63,7 @@ symbolic_execute(assign(LValue, Expression), Flow) :-
     ;
         common_util__error(10, "Unexpected LValue", "Sikraken's logic is wrong", [('LValue', LValue)], '10_030824_2', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
     ).
-symbolic_execute(function_call(Function, Arguments), 'carry_on') :-
+symbolic_execute(function_call(Function, Arguments), 'carry_on') :- %as a statement
     !,
     symbolically_interpret(function_call(Function, Arguments), _Symbolic_expression).   %todo ok for exit and abort but not is it has a non-void return
 symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statements), Flow) :-
@@ -94,13 +94,18 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
           se_coverage__bran_newly_covered([])   %this is probably the most costly check: leave it last [unsound if commented out]
          ) ->
             traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow) % nothing new covered so far, true branch is already covered and leads to exit or abort so we skip the true branch and only try the false branch
-            %if the above fails no point carrying with true branch: it exit with nothing new covered            
+            %if the above fails no point carrying with true branch: it exits with nothing new covered            
         ;
-            (traverse(Condition_value, branch(Id, 'true'), True_statements, Flow) -> %something new has been covered and we can exit right now: we do
+            ((mytrace,
+             %either labeling succeeded and a testinput was generated, and everything that was to be covered has now been covered
+             %or labling failed 
+             traverse(Condition_value, branch(Id, 'true'), True_statements, Flow) -> %something new has been covered and we can exit right now: we do
                 true
             ;
-                traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow)
-            )
+                (
+                    traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow)
+                )
+            ))
         )
     ;     
      (random(2, R2),

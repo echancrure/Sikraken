@@ -315,7 +315,7 @@ symbolically_interpret(cond_exp(branch(Id, Condition), True_exp, False_exp), sym
     ;
         (random(2, R2), %i.e. between 0 and 2-1, so only 2 values allowed 0 or 1
          %R2 = 0, 
-         mytrace,
+         %mytrace,
          (R2 == 0 -> %randomness to ensure true and false expressions are given equal chances
             (
                 (ptc_solver__sdl(Cond_Symbolic),
