@@ -13,6 +13,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %:- set_flag('debug_compile', 'off').   %does not really help 
 :- get_flag(version, '7.1').            %check for valid ECLiPSe version: issue warning only if not 
+%:- set_flag(after_event_timer, virtual). %tdo check why this does not work and causes an error: out of range in set_flag(after_event_timer, virtual)
 
 mytrace.            %call this to start debugging
 :- spy mytrace/0.
@@ -58,12 +59,58 @@ se_main(ArgsL) :-
         common_util__error(10, "global_trail_overflow trigerred", "Investigate and/or increase global strail stack size", [], '10_190924_1', 'se_main', 'se_main', no_localisation, no_extra_info)
     ),
     log_and_zip(Output_mode).
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    overflow_caught(Overflow_type, Output_mode) :-
+        log_and_zip(Output_mode),
+        common_util__error(9, "!!!!!!!!!!!!!! Stack overflow during search caught", "Review symbolic executio and/or increase initial ECLiPSe stack", [('Overflow_type', Overflow_type)], '9_190924_1', 'se_main', 'se_main', no_localisation, no_extra_info).
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    log_and_zip(Output_mode) :-
+        (Output_mode == 'testcomp' ->
+            terminate_testcomp
+        ;
+            printf(user_output, "\nSUCCESS", [])
+        ),
+        print_test_run_log__terminate.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/* %work in progress
+search_CFG_budget(Budget, param(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code, Nb_of_paths_to_try)) :-
+    try_budget(
+    
 
-%%%
+try_budget(...) :-
+    se_globals__get_val('path_nb', Pre_test_number),
+    timeout(    find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code),
+                Single_test_time_limit,
+                (super_util__quick_dev_info("Timer trigerred", []), Post_test_number = -999),
+                'per_solution',
+                _Timer,
+                _Due_time,
+                _Time_remaining
+           ),
+    (Post_test_number == -999 ->
+        %timer was triggered: we increase the timer and try again
+         ???
+    ;
+        (%if we are here we attempted a path, but perhaps no test vector was generated because there was nothing new to cover or labeling failed
+         se_globals__get_val('path_nb', Post_test_number),
+         (Post_test_number == Pre_test_number ->
+            (%potentially bad: we attempted a path, but no test vector was generated because there was nothing new to cover or labeling failed
+             %we can only do that so many times...
+             ???
+            )
+         ;
+            %good a test input was generated within the Single_test_time_limit so we backtrack
+            fail    %to generate a new solution based on backtracking 
+         )
+        )
+    ).
+*/
+
 search_CFG(Restart, param(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code, Nb_of_paths_to_try)) :-
+    se_globals__set_val('single_test_time_limit', 0.01),
     (for(I, 1, Restart), loop_name('restart'), param(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code, Nb_of_paths_to_try)
      do (
-            (Debug_mode = 'debug' -> 
+            (Debug_mode == 'debug' -> 
                 (printf(user_error, "Restart number: %w%n", [I])
                  %,mytrace
                 ) 
@@ -71,7 +118,7 @@ search_CFG(Restart, param(Debug_mode, Output_mode, Main, Target_subprogram_var, 
                 true
             ),
             not(
-                (try_nb_path(Nb_of_paths_to_try, 'try', param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)) ->
+                (try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)) -> %try_nb_path(Nb_of_paths_to_try, 'try', param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)) ->
                     fail
                 ;
                     (common_util__error(9, "!!!!!!!!!!!!!! Unexpected fail in try_nb_path: either it is a bug [mostly likely] or full coverage was achieved", "Best not to proceed", [], '10_210824_1', 'se_main', 'se_main', no_localisation, no_extra_info),
@@ -81,27 +128,15 @@ search_CFG(Restart, param(Debug_mode, Output_mode, Main, Target_subprogram_var, 
             )
         )
     ).
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    log_and_zip(Output_mode) :-
-        (Output_mode == 'testcomp' ->
-            terminate_testcomp
-        ;
-            printf(user_output, "\nSUCCESS", [])
-        ),
-        print_test_run_log__terminate.
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    overflow_caught(Overflow_type, Output_mode) :-
-        log_and_zip(Output_mode),
-        common_util__error(9, "!!!!!!!!!!!!!! Stack overflow during search caught", "Review symbolic executio and/or increase initial ECLiPSe stack", [('Overflow_type', Overflow_type)], '9_190924_1', 'se_main', 'se_main', no_localisation, no_extra_info).
 %%%
 try_nb_path(_, Iteration_counter, _) :-
     setval(Iteration_counter, 0),
     fail.
 try_nb_path(Nb_of_paths_to_try, Iteration_counter, param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)) :-
-    Time_limit = 30,
+    Time_limit = 2,
     timeout(    find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code),
                 Time_limit,
-                super_util__quick_dev_info("Timer trigerred", []),
+                super_util__quick_dev_info("Timer trigerred", []),      
                 'per_solution',
                 _Timer,
                 _Due_time,
@@ -115,7 +150,72 @@ try_nb_path(Nb_of_paths_to_try, Iteration_counter, param(Output_mode, Main, Targ
     ;
         fail    %will generate more solutions by backtracking through find_one_path (and eventually symbolic_execution)
     ).
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/*search_CFG_budget(Restart, param(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code, Nb_of_paths_to_try)) :-
+(for(I, 1, Restart), loop_name('restart'), param(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code, Nb_of_paths_to_try)
+ do (
+        (Debug_mode == 'debug' -> 
+            (printf(user_error, "Restart number: %w%n", [I])
+             %,mytrace
+            ) 
+        ; 
+            true
+        ),
+        not(
+            (try_nb_path(Nb_of_paths_to_try, 'try', param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)) ->
+                fail
+            ;
+                (common_util__error(9, "!!!!!!!!!!!!!! Unexpected fail in try_nb_path: either it is a bug [mostly likely] or full coverage was achieved", "Best not to proceed", [], '10_210824_1', 'se_main', 'se_main', no_localisation, no_extra_info),
+                 fail   %to make sure top level succeeds...
+                )
+            )
+        )
+    )
+).*/
+%%%
+try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)) :-
+    %mytrace,
+    se_globals__get_val('single_test_time_limit', Single_test_time_limit),
+    se_globals__get_val('path_nb', Pre_test_number),
+    timeout(    (statistics(event_time, Start_time), find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)),
+                30,
+                (Post_test_number = -999),  
+                'all_solution',
+                Path_timer,
+                Due_time,
+                Time_remaining
+    ),
+    (Post_test_number == -999 ->
+        (super_util__quick_dev_info("Timer trigerred", [])
+        )
+    ;
+        (%if we are here we attempted a path, but perhaps no test vector was generated because there was nothing new to cover or labeling failed
+         se_globals__get_val('path_nb', Post_test_number),
+         (Post_test_number == Pre_test_number ->
+            (%potentially bad: we attempted a path, but no test vector was generated because there was nothing new to cover or labeling failed
+             %we can only do that so many times...
+             fail
+            )
+        ;
+            (%good a test input was generated within the Single_test_time_limit so we backtrack
+             statistics(event_time, End_time),
+             Solution_duration is End_time - Start_time,
+             super_util__quick_dev_info("Solution duration:", [Solution_duration]),
+             getval('single_test_time_out', Single_test_time_out),
+             (Single_test_time_out == inf ->    %first time
+                (New_single_test_time_out is 2 * Solution_duration,
+                 setval('single_test_time_out', New_single_test_time_out),
+                 event_after(Path_timer, New_single_test_time_out)
+                )
+             ;
+                true    %Single_test_time_out left as is for now
+             ),
+             fail    %to generate a new solution based on backtracking 
+            )
+         )
+        )
+    ).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
     (Output_mode == 'testcomp' ->
         (se_sub_atts__get(Main, 'parameters', Parameters),

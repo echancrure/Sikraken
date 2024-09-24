@@ -113,19 +113,19 @@ for regression_test_file in "$c_files_directory"/*.c; do
         echo "Coverage is: $coverage_value"
 
         if [ "$expected_test_inputs_number" != "$test_nb_value" ]; then
-            echo "Error: Tests generation mismatch! Expected: $expected_test_inputs_number, but got: $test_nb_value when running: $eclipse_call." >> regression_tests_run.log
+            echo "Error: Tests generation mismatch! For $regression_test_file in $id configuration, expected: $expected_test_inputs_number, but got: $test_nb_value when running: $eclipse_call." >> regression_tests_run.log
         fi
 
         if [ "$expected_coverage" != "$coverage_value" ]; then
-            echo "Error: Coverage mismatch! Expected: $expected_coverage, but got: $coverage_value when running: $eclipse_call." >> regression_tests_run.log
+            echo "Error: Coverage mismatch! For $regression_test_file in $id configuration, expected: $expected_coverage, but got: $coverage_value when running: $eclipse_call." >> regression_tests_run.log
         fi
 
     done
 done
 
 if [ -f regression_tests_run.log ]; then
-    echo -e "\e[31mSikraken regression testing script run_regression.sh has terminated successfully.\e[0m"
-    cat warnings.log
+    echo -e "\e[31mSikraken regression testing script run_regression.sh has terminated with warnings.\e[0m"
+    cat regression_tests_run.log
 else
     echo -e "\e[32mSikraken regression testing script run_regression.sh has terminated successfully.\e[0m"
 fi
