@@ -34,26 +34,26 @@ mytrace.            %call this to start debugging
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  
 go(Restart, Tries) :- se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/','hardness_codestructure_dependencies_file-0', main, release, testcomp, '-m32', Restart, Tries]).
-%go1 :- se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/regression_tests/','Problem03_label00', main, debug, testcomp, '-m32', 30, 25]).
+%go1 :- se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/regression_tests/','Problem03_label00', main, debug, testcomp, '-m32', 30]).
 go_linux(Target_source_file_name_no_ext, Restart, Tries) :- se_main(['/home/chris/Sikraken/', "/home/chris/Sikraken/SampleCode/", Target_source_file_name_no_ext, main, debug, testcomp, '-m32', Restart, Tries]).
 go_linux(Parsed_dir, Target_source_file_name_no_ext, Restart, Tries) :- se_main(['/home/chris/Sikraken/', Parsed_dir, Target_source_file_name_no_ext, main, debug, testcomp, '-m32', Restart, Tries]).
 
 se_main(ArgsL) :-
-    (ArgsL = [Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Restart, Nb_of_paths_to_try] ->
+    (ArgsL = [Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Restart] ->
         true
     ;
         common_util__error(10, "Calling se_main/? with invalid argument list", "Review calling syntax of se_main/?", [], '10_240824_1', 'se_main', 'se_main', no_localisation, no_extra_info)
     ),
     print_test_run_log__preamble(ArgsL),
     %concat_string([Install_dir, "PTC-Solver/source/"], Solver_install_dir),
-    super_util__quick_dev_info("Analysing %w with %w restarts and %w tries.", [Target_source_file_name_no_ext, Restart, Nb_of_paths_to_try]),
+    super_util__quick_dev_info("Analysing %w with %w restarts.", [Target_source_file_name_no_ext, Restart]),
     se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode, Data_model),
     initialise_ptc_solver,
     capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
     read_parsed_file(Parsed_dir, Target_source_file_name_no_ext, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors
     symbolic_execute(Parsed_prolog_code, _),   %always symbolically execute all global declarations for now: initialisations could be ignored via a switch if desired
     print_preamble_testcomp(Parsed_dir),
-    (catch(search_CFG(Restart, param(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code, Nb_of_paths_to_try)), 'global_trail_overflow', overflow_caught('global_trail_overflow', Output_mode)) ->
+    (catch(search_CFG(Restart, param(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)), 'global_trail_overflow', overflow_caught('global_trail_overflow', Output_mode)) ->
         true
     ;
         common_util__error(10, "global_trail_overflow trigerred", "Investigate and/or increase global strail stack size", [], '10_190924_1', 'se_main', 'se_main', no_localisation, no_extra_info)
@@ -106,9 +106,8 @@ try_budget(...) :-
     ).
 */
 
-search_CFG(Restart, param(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code, Nb_of_paths_to_try)) :-
-    se_globals__set_val('single_test_time_limit', 0.01),
-    (for(I, 1, Restart), loop_name('restart'), param(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code, Nb_of_paths_to_try)
+search_CFG(Restart, param(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)) :-
+    (for(I, 1, Restart), loop_name('restart'), param(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)
      do (
             (Debug_mode == 'debug' -> 
                 (printf(user_error, "Restart number: %w%n", [I])
@@ -117,17 +116,25 @@ search_CFG(Restart, param(Debug_mode, Output_mode, Main, Target_subprogram_var, 
             ; 
                 true
             ),
+            se_globals__set_val('single_test_time_out', 100),   %todo should depend on global budget remaining 
             not(
-                (try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)) -> %try_nb_path(Nb_of_paths_to_try, 'try', param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)) ->
-                    fail
+                (catch(try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)), single_test_time_out_exception, handle_single_test_time_out_exception) -> 
+                    (%should logically never happen,
+                     common_util__error(10, "try_nb_path_budget success: something is seriously wrong", "Big bug", [], '10_240924_1', 'se_main', 'search_CFG', no_localisation, no_extra_info)
+                    )
                 ;
-                    (common_util__error(9, "!!!!!!!!!!!!!! Unexpected fail in try_nb_path: either it is a bug [mostly likely] or full coverage was achieved", "Best not to proceed", [], '10_210824_1', 'se_main', 'se_main', no_localisation, no_extra_info),
+                    (cancel_after_event('single_test_time_out_event', _CancelledEvents),    %to ensure 
+                     common_util__error(9, "!!!!!!!!!!!!!! Unexpected top-level fail in try_nb_path: either it is a bug in find_one_path [mostly likely] or no more solutions could be found, i.e. full coverage was achieved", "Problem specific", [], '10_210824_1', 'se_main', 'search_CFG', no_localisation, no_extra_info),
                      fail   %to make sure top level succeeds...
                     )
                 )
             )
         )
     ).
+%%%
+handle_single_test_time_out_exception :-
+    fail.
+
 %%%
 try_nb_path(_, Iteration_counter, _) :-
     setval(Iteration_counter, 0),
@@ -173,50 +180,55 @@ try_nb_path(Nb_of_paths_to_try, Iteration_counter, param(Output_mode, Main, Targ
     )
 ).*/
 %%%
+%always fails by design
 try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)) :-
-    %mytrace,
-    se_globals__get_val('single_test_time_limit', Single_test_time_limit),
+    mytrace,
+    se_globals__get_val('single_test_time_out', Single_test_time_out),
     se_globals__get_val('path_nb', Pre_test_number),
+    setval(nbSolution, Pre_test_number),
     set_event_handler('single_test_time_out_event', handle_single_test_time_out_event/0),
-    timeout(    (statistics(event_time, Start_time), find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)),
-                30,
-                (Post_test_number = -999),  
-                'all_solution',
-                Path_timer,
-                Due_time,
-                Time_remaining
-    ),
-    (Post_test_number == -999 ->
-        (super_util__quick_dev_info("Timer trigerred", [])
+    event_after('single_test_time_out_event', Single_test_time_out),
+    statistics(event_time, Start_time),
+    setval(start_time, Start_time),
+    find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code),
+    %if we are here we attempted a path, but perhaps no test vector was generated because there was nothing new to cover or labeling failed
+    se_globals__get_val('path_nb', Post_test_number),
+    getval(nbSolution, Pre_test_number),
+    (Post_test_number == Pre_test_number ->
+        (%potentially bad: we attempted a path, but no test vector was generated because there was nothing new to cover or labeling failed
+         %we can only do that so many times...
+         fail
         )
     ;
-        (%if we are here we attempted a path, but perhaps no test vector was generated because there was nothing new to cover or labeling failed
-         se_globals__get_val('path_nb', Post_test_number),
-         (Post_test_number == Pre_test_number ->
-            (%potentially bad: we attempted a path, but no test vector was generated because there was nothing new to cover or labeling failed
-             %we can only do that so many times...
-             fail
+        (%good: at least one test input was generated (possibly more via exit, abort, assert violation) within the single_test_time_out so we backtrack
+         cancel_after_event('single_test_time_out_event', _CancelledEvents), 
+         setval(nbSolution, Post_test_number),
+         statistics(event_time, Current_end_time),
+         getval(start_time, Current_start_time),
+         Single_test_duration is Current_end_time - Current_start_time,
+         super_util__quick_dev_info("Single test duration: %w", [Single_test_duration]),
+         se_globals__get_val('single_test_time_out', Current_single_test_time_out),
+         (10 * Single_test_duration < Current_single_test_time_out ->  %last test generation was faster by a wide margin: allocated budget is reduced
+            (New_single_test_time_out is 10 * Single_test_duration,
+             se_globals__set_val('single_test_time_out', New_single_test_time_out),
+             super_util__quick_dev_info("Single test budget decreased to: %w", [New_single_test_time_out]),
+             event_after('single_test_time_out_event', New_single_test_time_out)
             )
-        ;
-            (%good a test input was generated within the Single_test_time_limit so we backtrack
-             cancel_after_event(Path_timer, _CancelledEvents),
-             statistics(event_time, End_time),
-             Solution_duration is End_time - Start_time,
-             super_util__quick_dev_info("Solution duration:", [Solution_duration]),
-             getval('single_test_time_out', Single_test_time_out),
-             (Single_test_time_out == inf ->    %first time
-                (New_single_test_time_out is 2 * Solution_duration,
-                 setval('single_test_time_out', New_single_test_time_out),
-                 event_after(Path_timer, New_single_test_time_out)
-                )
-             ;
-                true    %Single_test_time_out left as is for now
-             ),
-             fail    %to generate a new solution based on backtracking 
-            )
-         )
+         ;
+            event_after('single_test_time_out_event', Single_test_time_out)    %Single_test_time_out left as is for now
+         ),
+         statistics(event_time, New_start_time),
+         getval(start_time, New_start_time),
+         fail    %to generate a new solution based on backtracking 
         )
     ).
+
+handle_single_test_time_out_event :-
+    statistics(event_time, Current_end_time),
+    getval(start_time, Current_start_time),
+    Time_since_last_test is Current_end_time - Current_start_time,
+    super_util__quick_dev_info("Time out triggered, time elapsed: %w" , [Time_since_last_test]),
+    throw(single_test_time_out_exception).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
     (Output_mode == 'testcomp' ->
@@ -407,7 +419,7 @@ print_test_outputs([SEAV|R]) :-
     print_test_outputs(R).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 print_test_run_log__preamble(ArgsL) :-
-    ArgsL = [Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Restart, Nb_of_paths_to_try],
+    ArgsL = [Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Restart],
     get_flag('unix_time', Time), 
     local_time_string(Time, "%Y_%m_%d_%H_%M_%S", Timestamp),
     concat_string([Install_dir, "SikrakenDevSpace/experiments/test_run_logs/test_run_", Target_source_file_name_no_ext, "_", Timestamp, ".txt"], Test_run_filename),
@@ -435,7 +447,6 @@ print_test_run_log__preamble(ArgsL) :-
     printf('test_run_stream', "\tTarget function:\t%w\n", [Target_raw_subprogram_name]),   
     printf('test_run_stream', "\tTarget C file:\t%w (in folder:%w)\n", [Target_source_file_name_no_ext, Parsed_dir]),
     printf('test_run_stream', "\tNb of restarts:\t\t%w\n", [Restart]),
-    printf('test_run_stream', "\tNb of path to try:\t%w\n", [Nb_of_paths_to_try]),
     close('test_run_stream').
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 print_test_run_log__terminate :-
