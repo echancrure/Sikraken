@@ -177,6 +177,7 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
     %mytrace,
     se_globals__get_val('single_test_time_limit', Single_test_time_limit),
     se_globals__get_val('path_nb', Pre_test_number),
+    set_event_handler('single_test_time_out_event', handle_single_test_time_out_event/0),
     timeout(    (statistics(event_time, Start_time), find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)),
                 30,
                 (Post_test_number = -999),  
@@ -198,6 +199,7 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
             )
         ;
             (%good a test input was generated within the Single_test_time_limit so we backtrack
+             cancel_after_event(Path_timer, _CancelledEvents),
              statistics(event_time, End_time),
              Solution_duration is End_time - Start_time,
              super_util__quick_dev_info("Solution duration:", [Solution_duration]),
