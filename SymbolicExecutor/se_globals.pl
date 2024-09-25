@@ -14,6 +14,7 @@ mytrace.            %call this to start debugging
 :- local reference('scope_stack', [scope(0, dummy)]).          %[scope(level_nb|Var)|Older] with Var only used for delaying and awakening, see SEAV module
 :- local reference('verifier_inputs', []).      %for testcomp: the chronogical list of verifier variables created in the form [verif(Type, Input)|...] 
 
+:- setval('debug_mode', 'debug').   %needed in case we need to write out an error message before gloabls are initiatilised... 
 :- dynamic covered_bran/1, path_nb/1.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %declaring global non-logical variables: not undone on backtracking
@@ -23,6 +24,7 @@ se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode,
     setval('phase', 'elaboration'),             %initially we are in the elaboration phase: used during cfg building and elaboration control
     setval('covered_bran', []),
     setval('path_nb', 0),
+    setval('number_restarts', 0),
     seed(1970),                                 %set for repeatable random behaviour between runs, 1970 is the default seed
     %random(My_seed), seed(My_seed), super_util__quick_dev_info("Random Seed: %w", My_seed),
     setval('to_cover', []),                     %list of branches remaining to cover
