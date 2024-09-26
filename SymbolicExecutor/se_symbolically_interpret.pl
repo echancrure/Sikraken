@@ -42,7 +42,7 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
                      %common_util__error(0, "Exit Called:", 'no_error_consequences', [('Exit_code', Exit_code)], '0_170824_1', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info),
                      %mytrace,
                      Symbolic_expression = symb(void, Function_name),  %unused, just for symmetry
-                     (end_of_path_predicate(_, _) ->  %only works in 'testcomp' we try to label and generate a test input vector
+                     (end_of_path_predicate(_, _) ->  % we try to label and generate a test input vector
                         (%labeling suceeded, a test vector was generated, and new arcs added to covered
                          fail
                         )
@@ -51,15 +51,7 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
                         fail
                      )
                     )
-/*                ;
-                 Function_name == 'UC___assert_fail' -> %has 4 parameters which we ignore: simply generating a test and backtracking as for 'Exit' and 'Abort'
-                    (mytrace,
-                     Symbolic_expression = symb(void, Function_name),  %unused, just for symmetry
-                     end_of_path_predicate(_, _),   %only works in 'testcomp'    we bypass everything and go straight
-                     fail
-                    )
-*/                ;
-
+                ;
                     common_util__error(10, "Function call to unknown external function", "Cannot perform symbolic interpretation", [('Function_name', Function_name)], '10_150824_3', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info)
                 )
             )

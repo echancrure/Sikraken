@@ -197,7 +197,8 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
         find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code),
         %%%
         %if we are here we attempted a path, but perhaps no test vector was generated because there was nothing new to cover or labeling failed
-        se_globals__get_val('path_nb', Post_test_number),
+        true.
+/*        se_globals__get_val('path_nb', Post_test_number),
         getval(nbSolution, Pre_test_number),
         (Post_test_number == Pre_test_number ->
             (%potentially bad: we attempted a path, but no test vector was generated because there was nothing new to cover or labeling failed
@@ -226,7 +227,7 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
              statistics(event_time, New_start_time),
              setval(start_time, New_start_time)
             )
-        ).
+        ).*/
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_single_test_time_out_event :-
         statistics(event_time, Current_end_time),
@@ -298,7 +299,29 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
                 (se_globals__get_ref('verifier_inputs', Verifier_inputs),
                  %mytrace,
                  (label_testcomp(Verifier_inputs, Labeled_inputs) ->
-                    (se_globals__get_val('path_nb', Test_nb),
+                    (%%% %%%
+                    cancel_after_event('single_test_time_out_event', _CancelledEvents), 
+                    %setval(nbSolution, Post_test_number),
+                    statistics(event_time, Current_end_time),
+                    getval(start_time, Current_start_time),
+                    Single_test_duration is Current_end_time - Current_start_time,
+                    super_util__quick_dev_info("Test generated in %w seconds", [Single_test_duration]),
+                    se_globals__get_val('single_test_time_out', Current_single_test_time_out),
+                    Margin = 10,       %multiplier: one order of magnitude
+                    Minimum = 0.5,       %seconds whatever is close but above the overheads
+                    ((Current_single_test_time_out > Minimum, Current_single_test_time_out > Margin * Single_test_duration) ->  %last test generation was faster by a wide margin: allocated budget is reduced
+                       (New_single_test_time_out is max(Margin * Single_test_duration, Minimum), %but there is a minimum to reduce overheads
+                       se_globals__set_val('single_test_time_out', New_single_test_time_out),
+                       super_util__quick_dev_info("Single test budget decreased to: %w", [New_single_test_time_out]),
+                       event_after('single_test_time_out_event', New_single_test_time_out)
+                       )
+                    ;
+                       event_after('single_test_time_out_event', Current_single_test_time_out)    %Single_test_time_out left as is for now
+                    ),
+                    statistics(event_time, New_start_time),
+                    setval(start_time, New_start_time),
+                     %%% %%%
+                     se_globals__get_val('path_nb', Test_nb),
                      Inc_test_nb is Test_nb + 1,
                      %(Inc_test_nb == 9 -> mytrace ; true),
                      se_globals__set_val('path_nb', Inc_test_nb),
