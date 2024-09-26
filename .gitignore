@@ -18,3 +18,4 @@ output/
 SymbolicExecutor/try.pl
 *.gcov
 *.zip
+trace.log

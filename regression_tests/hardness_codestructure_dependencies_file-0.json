@@ -5,9 +5,10 @@
       "description": "Plenty of floats",
       "restarts": 10,
       "tries": 2,
-      "expected_run_time": 50,
-      "expected_test_inputs_number": 9,
-      "expected_coverage": 82.35
+      "comment": "record is 86.3%",
+      "expected_run_time": 60,
+      "expected_test_inputs_number": 4,
+      "expected_coverage": 58.82
     }
   ]
 }

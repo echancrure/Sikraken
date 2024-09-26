@@ -96,7 +96,7 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
             traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow) % nothing new covered so far, true branch is already covered and leads to exit or abort so we skip the true branch and only try the false branch
             %if the above fails no point carrying with true branch: it exits with nothing new covered            
         ;
-            (mytrace,
+            (%mytrace,
              %either labeling succeeded and a testinput was generated, and everything that was to be covered has now been covered
              (traverse(Condition_value, branch(Id, 'true'), True_statements, Flow) %something new has been covered and we can exit right now
                    %we could return to the top-level (using Flow) as the logic implies but bit of a waste of a path: let's try to go back up and discovered something new

@@ -1,2 +1,0 @@
-Error: Tests generation mismatch! Expected: 9, but got: 10 when running: se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/regression_tests/', 'hardness_codestructure_dependencies_file-0', main, release, testcomp, '-m32', 10, 2]).
-Error: Coverage mismatch! Expected: 82.35, but got: 78.43 when running: se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/regression_tests/', 'hardness_codestructure_dependencies_file-0', main, release, testcomp, '-m32', 10, 2]).

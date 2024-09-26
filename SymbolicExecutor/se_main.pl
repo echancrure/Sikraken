@@ -34,69 +34,78 @@ mytrace.            %call this to start debugging
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  
 go(Restart, Tries) :- se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/','hardness_codestructure_dependencies_file-0', main, release, testcomp, '-m32', Restart, Tries]).
-%go1 :- se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/regression_tests/','Problem03_label00', main, debug, testcomp, '-m32', 50]).
+%go1 :- se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/regression_tests/','Problem03_label00', main, debug, testcomp, '-m32', budget(50)]).
 go_linux(Target_source_file_name_no_ext, Restart, Tries) :- se_main(['/home/chris/Sikraken/', "/home/chris/Sikraken/SampleCode/", Target_source_file_name_no_ext, main, debug, testcomp, '-m32', Restart, Tries]).
 go_linux(Parsed_dir, Target_source_file_name_no_ext, Restart, Tries) :- se_main(['/home/chris/Sikraken/', Parsed_dir, Target_source_file_name_no_ext, main, debug, testcomp, '-m32', Restart, Tries]).
 
 se_main(ArgsL) :-
-    (ArgsL = [Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Budget] ->
+    (ArgsL = [Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Search_algo] ->
         true
     ;
         common_util__error(10, "Calling se_main/? with invalid argument list", "Review calling syntax of se_main/?", [], '10_240824_1', 'se_main', 'se_main', no_localisation, no_extra_info)
     ),
-    se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode, Data_model),        
+    se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode, Data_model),
+    (Search_algo = regression(Restarts, Tries) ->   %for stable regression testing
+        (setval('nb_restarts', Restarts),
+         setval('nb_tries', Tries),
+         Budget = 65,           %we put a limit for some regression tests which may not complete a full retstart
+         First_single_test_time_out is Budget - 5,  %ensure not triggered at the same time as overall timeout
+         super_util__quick_dev_info("Analysing %w with %w restarts and %w tries", [Target_source_file_name_no_ext, Restarts, Tries])
+        )
+    ;
+     Search_algo = budget(Budget) ->    %for blind, testcomp, testing
+        (setval('nb_restarts', 1e99),   %infinite restarts and tries allowed
+         setval('nb_tries', 1e99),    
+         First_single_test_time_out is Budget / 10,
+         super_util__quick_dev_info("Analysing %w with a budget of %w seconds.", [Target_source_file_name_no_ext, Budget])
+        )
+    ;
+        common_util__error(10, "Calling se_main/? with invalid search algo configuration", "Review search algo argument syntax", [('Search_algo', Search_algo)], '10_240926_1', 'se_main', 'se_main', no_localisation, no_extra_info)
+    ),         
+    se_globals__set_val('single_test_time_out', First_single_test_time_out),    %i.e. 10 restart minimum is case of no test generated at all
     set_event_handler('overall_generation_time_out', handle_overall_time_out_event/0),
     event_after('overall_generation_time_out', Budget),
     print_test_run_log__preamble(ArgsL),
-    %concat_string([Install_dir, "PTC-Solver/source/"], Solver_install_dir),
-    super_util__quick_dev_info("Analysing %w with a budget of %w seconds.", [Target_source_file_name_no_ext, Budget]),
-
     initialise_ptc_solver,
     capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
     read_parsed_file(Parsed_dir, Target_source_file_name_no_ext, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors
     symbolic_execute(Parsed_prolog_code, _),   %always symbolically execute all global declarations for now: initialisations could be ignored via a switch if desired
     print_preamble_testcomp(Parsed_dir),
-    First_single_test_time_out is Budget div 10,
-    se_globals__set_val('single_test_time_out', First_single_test_time_out),    %i.e. 10 restart minimum is case of no test generated at all
+
     statistics(event_time, Session_time),
     setval(start_session_time, Session_time),
     setval(restart_time, Session_time),
-    %%%
-    catch(search_until_budget_exhausted(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code), 'global_trail_overflow', overflow_caught('global_trail_overflow', Output_mode)),
+    %%% where it all happens
+    catch(search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code), Any_exception, exception_handler(Any_exception, Output_mode)),
     %%%
     log_and_zip(Output_mode).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    handle_overall_time_out_event :-        
-        log_and_zip(testcomp),
-        super_util__quick_dev_info("                        __            __    __                  ", []),
-        super_util__quick_dev_info("         ____   __ __ _/  |_ _____  _/  |_ |__|  _____    ____  ", []),
-        super_util__quick_dev_info("        /  _ \\ |  |  \\\\   __\\\\__  \\ \\   __\\|  | /     \\ _/ __ \\ ", []),
-        super_util__quick_dev_info("       (  <_> )|  |  / |  |   / __ \\_|  |  |  ||  Y Y  \\\\  ___/ ", []),
-        super_util__quick_dev_info("        \\____/ |____/  |__|  (____  /|__|  |__||__|_|  / \\___  >", []),
-        super_util__quick_dev_info("                                  \\/                 \\/      \\/ ", []),
-        super_util__quick_dev_info("                                                                                                       .         .                          ", []),
-        super_util__quick_dev_info("        ,o888888o.     8 8888      88 8888888 8888888888   .8.    8888888 8888888888  8 8888          ,8.       ,8.          8 8888888888   ", []),
-        super_util__quick_dev_info("     . 8888     `88.   8 8888      88       8 8888        .888.         8 8888        8 8888         ,888.     ,888.         8 8888         ", []),
-        super_util__quick_dev_info("    ,8 8888       `8b  8 8888      88       8 8888       :88888.        8 8888        8 8888        .`8888.   .`8888.        8 8888         ", []),
-        super_util__quick_dev_info("    88 8888        `8b 8 8888      88       8 8888      . `88888.       8 8888        8 8888       ,8.`8888. ,8.`8888.       8 8888         ", []),
-        super_util__quick_dev_info("    88 8888         88 8 8888      88       8 8888     .8. `88888.      8 8888        8 8888      ,8'8.`8888,8^8.`8888.      8 888888888888 ", []),
-        super_util__quick_dev_info("    88 8888         88 8 8888      88       8 8888    .8`8. `88888.     8 8888        8 8888     ,8' `8.`8888' `8.`8888.     8 8888         ", []),
-        super_util__quick_dev_info("    88 8888        ,8P 8 8888      88       8 8888   .8' `8. `88888.    8 8888        8 8888    ,8'   `8.`88'   `8.`8888.    8 8888         ", []),
-        super_util__quick_dev_info("    `8 8888       ,8P  ` 8888     ,8P       8 8888  .8'   `8. `88888.   8 8888        8 8888   ,8'     `8.`'     `8.`8888.   8 8888         ", []),
-        super_util__quick_dev_info("     ` 8888     ,88'     8888   ,d8P        8 8888 .888888888. `88888.  8 8888        8 8888  ,8'       `8        `8.`8888.  8 8888         ", []),
-        super_util__quick_dev_info("        `8888888P'        `Y88888P'         8 8888.8'       `8. `88888. 8 8888        8 8888 ,8'         `         `8.`8888. 8 888888888888 ", []),
-        abort.
+    handle_overall_time_out_event :-
+        throw('outatime').
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    overflow_caught(Overflow_type, Output_mode) :-
-        log_and_zip(Output_mode),
-        common_util__error(9, "!!!!!!!!!!!!!! Stack overflow during search caught", "Review symbolic execution and/or increase initial ECLiPSe stack", [('Overflow_type', Overflow_type)], '9_190924_1', 'se_main', 'se_main', no_localisation, no_extra_info).
+    exception_handler(Exception, Output_mode) :-
+        log_and_zip(Output_mode),   %preserve whatever has been generated
+        (Exception == 'global_trail_overflow' ->
+            common_util__error(10, "!!!!!!!!!!!!!! Stack overflow during search caught", "Review symbolic execution and/or increase initial ECLiPSe stack", [], '10_260924_1', 'se_main', 'se_main', no_localisation, no_extra_info)
+        ;
+         Exception == 'outatime' ->
+            easter_egg
+        ;
+            common_util__error(10, "Unknown exception caught", "Review, investigate and catch it better next time", [('Exception', Exception)], '10_260924_2', 'se_main', 'se_main', no_localisation, no_extra_info)
+
+        ).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     log_and_zip(Output_mode) :-
         cancel_after_event('overall_generation_time_out', _CancelledEvents),    %to ensure none are left and be triggered later on
         getval(start_session_time, Session_time),
         getval(last_successful_restart_time, Last_successful_restart_time),
-        Total_time is Last_successful_restart_time - Session_time,
-        super_util__quick_dev_info("Last succesful restart ended in %w seconds", [Total_time]),
+        (Last_successful_restart_time == -1 ->
+            super_util__quick_dev_info("No complete restart", [] )
+        ;
+            (Total_time is Last_successful_restart_time - Session_time,
+             super_util__quick_dev_info("Last succesful restart ended in %w seconds", [Total_time])
+            )
+        ),
         (Output_mode == 'testcomp' ->
             terminate_testcomp
         ;
@@ -104,119 +113,127 @@ se_main(ArgsL) :-
         ),
         print_test_run_log__terminate.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-/*search_until_budget_exhausted(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
-    search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code),
-    !,
-    search_until_budget_exhausted(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) .
-*/
-search_until_budget_exhausted(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
-    (for(I, 1, 10000), loop_name('restart'), param(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)
-     do (
-        search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)
-       )
-    ).
 search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
-    se_globals__get_val('number_restarts', Number_restarts),
-    New_number_restarts is Number_restarts + 1,
-    se_globals__set_val('number_restarts', New_number_restarts),
-    super_util__quick_dev_info("Restart number %w", [New_number_restarts]),
-    (Debug_mode == 'debug' -> 
-        (se_globals__get_val('single_test_time_out', Current_single_test_time_out),
-         super_util__quick_dev_info("Restart number: %w using %w seconds for a single test%n", [New_number_restarts, Current_single_test_time_out])
+    getval('nb_restarts', Restarts),
+    setval('last_successful_restart_time', -1), %i.e. never
+    (for(Restart_counter, 1, Restarts), loop_name('restart'), param(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)
+        do (
+            super_util__quick_dev_info("Restart number %w", [Restart_counter]),
+            search_CFG_inner(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)
         )
-    ; 
-        true
-    ),
-    se_globals__get_val('path_nb', Initial_try_solution_number),
-    setval(nb_try_solution, Initial_try_solution_number),
-    not(
-        (catch(try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)), single_test_time_out_exception, handle_single_test_time_out_exception) -> 
-            (%should logically never happen,
-                common_util__error(10, "try_nb_path_budget success: something is seriously wrong", "Big bug", [], '10_240924_1', 'se_main', 'search_CFG', no_localisation, no_extra_info)
+    ).
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    search_CFG_inner(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
+        (Debug_mode == 'debug' -> 
+            (se_globals__get_val('single_test_time_out', Current_single_test_time_out),
+             super_util__quick_dev_info("Using %w seconds for a single test%n", [Current_single_test_time_out])
+            )
+        ; 
+            true
+        ),
+        se_globals__get_val('path_nb', Initial_try_solution_number),
+        setval(nb_try_solution, Initial_try_solution_number),
+        not(
+            (catch(try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)), 'single_test_time_out_exception', handle_single_test_time_out_exception) -> 
+                (%should logically never happen
+                 common_util__error(10, "try_nb_path_budget success: something is seriously wrong", "Big bug", [], '10_240924_1', 'se_main', 'search_CFG_inner', no_localisation, no_extra_info), 
+                 fail
+                )
+            ;
+                (cancel_after_event('single_test_time_out_event', _CancelledEvents),    %to ensure none are left and be triggered later on
+                 common_util__error(9, "try_nb_path_budget failed: no more solutions could be found, i.e. full coverage was achieved or time out was triggered", "Could be bug if full coverage is suspicious", [], '10_210824_1', 'se_main', 'search_CFG_inner', no_localisation, no_extra_info),
+                 fail   %to make sure the not succeeds...
+                )
+            )
+        ),
+        statistics(event_time, End_time),
+        getval(restart_time, Start_time),
+        Restart_duration is End_time - Start_time,
+        super_util__quick_dev_info("Restart overall duration was: %w", [Restart_duration]),
+        setval(restart_time, End_time),
+        se_globals__get_val('path_nb', Post_try_solution_number),
+        getval(nb_try_solution, Pre_try_solution_number),
+        Number_of_new_solutions is Post_try_solution_number - Pre_try_solution_number,
+        (Number_of_new_solutions == 0 ->    %we tried a path for Current_single_test_time_out amount of time and no tests were generated
+            (Maximum = 100,
+             Margin = 1.1, 
+             se_globals__get_val('single_test_time_out', Current_single_test_time_out),
+             New_single_test_time_out is min(Margin * Current_single_test_time_out, Maximum), %but there is a maximum 
+             se_globals__set_val('single_test_time_out', New_single_test_time_out),   %todo should depend on global budget remaining
+             super_util__quick_dev_info("Restart time budget increased to: %w", [New_single_test_time_out])
             )
         ;
-            (cancel_after_event('single_test_time_out_event', _CancelledEvents),    %to ensure none are left and be triggered later on
-                common_util__error(9, "try_nb_path_budget failed: no more solutions could be found, i.e. full coverage was achieved or time out was triggered", "Could be bug if full coverage is suspicious", [], '10_210824_1', 'se_main', 'search_CFG', no_localisation, no_extra_info),
-                fail   %to make sure the not succeeds...
+            (%the last inner try did generate solutions
+             setval(last_successful_restart_time, End_time),
+             setval(nb_try_solution, Post_try_solution_number)
             )
-        )
-    ),
-    statistics(event_time, End_time),
-    getval(restart_time, Start_time),
-    Restart_duration is End_time - Start_time,
-    super_util__quick_dev_info("Restart overall duration was: %w", [Restart_duration]),
-    setval(restart_time, End_time),
-    se_globals__get_val('path_nb', Post_try_solution_number),
-    getval(nb_try_solution, Pre_try_solution_number),
-    Number_of_new_solutions is Post_try_solution_number - Pre_try_solution_number,
-    (Number_of_new_solutions == 0 ->
-        (%we tried a path for Current_single_test_time_out amount of time and no tests were generated
-            Maximum = 100,
-            Margin = 1.1, 
-            se_globals__get_val('single_test_time_out', Current_single_test_time_out),
-            New_single_test_time_out is min(Margin * Current_single_test_time_out, Maximum), %but there is a maximum 
-            se_globals__set_val('single_test_time_out', New_single_test_time_out),   %todo should depend on global budget remaining
-            super_util__quick_dev_info("Restart time budget increased to: %w", [New_single_test_time_out])
-        )
-    ;
-        (%the last inner try did generate solutions
-            setval(last_successful_restart_time, End_time),
-            setval(nb_try_solution, Post_try_solution_number)
-        )
-    ).
+        ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %always fails by design
-try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)) :-
-    se_globals__get_val('single_test_time_out', Single_test_time_out),
-    se_globals__get_val('path_nb', Initial_test_number),
-    setval(nbSolution, Initial_test_number),
-    set_event_handler('single_test_time_out_event', handle_single_test_time_out_event/0),
-    event_after('single_test_time_out_event', Single_test_time_out),
-    statistics(event_time, Start_time),
-    setval(start_time, Start_time),
-    %%%
-    find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code),
-    %%%
-    %if we are here we attempted a path, but perhaps no test vector was generated because there was nothing new to cover or labeling failed
-    se_globals__get_val('path_nb', Post_test_number),
-    getval(nbSolution, Pre_test_number),
-    (Post_test_number == Pre_test_number ->
-        (%potentially bad: we attempted a path, but no test vector was generated because there was nothing new to cover or labeling failed
-         %we can only do that so many times...
-         fail
-        )
+try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)):-
+    getval('nb_tries', Nb_tries),
+    setval(try_counter, 0),
+    try_nb_path_budget_inner(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)),
+    getval(try_counter, I),
+    I1 is I + 1,
+    setval(try_counter, I1),
+    (I1 == Nb_tries ->
+        true    %target number of test inputs generated 
     ;
-        (%good: at least one test input was generated (possibly more via exit, abort, assert violation) within the single_test_time_out so we backtrack
-         cancel_after_event('single_test_time_out_event', _CancelledEvents), 
-         setval(nbSolution, Post_test_number),
-         statistics(event_time, Current_end_time),
-         getval(start_time, Current_start_time),
-         Single_test_duration is Current_end_time - Current_start_time,
-         super_util__quick_dev_info("Single test duration: %w", [Single_test_duration]),
-         se_globals__get_val('single_test_time_out', Current_single_test_time_out),
-         Margin = 10,       %multiplier: one order of magnitude
-         Minimum = 0,       %seconds whatever is close but above the overheads
-         ((Current_single_test_time_out > Minimum, Current_single_test_time_out > Margin * Single_test_duration) ->  %last test generation was faster by a wide margin: allocated budget is reduced
-            (New_single_test_time_out is max(Margin * Single_test_duration, Minimum), %but there is a minimum to reduce overheads
-             se_globals__set_val('single_test_time_out', New_single_test_time_out),
-             super_util__quick_dev_info("Single test budget decreased to: %w", [New_single_test_time_out]),
-             event_after('single_test_time_out_event', New_single_test_time_out)
+        fail    %will generate more solutions by backtracking through find_one_path (and eventually symbolic_execution)
+    ),
+    !,  
+    fail.   %I know this is ugly: but this will only be reached during regression testing when the number of tries has been reached
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    try_nb_path_budget_inner(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)) :-
+        se_globals__get_val('path_nb', Initial_test_number),
+        setval(nbSolution, Initial_test_number),
+        set_event_handler('single_test_time_out_event', handle_single_test_time_out_event/0),
+        se_globals__get_val('single_test_time_out', Single_test_time_out),
+        event_after('single_test_time_out_event', Single_test_time_out),
+        statistics(event_time, Start_time),
+        setval(start_time, Start_time),
+        %%% where it all happens
+        find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code),
+        %%%
+        %if we are here we attempted a path, but perhaps no test vector was generated because there was nothing new to cover or labeling failed
+        se_globals__get_val('path_nb', Post_test_number),
+        getval(nbSolution, Pre_test_number),
+        (Post_test_number == Pre_test_number ->
+            (%potentially bad: we attempted a path, but no test vector was generated because there was nothing new to cover or labeling failed
+             true
             )
-         ;
-            event_after('single_test_time_out_event', Current_single_test_time_out)    %Single_test_time_out left as is for now
-         ),
-         statistics(event_time, New_start_time),
-         setval(start_time, New_start_time),
-         fail    %to generate a new solution based on backtracking 
-        )
-    ).
+        ;
+            (%good: at least one test input was generated (possibly more via exit, abort, assert violation) within the single_test_time_out so we backtrack
+             cancel_after_event('single_test_time_out_event', _CancelledEvents), 
+             setval(nbSolution, Post_test_number),
+             statistics(event_time, Current_end_time),
+             getval(start_time, Current_start_time),
+             Single_test_duration is Current_end_time - Current_start_time,
+             super_util__quick_dev_info("Test generated in %w seconds", [Single_test_duration]),
+             se_globals__get_val('single_test_time_out', Current_single_test_time_out),
+             Margin = 10,       %multiplier: one order of magnitude
+             Minimum = 0.5,       %seconds whatever is close but above the overheads
+             ((Current_single_test_time_out > Minimum, Current_single_test_time_out > Margin * Single_test_duration) ->  %last test generation was faster by a wide margin: allocated budget is reduced
+                (New_single_test_time_out is max(Margin * Single_test_duration, Minimum), %but there is a minimum to reduce overheads
+                se_globals__set_val('single_test_time_out', New_single_test_time_out),
+                super_util__quick_dev_info("Single test budget decreased to: %w", [New_single_test_time_out]),
+                event_after('single_test_time_out_event', New_single_test_time_out)
+                )
+             ;
+                event_after('single_test_time_out_event', Current_single_test_time_out)    %Single_test_time_out left as is for now
+             ),
+             statistics(event_time, New_start_time),
+             setval(start_time, New_start_time)
+            )
+        ).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_single_test_time_out_event :-
         statistics(event_time, Current_end_time),
         getval(start_time, Current_start_time),
         Time_since_last_test is Current_end_time - Current_start_time,
-        super_util__quick_dev_info("Time out triggered, time elapsed was: %w" , [Time_since_last_test]),
-        throw(single_test_time_out_exception).
+        super_util__quick_dev_info("Time out triggered, last test was generated %w seconds ago" , [Time_since_last_test]),
+        throw('single_test_time_out_exception').
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_single_test_time_out_exception :-
         fail. %to make sure the not succeeds...
@@ -459,3 +476,15 @@ print_test_run_log__terminate :-
     printf(Test_run_stream, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%", []),
     close(Test_run_stream).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+easter_egg :-
+    super_util__quick_dev_info("                                                                                                       .         .                          ", []),
+    super_util__quick_dev_info("        ,o888888o.     8 8888      88 8888888 8888888888   .8.    8888888 8888888888  8 8888          ,8.       ,8.          8 8888888888   ", []),
+    super_util__quick_dev_info("     . 8888     `88.   8 8888      88       8 8888        .888.         8 8888        8 8888         ,888.     ,888.         8 8888         ", []),
+    super_util__quick_dev_info("    ,8 8888       `8b  8 8888      88       8 8888       :88888.        8 8888        8 8888        .`8888.   .`8888.        8 8888         ", []),
+    super_util__quick_dev_info("    88 8888        `8b 8 8888      88       8 8888      . `88888.       8 8888        8 8888       ,8.`8888. ,8.`8888.       8 8888         ", []),
+    super_util__quick_dev_info("    88 8888         88 8 8888      88       8 8888     .8. `88888.      8 8888        8 8888      ,8'8.`8888,8^8.`8888.      8 888888888888 ", []),
+    super_util__quick_dev_info("    88 8888         88 8 8888      88       8 8888    .8`8. `88888.     8 8888        8 8888     ,8' `8.`8888' `8.`8888.     8 8888         ", []),
+    super_util__quick_dev_info("    88 8888        ,8P 8 8888      88       8 8888   .8' `8. `88888.    8 8888        8 8888    ,8'   `8.`88'   `8.`8888.    8 8888         ", []),
+    super_util__quick_dev_info("    `8 8888       ,8P  ` 8888     ,8P       8 8888  .8'   `8. `88888.   8 8888        8 8888   ,8'     `8.`'     `8.`8888.   8 8888         ", []),
+    super_util__quick_dev_info("     ` 8888     ,88'     8888   ,d8P        8 8888 .888888888. `88888.  8 8888        8 8888  ,8'       `8        `8.`8888.  8 8888         ", []),
+    super_util__quick_dev_info("        `8888888P'        `Y88888P'         8 8888.8'       `8. `88888. 8 8888        8 8888 ,8'         `         `8.`8888. 8 888888888888 ", []).

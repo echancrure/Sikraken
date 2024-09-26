@@ -73,6 +73,10 @@ for regression_test_file in "$c_files_directory"/*.c; do
     # Loop over all configurations in the configuration file
     config_count=$(jq '.configurations | length' "$config_file")
 
+    if [ -f regression_tests_run.log ]; then
+        rm -f regression_tests_run.log
+    fi
+
     for i in $(seq 0 $((config_count - 1))); do
         # Extract the configuration data
         config=$(jq ".configurations[$i]" "$config_file")
@@ -86,7 +90,7 @@ for regression_test_file in "$c_files_directory"/*.c; do
         expected_coverage=$(echo "$config" | jq -r '.expected_coverage')
 
         #generate test inputs
-        eclipse_call="se_main(['/home/chris/Sikraken/', '"$c_files_directory"/', '"$base_name"', main, release, testcomp, '$gcc_flag', $restarts, $tries])"
+        eclipse_call="se_main(['/home/chris/Sikraken/', '"$c_files_directory"/', '"$base_name"', main, release, testcomp, '$gcc_flag', regression($restarts, $tries)])"
         eclipse -f ./SymbolicExecutor/se_main.pl -e "$eclipse_call"
         if [ $? -ne 0 ]; then
             echo "Sikraken regression testing ERROR: call to ECLiPSe $eclipse_call failed"

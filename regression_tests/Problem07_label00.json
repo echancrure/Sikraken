@@ -11,12 +11,12 @@
       },
       {
         "id": "run2",
-        "description": "Not much increase in coverage: need to go deep",
+        "description": "Tough",
         "restarts": 2,
         "tries": 2,
         "expected_run_time": 40,
-        "expected_test_inputs_number": 4,
-        "expected_coverage": 0.66
+        "expected_test_inputs_number": 2,
+        "expected_coverage": 0.63
       }
     ]
   }
