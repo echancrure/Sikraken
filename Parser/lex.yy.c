@@ -1361,21 +1361,21 @@ YY_RULE_SETUP
 case 51:
 YY_RULE_SETUP
 #line 115 "C_grammar.l"
-{wrap_integer_constants("16'", &yytext[2], &yylval.id);
+{wrap_integer_constants("16'", &yytext[2], &yylval.id);     // hexadecimal integer
                              return I_CONSTANT;
                             }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
 #line 118 "C_grammar.l"
-{wrap_integer_constants("", yytext, &yylval.id);
+{wrap_integer_constants("", yytext, &yylval.id);            //decimal integer
                              return I_CONSTANT;
                             }
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
 #line 122 "C_grammar.l"
-{if (strcmp(yytext, "0")) wrap_integer_constants("octal", yytext, &yylval.id);
+{if (strcmp(yytext, "0")) wrap_integer_constants("8'", &yytext[1], &yylval.id);  //octal integer
                              else wrap_integer_constants("", yytext, &yylval.id);   //because it's just the constant 0, not an octal
                              return I_CONSTANT;
                             }
@@ -1411,14 +1411,14 @@ YY_RULE_SETUP
 case 58:
 YY_RULE_SETUP
 #line 139 "C_grammar.l"
-{wrap_floating_point_constants("hexadecimal", yytext, &yylval.id);  //Hexadecimal floating-point constants
+{wrap_floating_point_constants("hexadecimal", yytext, &yylval.id);  //Hexadecimal floating-point constants: will fail parser in ECLiPSe
                              return F_CONSTANT;
                             }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
 #line 142 "C_grammar.l"
-{wrap_floating_point_constants("hexadecimal", yytext, &yylval.id);    //Hexadecimal floating-point constants with a fractional part.
+{wrap_floating_point_constants("hexadecimal", yytext, &yylval.id);    //Hexadecimal floating-point constants with a fractional part.: will fail parser in ECLiPSe
                              return F_CONSTANT;
                             }
 	YY_BREAK
@@ -1427,7 +1427,7 @@ YY_RULE_SETUP
 #line 145 "C_grammar.l"
 {char* added_0;
                              add_missing_zero(yytext, &added_0);
-                             wrap_floating_point_constants("hexadecimal", added_0, &yylval.id);   //Hexadecimal floating-point constants with digits before the decimal point, but none after.
+                             wrap_floating_point_constants("hexadecimal", added_0, &yylval.id);   //Hexadecimal floating-point constants with digits before the decimal point, but none after. : will fail parser in ECLiPSe
                              return F_CONSTANT;
                             }
 	YY_BREAK

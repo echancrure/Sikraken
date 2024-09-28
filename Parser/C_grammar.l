@@ -111,14 +111,14 @@ WS  [ \t\v\n\f]
                               return IDENTIFIER;
                             }
 
-{HP}{H}+{IS}?				{wrap_integer_constants("16'", &yytext[2], &yylval.id);
+{HP}{H}+{IS}?				{wrap_integer_constants("16'", &yytext[2], &yylval.id);     // hexadecimal integer
                              return I_CONSTANT;
                             }
-{NZ}{D}*{IS}?				{wrap_integer_constants("", yytext, &yylval.id);
+{NZ}{D}*{IS}?				{wrap_integer_constants("", yytext, &yylval.id);            //decimal integer
                              return I_CONSTANT;
                             }
                             
-"0"{O}*{IS}?				{if (strcmp(yytext, "0")) wrap_integer_constants("octal", yytext, &yylval.id);
+"0"{O}*{IS}?				{if (strcmp(yytext, "0")) wrap_integer_constants("8'", &yytext[1], &yylval.id);  //octal integer
                              else wrap_integer_constants("", yytext, &yylval.id);   //because it's just the constant 0, not an octal
                              return I_CONSTANT;
                             }
@@ -135,15 +135,15 @@ WS  [ \t\v\n\f]
                              wrap_floating_point_constants("", added_0, &yylval.id);         //Decimal floating-point constants with a fractional part.
                              return F_CONSTANT;
                             }
-{HP}{H}+{P}{FS}?			{wrap_floating_point_constants("hexadecimal", yytext, &yylval.id);  //Hexadecimal floating-point constants
+{HP}{H}+{P}{FS}?			{wrap_floating_point_constants("hexadecimal", yytext, &yylval.id);  //Hexadecimal floating-point constants: will fail parser in ECLiPSe
                              return F_CONSTANT;
                             }
-{HP}{H}*"."{H}+{P}{FS}?		{wrap_floating_point_constants("hexadecimal", yytext, &yylval.id);    //Hexadecimal floating-point constants with a fractional part.
+{HP}{H}*"."{H}+{P}{FS}?		{wrap_floating_point_constants("hexadecimal", yytext, &yylval.id);    //Hexadecimal floating-point constants with a fractional part.: will fail parser in ECLiPSe
                              return F_CONSTANT;
                             }
 {HP}{H}+"."{P}{FS}?			{char* added_0;
                              add_missing_zero(yytext, &added_0);
-                             wrap_floating_point_constants("hexadecimal", added_0, &yylval.id);   //Hexadecimal floating-point constants with digits before the decimal point, but none after.
+                             wrap_floating_point_constants("hexadecimal", added_0, &yylval.id);   //Hexadecimal floating-point constants with digits before the decimal point, but none after. : will fail parser in ECLiPSe
                              return F_CONSTANT;
                             }
 

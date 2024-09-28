@@ -98,7 +98,8 @@ se_main(ArgsL) :-
         ).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     log_and_zip(Output_mode) :-
-        cancel_after_event('overall_generation_time_out', _CancelledEvents),    %to ensure none are left and be triggered later on
+        cancel_after_event('single_test_time_out_exception', _), %to ensure none are left and be triggered later on especially in development mode
+        cancel_after_event('overall_generation_time_out', _),    %to ensure none is left and be triggered later on especially in development mode
         getval(start_session_time, Session_time),
         getval(last_successful_restart_time, Last_successful_restart_time),
         (Last_successful_restart_time == -1 ->
