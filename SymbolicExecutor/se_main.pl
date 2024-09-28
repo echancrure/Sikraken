@@ -114,6 +114,7 @@ se_main(ArgsL) :-
         print_test_run_log__terminate.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
+    set_event_handler('single_test_time_out_event', handle_single_test_time_out_event/0),
     getval('nb_restarts', Restarts),
     setval('last_successful_restart_time', -1), %i.e. never
     (for(Restart_counter, 1, Restarts), loop_name('restart'), param(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)
@@ -175,13 +176,13 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
     setval(try_counter, 0),
     se_globals__get_val('path_nb', Initial_test_number),
     setval(nbSolution, Initial_test_number),
-    set_event_handler('single_test_time_out_event', handle_single_test_time_out_event/0),
     se_globals__get_val('single_test_time_out', Single_test_time_out),
     event_after('single_test_time_out_event', Single_test_time_out),
     statistics(event_time, Start_time),
     setval(start_time, Start_time),
     %%%
-    try_nb_path_budget_inner(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)),      %where it all happens
+    find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code),    %where it all happens
+    %%%
     getval(try_counter, I),
     I1 is I + 1,
     setval(try_counter, I1),
@@ -191,12 +192,7 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
         fail    %will generate more solutions by backtracking through find_one_path (and eventually symbolic_execution)
     ),
     !,  
-    fail.   %I know this is ugly: but this will only be reached during regression testing when the number of tries has been reached
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    try_nb_path_budget_inner(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)) :-
-
-        %%% 
-        find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code).    %where it all happens
+    fail.       %I know this is ugly: but this will only be reached during regression testing when the number of tries has been reached
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_single_test_time_out_event :-
         statistics(event_time, Current_end_time),
