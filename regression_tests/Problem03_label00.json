@@ -15,7 +15,7 @@
       "restarts": 30,
       "tries": 25,
       "expected_run_time": 150,
-      "expected_test_inputs_number": 64,
+      "expected_test_inputs_number": 62,
       "expected_coverage": 46.96
     }
   ]

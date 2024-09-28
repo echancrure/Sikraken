@@ -27,6 +27,10 @@ else
     echo "Sikraken parser successfully recompiled"
 fi
 
+if [ -f regression_tests_run.log ]; then
+    rm -f regression_tests_run.log
+fi
+
 # Loop over all .c files in the directory
 for regression_test_file in "$c_files_directory"/*.c; do
 
@@ -73,10 +77,6 @@ for regression_test_file in "$c_files_directory"/*.c; do
     # Loop over all configurations in the configuration file
     config_count=$(jq '.configurations | length' "$config_file")
 
-    if [ -f regression_tests_run.log ]; then
-        rm -f regression_tests_run.log
-    fi
-
     for i in $(seq 0 $((config_count - 1))); do
         # Extract the configuration data
         config=$(jq ".configurations[$i]" "$config_file")
@@ -110,20 +110,19 @@ for regression_test_file in "$c_files_directory"/*.c; do
 
         tests_nb_line=$(echo "$testcov_output" | grep "Tests run:")
         test_nb_value=$(echo "$tests_nb_line" | awk '{print $3}')
-        echo "Test number is: $test_nb_value"
+        echo "Number of tests is: $test_nb_value ($expected_test_inputs_number expected)"
         coverage_line=$(echo "$testcov_output" | grep "Coverage:")
         coverage_value=$(echo "$coverage_line" | awk '{print $2}')
         coverage_value=$(echo "$coverage_value" | sed 's/%//')
-        echo "Coverage is: $coverage_value"
+        echo "Coverage is: $coverage_value ($expected_coverage expected)"
 
-        if [ "$expected_test_inputs_number" != "$test_nb_value" ]; then
+        if [ $expected_test_inputs_number != $test_nb_value ]; then
             echo "Error: Tests generation mismatch! For $regression_test_file in $id configuration, expected: $expected_test_inputs_number, but got: $test_nb_value when running: $eclipse_call." >> regression_tests_run.log
         fi
 
         if [ "$expected_coverage" != "$coverage_value" ]; then
             echo "Error: Coverage mismatch! For $regression_test_file in $id configuration, expected: $expected_coverage, but got: $coverage_value when running: $eclipse_call." >> regression_tests_run.log
         fi
-
     done
 done
 

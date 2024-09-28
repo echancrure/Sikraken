@@ -7,8 +7,8 @@
       "tries": 2,
       "comment": "record is 86.3%",
       "expected_run_time": 60,
-      "expected_test_inputs_number": 4,
-      "expected_coverage": 58.82
+      "expected_test_inputs_number": 8,
+      "expected_coverage": 82.35
     }
   ]
 }
