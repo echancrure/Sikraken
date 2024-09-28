@@ -35,8 +35,7 @@ mytrace.            %call this to start debugging
 %  
 go(Restart, Tries) :- se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/','hardness_codestructure_dependencies_file-0', main, release, testcomp, '-m32', Restart, Tries]).
 %go1 :- se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/regression_tests/','Problem03_label00', main, debug, testcomp, '-m32', budget(50)]).
-go_linux(Target_source_file_name_no_ext, Restart, Tries) :- se_main(['/home/chris/Sikraken/', "/home/chris/Sikraken/SampleCode/", Target_source_file_name_no_ext, main, debug, testcomp, '-m32', Restart, Tries]).
-go_linux(Parsed_dir, Target_source_file_name_no_ext, Restart, Tries) :- se_main(['/home/chris/Sikraken/', Parsed_dir, Target_source_file_name_no_ext, main, debug, testcomp, '-m32', Restart, Tries]).
+go_dev :- se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/','atry_bitwise', main, debug, testcomp, '-m32', regression(1, 10)]).
 
 se_main(ArgsL) :-
     (ArgsL = [Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Search_algo] ->
@@ -91,6 +90,9 @@ se_main(ArgsL) :-
          Exception == 'outatime' ->
             easter_egg
         ;
+         Exception == 'abort' ->
+            throw('abort')
+        ; 
             common_util__error(10, "Unknown exception caught", "Review, investigate and catch it better next time", [('Exception', Exception)], '10_260924_2', 'se_main', 'se_main', no_localisation, no_extra_info)
 
         ).
