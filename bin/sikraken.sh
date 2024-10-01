@@ -11,11 +11,13 @@ if [ $# -lt 2 ]; then
     exit 1
 fi
 
-data_model="$1"
-rel_path_c_file="$2"
+data_model="$1"                         #e.g. -m32
+rel_path_c_file="$2"                    #e.g. ./../SampleCode/atry_bitwise.c
+
+output_file="${rel_path_c_file%.c}.i"   #remove .c and add .i
 
 # Preprocess the file using gcc
-gcc -E -P "$rel_path_c_file" $data_model
+gcc -E -P "$rel_path_c_file" $data_model -o $output_file
 
 # Check if gcc was successful
 if [ $? -ne 0 ]; then
@@ -24,7 +26,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Run the parser
-./bin/sikraken_parser.exe -d $data_model $rel_path_c_file
+./bin/sikraken_parser.exe $data_model $rel_path_c_file
 
 # Check if sikraken_parser was successful
 if [ $? -ne 0 ]; then
