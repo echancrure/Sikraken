@@ -26,7 +26,7 @@ mytrace.            %call this to start debugging
 
 :- use_module("./../PTC-Solver/source/ptc_solver").
 
-:- use_module(['super_util', 'se_globals', 'se_name_atts', 'se_seav_atts', 'se_sub_atts']).
+:- use_module(['se_globals', 'se_name_atts', 'se_seav_atts', 'se_sub_atts']).
 
 :- compile(['common_util', 'se_handle_declarations', 'se_symbolically_execute', 'se_symbolically_interpret']).
 :- compile(['se_write_tests_testcomp']).
@@ -326,7 +326,7 @@ initialise_ptc_solver :-
     ptc_solver__default_declarations(Data_model).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 read_parsed_file(Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, CProlog, Main, Target_subprogram_var) :-
-    concat_atom([Parsed_dir, Target_source_file_name_no_ext, '.pl'], Parsed_filename),
+    concat_atom([Parsed_dir, '/', Target_source_file_name_no_ext, '.pl'], Parsed_filename),
     (exists(Parsed_filename) ->
         (open(Parsed_filename, read, Stream),
          read_term(Stream, CProlog, [variable_names(VarsNames)]) ->
@@ -420,7 +420,7 @@ print_test_run_log__preamble(ArgsL) :-
     ArgsL = [Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Budget],
     get_flag('unix_time', Time), 
     local_time_string(Time, "%Y_%m_%d_%H_%M_%S", Timestamp),
-    concat_string([Install_dir, "SikrakenDevSpace/experiments/test_run_logs/test_run_", Target_source_file_name_no_ext, "_", Timestamp, ".txt"], Test_run_filename),
+    concat_string([Install_dir, "/SikrakenDevSpace/experiments/test_run_logs/test_run_", Target_source_file_name_no_ext, "_", Timestamp, ".txt"], Test_run_filename),
     setval('test_run_filename', Test_run_filename), 
     open(Test_run_filename, 'write', 'test_run_stream'),
     printf('test_run_stream', "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),

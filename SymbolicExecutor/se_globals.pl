@@ -1,9 +1,9 @@
 :- module('se_globals').
-:- use_module('super_util').
 
 mytrace.            %call this to start debugging
 :- spy mytrace/0.
 
+:- export super_util__quick_dev_info/2.
 :- export se_globals__set_globals/5, se_globals__get_val/2, se_globals__set_val/2, se_globals__get_ref/2, se_globals__set_ref/2.
 :- export se_globals__update_ref/2.
 :- export se_globals__push_scope_stack/0, se_globals__pop_scope_stack/0.
@@ -16,6 +16,18 @@ mytrace.            %call this to start debugging
 
 :- setval('debug_mode', 'debug').   %needed in case we need to write out an error message before gloabls are initiatilised... 
 :- dynamic covered_bran/1, path_nb/1.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+super_util__quick_dev_info(Message, Arguments) :-
+    se_globals__get_val('debug_mode', Debug_mode),
+    (Debug_mode = 'debug' ->
+        (printf('user_error', "Dev Info: ", []),
+         printf('user_error', Message, Arguments),
+         printf('user_error', "\n", []),
+         flush('user_error')        %systematically flushing ALL debug/development messages is important or they may get displayed in a wrong order when mixed with message from other streams and be out of sync with the ECLiPse tracer
+        )
+    ;
+        true
+    ).     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %declaring global non-logical variables: not undone on backtracking
 se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode, Data_model) :-    

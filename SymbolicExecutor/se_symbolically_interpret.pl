@@ -348,6 +348,8 @@ symbolically_interpret(bitw_and(Le_exp, Ri_exp), symb(Common_type, bw_and(Le_cas
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp),
     %extract Len (32 or 64 I think to check though) and Sign ('signed' or 'unsigned') from Common_type
+    common_util__error(9, "bitw_and Expression is not handled", "Cannot perform symbolic interpretation", [('Unhandled_expression', bitw_and(Le_exp, Ri_exp))], '09_021024', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
+
 %%%
 symbolically_interpret(Unhandled_expression, symb(int, 0)) :-
     common_util__error(9, "Expression is not handled", "Cannot perform symbolic interpretation", [('Unhandled_expression', Unhandled_expression)], '10_020824', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).

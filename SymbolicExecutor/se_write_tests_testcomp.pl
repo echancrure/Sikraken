@@ -2,8 +2,8 @@
 %create the folder for TestComp format and the metadata file
 print_preamble_testcomp(Parsed_dir) :-
     se_globals__get_val(target_source_file_name_no_ext, Target_source_file_name_no_ext),
-    concat_atom([Parsed_dir, 'suite-', Target_source_file_name_no_ext], Test_suite_folder),
-    concat_atom([Parsed_dir, Target_source_file_name_no_ext, '.c'], Filename),
+    concat_atom([Parsed_dir, '/suite-', Target_source_file_name_no_ext], Test_suite_folder),
+    concat_atom([Parsed_dir, '/', Target_source_file_name_no_ext, '.c'], Filename),
     (exists(Test_suite_folder) ->
         (concat_atom(['rm -rf ', Test_suite_folder], Delete_call),
          system(Delete_call)
@@ -39,7 +39,7 @@ print_preamble_testcomp(Parsed_dir) :-
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     get_hash(Filename, Hash) :-
         se_globals__get_val('install_dir', Install_dir),
-        concat_atom([Install_dir, 'SymbolicExecutor/get_hash.sh ', Filename], Hash_call),
+        concat_atom([Install_dir, '/SymbolicExecutor/get_hash.sh ', Filename], Hash_call),
         exec(Hash_call, [_, 'hash_stream', _]),
         read_string('hash_stream', end_of_line, "", _, Hash),
         close('hash_stream').

@@ -3,8 +3,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %The idea behind this complex error message predicate is to allow filtering of warning messages according to severity and allow fine control over the information displayed (e.g. different details for developpers and users)
 %any optional argument can be ommitted by appending 'no_' in front of the corresponding parameter name
-%e.g. common_util__error(7, "Generic package instantiation to be implemented", "The package is unhandled", [("package's name", Name)], 709, mika_symbolic, exec, exec(generic_package_instantiation(...)), "scheduled to be fixed in version 2.4")
-%e.g. common_util__error(7, "Generic package instantiation to be implemented", no_error_consequences, no_arguments, 709, mika_symbolic, exec, no_localisation, no_extra_info)
+%e.g. common_util__error(7, "Generic package instantiation to be implemented", "The package is unhandled", [("package's name", Name)], 709, se_symbolic, exec, exec(generic_package_instantiation(...)), "scheduled to be fixed in version 2.4")
+%e.g. common_util__error(7, "Generic package instantiation to be implemented", no_error_consequences, no_arguments, 709, se_symbolic, exec, no_localisation, no_extra_info)
 %TEMPLATE : common_util__error(Error_severity, Error_message, no_error_consequences, no_arguments, Error_code, From_module, From_predicate, no_localisation, no_extra_info)
 
 %Error_severity between 0 to 10 : 10 is the highest error level and denotes a fatal error (cannot proceed any further : abort),
@@ -95,7 +95,7 @@ common_util__error2(10, Error_message, Error_consequences, ArgumentsL, Error_cod
             )
     ;
             (printf(user_error, "%2n###################################%n", []),
-             printf(user_error, "=>MIKA: a fatal error has occurred%n", []),
+             printf(user_error, "=>Sikraken: a fatal error has occurred%n", []),
              printf(user_error, "        Error Code: %w%n", [Error_code]),
              printf(user_error, "        Message: %s%n", [Error_message]),
              (ArgumentsL = no_arguments ->
@@ -107,7 +107,7 @@ common_util__error2(10, Error_message, Error_consequences, ArgumentsL, Error_cod
              ),
              printf(user_error, "=>Report error to echancrure@gmail.com to have it addressed.%n", []),
              printf(user_error, "###################################%n", []),
-             halt
+             exit(1)
             )
     ).
 
@@ -144,7 +144,7 @@ common_util__error2(0, Error_message, Error_consequences, ArgumentsL, _Error_cod
 
 common_util__error2(Error_severity, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode) :-
     (Message_mode == debug ->
-            (printf(user_error, "MIKA warning level %w, %w, %s", [Error_severity, Error_code, Error_message]),
+            (printf(user_error, "Sikraken warning level %w, %w, %s", [Error_severity, Error_code, Error_message]),
              (ArgumentsL == no_arguments ->
                     true
              ;
