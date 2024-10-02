@@ -40,3 +40,5 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Successfully preprocessed $rel_path_c_file and ran sikraken_parser."
+
+# Call the symbolic executor via ECLiPSe

@@ -7,7 +7,7 @@ if [ $# -lt 2 ]; then
 fi
 
 input_file_no_ext="$2"
-output_file="$input_file.i"
+output_file="$input_file_no_ext.i"
 directory="$1"
 
 # Optional third argument for data_model, default to '-m32' if absent

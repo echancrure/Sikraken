@@ -72,7 +72,7 @@
             "args": [
                 "-v",
                 "${workspaceFolder}/bin/run_regression.sh",
-                "/home/chris/Sikraken/regression_tests"
+                "./../regression_tests"
             ],
             "group": {
                 "kind": "build",

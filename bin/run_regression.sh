@@ -1,16 +1,19 @@
 #!/bin/bash
 
 clear
-echo "Sikraken regression testing: starting script run_regression.sh "
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)" #Get the directory of the script <sikraken_install>/bin
+sikraken_install_dir = $SCRIPT_DIR/..
+echo "Sikraken regression testing: starting script run_regression.sh from $SCRIPT_DIR"
 
 # Check if the directory argument is provided
 if [ -z "$1" ]; then
-    echo "Sikraken regression testing ERROR: script usage is $0 <directory_of_regression_c_files>"
+    echo "Sikraken regression testing ERROR: script usage is $0 <relative_directory_of_regression_c_files>"
     exit 1
 fi
 
 # Set the directory containing the .c files from the argument
-c_files_directory="$1"
+rel_path_c_file="$1"
+c_files_directory="$SCRIPT_DIR/$rel_path_c_file"    #e.g. /home/chris/Sikraken/regression_tests
 
 # Check if the provided directory exists
 if [ ! -d "$c_files_directory" ]; then
@@ -34,7 +37,7 @@ fi
 # Loop over all .c files in the directory
 for regression_test_file in "$c_files_directory"/*.c; do
 
-    # Extract the base name of the file (without the path and extension)
+    # Extract the base name of the file (without the path nor extension)
     base_name=$(basename "$regression_test_file" .c)
     config_file="$c_files_directory"/"$base_name".json
     yml_file="$c_files_directory"/"$base_name".yml
@@ -66,9 +69,9 @@ for regression_test_file in "$c_files_directory"/*.c; do
     fi
 
     #preprocess the regression test using gcc and parse using Sikraken's parser
-    ./bin/call_parser.sh $c_files_directory "$base_name".c $gcc_flag
+    $SCRIPT_DIR/call_parser.sh $rel_path_c_file $base_name $gcc_flag
     if [ $? -ne 0 ]; then
-        echo "Sikraken regression testing ERROR: Sikraken parsing of $regression_test_file failed"
+        echo "Sikraken regression testing ERROR: Sikraken parsing of $regression_test_file failed using $SCRIPT_DIR/call_parser.sh $rel_path_c_file $base_name $gcc_flag"
         exit 1
     else
         echo "Sikraken successfully parsed $regression_test_file"
@@ -90,8 +93,8 @@ for regression_test_file in "$c_files_directory"/*.c; do
         expected_coverage=$(echo "$config" | jq -r '.expected_coverage')
 
         #generate test inputs
-        eclipse_call="se_main(['/home/chris/Sikraken/', '"$c_files_directory"/', '"$base_name"', main, release, testcomp, '$gcc_flag', regression($restarts, $tries)])"
-        eclipse -f ./SymbolicExecutor/se_main.pl -e "$eclipse_call"
+        eclipse_call="se_main(['$sikraken_install_dir', '"$c_files_directory"/', '"$base_name"', main, release, testcomp, '$gcc_flag', regression($restarts, $tries)])"
+        $SCRIPT_DIR/../bin/eclipse -f $SCRIPT_DIR/../SymbolicExecutor/se_main.pl -e "$eclipse_call"
         if [ $? -ne 0 ]; then
             echo "Sikraken regression testing ERROR: call to ECLiPSe $eclipse_call failed"
             exit 1
@@ -100,7 +103,7 @@ for regression_test_file in "$c_files_directory"/*.c; do
         fi
 
         #validate test inputs
-        testcov_output=$(testcov $testcov_data_model --no-isolation --test-suite "$c_files_directory""/suite-""$base_name"".zip" "$regression_test_file")
+        testcov_output=$(testcov $testcov_data_model --no-isolation --test-suite "$sikraken_install_dir/output/$base_name/suite-""$base_name"".zip" "$regression_test_file")
         if [ $? -ne 0 ]; then
             echo "Sikraken regression testing ERROR: TestCov test inputs validation of $regression_test_file failed"
             exit 1
