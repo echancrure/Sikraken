@@ -4257,7 +4257,7 @@ int main(int argc, char *argv[]) {
 		if (argv[i][0] == '-') {
 			switch (argv[i][1]) {
 			case 'h':
-				printf("Usage: .\\sikraken_parser [OPTION]... [FILE]\nParse a C file to Prolog terms.\n\n-h\t Display help information\n-p\t Path to the .c/.i file (DEFAULT: Current Directory ('.'))\n\nExamples:\n\t.\\sikraken_parser -p\".\" get_sign \n\t.\\sikraken_parser get_sign \n\t.\\sikraken_parser -p\"C:/Parser/\" sign \n");
+				printf("Usage: .\\sikraken_parser [OPTION]... FILE_NO_EXT\nParses the .i file of a C file pre-processsed by GCC to Prolog terms.\n\n-h\t Display help information\n-m32|-m64\t Specify the data model, -m32 is the default\n-p\t Path to the .c/.i file (DEFAULT: Current Directory ('.'))\n\nExamples:\n\t.\\sikraken_parser -p\".\" get_sign \n\t.\\sikraken_parser get_sign \n\t.\\sikraken_parser -m64 -p\"C:/Parser/\" sign \n");
 				my_exit(0);
 			case 'p':	//path to the .i pre-processed input C file
 				if (access_safe(&argv[i][2], 0) == -1) {    //checks if it is a valid directory
@@ -4280,7 +4280,6 @@ int main(int argc, char *argv[]) {
 			}
 		}
 		else {	//must be the filename to analyse
-			argv[i][strlen(argv[i]) - 2] = '\0';	//cut the out ".c"
 			strcpy_safe(filename_no_ext, MAX_PATH, argv[i]);
 		}
 	}

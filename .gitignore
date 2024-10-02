@@ -16,6 +16,7 @@ SampleCode/*.gcov
 test_runs_logs/
 Sikraken.code-workspace
 output/
+sikraken_output/
 SymbolicExecutor/try.pl
 *.gcov
 *.zip
