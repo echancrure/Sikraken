@@ -1,4 +1,5 @@
 Documentation/Sikraken Backlog.gsheet
+eclipse/
 Parser/**
 regression_tests/**/
 regression_tests/*.pl
