@@ -21,3 +21,4 @@ SymbolicExecutor/try.pl
 *.gcov
 *.zip
 trace.log
+regression_tests_run.log

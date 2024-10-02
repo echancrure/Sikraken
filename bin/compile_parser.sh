@@ -3,9 +3,11 @@
 # Script name: compile_parser.sh
 # Get the directory of the script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."
+echo "SIKRAKEN_INSTALL_DIR is $SIKRAKEN_INSTALL_DIR"
 
 # Change the current directory using the script's directory
-cd "$SCRIPT_DIR/../Parser"
+cd "$SIKRAKEN_INSTALL_DIR/Parser"
 
 # Run the flex command
 flex "C_grammar.l"
@@ -30,12 +32,12 @@ else
 fi
 
 # Run the gcc command to compile the generated C code
-gcc -trigraphs "C_grammar.tab.c" -o ./../bin/sikraken_parser.exe
+gcc -trigraphs "C_grammar.tab.c" -o "$SIKRAKEN_INSTALL_DIR/bin/sikraken_parser.exe"
 
 # Check if the gcc command was successful
 if [ $? -ne 0 ]; then
     echo "Error: gcc failed to compile C_grammar.tab.c"
     exit 1
 else
-    echo "gcc successfully compiled C_grammar.tab.c to /bin/sikraken_parser.exe"
+    echo "gcc successfully compiled sikraken_parser to "$SIKRAKEN_INSTALL_DIR/bin/sikraken_parser.exe""
 fi

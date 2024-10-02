@@ -4,7 +4,7 @@
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)" #Get the directory of the script <sikraken_install>/bin
 SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."
-echo "SIKRAKEN_INSTALL_DIR is $SIKRAKEN_INSTALL_DIR"
+echo "Sikraken testcomp wrapper sikraken.sh says: SIKRAKEN_INSTALL_DIR is $SIKRAKEN_INSTALL_DIR"
 
 # we assume the following arguments: <-m32|-m64>  <relative_dir>/<file_name.c>
 # <relative_dir> is relative to <SIKRAKEN_INSTALL_DIR>
