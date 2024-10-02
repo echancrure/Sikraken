@@ -39,7 +39,7 @@
             "command": "${workspaceFolder}/bin/call_parser.sh",
             "args": [
                 "${fileDirname}",
-                "${fileBasename}"
+                "${fileBasenameNoExtension}"
             ],
             "group": {
                 "kind": "build",
@@ -70,8 +70,8 @@
             "type": "shell",
             "command": "/usr/bin/time",
             "args": [
-                "-v"
-                "${workspaceFolder}/bin/run_regression.sh"
+                "-v",
+                "${workspaceFolder}/bin/run_regression.sh",
                 "/home/chris/Sikraken/regression_tests"
             ],
             "group": {
