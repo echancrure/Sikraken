@@ -103,7 +103,7 @@ for regression_test_file in "$c_files_directory"/*.c; do
         fi
 
         #validate test inputs
-        testcov_output=$(testcov $testcov_data_model --no-isolation --test-suite "$SIKRAKEN_INSTALL_DIR/$rel_path_c_file/suite-$base_name.zip" "$regression_test_file")
+        testcov_output=$(testcov $testcov_data_model --no-isolation --test-suite "$SIKRAKEN_INSTALL_DIR/sikraken_output/$base_name/test-suite.zip" "$regression_test_file")
         if [ $? -ne 0 ]; then
             echo "Sikraken regression testing ERROR: TestCov test inputs validation of $regression_test_file failed"
             exit 1

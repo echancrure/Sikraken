@@ -75,7 +75,7 @@ print_test_inputs_testcomp(Labeled_inputs) :-
         print_inputs(R).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %zip the Test_suite_folder for TestCov consumption
-terminate_testcomp:-
+zip_for_testcomp:-
     %mytrace,
     cd('..'),                      %back up the folder
     exec("zip -r test-suite.zip test-suite", []).   %-r means include all files in directory

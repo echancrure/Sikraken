@@ -50,8 +50,8 @@ common_util__error(Error_severity, Error_message, Error_consequences, ArgumentsL
 common_util__error2(10, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode) :-
     !,
     se_globals__get_val('output_mode', Output_mode),
-    ((Output_mode = 'testcomp', se_globals__get_val(testcomp_test_suite_folder, _Test_suite_folder)) ->  %tests have been created, despite failure so we retrieve them before aborting 
-       call(terminate_testcomp) @ eclipse   %rescue tests inputs generated so far before aborting  //bad hack for calling unexported predicate
+    (Output_mode = 'testcomp' ->  %we retrieve them before aborting 
+       call(zip_for_testcomp) @ eclipse   %rescue tests inputs generated so far before aborting  //bad hack for calling unexported predicate
     ;
        true
     ),

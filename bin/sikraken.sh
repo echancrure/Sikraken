@@ -55,5 +55,5 @@ if [ $? -ne 0 ]; then
     echo "Sikraken regression testing ERROR: call to ECLiPSe $eclipse_call failed"
     exit 1
 else
-    echo "Sikraken generated test inputs for $file_name_no_ext"
+    echo "Sikraken generated test inputs for $file_name_no_ext in $SIKRAKEN_INSTALL_DIR/sikraken_output/$file_name_no_ext/"
 fi

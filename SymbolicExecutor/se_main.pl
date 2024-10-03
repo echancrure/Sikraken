@@ -13,7 +13,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %:- set_flag('debug_compile', 'off').   %does not really help 
 :- get_flag(version, '7.1').            %check for valid ECLiPSe version: issue warning only if not 
-%:- set_flag(after_event_timer, virtual). %causes out of range when set to virtual (what you want) but ok for real: checked in tkeclipse and from CLI
+%:- set_flag(after_event_timer, virtual). %causes out of range error when set to virtual (what you want) but ok for real: checked in tkeclipse and from CLI
 
 mytrace.            %call this to start debugging
 :- spy mytrace/0.
@@ -33,7 +33,7 @@ mytrace.            %call this to start debugging
 :- compile(['se_coverage']).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  
-go(Restart, Tries) :- se_main(['/home/chris/Sikraken', '/home/chris/Sikraken/SampleCode','hardness_codestructure_dependencies_file-0', main, release, testcomp, '-m32', Restart, Tries]).
+go(Restart, Tries) :- se_main(['/home/chris/Sikraken', '/home/chris/Sikraken/SampleCode','hardness_codestructure_dependencies_file-0', main, release, testcomp, '-m32', regression(Restart, Tries)]).
 %go1 :- se_main(['/home/chris/Sikraken', '/home/chris/Sikraken/regression_tests','Problem03_label00', main, debug, testcomp, '-m32', budget(50)]).
 go_dev :- se_main(['/home/chris/Sikraken', '/home/chris/Sikraken/SampleCode','atry_bitwise', main, debug, testcomp, '-m32', regression(1, 10)]).
 
@@ -72,34 +72,47 @@ se_main(ArgsL) :-
     print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext),
 
     statistics(event_time, Session_time),
-    setval(start_session_time, Session_time),
-    setval(restart_time, Session_time),
+    setval('start_session_time', Session_time),
+    setval('restart_time', Session_time),
+    setval('log_and_zip', 0),
     %%% where it all happens
     catch(search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code), Any_exception, exception_handler(Any_exception, Output_mode)),
     %%%
-    log_and_zip(Output_mode).
+    (getval('log_and_zip', 'already_ran') ->    %ugly: see exception_handler/2 below when outatime was triggered
+        true
+    ;    
+        log_and_zip(Output_mode)    %to unsure it is only run once
+    ).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_overall_time_out_event :-
+        cancel_after_event('single_test_time_out_exception', _), %to ensure none are left and be triggered later on especially in development mode
         throw('outatime').
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     exception_handler(Exception, Output_mode) :-
         log_and_zip(Output_mode),   %preserve whatever has been generated
+        setval('log_and_zip', 'already_ran'),
         (Exception == 'global_trail_overflow' ->
             common_util__error(10, "!!!!!!!!!!!!!! Stack overflow during search caught", "Review symbolic execution and/or increase initial ECLiPSe stack", [], '10_260924_1', 'se_main', 'se_main', no_localisation, no_extra_info)
         ;
          Exception == 'outatime' ->
-            easter_egg
+            (easter_egg
+             %,throw('abort') %I'd like to exit here but halt and exit(0) also kills tkeclipse in dev mode, and abort returns non-zero error, so instead there is flag to ensure log_and_zip/1 is only called once
+            )
         ;
          Exception == 'abort' ->
             throw('abort')
         ; 
             common_util__error(10, "Unknown exception caught", "Review, investigate and catch it better next time", [('Exception', Exception)], '10_260924_2', 'se_main', 'se_main', no_localisation, no_extra_info)
-
         ).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     log_and_zip(Output_mode) :-
         cancel_after_event('single_test_time_out_exception', _), %to ensure none are left and be triggered later on especially in development mode
         cancel_after_event('overall_generation_time_out', _),    %to ensure none is left and be triggered later on especially in development mode
+        (Output_mode == 'testcomp' ->
+            zip_for_testcomp
+        ;
+            printf(user_output, "\nSUCCESS in non testcomp mode: todo?", [])
+        ),        
         getval(start_session_time, Session_time),
         getval(last_successful_restart_time, Last_successful_restart_time),
         (Last_successful_restart_time == -1 ->
@@ -108,11 +121,6 @@ se_main(ArgsL) :-
             (Total_time is Last_successful_restart_time - Session_time,
              super_util__quick_dev_info("Last succesful restart ended in %w seconds", [Total_time])
             )
-        ),
-        (Output_mode == 'testcomp' ->
-            terminate_testcomp
-        ;
-            printf(user_output, "\nSUCCESS todo?", [])
         ),
         print_test_run_log__terminate.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -467,15 +475,15 @@ print_test_run_log__terminate :-
     close(Test_run_stream).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 easter_egg :-
-    super_util__quick_dev_info("                                                                                                       .         .                          ", []),
-    super_util__quick_dev_info("        ,o888888o.     8 8888      88 8888888 8888888888   .8.    8888888 8888888888  8 8888          ,8.       ,8.          8 8888888888   ", []),
-    super_util__quick_dev_info("     . 8888     `88.   8 8888      88       8 8888        .888.         8 8888        8 8888         ,888.     ,888.         8 8888         ", []),
-    super_util__quick_dev_info("    ,8 8888       `8b  8 8888      88       8 8888       :88888.        8 8888        8 8888        .`8888.   .`8888.        8 8888         ", []),
-    super_util__quick_dev_info("    88 8888        `8b 8 8888      88       8 8888      . `88888.       8 8888        8 8888       ,8.`8888. ,8.`8888.       8 8888         ", []),
-    super_util__quick_dev_info("    88 8888         88 8 8888      88       8 8888     .8. `88888.      8 8888        8 8888      ,8'8.`8888,8^8.`8888.      8 888888888888 ", []),
-    super_util__quick_dev_info("    88 8888         88 8 8888      88       8 8888    .8`8. `88888.     8 8888        8 8888     ,8' `8.`8888' `8.`8888.     8 8888         ", []),
-    super_util__quick_dev_info("    88 8888        ,8P 8 8888      88       8 8888   .8' `8. `88888.    8 8888        8 8888    ,8'   `8.`88'   `8.`8888.    8 8888         ", []),
-    super_util__quick_dev_info("    `8 8888       ,8P  ` 8888     ,8P       8 8888  .8'   `8. `88888.   8 8888        8 8888   ,8'     `8.`'     `8.`8888.   8 8888         ", []),
-    super_util__quick_dev_info("     ` 8888     ,88'     8888   ,d8P        8 8888 .888888888. `88888.  8 8888        8 8888  ,8'       `8        `8.`8888.  8 8888         ", []),
-    super_util__quick_dev_info("        `8888888P'        `Y88888P'         8 8888.8'       `8. `88888. 8 8888        8 8888 ,8'         `         `8.`8888. 8 888888888888 ", []).
+    printf('user_error', "                                                                                                       .         .                          \n", []),
+    printf('user_error', "        ,o888888o.     8 8888      88 8888888 8888888888   .8.    8888888 8888888888  8 8888          ,8.       ,8.          8 8888888888   \n", []),
+    printf('user_error', "     . 8888     `88.   8 8888      88       8 8888        .888.         8 8888        8 8888         ,888.     ,888.         8 8888         \n", []),
+    printf('user_error', "    ,8 8888       `8b  8 8888      88       8 8888       :88888.        8 8888        8 8888        .`8888.   .`8888.        8 8888         \n", []),
+    printf('user_error', "    88 8888        `8b 8 8888      88       8 8888      . `88888.       8 8888        8 8888       ,8.`8888. ,8.`8888.       8 8888         \n", []),
+    printf('user_error', "    88 8888         88 8 8888      88       8 8888     .8. `88888.      8 8888        8 8888      ,8'8.`8888,8^8.`8888.      8 888888888888 \n", []),
+    printf('user_error', "    88 8888         88 8 8888      88       8 8888    .8`8. `88888.     8 8888        8 8888     ,8' `8.`8888' `8.`8888.     8 8888         \n", []),
+    printf('user_error', "    88 8888        ,8P 8 8888      88       8 8888   .8' `8. `88888.    8 8888        8 8888    ,8'   `8.`88'   `8.`8888.    8 8888         \n", []),
+    printf('user_error', "    `8 8888       ,8P  ` 8888     ,8P       8 8888  .8'   `8. `88888.   8 8888        8 8888   ,8'     `8.`'     `8.`8888.   8 8888         \n", []),
+    printf('user_error', "     ` 8888     ,88'     8888   ,d8P        8 8888 .888888888. `88888.  8 8888        8 8888  ,8'       `8        `8.`8888.  8 8888         \n", []),
+    printf('user_error', "        `8888888P'        `Y88888P'         8 8888.8'       `8. `88888. 8 8888        8 8888 ,8'         `         `8.`8888. 8 888888888888 \n\n", []).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
