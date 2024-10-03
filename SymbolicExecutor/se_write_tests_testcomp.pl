@@ -1,19 +1,28 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %create the folder for TestComp format and the metadata file
-print_preamble_testcomp(Parsed_dir) :-
-    se_globals__get_val(target_source_file_name_no_ext, Target_source_file_name_no_ext),
-    concat_atom([Parsed_dir, '/suite-', Target_source_file_name_no_ext], Test_suite_folder),
-    concat_atom([Parsed_dir, '/', Target_source_file_name_no_ext, '.c'], Filename),
+print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext) :-
+    concat_atom([Install_dir, "/sikraken_output/", Target_source_file_name_no_ext], Result_folder),
+    concat_atom([Result_folder, '/test-suite'], Test_suite_folder),
     (exists(Test_suite_folder) ->
-        (concat_atom(['rm -rf ', Test_suite_folder], Delete_call),
-         system(Delete_call)
+        (concat_atom(['rm -rf ', Test_suite_folder], Delete_test_suite_folder_call),
+         system(Delete_test_suite_folder_call)
         )
     ;
         true
     ),
     mkdir(Test_suite_folder),
+    mytrace,
+    concat_atom([Result_folder, '/test-suite.zip'], Zip_filename),
+    (exists(Zip_filename) ->
+        (concat_string(["rm ", Zip_filename], Delete_zip_file_call),
+         exec(Delete_zip_file_call, [])      %delete existing zip archive from a previous run if it exists
+        )
+    ;
+        true
+    ),
     se_globals__set_val(testcomp_test_suite_folder, Test_suite_folder),
-    cd(Test_suite_folder),
+    cd(Test_suite_folder),  %the cwd is now '/sikraken_output/Target_source_file_name_no_ext/testsuite' all read and write commands are from now on 
+    concat_atom([Source_dir, '/', Target_source_file_name_no_ext, '.c'], Target_C_file),
     open('metadata.xml', 'write', 'metadata_stream'),
     printf('metadata_stream', "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n", []),
     printf('metadata_stream', "<!DOCTYPE test-metadata PUBLIC \"+//IDN sosy-lab.org//DTD test-format test-metadata 1.1//EN\" \"https://sosy-lab.org/test-format/test-metadata-1.1.dtd\">\n", []),
@@ -21,12 +30,12 @@ print_preamble_testcomp(Parsed_dir) :-
     printf('metadata_stream', "\t<sourcecodelang>C</sourcecodelang>\n", []),
     printf('metadata_stream', "\t<producer>Sikraken</producer>\n", []),
     printf('metadata_stream', "\t<specification>CHECK( init(main()), FQL(cover EDGES(@DECISIONEDGE)) )</specification>\n", []),
-    printf('metadata_stream', "\t<programfile>%w</programfile>\n", [Filename]),
-    get_hash(Filename, Hash),
+    printf('metadata_stream', "\t<programfile>%w</programfile>\n", [Target_C_file]),
+    get_hash(Install_dir, Target_C_file, Hash),
     printf('metadata_stream', "\t<programhash>%w</programhash>\n", [Hash]),
     printf('metadata_stream', "\t<entryfunction>main</entryfunction>\n", []),
     se_globals__get_val('data_model', Data_model),
-    (Data_model = '-m32' ->
+    (Data_model == '-m32' ->
         Data_model_str = "32bit"
     ;
         Data_model_str = "64bit"
@@ -37,9 +46,8 @@ print_preamble_testcomp(Parsed_dir) :-
     printf('metadata_stream', "</test-metadata>", []),
     close('metadata_stream').
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    get_hash(Filename, Hash) :-
-        se_globals__get_val('install_dir', Install_dir),
-        concat_atom([Install_dir, '/SymbolicExecutor/get_hash.sh ', Filename], Hash_call),
+    get_hash(Install_dir, Target_C_file, Hash) :-
+        concat_atom([Install_dir, '/SymbolicExecutor/get_hash.sh ', Target_C_file], Hash_call),
         exec(Hash_call, [_, 'hash_stream', _]),
         read_string('hash_stream', end_of_line, "", _, Hash),
         close('hash_stream').
@@ -51,8 +59,8 @@ print_preamble_testcomp(Parsed_dir) :-
 %create a new test input vector in foo.xml file
 print_test_inputs_testcomp(Labeled_inputs) :-
     se_globals__get_val('path_nb', Test_nb),
-    concat_atom(['test_input-', Test_nb, '.xml'], Filename),
-    open(Filename, 'write', 'test_input_stream'),
+    concat_atom(['test_input-', Test_nb, '.xml'], Input_vector_filename),
+    open(Input_vector_filename, 'write', 'test_input_stream'),
     printf('test_input_stream', "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n", []),
     printf('test_input_stream', "<!DOCTYPE testcase PUBLIC \"+//IDN sosy-lab.org//DTD test-format testcase 1.1//EN\" \"https://sosy-lab.org/test-format/testcase-1.1.dtd\">\n", []),
     printf('test_input_stream', "<testcase>\n", []),
@@ -66,27 +74,9 @@ print_test_inputs_testcomp(Labeled_inputs) :-
         printf('test_input_stream', "\t<input>%w</input>\n", [Input]),
         print_inputs(R).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%zip the Test_suite_folder directory for TestCov consumption
+%zip the Test_suite_folder for TestCov consumption
 terminate_testcomp:-
     %mytrace,
-    se_globals__get_val(target_source_file_name_no_ext, Target_source_file_name_no_ext),
-    se_globals__get_val(testcomp_test_suite_folder, Test_suite_folder),
-    (Test_suite_folder \= "" ->
-        (cd('..'),   
-         concat_string(["suite-", Target_source_file_name_no_ext, ".zip"], Zip_filename),
-         (exists(Zip_filename) ->
-            (concat_string(["rm ", Zip_filename], Delete_call),
-             exec(Delete_call, [])      %delete existing zip archive if it exists
-            )
-         ;
-            true
-         ),
-         concat_string(["zip -r suite-", Target_source_file_name_no_ext, ".zip ", Test_suite_folder], Zip_call),
-         exec(Zip_call, [])
-        )
-    ;
-        (%no tests at all have been generated: we issue a warning
-         common_util__error(9, "WARNING: no test were created", "Check this is not an error", [], '09_270824_1', 'se_main', 'terminate_testcomp', no_localisation, no_extra_info)
-        )
-    ).
+    cd('..'),                      %back up the folder
+    exec("zip -r test-suite.zip test-suite", []).   %-r means include all files in directory
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

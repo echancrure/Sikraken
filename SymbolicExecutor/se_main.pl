@@ -33,12 +33,12 @@ mytrace.            %call this to start debugging
 :- compile(['se_coverage']).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  
-go(Restart, Tries) :- se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/','hardness_codestructure_dependencies_file-0', main, release, testcomp, '-m32', Restart, Tries]).
-%go1 :- se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/regression_tests/','Problem03_label00', main, debug, testcomp, '-m32', budget(50)]).
-go_dev :- se_main(['/home/chris/Sikraken/', '/home/chris/Sikraken/SampleCode/','atry_bitwise', main, debug, testcomp, '-m32', regression(1, 10)]).
+go(Restart, Tries) :- se_main(['/home/chris/Sikraken', '/home/chris/Sikraken/SampleCode','hardness_codestructure_dependencies_file-0', main, release, testcomp, '-m32', Restart, Tries]).
+%go1 :- se_main(['/home/chris/Sikraken', '/home/chris/Sikraken/regression_tests','Problem03_label00', main, debug, testcomp, '-m32', budget(50)]).
+go_dev :- se_main(['/home/chris/Sikraken', '/home/chris/Sikraken/SampleCode','atry_bitwise', main, debug, testcomp, '-m32', regression(1, 10)]).
 
 se_main(ArgsL) :-
-    (ArgsL = [Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Search_algo] ->
+    (ArgsL = [Install_dir, Source_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Search_algo] ->
         true
     ;
         common_util__error(10, "Calling se_main/? with invalid argument list", "Review calling syntax of se_main/?", [], '10_240824_1', 'se_main', 'se_main', no_localisation, no_extra_info)
@@ -67,9 +67,9 @@ se_main(ArgsL) :-
     print_test_run_log__preamble(ArgsL),
     initialise_ptc_solver,
     capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
-    read_parsed_file(Parsed_dir, Target_source_file_name_no_ext, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors
+    read_parsed_file(Install_dir, Target_source_file_name_no_ext, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors
     symbolic_execute(Parsed_prolog_code, _),   %always symbolically execute all global declarations for now: initialisations could be ignored via a switch if desired
-    print_preamble_testcomp(Parsed_dir),
+    print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext),
 
     statistics(event_time, Session_time),
     setval(start_session_time, Session_time),
@@ -325,8 +325,8 @@ initialise_ptc_solver :-
     se_globals__get_val('data_model', Data_model),
     ptc_solver__default_declarations(Data_model).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-read_parsed_file(Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, CProlog, Main, Target_subprogram_var) :-
-    concat_atom([Parsed_dir, '/', Target_source_file_name_no_ext, '.pl'], Parsed_filename),
+read_parsed_file(Install_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, CProlog, Main, Target_subprogram_var) :-
+    concat_atom([Install_dir, '/sikraken_output/', Target_source_file_name_no_ext, '/', Target_source_file_name_no_ext, '.pl'], Parsed_filename),
     (exists(Parsed_filename) ->
         (open(Parsed_filename, read, Stream),
          read_term(Stream, CProlog, [variable_names(VarsNames)]) ->
@@ -417,7 +417,7 @@ print_test_outputs([SEAV|R]) :-
     print_test_outputs(R).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 print_test_run_log__preamble(ArgsL) :-
-    ArgsL = [Install_dir, Parsed_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Budget],
+    ArgsL = [Install_dir, Source_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Budget],
     get_flag('unix_time', Time), 
     local_time_string(Time, "%Y_%m_%d_%H_%M_%S", Timestamp),
     concat_string([Install_dir, "/SikrakenDevSpace/experiments/test_run_logs/test_run_", Target_source_file_name_no_ext, "_", Timestamp, ".txt"], Test_run_filename),
@@ -443,7 +443,7 @@ print_test_run_log__preamble(ArgsL) :-
     printf('test_run_stream', "\tTests inputs target format:\t%w\n", [Output_mode]),
     printf('test_run_stream', "\tTarget data model:\t%w\n", [Data_model]),
     printf('test_run_stream', "\tTarget function:\t%w\n", [Target_raw_subprogram_name]),   
-    printf('test_run_stream', "\tTarget C file:\t%w (in folder:%w)\n", [Target_source_file_name_no_ext, Parsed_dir]),
+    printf('test_run_stream', "\tTarget C file:\t%w (in folder:%w)\n", [Target_source_file_name_no_ext, Source_dir]),
     printf('test_run_stream', "\tTime budget:\t\t%w\n", [Budget]),
     close('test_run_stream').
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -478,3 +478,4 @@ easter_egg :-
     super_util__quick_dev_info("    `8 8888       ,8P  ` 8888     ,8P       8 8888  .8'   `8. `88888.   8 8888        8 8888   ,8'     `8.`'     `8.`8888.   8 8888         ", []),
     super_util__quick_dev_info("     ` 8888     ,88'     8888   ,d8P        8 8888 .888888888. `88888.  8 8888        8 8888  ,8'       `8        `8.`8888.  8 8888         ", []),
     super_util__quick_dev_info("        `8888888P'        `Y88888P'         8 8888.8'       `8. `88888. 8 8888        8 8888 ,8'         `         `8.`8888. 8 888888888888 ", []).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

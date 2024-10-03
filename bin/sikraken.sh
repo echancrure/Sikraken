@@ -47,7 +47,7 @@ fi
 echo "Successfully preprocessed $rel_path_c_file and ran sikraken_parser."
 
 # Call the symbolic executor via ECLiPSe
-eclipse_call="se_main(['$SIKRAKEN_INSTALL_DIR', '$output_dir', '$file_name_no_ext', main, release, testcomp, '$gcc_flag', budget(30)])"
+eclipse_call="se_main(['$SIKRAKEN_INSTALL_DIR', '$output_dir', '$file_name_no_ext', main, release, testcomp, '$data_model', budget(30)])"
 $SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e "$eclipse_call"
 
 # check if test generation was successful

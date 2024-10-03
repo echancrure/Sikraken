@@ -22,3 +22,4 @@ SymbolicExecutor/try.pl
 *.zip
 trace.log
 regression_tests_run.log
+instrumented*
