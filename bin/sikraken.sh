@@ -88,5 +88,5 @@ if [ $? -ne 0 ]; then
     exit 1
 else
     echo "Sikraken wrapper generated test inputs for $file_name_no_ext in $SIKRAKEN_INSTALL_DIR/sikraken_output/$file_name_no_ext/"
-    echo "Sikraken wrapper says: run the tests with: testcov --no-isolation $testcov_data_model --test-suite ./sikraken_output/$file_name_no_ext/test-suite.zip $3"
+    echo "Sikraken wrapper says, now run: ./bin/run_testcov.sh $rel_path_c_file $testcov_data_model"
 fi
