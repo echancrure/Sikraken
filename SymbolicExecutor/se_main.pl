@@ -55,7 +55,7 @@ se_main(ArgsL) :-
     ;
      Search_algo = budget(Raw_budget) ->    %for blind, testcomp, testing
         ((Raw_budget == 900 ->  %we are in testcomp mode
-            Budget = 890    %to allow for initial script, interrupts (system calls, stream) and zipping; if zipping is not need for Test-Comp you can increase this
+            Budget = 890        %to allow for initial script, interrupts (system calls, stream)
          ;
             Budget = Raw_budget %it's just used as an indication
          ),
@@ -80,55 +80,60 @@ se_main(ArgsL) :-
     statistics(event_time, Session_time),
     setval('start_session_time', Session_time),
     setval('restart_time', Session_time),
-    setval('log_and_zip', 0),
+    %setval('log_and_terminate', 0),
     %%% where it all happens
-    catch(search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code), Any_exception, exception_handler(Any_exception, Output_mode)),
+    catch(search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code), Any_exception, exception_handler(Any_exception)),
     %%%
-    (getval('log_and_zip', 'already_ran') ->    %ugly: see exception_handler/2 below when outatime was triggered
-        true
-    ;    
-        log_and_zip(Output_mode)    %to unsure it is only run once
-    ).
+    log_and_terminate.   %only run once 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_overall_time_out_event :-
         cancel_after_event('single_test_time_out_exception', _), %to ensure none are left and be triggered later on especially in development mode
         throw('outatime').
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    exception_handler(Exception, Output_mode) :-
-        log_and_zip(Output_mode),   %preserve whatever has been generated
-        setval('log_and_zip', 'already_ran'),
-        (Exception == 'global_trail_overflow' ->
-            common_util__error(10, "!!!!!!!!!!!!!! Stack overflow during search caught", "Review symbolic execution and/or increase initial ECLiPSe stack", [], '10_260924_1', 'se_main', 'se_main', no_localisation, no_extra_info)
+    exception_handler(Exception) :-
+        (Exception == 'outatime' ->
+            easter_egg
         ;
-         Exception == 'outatime' ->
-            (easter_egg
-             %,throw('abort') %I'd like to exit here but halt and exit(0) also kills tkeclipse in dev mode, and abort returns non-zero error, so instead there is flag to ensure log_and_zip/1 is only called once
+            (Exception == 'global_trail_overflow' ->
+                (get_flag('max_global_trail', Max),
+                 MB is (Max div 1024) div 1024,
+                 common_util__error(10, "!!!Global/Trail stack overflow during search caught", "Review symbolic execution and/or increase initial ECLiPSe stack using -g", [('Curent Max global/trail stack in MB is', MB)], '10_260924_1', 'se_main', 'se_main', no_localisation, no_extra_info)
+                )
+            ;
+             Exception == 'local_control_overflow ' ->
+                (get_flag('max_local_control', Max),
+                 MB is (Max div 1024) div 1024,
+                 common_util__error(10, "!!!Local/Control stack overflow during search caught", "Review symbolic execution and/or increase initial ECLiPSe stack using -l", [('Curent Max local/control stack in MB is', MB)], '10_051024_1', 'se_main', 'se_main', no_localisation, no_extra_info)
+                )
+            ;
+             Exception == 'abort' ->
+                (log_and_terminate,
+                 throw('abort')
+                )
+            ; 
+                common_util__error(10, "Unknown exception caught", "Review, investigate and catch it better next time", [('Exception', Exception)], '10_260924_2', 'se_main', 'se_main', no_localisation, no_extra_info)
             )
-        ;
-         Exception == 'abort' ->
-            throw('abort')
-        ; 
-            common_util__error(10, "Unknown exception caught", "Review, investigate and catch it better next time", [('Exception', Exception)], '10_260924_2', 'se_main', 'se_main', no_localisation, no_extra_info)
         ).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    log_and_zip(Output_mode) :-
+    log_and_terminate :-
         cancel_after_event('single_test_time_out_exception', _), %to ensure none are left and be triggered later on especially in development mode
-        cancel_after_event('overall_generation_time_out', _),    %to ensure none is left and be triggered later on especially in development mode
-        (Output_mode == 'testcomp' ->
-            zip_for_testcomp
+        cancel_after_event('overall_generation_time_out', _),    %to ensure none is left and be triggered later on especially in development mode            
+        (fail -> %getval('log_and_terminate', 'already_ran') ->    %ugly: see exception_handler/2 below when outatime was triggered
+            true
         ;
-            printf(user_output, "\nSUCCESS in non testcomp mode: todo?", [])
-        ),        
-        getval(start_session_time, Session_time),
-        getval(last_successful_restart_time, Last_successful_restart_time),
-        (Last_successful_restart_time == -1 ->
-            super_util__quick_dev_info("No complete restart", [] )
-        ;
-            (Total_time is Last_successful_restart_time - Session_time,
-             super_util__quick_dev_info("Last succesful restart ended in %w seconds", [Total_time])
+            (setval('log_and_terminate', 'already_ran'),
+             getval(start_session_time, Session_time),
+             getval(last_successful_restart_time, Last_successful_restart_time),
+             (Last_successful_restart_time == -1 ->
+                super_util__quick_dev_info("No complete restart", [] )
+             ;
+                (Total_time is Last_successful_restart_time - Session_time,
+                 super_util__quick_dev_info("Last succesful restart ended in %w seconds", [Total_time])
+                )
+             ),
+             print_test_run_log__terminate
             )
-        ),
-        print_test_run_log__terminate.
+        ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
     set_event_handler('single_test_time_out_event', handle_single_test_time_out_event/0),
@@ -445,12 +450,15 @@ print_test_run_log__preamble(ArgsL) :-
     get_flag('debug_compile', Debug_compile),
     get_flag('debugging', Debugging),
     get_flag('max_local_control', Max_local_control), 
-    Max_local_control_in_MB is fix((Max_local_control / 1024) / 1024),
+    Max_local_control_in_MB is (Max_local_control div 1024) div 1024,
+    get_flag('max_global_trail', Max_global_trail), 
+    Max_global_trail_in_MB is (Max_global_trail div 1024) div 1024,
     get_flag('version', Version), 
     printf('test_run_stream', "\tECLiPSe version:\t%w\n", [Version]),
     printf('test_run_stream', "\tdebug_compile:\t\t%w\n", [Debug_compile]),
     printf('test_run_stream', "\tdebugging:\t\t\t%w\n", [Debugging]),
-    printf('test_run_stream', "\tCalculated maximum allowed local/control user stack:\t%wMB\n", [Max_local_control_in_MB]),
+    printf('test_run_stream', "\tMaximum allowed local/control user stack (-l option):\t%wMB\n", [Max_local_control_in_MB]),
+    printf('test_run_stream', "\tMaximum allowed global/trail user stack (-g option):\t%wMB\n", [Max_global_trail_in_MB]),
     printf('test_run_stream', "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
     printf('test_run_stream', "Sikraken Session Configurations at: %w\n", [Timestamp]),
     printf('test_run_stream', "\tRun mode:\t%w\n", [Debug_mode]),

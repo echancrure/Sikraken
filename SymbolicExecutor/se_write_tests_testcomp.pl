@@ -74,9 +74,3 @@ print_test_inputs_testcomp(Labeled_inputs) :-
         printf('test_input_stream', "\t<input>%w</input>\n", [Input]),
         print_inputs(R).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%zip the Test_suite_folder for TestCov consumption
-zip_for_testcomp:-
-    %mytrace,
-    cd('..'),                      %back up the folder
-    exec("zip -r test-suite.zip test-suite", []).   %-r means include all files in directory
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

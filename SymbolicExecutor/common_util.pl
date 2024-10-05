@@ -49,12 +49,6 @@ common_util__error(Error_severity, Error_message, Error_consequences, ArgumentsL
 
 common_util__error2(10, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode) :-
     !,
-    se_globals__get_val('output_mode', Output_mode),
-    (Output_mode = 'testcomp' ->  %we retrieve them before aborting 
-       call(zip_for_testcomp) @ eclipse   %rescue tests inputs generated so far before aborting  //bad hack for calling unexported predicate
-    ;
-       true
-    ),
     (Message_mode == debug ->
             (printf(user_error, "###################################%n", []),
              printf(user_error, "=>Sikraken: a fatal error has occurred%n", []),
@@ -90,8 +84,7 @@ common_util__error2(10, Error_message, Error_consequences, ArgumentsL, Error_cod
              printf(user_error, "            To help debugging, path information prior to error follows ...%n", []),
              se_globals__get_ref('current_path_bran', Current_path_bran),
              printf(user_error, "            Branches followed prior to error : %w%n", [Current_path_bran]),
-             printf(user_error, "###################################%n", []),
-             abort
+             printf(user_error, "###################################%n", [])
             )
     ;
             (printf(user_error, "%2n###################################%n", []),
@@ -106,10 +99,12 @@ common_util__error2(10, Error_message, Error_consequences, ArgumentsL, Error_cod
                     )
              ),
              printf(user_error, "=>Report error to echancrure@gmail.com to have it addressed.%n", []),
-             printf(user_error, "###################################%n", []),
-             exit(1)
+             printf(user_error, "###################################%n", [])
             )
-    ).
+    ),
+    log_and_terminate @ eclipse,
+    flush(user_error),
+    abort.
 
 common_util__error2(0, Error_message, Error_consequences, ArgumentsL, _Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode) :-
     !,
