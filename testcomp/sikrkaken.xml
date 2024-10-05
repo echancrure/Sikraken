@@ -6,8 +6,7 @@
 
   <require cpuModel="Intel Xeon E3-1230 v5 @ 3.40 GHz"/>
 
-  <!-- guessing a little here -->
-  <resultfiles>**/sikraken_output/**/test-suite</resultfiles>
+  <resultfiles>**/test-suite</resultfiles>
 
   <!-- why here and not in BenchExec tool-info: I don't know; it would be simpler -->
   <!-- the order is important so we pass all arguments as a single string -->

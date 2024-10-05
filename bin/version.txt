@@ -2,7 +2,7 @@
 
 *****Version 1.0.0*****
 October 2024
-  Initial release
+  Initial release for Test-Comp 2025
 
 *****Version 0.0.0*****
 14 June 2024

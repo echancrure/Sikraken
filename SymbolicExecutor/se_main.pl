@@ -38,6 +38,7 @@ go(Restart, Tries) :- se_main(['/home/chris/Sikraken', '/home/chris/Sikraken/Sam
 go_dev :- se_main(['/home/chris/Sikraken', '/home/chris/Sikraken/SampleCode','atry_bitwise', main, debug, testcomp, '-m32', regression(1, 10)]).
 
 se_main(ArgsL) :-
+    %set_flag('gc_policy', 'fixed'),
     (ArgsL = [Install_dir, Source_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Search_algo] ->
         true
     ;
@@ -52,8 +53,13 @@ se_main(ArgsL) :-
          super_util__quick_dev_info("Analysing %w with %w restarts and %w tries", [Target_source_file_name_no_ext, Restarts, Tries])
         )
     ;
-     Search_algo = budget(Budget) ->    %for blind, testcomp, testing
-        (setval('nb_restarts', 1e99),   %infinite restarts and tries allowed
+     Search_algo = budget(Raw_budget) ->    %for blind, testcomp, testing
+        ((Raw_budget == 900 ->  %we are in testcomp mode
+            Budget = 890    %to allow for initial script, interrupts (system calls, stream) and zipping; if zipping is not need for Test-Comp you can increase this
+         ;
+            Budget = Raw_budget %it's just used as an indication
+         ),
+         setval('nb_restarts', 1e99),   %infinite restarts and tries allowed
          setval('nb_tries', 1e99),    
          First_single_test_time_out is Budget / 10,
          super_util__quick_dev_info("Analysing %w with a budget of %w seconds.", [Target_source_file_name_no_ext, Budget])
