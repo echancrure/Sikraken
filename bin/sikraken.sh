@@ -1,21 +1,37 @@
 #!/bin/bash
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)" #Get the directory of the script <sikraken_install>/bin
+SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."
+VERSION_FILE="$SIKRAKEN_INSTALL_DIR/bin/version.txt"
+
+if [ $1 == "-v" ]; then
+    if [[ -f "$VERSION_FILE" ]]; then
+        version=$(head -n 1 "$VERSION_FILE") # Read the first line of version.txt
+        echo "$version"
+        exit 0
+    else
+        echo "Error: $VERSION_FILE not found."
+        exit 1
+    fi
+fi
 
 # top-level command for testcomp: parses and generate test inputs for one file file foo.c
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)" #Get the directory of the script <sikraken_install>/bin
-SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."
 echo "Sikraken wrapper sikraken.sh says: SIKRAKEN_INSTALL_DIR is $SIKRAKEN_INSTALL_DIR"
 
-# we assume the following arguments: <-m32|-m64>  <relative_dir>/<file_name.c>
 # <relative_dir> is relative to <SIKRAKEN_INSTALL_DIR>
 
 # Ensure we have exactly 4 arguments
 if [ $# -ne 4 ]; then
-    echo "Sikraken wrapper sikraken.sh says usage: $0 <-m32|-m64>  <debug|release> <relative_dir>/<file_name.c> \"budget(<Seconds>)|regression(<Restarts>, <Tries>)\""
+    echo "Sikraken wrapper sikraken.sh says usage (respect the order): $0 <debug|release> budget[<Seconds>]|regression[<Restarts>, <Tries>] <-m32|-m64> <relative_dir>/<file_name.c>"
     exit 1
 fi
 
-data_model="$1"                         #e.g. -m32
+debug_mode="$1"
+algo="$2"
+algo=${algo/\[/\(}  # Replace the first occurrence of [ with (
+algo=${algo/\]/\)}  # Replace the first occurrence of ] with )
+
+data_model="$3"                         #e.g. -m32
 if [ "$data_model" == "-m32" ]; then
         testcov_data_model="-32"
     elif [ "$data_model" == "-m64" ]; then
@@ -24,9 +40,9 @@ if [ "$data_model" == "-m32" ]; then
         echo "Sikraken wrapper ERROR: Unsupported data model: $data_model"
         exit 1
 fi
-debug_mode="$2"
-rel_path_c_file="$3"                    #e.g. ./../SampleCode/atry_bitwise.c
-algo="$4"
+
+rel_path_c_file="$4"                    #e.g. ./../SampleCode/atry_bitwise.c
+
 full_path_c_file="$SIKRAKEN_INSTALL_DIR/$rel_path_c_file"    #e.g. /home/chris/Sikraken/SampleCode/atry_bitwise.c
 
 file_name_no_ext=$(basename "$rel_path_c_file" .c)
