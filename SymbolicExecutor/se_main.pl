@@ -439,9 +439,9 @@ print_test_run_log__preamble(ArgsL) :-
     ArgsL = [Install_dir, Source_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Budget],
     get_flag('unix_time', Time), 
     local_time_string(Time, "%Y_%m_%d_%H_%M_%S", Timestamp),
-    concat_string([Install_dir, "/SikrakenDevSpace/experiments/test_run_logs/test_run_", Target_source_file_name_no_ext, "_", Timestamp, ".txt"], Test_run_filename),
+    concat_string([Install_dir, '/sikraken_output/', Target_source_file_name_no_ext, "/test_run_", Target_source_file_name_no_ext, ".log"], Test_run_filename),
     setval('test_run_filename', Test_run_filename), 
-    open(Test_run_filename, 'write', 'test_run_stream'),
+    open(Test_run_filename, 'write', 'test_run_stream'),    %the directory must exist otherwise open/3 aborts
     printf('test_run_stream', "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
     printf('test_run_stream', "Sikraken Test Inputs Generation Run Log\n", []),
     printf('test_run_stream', "Raw Arguments:\t%w\n", [ArgsL]),
