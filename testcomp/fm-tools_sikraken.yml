@@ -21,7 +21,7 @@ versions:
   - version: "1.0.0"   
     benchexec_toolinfo_options: ["release budget[900]"]
     required_ubuntu_packages: []
-    doi: "TODO"
+    doi: "10.5281/zenodo.13900207"
 
 competition_participations:
   - competition: "Test-Comp 2025"
