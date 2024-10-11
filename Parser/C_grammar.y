@@ -2,6 +2,9 @@
 /* C11 grammar file from https://www.quut.com/c/ANSI-C-grammar-y.html								*/
 /* Bison documentation: https://www.gnu.org/software/bison/manual/html_node/index.html              */
 /****************************************************************************************************/
+
+%define parse.error verbose
+
 %{
 #ifdef _MSC_VER
 	#include <io.h>
@@ -1271,10 +1274,17 @@ int main(int argc, char *argv[]) {
 }
 
 
-//handles parsing errors: since the C input file is the output of a C pre-processor it is unlikely to be every called
-//in fact it is only useful if the syntax rules are wrong or if .i file has been generated manually: i.e. during development
+//handles parsing errors: since the C input file is the output of a C pre-processor it will only be called if
+//  the syntax rules are wrong due to GCC extensions 
+//  or if .i file has been generated manually: i.e. during development
 void yyerror(const char* s) {
-	fprintf(stderr, "Internal parsing error, yyerror called on line %d with message \"%s\" on token %d\n", yylineno, s, yychar);
+	extern char* yytext;  	// Points to the text of the current token
+    extern int yyleng;    	// Length of the current token
+    const char* token_name = (yychar >= 0 && yychar < YYNTOKENS) ? yytname[yychar] : "unknown token";
+    
+    fprintf(stderr, "Sikraken Parsing error: %s, at line %d, near token '%s' (token code: %d)\n", s, yylineno, yytext, yychar);
+    fprintf(stderr, "Problematic token: '%.*s'\n", yyleng, yytext);
+	fprintf(stderr, "Unexpected token: %s\n", token_name); 
 }
 
 void my_exit(int exit_code) {			//exits and performs some tidying up if not in debug mode
