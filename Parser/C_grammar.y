@@ -92,7 +92,7 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 %type <id> static_assert_declaration
 %type <id> enum_specifier enumerator_list enumerator
 %type <id> parameter_type_list parameter_list parameter_declaration
-%type <id> expression_statement expression_opt
+%type <id> expression_statement expression_opt for_stmt_type
 
 %start translation_unit 
 
@@ -1128,7 +1128,7 @@ block_item			//printed out
 expression_statement
 	: ';'	{simple_str_lit_copy(&$$, "stmt([])");}
 	| expression ';'
-		{size_t const size = strlen("\nstmt(%s)") + strlen($1) + 1;
+		{size_t const size = strlen("\nstmt()") + strlen($1) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "\nstmt(%s)", $1);
 		 free($1);
@@ -1153,7 +1153,7 @@ selection_statement		//printed out
 	;
 
 else_opt	//printed out
-	:	/* empty */								%prec LOWER_THAN_ELSE
+	:	/* empty */		%prec LOWER_THAN_ELSE
 	| ELSE {fprintf(pl_file, ", ");} statement
 
 iteration_statement	//printed out
@@ -1165,18 +1165,22 @@ iteration_statement	//printed out
 	  	{fprintf(pl_file, ")");
 		}
 	| DO {fprintf(pl_file, "\ndo_while_stmt(");} statement WHILE '(' expression ')' ';' {fprintf(pl_file, ", %s)", $6); free($6);}
-	| FOR '(' {fprintf(pl_file, "\nfor_stmt(");} for_stmt_type ')' {fprintf(pl_file, ", ");} statement {fprintf(pl_file, ")");}
+	| FOR '(' {fprintf(pl_file, "\nfor_stmt(");} for_stmt_type ')' {fprintf(pl_file, "%s, ", $4); free($4);} statement {fprintf(pl_file, ")");}
 	;
 
-for_stmt_type 		//printed out
+for_stmt_type
 	: expression_statement expression_statement expression_opt 
-	  {fprintf(pl_file, "%s, %s %s", $1, $2, $3);
+	  {size_t const size = strlen(",  ") + strlen($1) + strlen($2) + strlen($3) +1;
+	   $$ = (char*)malloc(size);
+	   sprintf_safe($$, size, "%s, %s %s", $1, $2, $3);
 	   free($1);
 	   free($2);
 	   free($3);
 	  }
 	| declaration expression_statement expression_opt
-	  {fprintf(pl_file, ", %s %s", $2, $3);
+	  {size_t const size = strlen(",  ") + strlen($2) + strlen($3) +1;
+	   $$ = (char*)malloc(size);
+	   sprintf_safe($$, size, ", %s %s", $2, $3);
 	   free($2);
 	   free($3);
 	  }
