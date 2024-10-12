@@ -55,8 +55,8 @@ WS  [ \t\v\n\f]
 "/*"                                        { read_comment(); }
 "//".*                                      { /* consume //-comment */ }
 
-"__attribute__"[ ]*\([ ]*\([^)]*\)[ ]*\)      { /* Pattern to ignore GCC __attribute__ */ }
-
+"__attribute__"[ ]*\([ ]*\([^)]*\)[ ]*\)    { /* Ignoring all GCC __attribute__ at our peril obviously */ }
+"__extension__"                             { /* Ignoring GCC keyword __extension__ that disables compiler warnings about non-compliant features */ }
 "auto"					{ return(AUTO); }
 "break"					{ return(BREAK); }
 "case"					{ return(CASE); }
@@ -102,6 +102,7 @@ WS  [ \t\v\n\f]
 "_Noreturn"                             { return NORETURN; }
 "_Static_assert"                        { return STATIC_ASSERT; }
 "_Thread_local"                         { return THREAD_LOCAL; }
+"__PRETTY_FUNCTION__"                   { return FUNC_NAME; } //__PRETTY_FUNCTION__ is a GCC extension: an enhanced version of __func__; which we ignore 
 "__func__"                              { return FUNC_NAME; }
 
 {L}{A}*                     {yylval.id = strdup_safe(yytext);
@@ -111,7 +112,7 @@ WS  [ \t\v\n\f]
                               return IDENTIFIER;
                             }
 
-{HP}{H}+{IS}?				{wrap_integer_constants("16'", &yytext[2], &yylval.id);     // hexadecimal integer
+{HP}{H}+{IS}?				{wrap_integer_constants("16'", &yytext[2], &yylval.id);     //hexadecimal integer
                              return I_CONSTANT;
                             }
 {NZ}{D}*{IS}?				{wrap_integer_constants("", yytext, &yylval.id);            //decimal integer

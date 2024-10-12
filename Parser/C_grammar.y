@@ -118,6 +118,13 @@ primary_expression
 		}
 	| constant		{simple_str_copy(&$$, $1);}
 	| string		{simple_str_copy(&$$, $1);}
+	| '(' 
+			{fprintf(pl_file, "\nstmt_exp(");}	//GCC Statement expression start ( compound_statement )
+	   compound_statement 						//already printed out in parsed file
+	  ')'
+	  		{fprintf(pl_file, ")");				//closing stmt_exp
+	   		 simple_str_lit_copy(&$$, "");		//because we have to return something into $$ 
+	  		}
 	| '(' expression ')'	
 		{size_t const size = strlen("()") + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
@@ -1098,12 +1105,10 @@ labeled_statement	//printed out
 compound_statement	//printed out	//aka a 'block'
 	: '{' '}' {fprintf(pl_file, "\ncmp_stmts([])");}
 	| '{' 
-		{fprintf(pl_file, "\ncmp_stmts([");
-		} 
+			{fprintf(pl_file, "\ncmp_stmts([");} 
 	   block_item_list 
 	  '}' 
-		{fprintf(pl_file, "\n])");
-		}
+			{fprintf(pl_file, "\n])");}
 	;
 
 block_item_list		//printed out
@@ -1272,7 +1277,6 @@ int main(int argc, char *argv[]) {
 	i_file = NULL;
 	my_exit(EXIT_SUCCESS);
 }
-
 
 //handles parsing errors: since the C input file is the output of a C pre-processor it will only be called if
 //  the syntax rules are wrong due to GCC extensions 

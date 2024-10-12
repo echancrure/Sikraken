@@ -1,6 +1,6 @@
 void reach_error() { 
     ((void) sizeof ((0) ? 1 : 0), 
-    //__extension__ 
+    __extension__ 
     ({ 
         if (0) 
         ; 
