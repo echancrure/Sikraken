@@ -92,7 +92,7 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 %type <id> static_assert_declaration
 %type <id> enum_specifier enumerator_list enumerator
 %type <id> parameter_type_list parameter_list parameter_declaration
-%type <id> expression_statement expression_opt for_stmt_type
+%type <id> expression_statement expression_opt for_stmt_type jump_statement
 
 %start translation_unit 
 
@@ -1092,7 +1092,10 @@ statement	//printed out
 		} 
 	| selection_statement	//already printed out
 	| iteration_statement	//already printed out
-	| jump_statement		//already printed out
+	| jump_statement
+		{fprintf(pl_file, "%s", $1); 
+		 free($1);
+		} 
 	;
 
 labeled_statement	//printed out
@@ -1190,12 +1193,25 @@ expression_opt
 	:  /* empty */	{simple_str_lit_copy(&$$, "");}
 	| expression {$$ = $1;}
 
-jump_statement		//printed out
-	: GOTO IDENTIFIER ';'	{fprintf(pl_file, "\ngoto_stmt(%s)\n", $2); free($2);}
-	| CONTINUE ';'			{fprintf(pl_file, "\ncontinue_stmt\n");}
-	| BREAK ';'				{fprintf(pl_file, "\nbreak_stmt\n");}
-	| RETURN ';'			{fprintf(pl_file, "\nreturn_stmt\n");}
-	| RETURN expression ';'	{fprintf(pl_file, "\nreturn_stmt(%s)\n", $2); free($2);}
+jump_statement
+	: GOTO IDENTIFIER ';'
+	  {size_t const size = strlen("\ngoto_stmt()\n") + strlen($2) + 1;
+	   $$ = (char*)malloc(size);
+	   sprintf_safe($$, size, "\ngoto_stmt(%s)\n", $2);
+	   free($2);
+	  }
+	| CONTINUE ';'
+	  {simple_str_lit_copy(&$$, "\ncontinue_stmt\n");}
+	| BREAK ';'
+	  {simple_str_lit_copy(&$$, "\nbreak_stmt\n");}
+	| RETURN ';'
+	  {simple_str_lit_copy(&$$, "\nreturn_stmt\n");}
+	| RETURN expression ';'
+	  {size_t const size = strlen("\nreturn_stmt()\n") + strlen($2) + 1;
+	   $$ = (char*)malloc(size);
+	   sprintf_safe($$, size, "\nreturn_stmt(%s)\n", $2);
+	   free($2);
+	  }
 	;
 
 //top level rule
