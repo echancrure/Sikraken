@@ -93,6 +93,7 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 %type <id> enum_specifier enumerator_list enumerator
 %type <id> parameter_type_list parameter_list parameter_declaration
 %type <id> expression_statement expression_opt for_stmt_type jump_statement
+%type <id> declaration declaration_list_opt declaration_list
 
 %start translation_unit 
 
@@ -501,19 +502,25 @@ constant_expression
 
 declaration
 	: declaration_specifiers ';'
-		{fprintf(pl_file, "\ndeclaration([%s])", $1);
+		{size_t const size = strlen("\ndeclaration([])") + strlen($1) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_safe($$, size, "\ndeclaration([%s])", $1);
 		 free($1);
 		}
 	| declaration_specifiers init_declarator_list ';' 
 	  	{if (typedef_flag == 1) {	//we were processing typedef declarations
 	    	typedef_flag = 0;
 	   	 }
-	     fprintf(pl_file, "\ndeclaration([%s], [%s])", $1, $2);
-	     free($1);
-	     free($2);
-	  }
+		 size_t const size = strlen("\ndeclaration([], [])") + strlen($1) + strlen($2) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_safe($$, size, "\ndeclaration([%s], [%s])", $1, $2);
+		 free($1);
+		 free($2);
+		}
 	| static_assert_declaration
-		{fprintf(pl_file, "\n%s", $1);
+		{size_t const size = strlen("\n") + strlen($1) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_safe($$, size, "\n%s", $1);
 		 free($1);
 		}
 	;
@@ -1124,7 +1131,7 @@ block_item_list		//printed out
 	;
 
 block_item			//printed out
-	: declaration	//printed out already
+	: declaration	{fprintf(pl_file, "%s", $1); free($1);}
 	| statement		//printed out already
 	;
 
@@ -1181,9 +1188,10 @@ for_stmt_type
 	   free($3);
 	  }
 	| declaration expression_statement expression_opt
-	  {size_t const size = strlen(",  ") + strlen($2) + strlen($3) +1;
+	  {size_t const size = strlen(",  ") + strlen($1) + strlen($2) + strlen($3) + 1;
 	   $$ = (char*)malloc(size);
-	   sprintf_safe($$, size, ", %s %s", $2, $3);
+	   sprintf_safe($$, size, "%s, %s %s", $1, $2, $3);
+	   free($1);
 	   free($2);
 	   free($3);
 	  }
@@ -1222,7 +1230,7 @@ translation_unit 	//printed out
 
 external_declaration	//printed out
 	: function_definition	//already printed out
-	| declaration			//already printed out
+	| declaration			{fprintf(pl_file, "%s", $1); free($1);}
 	;
 
 function_definition	//printed out
@@ -1232,19 +1240,27 @@ function_definition	//printed out
 		 free($2);
 		} 
 	  declaration_list_opt 			//old style 
-		{fprintf(pl_file, "], ");}
+		{fprintf(pl_file, "%s], ", $4); free($4);}
 	  compound_statement 			//aka a block: contains curly brackets { }
 		{fprintf(pl_file, ")");}	//closing "function("
 	;
 
-declaration_list_opt	//printed out
+declaration_list_opt
 	: /* empty */
+		{simple_str_lit_copy(&$$, "");}
 	| declaration_list	//already printed out //for old-style function declaration see p. 226 K&R
+	 	{$$=$1;}
 	;
 
-declaration_list	//printed out
-	: declaration	//already printed out
-	| declaration_list {fprintf(pl_file, ", ");} declaration
+declaration_list
+	: declaration	{$$=$1;}
+	| declaration_list declaration
+	  	{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_safe($$, size, "%s, %s", $1, $2);
+	     free($1);
+		 free($2);
+		}
 	;
 
 %%
