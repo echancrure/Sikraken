@@ -92,6 +92,7 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 %type <id> static_assert_declaration
 %type <id> enum_specifier enumerator_list enumerator
 %type <id> parameter_type_list parameter_list parameter_declaration
+%type <id> expression_statement expression_opt
 
 %start translation_unit 
 
@@ -1085,7 +1086,10 @@ static_assert_declaration
 statement	//printed out
 	: labeled_statement		//already printed out
 	| compound_statement	//already printed out
-	| expression_statement	//already printed out
+	| expression_statement
+		{fprintf(pl_file, "%s", $1); 
+		 free($1);
+		} 
 	| selection_statement	//already printed out
 	| iteration_statement	//already printed out
 	| jump_statement		//already printed out
@@ -1121,9 +1125,14 @@ block_item			//printed out
 	| statement		//printed out already
 	;
 
-expression_statement	//printed out
-	: ';'				{fprintf(pl_file, "stmt([])");}
-	| expression ';'	{fprintf(pl_file, "\nstmt(%s)", $1); free($1);}
+expression_statement
+	: ';'	{simple_str_lit_copy(&$$, "stmt([])");}
+	| expression ';'
+		{size_t const size = strlen("\nstmt(%s)") + strlen($1) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_safe($$, size, "\nstmt(%s)", $1);
+		 free($1);
+		}
 	;
 
 selection_statement		//printed out
@@ -1160,13 +1169,22 @@ iteration_statement	//printed out
 	;
 
 for_stmt_type 		//printed out
-	: expression_statement {fprintf(pl_file, ", ");} expression_statement expression_opt
-	| declaration {fprintf(pl_file, ", ");} expression_statement expression_opt
+	: expression_statement expression_statement expression_opt 
+	  {fprintf(pl_file, "%s, %s %s", $1, $2, $3);
+	   free($1);
+	   free($2);
+	   free($3);
+	  }
+	| declaration expression_statement expression_opt
+	  {fprintf(pl_file, ", %s %s", $2, $3);
+	   free($2);
+	   free($3);
+	  }
 	;
 
-expression_opt 		//printed out
-	: /* empty */
-	| expression {fprintf(pl_file, ", %s", $1); free($1);}
+expression_opt
+	:  /* empty */	{simple_str_lit_copy(&$$, "");}
+	| expression {$$ = $1;}
 
 jump_statement		//printed out
 	: GOTO IDENTIFIER ';'	{fprintf(pl_file, "\ngoto_stmt(%s)\n", $2); free($2);}
@@ -1193,11 +1211,10 @@ function_definition	//printed out
 		 free($1); 
 		 free($2);
 		} 
-	  declaration_list_opt 
+	  declaration_list_opt 			//old style 
 		{fprintf(pl_file, "], ");}
 	  compound_statement 			//aka a block: contains curly brackets { }
-		{fprintf(pl_file, ")");
-		}	
+		{fprintf(pl_file, ")");}	//closing "function("
 	;
 
 declaration_list_opt	//printed out
