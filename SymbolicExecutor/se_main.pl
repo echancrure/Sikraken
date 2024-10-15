@@ -48,7 +48,7 @@ se_main(ArgsL) :-
     (Search_algo = regression(Restarts, Tries) ->   %for stable regression testing
         (setval('nb_restarts', Restarts),
          setval('nb_tries', Tries),
-         Budget = 65,           %we put a limit for some regression tests which may not complete a full retstart
+         Budget = 65,           %we put a limit for some regression tests which may not complete a full restart
          First_single_test_time_out is Budget - 5,  %ensure not triggered at the same time as overall timeout
          super_util__quick_dev_info("Analysing %w with %w restarts and %w tries", [Target_source_file_name_no_ext, Restarts, Tries])
         )
@@ -234,7 +234,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
              (Return == 'int' ->
                 (se_sub_atts__get(Main, 'body', Main_compound_statement),
                  se_globals__update_ref('current_path_bran', start('Target_raw_subprogram_name', true)),
-                 %mytrace,
+                 mytrace,
                  symbolic_execute(Main_compound_statement, _Flow)
                 )
              ;

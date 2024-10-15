@@ -39,7 +39,7 @@ symbolic_execute(cmp_stmts(Stmts), Flow) :-
     se_globals__push_scope_stack,
     symbolic_execute(Stmts, Flow),
     se_globals__pop_scope_stack.
-symbolic_execute(stmt(Expression_statement), Flow) :-
+symbolic_execute(stmt(Expression_statement), Flow) :-   %could be an assignment statement, comma_op positfix_inc_op etc. anything really
     !,
     symbolic_execute(Expression_statement, Flow).
 symbolic_execute(assign(LValue, Expression), Flow) :-
@@ -188,15 +188,10 @@ symbolic_execute(return_stmt(Expression), return(Expression)) :-    %will be han
 symbolic_execute(return_stmt, return) :-    %a return with no expression
     %mytrace,
     !.
-symbolic_execute(postfix_inc_op(Expression), 'carry_on') :-
+%we have anything here: an assignment, comma_op, postfix_inc_op, postfix_dec_op or any expression!
+symbolic_execute(Expression, 'carry_on') :- %assuming tha tthat there is no return in there...
     !,
-    symbolically_interpret(postfix_inc_op(Expression), _).  %this is a statement: we don't care about its evaluation
-symbolic_execute(postfix_dec_op(Expression), 'carry_on') :-
-    !,
-    symbolically_interpret(postfix_dec_op(Expression), _).  %this is a statement: we don't care about its evaluation    
-symbolic_execute(Unknown_statement, _) :-
-    !,
-    common_util__error(10, "Unexpected statement", "Could not possibly continue", [('Unknown_statement', Unknown_statement)], '10_150824_2', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info).
+    symbolically_interpret(Expression, _).  %this is a statement: we don't care about its evaluation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 traverse(Condition, Arc, Statements, Flow) :-
     ptc_solver__sdl(Condition),
