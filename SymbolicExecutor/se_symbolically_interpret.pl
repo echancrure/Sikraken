@@ -85,7 +85,11 @@ symbolically_interpret(cast(Raw_typeL, Expression), symb(To_type, Casted)) :-
         To_type = Raw_typeL     %an internal call, already transformed
     ),
     symbolically_interpret(Expression, symb(From_type, Symbolic)),
-    ptc_solver__perform_cast(cast(To_type, From_type), Symbolic, Casted).
+    (To_type = 'void' ->    %casting to void: discard the expression, but evaluation above still has to happen
+        Casted = 'void'     %just to retrun something but hopefully will not be used
+    ;    
+        ptc_solver__perform_cast(cast(To_type, From_type), Symbolic, Casted)
+    ).
 symbolically_interpret(addr(Expression), symb(pointer, addr(Expression))) :-
     !.
 symbolically_interpret(deref(Expression), Symbolic_expression) :-
@@ -354,7 +358,14 @@ symbolically_interpret(comma_op(Left_expression, Right_expression), Symbolic_exp
     !,
     symbolically_interpret(Left_expression, _),
     symbolically_interpret(Right_expression, Symbolic_expression).
-
+symbolically_interpret(size_of_exp(Expression), symb(unsigned(int), Size)) :-
+    !,
+    symbolically_interpret(Expression, symb(Type_name, _)),      %should not be evaluated: should be done at parsing time
+    ptc_solver__size(Type_name, Size).
+symbolically_interpret(size_of_type(Specifiers), symb(unsigned(int), Size)) :-
+    !,
+    extract_type(Specifiers, Type_name),
+    ptc_solver__size(Type_name, Size).
 %%%
 symbolically_interpret(Unhandled_expression, symb(int, 0)) :-
     common_util__error(9, "Expression is not handled", "Cannot perform symbolic interpretation", [('Unhandled_expression', Unhandled_expression)], '10_020824', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).

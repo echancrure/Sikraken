@@ -45,10 +45,14 @@ se_main(ArgsL) :-
         common_util__error(10, "Calling se_main/? with invalid argument list", "Review calling syntax of se_main/?", [], '10_240824_1', 'se_main', 'se_main', no_localisation, no_extra_info)
     ),
     se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode, Data_model),
-    (Search_algo = regression(Restarts, Tries) ->   %for stable regression testing
+    (Search_algo = regression(Restarts, Tries) ->   %for more stable regression testing
         (setval('nb_restarts', Restarts),
          setval('nb_tries', Tries),
-         Budget = 65,           %we put a limit for some regression tests which may not complete a full restart
+         (Debug_mode = 'debug' ->
+            Budget = 1e99        %to work without timeouts at tkeclipse level during developement for example 
+         ;   
+            Budget = 65           %we put a limit for some regression tests which may not complete a full restart
+         ),
          First_single_test_time_out is Budget - 5,  %ensure not triggered at the same time as overall timeout
          super_util__quick_dev_info("Analysing %w with %w restarts and %w tries", [Target_source_file_name_no_ext, Restarts, Tries])
         )
@@ -234,7 +238,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
              (Return == 'int' ->
                 (se_sub_atts__get(Main, 'body', Main_compound_statement),
                  se_globals__update_ref('current_path_bran', start('Target_raw_subprogram_name', true)),
-                 mytrace,
+                 %mytrace,
                  symbolic_execute(Main_compound_statement, _Flow)
                 )
              ;
@@ -296,10 +300,16 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
                      Margin = 10,       %multiplier: one order of magnitude
                      Minimum = 0.5,       %seconds whatever is close but above the overheads
                      ((Current_single_test_time_out > Minimum, Current_single_test_time_out > Margin * Single_test_duration) ->  %last test generation was faster by a wide margin: allocated budget is reduced
-                        (New_single_test_time_out is max(Margin * Single_test_duration, Minimum), %but there is a minimum to reduce overheads
-                         se_globals__set_val('single_test_time_out', New_single_test_time_out),
-                         super_util__quick_dev_info("Single test budget decreased to: %w", [New_single_test_time_out]),
-                         event_after('single_test_time_out_event', New_single_test_time_out)
+                        (se_globals__get_val('debug_mode', Debug_mode),
+                         (Debug_mode = 'debug' ->
+                            true    % no time out
+                         ;
+                            (New_single_test_time_out is max(Margin * Single_test_duration, Minimum), %but there is a minimum to reduce overheads
+                             se_globals__set_val('single_test_time_out', New_single_test_time_out),
+                             super_util__quick_dev_info("Single test budget decreased to: %w", [New_single_test_time_out]),
+                             event_after('single_test_time_out_event', New_single_test_time_out)
+                            )
+                         )
                         )
                      ;
                         event_after('single_test_time_out_event', Current_single_test_time_out)    %Single_test_time_out left as is for now
