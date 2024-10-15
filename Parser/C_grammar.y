@@ -150,7 +150,7 @@ enumeration_constant		/* before it has been defined as such */
 	;
 
 string
-	: STRING_LITERAL	{simple_str_copy(&$$, $1);}	//"blah" or wide_string("blah") see lexer
+	: STRING_LITERAL	//"blah" or wide_string("blah") see lexer
 	| FUNC_NAME			{simple_str_lit_copy(&$$, "thisFunctionName");}
 	;
 
@@ -169,8 +169,7 @@ generic_association	/* to do */
 	;
 
 postfix_expression
-	: primary_expression	
-		{simple_str_copy(&$$, $1);}
+	: primary_expression
 	| postfix_expression '[' expression ']'
 		{size_t const size = strlen("index(, )") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
@@ -234,7 +233,7 @@ postfix_expression
 	;
 
 argument_expression_list
-	: assignment_expression	{simple_str_copy(&$$, $1);}
+	: assignment_expression
 	| argument_expression_list ',' assignment_expression
 		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
@@ -245,7 +244,7 @@ argument_expression_list
 	;
 
 unary_expression
-	: postfix_expression		{simple_str_copy(&$$, $1);}
+	: postfix_expression
 	| unary_inc_dec unary_expression
 		{size_t const size = strlen("()") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
@@ -295,7 +294,7 @@ unary_operator
 	;
 
 cast_expression
-	: unary_expression	{simple_str_copy(&$$, $1);}
+	: unary_expression
 	| '(' type_name ')' cast_expression
 		{size_t const size = strlen("cast(, )") + strlen($2) + strlen($4) + 1;
 		 $$ = (char*)malloc(size);
@@ -306,7 +305,7 @@ cast_expression
 	;
 
 multiplicative_expression
-	: cast_expression	{simple_str_copy(&$$, $1);}
+	: cast_expression
 	| multiplicative_expression multiplicative_expression_op cast_expression
 		{size_t const size = strlen("(, )") + strlen($1) + strlen($2) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
@@ -324,7 +323,7 @@ multiplicative_expression_op
 	;
 
 additive_expression
-	: multiplicative_expression	{simple_str_copy(&$$, $1);}
+	: multiplicative_expression
 	| additive_expression additive_expression_op multiplicative_expression
 		{size_t const size = strlen("(, )") + strlen($1) + strlen($2) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
@@ -341,7 +340,7 @@ additive_expression_op
 	;
 
 shift_expression
-	: additive_expression	{simple_str_copy(&$$, $1);}
+	: additive_expression
 	| shift_expression shift_expression_op additive_expression
 		{size_t const size = strlen("(, )") + strlen($1) + strlen($2) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
@@ -358,7 +357,7 @@ shift_expression_op
 	;
 
 relational_expression
-	: shift_expression	{simple_str_copy(&$$, $1);}
+	: shift_expression
 	| relational_expression relational_expression_operator shift_expression
 		{size_t const size = strlen("(, )") + strlen($1) + strlen($2) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
@@ -378,7 +377,7 @@ relational_expression_operator
 
 
 equality_expression
-	: relational_expression	{simple_str_copy(&$$, $1);}
+	: relational_expression
 	| equality_expression equality_expression_op relational_expression
 		{size_t const size = strlen("(, )") + strlen($1) + strlen($2) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
@@ -395,7 +394,7 @@ equality_expression_op
 	;
 
 and_expression
-	: equality_expression	{simple_str_copy(&$$, $1);}
+	: equality_expression
 	| and_expression '&' equality_expression
 		{size_t const size = strlen("bitw_and(, )") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
@@ -406,7 +405,7 @@ and_expression
 	;
 
 exclusive_or_expression
-	: and_expression	{simple_str_copy(&$$, $1);}
+	: and_expression
 	| exclusive_or_expression '^' and_expression
 		{size_t const size = strlen("bitw_excl_or_op(, )") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
@@ -417,7 +416,7 @@ exclusive_or_expression
 	;
 
 inclusive_or_expression
-	: exclusive_or_expression	{simple_str_copy(&$$, $1);}
+	: exclusive_or_expression
 	| inclusive_or_expression '|' exclusive_or_expression
 		{size_t const size = strlen("bitw_incl_or_op(, )") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
@@ -428,7 +427,7 @@ inclusive_or_expression
 	;
 
 logical_and_expression
-	: inclusive_or_expression	{simple_str_copy(&$$, $1);}
+	: inclusive_or_expression
 	| logical_and_expression AND_OP inclusive_or_expression
 		{size_t const size = strlen("and_op(, )") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
@@ -439,7 +438,7 @@ logical_and_expression
 	;
 
 logical_or_expression
-	: logical_and_expression	{simple_str_copy(&$$, $1);}
+	: logical_and_expression
 	| logical_or_expression OR_OP logical_and_expression
 		{size_t const size = strlen("or_op(, )") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
@@ -450,7 +449,7 @@ logical_or_expression
 	;
 
 conditional_expression
-	: logical_or_expression		{simple_str_copy(&$$, $1);}
+	: logical_or_expression
 	| logical_or_expression '?' expression ':' conditional_expression 
 		{size_t const size = strlen("cond_exp(branch(, ), , )") + branch_nb++ + strlen($1) + strlen($3) + strlen($5) + 1;
 		 $$ = (char*)malloc(size);
@@ -462,7 +461,7 @@ conditional_expression
 	;
 
 assignment_expression
-	: conditional_expression	{simple_str_copy(&$$, $1);}
+	: conditional_expression
 	| unary_expression assignment_operator assignment_expression
 		{size_t const size = strlen("%s(%s, %s)") + strlen($1) + strlen($2) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
@@ -488,7 +487,7 @@ assignment_operator
 	;
 
 expression
-	: assignment_expression	{simple_str_copy(&$$, $1);}
+	: assignment_expression
 	| expression ',' assignment_expression
 		{size_t const size = strlen("comma_op(, )") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
@@ -499,7 +498,7 @@ expression
 	;
 
 constant_expression
-	: conditional_expression	/* with constraints */ 	{simple_str_copy(&$$, $1);}
+	: conditional_expression	/* with constraints */
 	;
 
 declaration
@@ -535,8 +534,7 @@ declaration_specifiers
 		 free($1);
 		 free($2);
 		}
-	| storage_class_specifier	
-		{simple_str_copy(&$$, $1);}
+	| storage_class_specifier
 	| type_specifier declaration_specifiers
 		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
@@ -544,8 +542,7 @@ declaration_specifiers
 		 free($1);
 		 free($2);
 		}
-	| type_specifier	
-		{simple_str_copy(&$$, $1);}
+	| type_specifier
 	| type_qualifier declaration_specifiers
 		{ simple_str_lit_copy(&$$, "dummy_type_qualifier, dummy_declaration_specifiers"); }
 	| type_qualifier
@@ -561,7 +558,7 @@ declaration_specifiers
 	;
 
 init_declarator_list
-	: init_declarator	{simple_str_copy(&$$, $1);}
+	: init_declarator
 	| init_declarator_list ',' init_declarator
 		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
@@ -613,9 +610,9 @@ type_specifier
 	| COMPLEX				{ simple_str_lit_copy(&$$, "complex"); }
 	| IMAGINARY				{ simple_str_lit_copy(&$$, "imaginary"); } 	/* non-mandated extension */
 	| atomic_type_specifier	{ simple_str_lit_copy(&$$, "atomic_type_specifier"); }
-	| struct_or_union_specifier	{simple_str_copy(&$$, $1);}
-	| enum_specifier		{simple_str_copy(&$$, $1);}
-	| TYPEDEF_NAME			{simple_str_copy(&$$, $1);}	/* after it has been defined as such */
+	| struct_or_union_specifier
+	| enum_specifier
+	| TYPEDEF_NAME			/* after it has been defined as such */
 	;
 
 struct_or_union_specifier
@@ -649,8 +646,7 @@ struct_or_union
 	;
 
 struct_declaration_list
-	: struct_declaration	
-		{simple_str_copy(&$$, $1);}
+	: struct_declaration
 	| struct_declaration_list struct_declaration
 		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
@@ -676,7 +672,6 @@ struct_declaration
 		 free($3);
         }
 	| static_assert_declaration
-		{simple_str_copy(&$$, $1);}
 	;
 
 specifier_qualifier_list
@@ -688,7 +683,6 @@ specifier_qualifier_list
 	     free($2);
         }
 	| type_specifier
-		{simple_str_copy(&$$, $1);}
 	| type_qualifier specifier_qualifier_list
 		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
        	 $$ = (char*)malloc(size);
@@ -697,12 +691,10 @@ specifier_qualifier_list
 	     free($2);
         }
 	| type_qualifier
-		{simple_str_copy(&$$, $1);}
 	;
 
 struct_declarator_list
 	: struct_declarator
-		{simple_str_copy(&$$, $1);}
 	| struct_declarator_list ',' struct_declarator
 		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
@@ -727,7 +719,6 @@ struct_declarator
 	     free($3);
         }
 	| declarator
-		{simple_str_copy(&$$, $1);}
 	;
 
 enum_specifier
@@ -767,7 +758,6 @@ enum_specifier
 
 enumerator_list
 	: enumerator
-		{simple_str_copy(&$$, $1);}
 	| enumerator_list ',' enumerator
 		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
@@ -786,7 +776,6 @@ enumerator	/* identifiers must be flagged as ENUMERATION_CONSTANT */
 	     free($3);
         }
 	| enumeration_constant
-		{simple_str_copy(&$$, $1);}
 	;
 
 atomic_type_specifier		// new in C11 for atomic operation: used in concurrency
@@ -819,7 +808,6 @@ declarator
 	   free($2);
       }
 	| direct_declarator
-	  {simple_str_copy(&$$, $1);}
 	;
 
 direct_declarator
@@ -900,8 +888,7 @@ pointer
 	;
 
 type_qualifier_list
-	: type_qualifier	
-		{simple_str_copy(&$$, $1);}
+	: type_qualifier
 	| type_qualifier_list type_qualifier
 		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
