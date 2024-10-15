@@ -38,6 +38,7 @@ extern char *yytext;
 
 #define MAX_ID_LENGTH 255
 #define MAX_PATH 256
+#define MAX_BRANCH_STR 9		//maximum length of the string encoding the number of branches (max is "999999999" i.e. 1 billion - 1)
 
 int debugMode = 0;				//flag to indicate if we are in debug mode set by -d command line switch
 int dataModel = 32;				//flag to indicate data model used in the C code under analysis; set by -m32 or -m64 on the command line; default is 32
@@ -92,8 +93,11 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 %type <id> static_assert_declaration
 %type <id> enum_specifier enumerator_list enumerator
 %type <id> parameter_type_list parameter_list parameter_declaration
-%type <id> expression_statement expression_opt for_stmt_type jump_statement
+%type <id> expression_statement expression_opt for_stmt_type jump_statement statement labeled_statement compound_statement
+%type <id> else_opt selection_statement iteration_statement
+%type <id> block_item_list block_item
 %type <id> declaration declaration_list_opt declaration_list
+%type <id> function_definition
 
 %start translation_unit 
 
@@ -120,13 +124,12 @@ primary_expression
 		}
 	| constant		{simple_str_copy(&$$, $1);}
 	| string		{simple_str_copy(&$$, $1);}
-	| '(' 
-			{fprintf(pl_file, "\nstmt_exp(");}	//GCC Statement expression start ( compound_statement )
-	   compound_statement 						//already printed out in parsed file
-	  ')'
-	  		{fprintf(pl_file, ")");				//closing stmt_exp
-	   		 simple_str_lit_copy(&$$, "");		//because we have to return something into $$ 
-	  		}
+	| '(' compound_statement ')'	//GCC statement-expression
+		{size_t const size = strlen("\nstmt_exp()") + strlen($2) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_safe($$, size, "\nstmt_exp(%s)", $2);
+		 free($2);
+		}			
 	| '(' expression ')'	
 		{size_t const size = strlen("()") + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
@@ -450,7 +453,7 @@ logical_or_expression
 conditional_expression
 	: logical_or_expression		{simple_str_copy(&$$, $1);}
 	| logical_or_expression '?' expression ':' conditional_expression 
-		{size_t const size = strlen("cond_exp(branch(, ), , )") + 42 + strlen($1) + strlen($3) + strlen($5) + 1;
+		{size_t const size = strlen("cond_exp(branch(, ), , )") + branch_nb++ + strlen($1) + strlen($3) + strlen($5) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "cond_exp(branch(%d, %s), %s, %s)", branch_nb++, $1, $3, $5);
 		 free($1);
@@ -1090,49 +1093,62 @@ static_assert_declaration
 		}
 	;
 
-statement	//printed out
-	: labeled_statement		//already printed out
-	| compound_statement	//already printed out
+statement
+	: labeled_statement
+	| compound_statement
 	| expression_statement
-		{fprintf(pl_file, "%s", $1); 
-		 free($1);
-		} 
-	| selection_statement	//already printed out
-	| iteration_statement	//already printed out
+	| selection_statement
+	| iteration_statement
 	| jump_statement
-		{fprintf(pl_file, "%s", $1); 
-		 free($1);
-		} 
 	;
 
-labeled_statement	//printed out
-	: IDENTIFIER ':' 	//Label Id declaration
-		{fprintf(pl_file, "label_stmt(%s, ", $1); 
-		 free($1);
-		} 
-		statement 
-		{fprintf(pl_file, ")");}
-	| CASE constant_expression ':' {fprintf(pl_file, "case_stmt($2, "); free($2);} statement {fprintf(pl_file, ")");}
-	| DEFAULT ':' {fprintf(pl_file, "default_stmt(");} statement {fprintf(pl_file, ")");}
+labeled_statement
+	: IDENTIFIER ':' statement 	//Label Id declaration
+	  {size_t const size = strlen("label_stmt(, )") + strlen($1) + strlen($3) + 1;
+	   $$ = (char*)malloc(size);
+	   sprintf_safe($$, size, "label_stmt(%s, %s)", $1, $3);
+	   free($1);
+	   free($3);
+	  }
+	| CASE constant_expression ':' statement
+	  {size_t const size = strlen("case_stmt(, )") + strlen($2) + strlen($4) + 1;
+	   $$ = (char*)malloc(size);
+	   sprintf_safe($$, size, "case_stmt(%s, %s)", $2, $4);
+	   free($2);
+	   free($4);
+	  }
+	| DEFAULT ':' statement
+	  {size_t const size = strlen("default_stmt(, )") + strlen($3) + 1;
+	   $$ = (char*)malloc(size);
+	   sprintf_safe($$, size, "default_stmt(%s)", $3);
+	   free($3);
+	  }
 	;
 
-compound_statement	//printed out	//aka a 'block'
-	: '{' '}' {fprintf(pl_file, "\ncmp_stmts([])");}
-	| '{' 
-			{fprintf(pl_file, "\ncmp_stmts([");} 
-	   block_item_list 
-	  '}' 
-			{fprintf(pl_file, "\n])");}
+compound_statement	//aka a 'block'
+	: '{' '}'	{simple_str_lit_copy(&$$, "\ncmp_stmts([])");}
+	| '{' block_item_list '}' 
+	  {size_t const size = strlen("\ncmp_stmts([\n])") + strlen($2) + 1;
+	   $$ = (char*)malloc(size);
+	   sprintf_safe($$, size, "\ncmp_stmts([%s\n])", $2);
+	   free($2);
+	  }
 	;
 
-block_item_list		//printed out
-	: block_item	//printed out already
-	| block_item_list {fprintf(pl_file, ", ");} block_item
+block_item_list
+	: block_item
+	| block_item_list block_item
+	  {size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
+	   $$ = (char*)malloc(size);
+	   sprintf_safe($$, size, "%s, %s", $1, $2);
+	   free($1);
+	   free($2);
+	  }
 	;
 
-block_item			//printed out
-	: declaration	{fprintf(pl_file, "%s", $1); free($1);}
-	| statement		//printed out already
+block_item
+	: declaration
+	| statement
 	;
 
 expression_statement
@@ -1145,37 +1161,55 @@ expression_statement
 		}
 	;
 
-selection_statement		//printed out
-	: IF '(' expression ')' 
-		{fprintf(pl_file, "\nif_stmt(branch(%d, %s), ", branch_nb++, $3); 
-		 free($3); 
-		} 
-	  statement else_opt 
-		{ fprintf(pl_file, ")"); 
-		} 
-	| SWITCH '(' expression ')' 
-		{fprintf(pl_file, "\nswitch_stmt(%s, ", $3); 
+selection_statement
+	: IF '(' expression ')' statement else_opt 
+		{size_t const size = strlen("\nif_stmt(branch(, ),  )") + MAX_BRANCH_STR + strlen($3) + strlen($5) + strlen($6) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_safe($$, size, "\nif_stmt(branch(%d, %s), %s %s)", branch_nb++, $3, $5, $6);
 		 free($3);
+		 free($5);
+		 free($6);
 		} 
-	  statement	
-	  	{fprintf(pl_file, ")");
-		}
+	| SWITCH '(' expression ')' statement
+		{size_t const size = strlen("\nswitch_stmt(, )") + strlen($3) + strlen($5) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_safe($$, size, "\nswitch_stmt(%s, %s)", $3, $5);
+		 free($3);
+		 free($5);
+		} 
 	;
 
-else_opt	//printed out
-	:	/* empty */		%prec LOWER_THAN_ELSE
-	| ELSE {fprintf(pl_file, ", ");} statement
-
-iteration_statement	//printed out
-	: WHILE '(' expression ')' 
-		{fprintf(pl_file, "\nwhile_stmt(branch(%d, %s), ", branch_nb++, $3); 
-		 free($3);
+else_opt
+	: /* empty */		%prec LOWER_THAN_ELSE 	{simple_str_lit_copy(&$$, "");}
+	| ELSE statement
+		{size_t const size = strlen(", ") + strlen($2) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_safe($$, size, ", %s", $2);
+		 free($2);
 		} 
-	  statement 
-	  	{fprintf(pl_file, ")");
-		}
-	| DO {fprintf(pl_file, "\ndo_while_stmt(");} statement WHILE '(' expression ')' ';' {fprintf(pl_file, ", %s)", $6); free($6);}
-	| FOR '(' {fprintf(pl_file, "\nfor_stmt(");} for_stmt_type ')' {fprintf(pl_file, "%s, ", $4); free($4);} statement {fprintf(pl_file, ")");}
+
+iteration_statement
+	: WHILE '(' expression ')' statement 
+		{size_t const size = strlen("\nwhile_stmt(branch(, ), )") + MAX_BRANCH_STR + strlen($3) + strlen($5) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_safe($$, size, "\nwhile_stmt(branch(%d, %s), %s)", branch_nb++, $3, $5);
+		 free($3);
+		 free($5);
+		} 
+	| DO statement WHILE '(' expression ')' ';'
+		{size_t const size = strlen("\ndo_while_stmt(, )") + strlen($2) + strlen($5) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_safe($$, size, "\ndo_while_stmt(%s, %s)", $2, $5);
+		 free($2);
+		 free($5);
+		} 
+	| FOR '(' for_stmt_type ')' statement
+		{size_t const size = strlen("\nfor_stmt(, )") + strlen($3) + strlen($5) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_safe($$, size, "\nfor_stmt(%s, %s)", $3, $5);
+		 free($3);
+		 free($5);
+		} 
 	;
 
 for_stmt_type
@@ -1198,8 +1232,8 @@ for_stmt_type
 	;
 
 expression_opt
-	:  /* empty */	{simple_str_lit_copy(&$$, "");}
-	| expression {$$ = $1;}
+	: /* empty */	{simple_str_lit_copy(&$$, "");}
+	| expression
 
 jump_statement
 	: GOTO IDENTIFIER ';'
@@ -1208,12 +1242,9 @@ jump_statement
 	   sprintf_safe($$, size, "\ngoto_stmt(%s)\n", $2);
 	   free($2);
 	  }
-	| CONTINUE ';'
-	  {simple_str_lit_copy(&$$, "\ncontinue_stmt\n");}
-	| BREAK ';'
-	  {simple_str_lit_copy(&$$, "\nbreak_stmt\n");}
-	| RETURN ';'
-	  {simple_str_lit_copy(&$$, "\nreturn_stmt\n");}
+	| CONTINUE ';'	{simple_str_lit_copy(&$$, "\ncontinue_stmt\n");}
+	| BREAK ';'		{simple_str_lit_copy(&$$, "\nbreak_stmt\n");}
+	| RETURN ';'  	{simple_str_lit_copy(&$$, "\nreturn_stmt\n");}
 	| RETURN expression ';'
 	  {size_t const size = strlen("\nreturn_stmt()\n") + strlen($2) + 1;
 	   $$ = (char*)malloc(size);
@@ -1223,37 +1254,35 @@ jump_statement
 	;
 
 //top level rule
-translation_unit 	//printed out
+translation_unit 			//printed out
 	: external_declaration
 	| translation_unit {fprintf(pl_file, ", \n");} external_declaration
 	;
 
-external_declaration	//printed out
-	: function_definition	//already printed out
+external_declaration		//printed out
+	: function_definition	{fprintf(pl_file, "%s", $1); free($1);}
 	| declaration			{fprintf(pl_file, "%s", $1); free($1);}
 	;
 
-function_definition	//printed out
-	: declaration_specifiers declarator 
-		{fprintf(pl_file, "function([%s], %s, [", $1, $2); 
-		 free($1); 
+function_definition
+	: declaration_specifiers declarator declaration_list_opt compound_statement
+		{size_t const size = strlen("function([], , [], )") + strlen($1) + strlen($2) + strlen($3) + strlen($4) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_safe($$, size, "function([%s], %s, [%s], %s)", $1, $2, $3, $4);
+	     free($1);
 		 free($2);
-		} 
-	  declaration_list_opt 			//old style 
-		{fprintf(pl_file, "%s], ", $4); free($4);}
-	  compound_statement 			//aka a block: contains curly brackets { }
-		{fprintf(pl_file, ")");}	//closing "function("
+		 free($3);
+		 free($4);
+		}
 	;
 
 declaration_list_opt
-	: /* empty */
-		{simple_str_lit_copy(&$$, "");}
-	| declaration_list	//already printed out //for old-style function declaration see p. 226 K&R
-	 	{$$=$1;}
+	: /* empty */		{simple_str_lit_copy(&$$, "");}
+	| declaration_list	//for old-style function declaration see p. 226 K&R
 	;
 
 declaration_list
-	: declaration	{$$=$1;}
+	: declaration
 	| declaration_list declaration
 	  	{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
