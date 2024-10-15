@@ -122,8 +122,8 @@ primary_expression
 		 strcpy_safe($$, size, Prolog_var_name);
 		 free($1);
 		}
-	| constant		{simple_str_copy(&$$, $1);}
-	| string		{simple_str_copy(&$$, $1);}
+	| constant
+	| string
 	| '(' compound_statement ')'	//GCC statement-expression
 		{size_t const size = strlen("\nstmt_exp()") + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
@@ -140,14 +140,13 @@ primary_expression
 	;
 
 constant
-	: I_CONSTANT	{simple_str_copy(&$$, $1);}	/* includes character_constant */
-	| F_CONSTANT	{simple_str_copy(&$$, $1);}
-	| ENUMERATION_CONSTANT	{simple_str_copy(&$$, $1);} /* after it has been defined as such */
+	: I_CONSTANT		/* includes character_constant */
+	| F_CONSTANT	
+	| ENUMERATION_CONSTANT	/* after it has been defined as such */
 	;
 
 enumeration_constant		/* before it has been defined as such */
 	: IDENTIFIER		//Ordinary namespace Id declaration
-		{simple_str_copy(&$$, $1);}
 	;
 
 string
@@ -929,7 +928,6 @@ parameter_type_list
 
 parameter_list
 	: parameter_declaration
-		{simple_str_copy(&$$, $1);}
 	| parameter_list ',' parameter_declaration
 		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
@@ -1021,7 +1019,6 @@ initializer
 	     free($2);
 		}
 	| assignment_expression
-		{simple_str_copy(&$$, $1);}
 	;
 
 initializer_list
@@ -1032,8 +1029,7 @@ initializer_list
 	     free($1);
 		 free($2);
 		}
-	| initializer				
-		{simple_str_copy(&$$, $1);}
+	| initializer
 	| initializer_list ',' designation initializer
 		{size_t const size = strlen(", init(, )") + strlen($1) + strlen($3) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
@@ -1061,8 +1057,7 @@ designation
 	;
 
 designator_list
-	: designator	
-		{simple_str_copy(&$$, $1);}
+	: designator
 	| designator_list designator
 		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
