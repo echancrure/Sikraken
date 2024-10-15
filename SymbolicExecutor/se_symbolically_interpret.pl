@@ -64,7 +64,7 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
              (Flow = return(Return_expression) ->
                 symbolically_interpret(cast(Return_type, Return_expression), Symbolic_expression)
              ;
-                Symbolic_expression = symb('void', 'void')   %e.g. via a fall through or a simple return statement with no expression
+                Symbolic_expression = symb('void', 0)   %e.g. via a fall through or a simple return statement with no expression
              ),
              se_globals__pop_scope_stack            %function parameters scope
             )
@@ -86,7 +86,7 @@ symbolically_interpret(cast(Raw_typeL, Expression), symb(To_type, Casted)) :-
     ),
     symbolically_interpret(Expression, symb(From_type, Symbolic)),
     (To_type = 'void' ->    %casting to void: discard the expression, but evaluation above still has to happen
-        Casted = 'void'     %just to retrun something but hopefully will not be used
+        Casted = 0     %just to retrun something but hopefully will not be used
     ;    
         ptc_solver__perform_cast(cast(To_type, From_type), Symbolic, Casted)
     ).
@@ -366,6 +366,10 @@ symbolically_interpret(size_of_type(Specifiers), symb(unsigned(int), Size)) :-
     !,
     extract_type(Specifiers, Type_name),
     ptc_solver__size(Type_name, Size).
+%%% GCC statement expression %%%
+symbolically_interpret(stmt_exp(Compound_statement), symb(void, 0)) :-    
+    !,
+    symbolic_execute(Compound_statement, _Flow). %not handled properly: if the last statement is an expression, that should be the symbolic value and type
 %%%
 symbolically_interpret(Unhandled_expression, symb(int, 0)) :-
     common_util__error(9, "Expression is not handled", "Cannot perform symbolic interpretation", [('Unhandled_expression', Unhandled_expression)], '10_020824', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
