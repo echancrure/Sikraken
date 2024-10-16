@@ -11,11 +11,11 @@ print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext)
         true
     ),
     mkdir(Test_suite_folder),
-    mytrace,
+    %mytrace,
     concat_atom([Result_folder, '/test-suite.zip'], Zip_filename),
     (exists(Zip_filename) ->
         (concat_string(["rm ", Zip_filename], Delete_zip_file_call),
-         exec(Delete_zip_file_call, [])      %delete existing zip archive from a previous run if it exists
+    exec(Delete_zip_file_call, [])      %delete existing zip archive from a previous run if it exists [todo remove]?
         )
     ;
         true
