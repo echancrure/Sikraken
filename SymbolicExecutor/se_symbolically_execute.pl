@@ -22,7 +22,12 @@ symbolic_execute(declaration(Declaration_specifiers, Declarators), 'carry_on') :
              se_sub_atts__create(Return_type_name, Parameters, 'no_body_is_extern', Function_name)
             )
         ;
-            true    %we ignore all, non-extern, forward function declarations: they will be declared later
+         (se_name_atts__get(Function_name, 'name', Inner_name), is_verifier_input_function(Inner_name, _)) -> %some testcomp benchmarks do not declare the verifier functions as extern; as a hack we declare them here
+            (extract_type(Declaration_specifiers, Return_type_name),
+             se_sub_atts__create(Return_type_name, Parameters, 'no_body_is_extern', Function_name)
+            )
+        ; 
+            true    %we ignore all other, non-extern, forward function declarations: they will be declared later
         )
     ;
         (%a variable declaration

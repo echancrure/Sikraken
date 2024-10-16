@@ -1216,6 +1216,11 @@ for_stmt_type
 expression_opt
 	: /* empty */	{simple_str_lit_copy(&$$, "");}
 	| expression
+		{size_t const size = strlen(", ") + strlen($1) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_safe($$, size, ", %s", $1);
+	     free($1);
+	    }
 
 jump_statement
 	: GOTO IDENTIFIER ';'
