@@ -113,11 +113,11 @@ symbolically_interpret(div_op(Le_exp, Ri_exp), symb(Common_type, Casted)) :-
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp),
     (Common_type == 'int' ->
-        Casted #= eval(Le_casted_exp) // eval(Ri_casted_exp)     %integer division towards 0; a bit of a hack to evaluate it here rather than in the solver...
+        Casted #= eval(Le_casted_exp) // eval(Ri_casted_exp)     %[see ECLiPSe release notes7.1] integer division towards 0; don't understand why handling is different than / ; a bit of a hack
     ;
         Casted = Le_casted_exp / Ri_casted_exp
     ).     
-symbolically_interpret(mod_op(Le_exp, Ri_exp), symb(Common_type, mod_op(Le_casted_exp, Ri_casted_exp))) :-
+symbolically_interpret(mod_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp rem Ri_casted_exp)) :-
     !,
     mytrace,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),

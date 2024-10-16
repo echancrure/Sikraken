@@ -92,6 +92,8 @@ for regression_test_file in "$c_files_directory"/*.c; do
         expected_test_inputs_number=$(echo "$config" | jq -r '.expected_test_inputs_number')
         expected_coverage=$(echo "$config" | jq -r '.expected_coverage')
 
+        echo -e "\e[34mSikraken regression testing script now generating tests for $regression_test_file in $id configuration.\e[0m"
+
         #generate test inputs
         eclipse_call="se_main(['$SIKRAKEN_INSTALL_DIR', '$SIKRAKEN_INSTALL_DIR/$rel_path_c_file', '$base_name', main, release, testcomp, '$gcc_flag', regression($restarts, $tries)])"
         $SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e "$eclipse_call"
