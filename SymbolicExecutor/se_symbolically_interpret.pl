@@ -387,7 +387,7 @@ symbolically_interpret(stmt_exp(Compound_statement), symb(void, 0)) :-
     symbolic_execute(Compound_statement, _Flow). %not handled properly: if the last statement is an expression, that should be the symbolic value and type
 %%%
 symbolically_interpret(Unhandled_expression, symb(int, 0)) :-
-    common_util__error(9, "Expression is not handled", "Cannot perform symbolic interpretation", [('Unhandled_expression', Unhandled_expression)], '10_020824', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
+    mytrace, common_util__error(9, "Expression is not handled", "Cannot perform symbolic interpretation", [print('Unhandled_expression', Unhandled_expression)], '10_020824', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 implicit_type_casting(Same_type, Same_type, Le_symbolic, Ri_symbolic, Same_type, Le_symbolic, Ri_symbolic) :-   %Types are equal: no casting needed
     !.

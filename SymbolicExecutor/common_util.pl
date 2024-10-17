@@ -166,31 +166,28 @@ common_util__error2(Error_severity, Error_message, Error_consequences, Arguments
             ((Error_severity == 1 ->
                     printf(user_error, "%s%n", [Error_message])
              ;
-                    printf(user_error, "Sikraken warning level %w %w %s%n", [Error_severity, Error_code, Error_message])
+                    printf(user_error, "Sikraken warning level %w %w %s", [Error_severity, Error_code, Error_message])
              ),
              (ArgumentsL == no_arguments ->
                     true
              ;
-                    cue_print_warning_arguments(ArgumentsL, release)
+                    (cue_print_warning_arguments(ArgumentsL, release),
+                     printf(user_error, "%n", [])
+                    )
              )
             )
     ),
     flush(user_error).
 
-
-cue_print_warning_arguments(Warning_list, Debug) :-
-    (Warning_list == [] ->
-            true
+cue_print_warning_arguments([], _Debug) :-
+    !.
+cue_print_warning_arguments([Warning|Rest], Debug) :-
+    (((Debug == debug , Warning = (Entry, Argument)) ; Warning = print(Entry, Argument)) ->
+         printf(user_error, ", %w : %w", [Entry, Argument])
     ;
-            (Warning_list = [Warning|Rest],
-             (((Debug == debug , Warning = (Entry, Argument)) ; Warning = print(Entry, Argument)) ->
-                    printf(user_error, ", %w : %w", [Entry, Argument])
-             ;
-                    true    %ignored
-             ),
-             cue_print_warning_arguments(Rest, Debug)
-            )
-    ).
+       true    %ignored
+    ),
+    cue_print_warning_arguments(Rest, Debug).
 
 cue_print_error_arguments([(Entry, Argument)|R], Debug) :-
     !,
