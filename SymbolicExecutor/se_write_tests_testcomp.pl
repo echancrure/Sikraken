@@ -35,7 +35,7 @@ print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext)
     printf('metadata_stream', "\t<programhash>%w</programhash>\n", [Hash]),
     printf('metadata_stream', "\t<entryfunction>main</entryfunction>\n", []),
     se_globals__get_val('data_model', Data_model),
-    (Data_model == '-m32' ->
+    (Data_model = '-m32' ->
         Data_model_str = "32bit"
     ;
         Data_model_str = "64bit"

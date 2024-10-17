@@ -353,13 +353,21 @@ symbolically_interpret(cond_exp(branch(Id, Condition), True_exp, False_exp), sym
         )
     ).
 %%% bitwise operators %%%
-symbolically_interpret(bitw_and(Le_exp, Ri_exp), symb(Common_type, bw_and(Le_casted_exp, Ri_casted_exp, Len, Sign))) :-
+symbolically_interpret(bitw_and(Le_exp, Ri_exp), symb(Common_type, Result)) :-
     !,
+    mytrace,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp),
-    %extract Len (32 or 64 I think to check though) and Sign ('signed' or 'unsigned') from Common_type
-    common_util__error(9, "bitw_and Expression is not handled", "Cannot perform symbolic interpretation", [('Unhandled_expression', bitw_and(Le_exp, Ri_exp))], '09_021024', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
+    (Common_type = unsigned(_) ->
+        Sign = 'unsigned'
+    ;
+        Sign = 'signed'
+    ),
+    ptc_solver__size(Common_type, Byte_size),
+    Len is Byte_size * 8,
+    ptc_solver__variable([Result], Common_type),
+    ptc_solver__arithmetic(bw_and(Le_casted_exp, Ri_casted_exp, Len, Sign), Result, _).
 
 symbolically_interpret(comma_op(Left_expression, Right_expression), Symbolic_expression) :-
     !,

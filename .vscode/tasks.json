@@ -59,7 +59,7 @@
             "type": "shell",
             "command": "echo",
             "args": [
-                "se_main(['${workspaceFolder}', '${fileDirname}', '${fileBasenameNoExtension}', main, debug, testcomp, -m32, regression(1, 10)])"
+                "se_main(['${workspaceFolder}', '${fileDirname}', '${fileBasenameNoExtension}', main, debug, testcomp, '-m32', regression(1, 10)])"
             ],
             "group": {
                 "kind": "build",
