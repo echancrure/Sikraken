@@ -7,6 +7,7 @@ regression_tests/*.i
 regression_tests/*.zip
 SampleCode/**/
 SampleCode/a.out
+SampleCode/a.out
 SampleCode/*.i
 SampleCode/*.pl
 SampleCode/*.obj
@@ -16,6 +17,7 @@ SampleCode/*.gcov
 test_runs_logs/
 Sikraken.code-workspace
 output/
+sikraken_output/
 sikraken_output/
 SymbolicExecutor/try.pl
 *.gcov
