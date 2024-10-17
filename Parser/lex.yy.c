@@ -1400,8 +1400,8 @@ YY_RULE_SETUP
 case 55:
 YY_RULE_SETUP
 #line 123 "C_grammar.l"
-{if (strcmp(yytext, "0")) wrap_integer_constants("8'", &yytext[1], &yylval.id);  //octal integer
-                             else wrap_integer_constants("", yytext, &yylval.id);   //because it's just the constant 0, not an octal
+{if (!strcmp(yytext, "0") || !strcmp(yytext, "0u") || !strcmp(yytext, "0U")) wrap_integer_constants("", yytext, &yylval.id);   //because it's just the constant 0, not an octal
+                             else wrap_integer_constants("8'", &yytext[1], &yylval.id);  //octal integer 
                              return I_CONSTANT;
                             }
 	YY_BREAK

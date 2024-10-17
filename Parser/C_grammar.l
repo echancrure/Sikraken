@@ -119,8 +119,8 @@ WS  [ \t\v\n\f]
                              return I_CONSTANT;
                             }
                             
-"0"{O}*{IS}?				{if (strcmp(yytext, "0")) wrap_integer_constants("8'", &yytext[1], &yylval.id);  //octal integer
-                             else wrap_integer_constants("", yytext, &yylval.id);   //because it's just the constant 0, not an octal
+"0"{O}*{IS}?				{if (!strcmp(yytext, "0") || !strcmp(yytext, "0u") || !strcmp(yytext, "0U")) wrap_integer_constants("", yytext, &yylval.id);   //because it's just the constant 0, not an octal
+                             else wrap_integer_constants("8'", &yytext[1], &yylval.id);  //octal integer 
                              return I_CONSTANT;
                             }
 {CP}?"'"([^'\\\n]|{ES})+"'"	{yylval.id = strdup_safe(yytext); return I_CONSTANT;}   //single characters
