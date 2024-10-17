@@ -25,3 +25,4 @@ SymbolicExecutor/try.pl
 trace.log
 regression_tests_run.log
 instrumented*
+enlarge.log

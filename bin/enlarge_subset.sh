@@ -77,7 +77,8 @@ for regression_test_file in "$c_files_directory"/*.c; do
     fi
 
     #validate test inputs
-    testcov_output=$(testcov $testcov_data_model --no-isolation --test-suite "$c_files_directory""/suite-""$base_name"".zip" "$regression_test_file")
+    #testcov_output=$(testcov $testcov_data_model --no-isolation --test-suite "$c_files_directory""/suite-""$base_name"".zip" "$regression_test_file")
+    $SIKRAKEN_INSTALL_DIR/bin/run_testcov.sh $regression_test_file $testcov_data_model
     if [ $? -ne 0 ]; then
         echo "Sikraken ENLARGE subset ERROR: TestCov test inputs validation of $regression_test_file failed"
     else
