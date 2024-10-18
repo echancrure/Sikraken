@@ -289,7 +289,7 @@ unary_operator
 	| '*'	{simple_str_lit_copy(&$$, "deref");}
 	| '+'	{simple_str_lit_copy(&$$, "plus_op");}
 	| '-'	{simple_str_lit_copy(&$$, "minus_op");}
-	| '~'	{simple_str_lit_copy(&$$, "one_comp_op");}
+	| '~'	{simple_str_lit_copy(&$$, "bw_one_comp");}
 	| '!'	{simple_str_lit_copy(&$$, "not_op");}
 	;
 
@@ -342,9 +342,9 @@ additive_expression_op
 shift_expression
 	: additive_expression
 	| shift_expression shift_expression_op additive_expression
-		{size_t const size = strlen("(, )") + strlen($1) + strlen($2) + strlen($3) + 1;
+		{size_t const size = strlen("bitwise(, , )") + strlen($1) + strlen($2) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "%s(%s, %s)", $2, $1, $3);
+		 sprintf_safe($$, size, "bitwise(%s, %s, %s)", $2, $1, $3);
 		 free($1);
 		 free($2);
 		 free($3);
@@ -352,8 +352,8 @@ shift_expression
 	;
 
 shift_expression_op
-	: LEFT_OP		{simple_str_lit_copy(&$$, "left_shift_op");}
-	| RIGHT_OP		{simple_str_lit_copy(&$$, "right_shift_op");}
+	: LEFT_OP		{simple_str_lit_copy(&$$, "left_shift");}
+	| RIGHT_OP		{simple_str_lit_copy(&$$, "right_shift");}
 	;
 
 relational_expression
@@ -396,9 +396,9 @@ equality_expression_op
 and_expression
 	: equality_expression
 	| and_expression '&' equality_expression
-		{size_t const size = strlen("bitw_and(, )") + strlen($1) + strlen($3) + 1;
+		{size_t const size = strlen("bitwise(bw_and, , )") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "bitw_and(%s, %s)", $1, $3);
+		 sprintf_safe($$, size, "bitwise(bw_and, %s, %s)", $1, $3);
 		 free($1);
 		 free($3);
 		}
@@ -407,9 +407,9 @@ and_expression
 exclusive_or_expression
 	: and_expression
 	| exclusive_or_expression '^' and_expression
-		{size_t const size = strlen("bitw_excl_or_op(, )") + strlen($1) + strlen($3) + 1;
+		{size_t const size = strlen("bitwise(bw_xor, , )") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "bitw_excl_or_op(%s, %s)", $1, $3);
+		 sprintf_safe($$, size, "bitwise(bw_xor, %s, %s)", $1, $3);
 		 free($1);
 		 free($3);
 		}
@@ -418,9 +418,9 @@ exclusive_or_expression
 inclusive_or_expression
 	: exclusive_or_expression
 	| inclusive_or_expression '|' exclusive_or_expression
-		{size_t const size = strlen("bitw_incl_or_op(, )") + strlen($1) + strlen($3) + 1;
+		{size_t const size = strlen("bitwise(bw_or, , )") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "bitw_incl_or_op(%s, %s)", $1, $3);
+		 sprintf_safe($$, size, "bitwise(bw_or, %s, %s)", $1, $3);
 		 free($1);
 		 free($3);
 		}

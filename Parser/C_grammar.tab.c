@@ -2674,7 +2674,7 @@ yyreduce:
 
   case 43: /* unary_operator: '~'  */
 #line 292 "C_grammar.y"
-                {simple_str_lit_copy(&(yyval.id), "one_comp_op");}
+                {simple_str_lit_copy(&(yyval.id), "bw_one_comp");}
 #line 2679 "C_grammar.tab.c"
     break;
 
@@ -2751,9 +2751,9 @@ yyreduce:
 
   case 57: /* shift_expression: shift_expression shift_expression_op additive_expression  */
 #line 345 "C_grammar.y"
-                {size_t const size = strlen("(, )") + strlen((yyvsp[-2].id)) + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1;
+                {size_t const size = strlen("bitwise(, , )") + strlen((yyvsp[-2].id)) + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
-		 sprintf_safe((yyval.id), size, "%s(%s, %s)", (yyvsp[-1].id), (yyvsp[-2].id), (yyvsp[0].id));
+		 sprintf_safe((yyval.id), size, "bitwise(%s, %s, %s)", (yyvsp[-1].id), (yyvsp[-2].id), (yyvsp[0].id));
 		 free((yyvsp[-2].id));
 		 free((yyvsp[-1].id));
 		 free((yyvsp[0].id));
@@ -2763,13 +2763,13 @@ yyreduce:
 
   case 58: /* shift_expression_op: LEFT_OP  */
 #line 355 "C_grammar.y"
-                                {simple_str_lit_copy(&(yyval.id), "left_shift_op");}
+                                {simple_str_lit_copy(&(yyval.id), "left_shift");}
 #line 2768 "C_grammar.tab.c"
     break;
 
   case 59: /* shift_expression_op: RIGHT_OP  */
 #line 356 "C_grammar.y"
-                                {simple_str_lit_copy(&(yyval.id), "right_shift_op");}
+                                {simple_str_lit_copy(&(yyval.id), "right_shift");}
 #line 2774 "C_grammar.tab.c"
     break;
 
@@ -2835,9 +2835,9 @@ yyreduce:
 
   case 71: /* and_expression: and_expression '&' equality_expression  */
 #line 399 "C_grammar.y"
-                {size_t const size = strlen("bitw_and(, )") + strlen((yyvsp[-2].id)) + strlen((yyvsp[0].id)) + 1;
+                {size_t const size = strlen("bitwise(bw_and, , )") + strlen((yyvsp[-2].id)) + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
-		 sprintf_safe((yyval.id), size, "bitw_and(%s, %s)", (yyvsp[-2].id), (yyvsp[0].id));
+		 sprintf_safe((yyval.id), size, "bitwise(bw_and, %s, %s)", (yyvsp[-2].id), (yyvsp[0].id));
 		 free((yyvsp[-2].id));
 		 free((yyvsp[0].id));
 		}
@@ -2846,9 +2846,9 @@ yyreduce:
 
   case 73: /* exclusive_or_expression: exclusive_or_expression '^' and_expression  */
 #line 410 "C_grammar.y"
-                {size_t const size = strlen("bitw_excl_or_op(, )") + strlen((yyvsp[-2].id)) + strlen((yyvsp[0].id)) + 1;
+                {size_t const size = strlen("bitwise(bw_xor, , )") + strlen((yyvsp[-2].id)) + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
-		 sprintf_safe((yyval.id), size, "bitw_excl_or_op(%s, %s)", (yyvsp[-2].id), (yyvsp[0].id));
+		 sprintf_safe((yyval.id), size, "bitwise(bw_xor, %s, %s)", (yyvsp[-2].id), (yyvsp[0].id));
 		 free((yyvsp[-2].id));
 		 free((yyvsp[0].id));
 		}
@@ -2857,9 +2857,9 @@ yyreduce:
 
   case 75: /* inclusive_or_expression: inclusive_or_expression '|' exclusive_or_expression  */
 #line 421 "C_grammar.y"
-                {size_t const size = strlen("bitw_incl_or_op(, )") + strlen((yyvsp[-2].id)) + strlen((yyvsp[0].id)) + 1;
+                {size_t const size = strlen("bitwise(bw_or, , )") + strlen((yyvsp[-2].id)) + strlen((yyvsp[0].id)) + 1;
 		 (yyval.id) = (char*)malloc(size);
-		 sprintf_safe((yyval.id), size, "bitw_incl_or_op(%s, %s)", (yyvsp[-2].id), (yyvsp[0].id));
+		 sprintf_safe((yyval.id), size, "bitwise(bw_or, %s, %s)", (yyvsp[-2].id), (yyvsp[0].id));
 		 free((yyvsp[-2].id));
 		 free((yyvsp[0].id));
 		}

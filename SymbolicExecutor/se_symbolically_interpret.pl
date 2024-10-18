@@ -353,9 +353,24 @@ symbolically_interpret(cond_exp(branch(Id, Condition), True_exp, False_exp), sym
         )
     ).
 %%% bitwise operators %%%
-symbolically_interpret(bitw_and(Le_exp, Ri_exp), symb(Common_type, Result)) :-
+symbolically_interpret(bw_one_comp(Le_exp), symb(Common_type, Result)) :-
     !,
-    mytrace,
+    %mytrace,
+    symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
+    implicit_type_casting(Le_type, int, Le_symbolic, 0, Common_type, Le_casted_exp, _),
+    (Common_type = unsigned(_) ->
+        Sign = 'unsigned'
+    ;
+        Sign = 'signed'
+    ),
+    ptc_solver__size(Common_type, Byte_size),
+    Len is Byte_size * 8,
+    ptc_solver__variable([Result], Common_type),
+    ptc_solver__arithmetic(bw_not(Le_casted_exp, Len, Sign), Result, _).
+
+symbolically_interpret(bitwise(Op, Le_exp, Ri_exp), symb(Common_type, Result)) :-
+    !,
+    %mytrace,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp),
@@ -367,8 +382,24 @@ symbolically_interpret(bitw_and(Le_exp, Ri_exp), symb(Common_type, Result)) :-
     ptc_solver__size(Common_type, Byte_size),
     Len is Byte_size * 8,
     ptc_solver__variable([Result], Common_type),
-    ptc_solver__arithmetic(bw_and(Le_casted_exp, Ri_casted_exp, Len, Sign), Result, _).
-
+    (Op == bw_and ->
+        ptc_solver__arithmetic(bw_and(Le_casted_exp, Ri_casted_exp, Len, Sign), Result, _)
+    ;
+     Op == bw_or ->
+        ptc_solver__arithmetic(bw_or(Le_casted_exp, Ri_casted_exp, Len, Sign), Result, _)
+    ;
+     Op == bw_xor ->
+        ptc_solver__arithmetic(bw_xor(Le_casted_exp, Ri_casted_exp, Len, Sign), Result, _)
+    ;
+     Op == left_shift ->
+        ptc_solver__arithmetic(left_shift(Le_casted_exp, Ri_casted_exp, Len, Sign), Result, _)
+    ;
+     Op == right_shift ->
+        ptc_solver__arithmetic(right_shift(Le_casted_exp, Ri_casted_exp, Len, Sign), Result, _)
+    ;
+        common_util__error(9, "Invalid bitwise operator", "Cannot perform symbolic interpretation", [print('Op', Op)], '9_020824', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info)
+    ).
+%%%
 symbolically_interpret(comma_op(Left_expression, Right_expression), Symbolic_expression) :-
     !,
     symbolically_interpret(Left_expression, _),
@@ -387,10 +418,10 @@ symbolically_interpret(stmt_exp(Compound_statement), symb(void, 0)) :-
     symbolic_execute(Compound_statement, _Flow). %not handled properly: if the last statement is an expression, that should be the symbolic value and type
 %%%
 symbolically_interpret(Unhandled_expression, symb(int, 0)) :-
-    mytrace, common_util__error(9, "Expression is not handled", "Cannot perform symbolic interpretation", [print('Unhandled_expression', Unhandled_expression)], '10_020824', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
+    common_util__error(9, "Expression is not handled", "Cannot perform symbolic interpretation", [print('Unhandled_expression', Unhandled_expression)], '10_020824', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 implicit_type_casting(Same_type, Same_type, Le_symbolic, Ri_symbolic, Same_type, Le_symbolic, Ri_symbolic) :-   %Types are equal: no casting needed
-    !.
+    !.  %added a todo 18/10/2024 to check this rule
 implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp) :-
     %mytrace,
     (float_conversion(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp) ->
