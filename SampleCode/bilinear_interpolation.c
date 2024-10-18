@@ -30,7 +30,7 @@ int main() {
 	unsigned int z10 = __VERIFIER_nondet_int();
 	unsigned int z11 = __VERIFIER_nondet_int();
 
-	if (x0 > x || x > x1 || y0 > y || y > y1 || y0 >= y1 || x0 >= x1) abort();
+	if (x0 > x || x > x1 || y0 > y || y > y1 || y0 >= y1 || x0 >= x1) {abort();}
 
 	// z00+z01+z10+z11 can be greater than the maximum element of unsigned int
 	long long r =
