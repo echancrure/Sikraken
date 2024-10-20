@@ -124,7 +124,7 @@ symbolically_interpret(div_op(Le_exp, Ri_exp), symb(Common_type, Casted)) :-
 %todo what do we do on div by 0?
 symbolically_interpret(mod_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp - Ri_casted_exp*(Le_casted_exp//Ri_casted_exp))) :-
     !,   
-    mytrace,
+    %mytrace,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
