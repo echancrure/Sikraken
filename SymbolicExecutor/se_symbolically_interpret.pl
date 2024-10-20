@@ -107,6 +107,8 @@ symbolically_interpret(multiply_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
+
+%todo what do we do on div by 0?
 symbolically_interpret(div_op(Le_exp, Ri_exp), symb(Common_type, Casted)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
@@ -116,13 +118,17 @@ symbolically_interpret(div_op(Le_exp, Ri_exp), symb(Common_type, Casted)) :-
         Casted #= eval(Le_casted_exp) // eval(Ri_casted_exp)     %[see ECLiPSe release notes7.1] integer division towards 0; don't understand why handling is different than / ; a bit of a hack
     ;
         Casted = Le_casted_exp / Ri_casted_exp
-    ).     
-symbolically_interpret(mod_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp rem Ri_casted_exp)) :-
-    !,
+    ).
+
+%mod is not an IC constraint, rem is but it behaves differently and any in C: a mod b == a - b(a//b)
+%todo what do we do on div by 0?
+symbolically_interpret(mod_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp - Ri_casted_exp*(Le_casted_exp//Ri_casted_exp))) :-
+    !,   
     mytrace,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
+
 symbolically_interpret(plus_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp + Ri_casted_exp)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
