@@ -3,14 +3,21 @@ extern int __VERIFIER_nondet_int();
 int main() {
     int sol = 0;   
     int nota = __VERIFIER_nondet_int();
-    nota = ~nota;
-    if (nota == 42) sol++;
-    else sol++;
+    if (~nota == 42) ;              // Bitwise not (~)
+    else ;
 
+    char char_not = __VERIFIER_nondet_char();
+    if (~char_not == -61) ;         // Bitwise not (~)
+    else ;
 
+    int shift_left = __VERIFIER_nondet_int();
+    if (shift_left << 1 == 10) ;    // Bitwise left shift (<<)
+    else ;
+    
+    int shift_right = __VERIFIER_nondet_int();
+    if (shift_right >> 1 == 2);     // Bitwise right shift (>>)
+    else ;
 
-
- 
     // Bitwise AND (&)
     int a = 12;    // 1100 in binary
     int b = 10;    // 1010 in binary
@@ -30,14 +37,6 @@ int main() {
     unsigned int not_result = ~c;  // 11110000 in binary (with unsigned) -> 0xFFFFFFF0
     if (not_result == 0xFFFFFFF0) sol++;
 
-    // Bitwise left shift (<<)
-    int d = 5;               // 00000101 in binary
-    int shift_left = d << 1;  // 00001010 in binary -> 10
-    if (shift_left == 10) sol++;
-
-    // Bitwise right shift (>>)
-    int shift_right = d >> 1; // 00000010 in binary -> 2
-    if (shift_right == 2) sol++;
 
     // Using bitwise operators with `char` type
     char e = 0x3C;           // 00111100 in binary, 61 in decimal
@@ -50,9 +49,5 @@ int main() {
 
     char char_xor = e ^ f;    // 00110011 in binary -> 51
     if (char_xor == 51) sol++;
-
-    char char_not = ~e;       // 11000011 in binary (2's complement) -> -61
-    if (char_not == -61) sol++;
-    //printf("sol is %d", sol);
     return 0;
 }
