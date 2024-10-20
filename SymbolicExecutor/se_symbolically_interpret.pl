@@ -359,20 +359,12 @@ symbolically_interpret(cond_exp(branch(Id, Condition), True_exp, False_exp), sym
         )
     ).
 %%% bitwise operators %%%
-symbolically_interpret(bw_one_comp(Le_exp), symb(Common_type, Result)) :-
+    %we use the equivalence of ~x == -(x+1) which holds for signed an unsigned in c
+symbolically_interpret(bw_one_comp(Le_exp), symb(Common_type, -(Le_casted_exp + 1))) :-
     !,
     %mytrace,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
-    implicit_type_casting(Le_type, int, Le_symbolic, 0, Common_type, Le_casted_exp, _),
-    (Common_type = unsigned(_) ->
-        Sign = 'unsigned'
-    ;
-        Sign = 'signed'
-    ),
-    ptc_solver__size(Common_type, Byte_size),
-    Len is Byte_size * 8,
-    ptc_solver__variable([Result], Common_type),
-    ptc_solver__arithmetic(bw_not(Le_casted_exp, Len, Sign), Result, _).
+    implicit_type_casting(Le_type, int, Le_symbolic, 0, Common_type, Le_casted_exp, _).
 
 symbolically_interpret(bitwise(Op, Le_exp, Ri_exp), symb(Common_type, Result)) :-
     !,

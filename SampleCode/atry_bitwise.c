@@ -1,8 +1,16 @@
 extern int __VERIFIER_nondet_int();
-#include <stdio.h>
+//#include <stdio.h>
 int main() {
- //   int sample = __VERIFIER_nondet_int();
-    int sol = 0;
+    int sol = 0;   
+    int nota = __VERIFIER_nondet_int();
+    nota = ~nota;
+    if (nota == 42) sol++;
+    else sol++;
+
+
+
+
+ 
     // Bitwise AND (&)
     int a = 12;    // 1100 in binary
     int b = 10;    // 1010 in binary
@@ -45,6 +53,6 @@ int main() {
 
     char char_not = ~e;       // 11000011 in binary (2's complement) -> -61
     if (char_not == -61) sol++;
-    printf("sol is %d", sol);
+    //printf("sol is %d", sol);
     return 0;
 }
