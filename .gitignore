@@ -22,7 +22,5 @@ sikraken_output/
 SymbolicExecutor/try.pl
 *.gcov
 *.zip
-trace.log
-regression_tests_run.log
+*.log
 instrumented*
-enlarge.log
