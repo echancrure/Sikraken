@@ -61,7 +61,6 @@ for regression_test_file in "$c_files_directory"/*.c; do
     ./bin/call_parser.sh $c_files_directory $base_name $gcc_flag
     if [ $? -ne 0 ]; then
         echo "Sikraken ENLARGE subset ERROR: Sikraken parsing of $regression_test_file failed"
-        exit 1
     else
         echo "Sikraken successfully parsed $regression_test_file"
     fi

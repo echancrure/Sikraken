@@ -4348,7 +4348,7 @@ int main(int argc, char *argv[]) {
 				strcpy_safe(C_file_path, MAX_PATH, &argv[i][2]);
 				break;
 			case 'd':
-				debugMode = 1;	//we are in debug mode : will affect output of warnings amongst other things
+				debugMode = 1;	//we are in debug mode (false is default): will affect output of warnings amongst other things
 				break;
 			case 'm':
 				if (argv[i][2] == '6' && argv[i][3] == '4') {
@@ -4407,7 +4407,6 @@ void my_exit(int exit_code) {			//exits and performs some tidying up if not in d
   if (!debugMode) {
     if (i_file) fclose(i_file);
     if (pl_file) fclose(pl_file);
-    if (access_safe(i_file_uri, 0) != -1) remove(i_file_uri);
   }
   if (exit_code == EXIT_SUCCESS) fprintf(stderr, "Sikraken parsing SUCCESS, wrote %s\n", pl_file_uri);
   exit(exit_code);
