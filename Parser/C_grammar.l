@@ -24,6 +24,7 @@
 
 #include "C_grammar.tab.h"
 
+
 extern int is_typedef_name(char*);
 extern long int TARGET_LONG_MAX;
 
@@ -54,6 +55,7 @@ WS  [ \t\v\n\f]
         /* rules section */
 "/*"                                        { read_comment(); }
 "//".*                                      { /* consume //-comment */ }
+"#pragma".*                                 { /* Ignore the entire line after `#pragma` */ }
 
 "__attribute__"[ ]*\([ ]*\([^)]*\)[ ]*\)    { /* Ignoring all GCC __attribute__ at our peril obviously */ }
 "__extension__"                             { /* Ignoring GCC keyword __extension__ that disables compiler warnings about non-compliant features */ }
@@ -106,10 +108,11 @@ WS  [ \t\v\n\f]
 "__func__"                              { return FUNC_NAME; }
 
 {L}{A}*                     {yylval.id = strdup_safe(yytext);
-                              if (is_typedef_name(yylval.id)) {
-                                  return TYPEDEF_NAME;
-                              }
-                              return IDENTIFIER;
+                             if (is_typedef_name(yylval.id)) {
+                                //if (debugMode) printf("Debug: returning the typedef %s from lexer\n", yytext);
+                                return TYPEDEF_NAME;
+                             }
+                             return IDENTIFIER;
                             }
 
 {HP}{H}+{IS}?				{wrap_integer_constants("16'", &yytext[2], &yylval.id);     //hexadecimal integer

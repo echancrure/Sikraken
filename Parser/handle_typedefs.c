@@ -3,6 +3,7 @@
 #include <string.h>
 
 extern void* safe_malloc(size_t);
+extern int debugMode;
 
 typedef struct node {
 	char* typedef_name;
@@ -13,6 +14,7 @@ list_node *typedef_list = NULL;
 
 
 void add_typedef_name(char* id) {
+	//if (debugMode) printf("Debug: adding %s to typedef collection\n", id);
 	list_node* new_node = (list_node *)safe_malloc(sizeof(list_node));
 	new_node->typedef_name = (char*)safe_malloc(strlen(id) + 1);
 	strcpy_safe(new_node->typedef_name, strlen(id) + 1, id);

@@ -110,10 +110,10 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 primary_expression
 	: IDENTIFIER	
 		{char Prolog_var_name[MAX_ID_LENGTH+5];
-		 if (islower($1[0])) {
+		 if (islower($1[0])) {	//starts with a lower case: we uppercase it
 			Prolog_var_name[0] = toupper($1[0]);
 			strcpy_safe(&Prolog_var_name[1], MAX_ID_LENGTH-1, &$1[1]);
-		 } else {
+		 } else {	//starts with an uppercase we add the prefic "UC_"
 			strcpy_safe(Prolog_var_name, MAX_ID_LENGTH, "UC_");
 			strcat_safe(Prolog_var_name, MAX_ID_LENGTH, $1);
 		 }
@@ -509,9 +509,17 @@ declaration
 		 free($1);
 		}
 	| declaration_specifiers init_declarator_list ';' 
-	  	{if (typedef_flag == 1) {	//we were processing typedef declarations
-	    	typedef_flag = 0;
+	  	{/*if (strstr($1, "typedef") != NULL) {
+			typedef_flag = 0; 
+			if (debugMode) printf("Debug: typedef switched to 0 on declaration([%s], [%s])\n", $1, $2);
+		 }
+		 */
+		 
+		 if (typedef_flag == 1) {	//we were processing typedef declarations
+	    	typedef_flag = 0; 
+			//if (debugMode) printf("Debug: typedef switched to 0\n");
 	   	 }
+		 
 		 size_t const size = strlen("\ndeclaration([], [])") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "\ndeclaration([%s], [%s])", $1, $2);
@@ -577,11 +585,17 @@ init_declarator
 	   	 //free($3);
 	  	}
 	| declarator
-	  {if (typedef_flag == 1) {	// we are parsing one typedef declaration
-		 add_typedef_name($1);
-	   }
-	   simple_str_copy(&$$, $1);
-	  }
+		{if (typedef_flag == 1) {	// we are parsing one typedef declaration
+			if (!strncmp($1, "UC_", 3)) add_typedef_name(&$1[3]);	//removing the "UC_" prefix before adding to collection of typedef
+			else {
+				char original_var_name[MAX_ID_LENGTH+5];
+				original_var_name[0] = tolower($1[0]);
+				strcpy_safe(&original_var_name[1], MAX_ID_LENGTH-1, &$1[1]);//lowering the first letter before adding to collection of typedef
+				add_typedef_name(original_var_name);
+			}
+	   	 }
+		 simple_str_copy(&$$, $1);
+	  	}
 	;
 
 storage_class_specifier
