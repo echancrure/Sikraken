@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include "parser.h"
 #include "utils.c"
 #include "handle_typedefs.c"
 
@@ -36,7 +37,6 @@ extern int yylineno;
 extern FILE *yyin;
 extern char *yytext;
 
-#define MAX_ID_LENGTH 255
 #define MAX_PATH 256
 #define MAX_BRANCH_STR 9		//maximum length of the string encoding the number of branches (max is "999999999" i.e. 1 billion - 1)
 
@@ -108,18 +108,8 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 %%
 
 primary_expression
-	: IDENTIFIER	
-		{char Prolog_var_name[MAX_ID_LENGTH+5];
-		 if (islower($1[0])) {	//starts with a lower case: we uppercase it
-			Prolog_var_name[0] = toupper($1[0]);
-			strcpy_safe(&Prolog_var_name[1], MAX_ID_LENGTH-1, &$1[1]);
-		 } else {	//starts with an uppercase we add the prefic "UC_"
-			strcpy_safe(Prolog_var_name, MAX_ID_LENGTH, "UC_");
-			strcat_safe(Prolog_var_name, MAX_ID_LENGTH, $1);
-		 }
-		 size_t const size = strlen(Prolog_var_name) + 1;
-		 $$ = (char*)malloc(size);
-		 strcpy_safe($$, size, Prolog_var_name);
+	: IDENTIFIER
+		{$$ = to_prolog_var($1);
 		 free($1);
 		}
 	| constant
@@ -599,7 +589,7 @@ init_declarator
 	;
 
 storage_class_specifier
-	: TYPEDEF	/* identifiers must be flagged as TYPEDEF_NAME */
+	: TYPEDEF	/* identifiers must be flagged as TYPEDEF_NAME in lexer*/
 		{simple_str_lit_copy(&$$, "typedef");
          typedef_flag = 1;
 	    }
@@ -627,6 +617,9 @@ type_specifier
 	| struct_or_union_specifier
 	| enum_specifier
 	| TYPEDEF_NAME			/* after it has been defined as such */
+		{$$ = to_prolog_var($1);
+		 free($1);
+		}
 	;
 
 struct_or_union_specifier
