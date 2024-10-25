@@ -26,7 +26,7 @@ mytrace.            %call this to start debugging
 
 :- use_module("./../PTC-Solver/source/ptc_solver").
 
-:- use_module(['se_globals', 'se_name_atts', 'se_seav_atts', 'se_sub_atts']).
+:- use_module(['se_globals', 'se_name_atts', 'se_seav_atts', 'se_sub_atts', 'se_typedef_atts']).
 
 :- compile(['common_util', 'se_handle_declarations', 'se_symbolically_execute', 'se_symbolically_interpret']).
 :- compile(['se_write_tests_testcomp']).
@@ -358,9 +358,9 @@ read_parsed_file(Install_dir, Target_source_file_name_no_ext, Target_raw_subprog
     concat_atom([Install_dir, '/sikraken_output/', Target_source_file_name_no_ext, '/', Target_source_file_name_no_ext, '.pl'], Parsed_filename),
     (exists(Parsed_filename) ->
         (open(Parsed_filename, read, Stream),
-         read_term(Stream, CProlog, [variable_names(VarsNames)]) ->
+         read_term(Stream, CProlog, [variable_names(VarsNames)]) -> %Varnames is list of Atom = Var (e.g. 'X' = X)
             (close(Stream),
-             se_name_atts__initL(VarsNames),     %initialise all C vars with their id
+             se_name_atts__initL(VarsNames),     %initialise all C vars with their Names
              (memberchk(Target_raw_subprogram_name = Target_subprogram_var, VarsNames) ->
                 (memberchk('Main' = Main, VarsNames) ->
                     true

@@ -16,7 +16,7 @@ symbolic_execute(mytrace, 'carry_on') :-
 symbolic_execute(declaration(Declaration_specifiers, Declarators), 'carry_on') :-
     !,
     ((Declarators = [Declarator], nonvar(Declarator), Declarator = function(Function_name, Parameters)) ->  %a function forward declaration
-        (memberchk('extern', Declaration_specifiers) ->  %(need to use memberchk because 'extern' does not necessairily come first) found an extern function declaration
+        (memberchk('extern', Declaration_specifiers) ->  %(need to use memberchk because 'extern' does not necessarily come first) found an extern function declaration
             (subtract(Declaration_specifiers, ['extern'], Other_specifiers),
              extract_type(Other_specifiers, Return_type_name),
              se_sub_atts__create(Return_type_name, Parameters, 'no_body_is_extern', Function_name)
@@ -30,10 +30,16 @@ symbolic_execute(declaration(Declaration_specifiers, Declarators), 'carry_on') :
             true    %we ignore all other, non-extern, forward function declarations: they will be declared later
         )
     ;
-        (%a variable declaration
-         extract_type(Declaration_specifiers, Type_name),
-         declare_declarators(Declarators, Type_name)
-        )
+        ((Declaration_specifiers = [typedef|Rest_declaration_specifiers] ->
+            (extract_type(Rest_declaration_specifiers, Type_name),
+             declare_typedefs(Declarators, Type_name)
+            )
+         ;
+            (%a variable declaration
+             extract_type(Declaration_specifiers, Type_name),
+             declare_declarators(Declarators, Type_name)
+            )
+        ))
     ).
 symbolic_execute(function(Specifiers, function(Function_name, Parameters), [], Compound_statement), 'carry_on') :-
     !,

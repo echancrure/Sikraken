@@ -18,6 +18,12 @@ declare_declarators([Declarator|R], Type_name) :-
     seav__update(Clean_var, 'output', Casted),
     declare_declarators(R, Type_name).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+declare_typedefs([], _).
+declare_typedefs([Typedef|R], Type_name) :-
+    extract_pointers(Typedef, Type_name, Type_name_ptr_opt, Clean_typedef),
+    se_typedef_atts__create(Type_name_ptr_opt, Clean_typedef),
+    declare_typedefs(R, Type_name).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %e.g. extract_pointers(pointer(X), int, pointer(int), X)
 extract_pointers(Var, Type_name, Type_name_ptr_opt, Clean_var) :-
     (nonvar(Var), Var = pointer(Inner_var) ->
