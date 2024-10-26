@@ -542,9 +542,13 @@ declaration_specifiers
 		}
 	| type_specifier
 	| type_qualifier declaration_specifiers
-		{ simple_str_lit_copy(&$$, "dummy_type_qualifier, dummy_declaration_specifiers"); }
+		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_safe($$, size, "%s, %s", $1, $2);
+		 free($1);
+		 free($2);
+		}
 	| type_qualifier
-		{ simple_str_lit_copy(&$$, "dummy_type_qualifier"); }
 	| function_specifier declaration_specifiers
 		{ simple_str_lit_copy(&$$, "dummy_function_specifier, dummy_declaration_specifiers"); }
 	| function_specifier
