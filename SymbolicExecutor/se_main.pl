@@ -78,15 +78,15 @@ se_main(ArgsL) :-
     initialise_ptc_solver,
     capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
     read_parsed_file(Install_dir, Target_source_file_name_no_ext, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors
+    %%%pre-symbolic execution
     symbolic_execute(Parsed_prolog_code, _),   %always symbolically execute all global declarations for now: initialisations could be ignored via a switch if desired
+    %%%
     print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext),
-
     statistics(event_time, Session_time),
     setval('start_session_time', Session_time),
     setval('restart_time', Session_time),
-    %setval('log_and_terminate', 0),
     %%% where it all happens
-    catch(search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code), Any_exception, exception_handler(Any_exception)),
+    catch(search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code), Any_exception, search_CFG_exception_handler(Any_exception)),
     %%%
     log_and_terminate.   %only run once 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -94,7 +94,7 @@ se_main(ArgsL) :-
         cancel_after_event('single_test_time_out_exception', _), %to ensure none are left and be triggered later on especially in development mode
         throw('outatime').
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    exception_handler(Exception) :-
+    search_CFG_exception_handler(Exception) :-
         (Exception == 'outatime' ->
             easter_egg
         ;
@@ -122,22 +122,16 @@ se_main(ArgsL) :-
     log_and_terminate :-
         cancel_after_event('single_test_time_out_exception', _), %to ensure none are left and be triggered later on especially in development mode
         cancel_after_event('overall_generation_time_out', _),    %to ensure none is left and be triggered later on especially in development mode            
-        (fail -> %getval('log_and_terminate', 'already_ran') ->    %ugly: see exception_handler/2 below when outatime was triggered
-            true
+        getval(start_session_time, Session_time),
+        getval(last_successful_restart_time, Last_successful_restart_time),
+        (Last_successful_restart_time == -1 ->
+            super_util__quick_dev_info("No complete restart", [] )
         ;
-            (setval('log_and_terminate', 'already_ran'),
-             getval(start_session_time, Session_time),
-             getval(last_successful_restart_time, Last_successful_restart_time),
-             (Last_successful_restart_time == -1 ->
-                super_util__quick_dev_info("No complete restart", [] )
-             ;
-                (Total_time is Last_successful_restart_time - Session_time,
-                 super_util__quick_dev_info("Last succesful restart ended in %w seconds", [Total_time])
-                )
-             ),
-             print_test_run_log__terminate
+            (Total_time is Last_successful_restart_time - Session_time,
+             super_util__quick_dev_info("Last succesful restart ended in %w seconds", [Total_time])
             )
-        ).
+        ),
+        print_test_run_log__terminate.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
     set_event_handler('single_test_time_out_event', handle_single_test_time_out_event/0),
@@ -196,6 +190,7 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
             )
         ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%tries to generate at most nb_tries of test input vectors using backtracking
 %always fails by design
 try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)):-
     getval('nb_tries', Nb_tries),
@@ -206,8 +201,8 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
     event_after('single_test_time_out_event', Single_test_time_out),
     statistics(event_time, Start_time),
     setval(start_time, Start_time),
-    %%%
-    find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code),    %where it all happens
+    %%%where it all happens
+    catch(find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code), Any_exception, find_one_path_exception_handler(Any_exception)),
     %%%
     getval(try_counter, I),
     I1 is I + 1,
@@ -229,6 +224,13 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_single_test_time_out_exception :-
         fail. %to make sure the not succeeds...
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    find_one_path_exception_handler(Exception) :-
+        (Exception == 'abort' ->    %covers ECLiPSe exceptions: language/constraints violations?
+            true    %find_one_path will succeed and count as a try, and hopefully backtrack out of the error and find another subpath, if not it will eventually reach the max number of tries or timeout
+        ;
+            throw(Exception)    %rethrow...
+        ).    
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
     (Output_mode == 'testcomp' ->
