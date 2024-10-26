@@ -30,16 +30,18 @@ symbolic_execute(declaration(Declaration_specifiers, Declarators), 'carry_on') :
             true    %we ignore all other, non-extern, forward function declarations: they will be declared later
         )
     ;
-        ((Declaration_specifiers = [typedef|Rest_declaration_specifiers] ->
-            (extract_type(Rest_declaration_specifiers, Type_name),
+        ((Declaration_specifiers = [Specifier|Rest_declaration_specifiers], Specifier == 'typedef') ->
+            (mytrace,
+             extract_type(Rest_declaration_specifiers, Type_name),
              declare_typedefs(Declarators, Type_name)
             )
+
          ;
             (%a variable declaration
              extract_type(Declaration_specifiers, Type_name),
              declare_declarators(Declarators, Type_name)
             )
-        ))
+        )
     ).
 symbolic_execute(function(Specifiers, function(Function_name, Parameters), [], Compound_statement), 'carry_on') :-
     !,

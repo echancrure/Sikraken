@@ -9,18 +9,17 @@
 
 :- meta_attribute('se_typedef_atts', [unify:unify_typedef/2, print:print_typedef/2]).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%internal attributed variable handlers
 %called to confirm unification after unification with an another attributed variable or a non-variable
 %Value is a non-variable or another attributed variable
-unify_typedef(_, Attr) :-
-	var(Attr).                       %ANY+META (false call)
-unify_typedef(Term, Attr) :-
-	compound(Attr), %todo: revisit and do the same as for SEAVs
-	unify_term_typedef(Term, Attr).
+unify_typedef(_, Typedef_attr) :-			%ECLiPSe fails on compilation if this is not present even though the documentation says that the handler is not called in this case 
+	var(Typedef_attr).                    	%Ignore if no attribute for this extension
+unify_typedef(Term, Typedef_attr) :-
+	compound(Typedef_attr), %todo: revisit and do the same as for SEAVs
+	unify_term_typedef(Term, Typedef_attr).
 
-unify_term_typedef(_{AttrY}, AttrX) :-   %META + META
+unify_term_typedef(_{AttrY}, Typedef_attr) :-   %META + META
 	-?->
-	AttrX = AttrY.  
+	Typedef_attr = AttrY.  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 print_typedef(_{se_typedef_atts(Type)}, Print) :-
 	-?->

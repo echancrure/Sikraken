@@ -63,12 +63,32 @@ declare_return(Return_seav, Type_name) :-
     seav__update(Clean_return, 'input', 'not_needed'),
     seav__update(Clean_return, 'output', Output).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%todo: improve predicate efficiency: it is not indexed and really ugly
+%typedef occurs last in the list
+extract_type([Typedef_var], Type) :-
+    se_typedef_atts__is_typedef_atts(Typedef_var),
+    !,
+    se_typedef_atts__get(Typedef_var, 'type', Type).
 extract_type(['unsigned'|R], unsigned(Type)) :-
     !,
     extract_type(R, Type).
-extract_type(['signed'|R], Type) :-
+extract_type(['signed'|R], Type) :- %signed is the default so we ignore it
     !,
+    extract_type(R, Type).
+extract_type(['const'|R], Type) :-
+    !,
+    common_util__error(8, "Ignored Semantics", "todo check how semantics is affected", [('type_qualifier', 'const')], '8_261024', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info),
+    extract_type(R, Type).
+extract_type(['restrict'|R], Type) :-
+    !,
+    common_util__error(8, "Ignored Semantics", "todo check how semantics is affected", [('type_qualifier', 'restrict')], '8_261024', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info),
+    extract_type(R, Type).
+extract_type(['volatile'|R], Type) :-
+    !,
+    common_util__error(8, "Ignored Semantics", "todo check how semantics is affected", [('type_qualifier', 'volatile')], '8_261024', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info),
+    extract_type(R, Type).
+extract_type(['atomic'|R], Type) :-
+    !,
+    common_util__error(8, "Ignored Semantics", "todo check how semantics is affected", [('type_qualifier', 'atomic')], '8_261024', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info),
     extract_type(R, Type).
 extract_type(['int'], int) :-
     !.
