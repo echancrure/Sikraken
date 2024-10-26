@@ -122,8 +122,11 @@ WS  [ \t\v\n\f]
                              return I_CONSTANT;
                             }
                             
-"0"{O}*{IS}?				{if (!strcmp(yytext, "0") || !strcmp(yytext, "0u") || !strcmp(yytext, "0U")) wrap_integer_constants("", yytext, &yylval.id);   //because it's just the constant 0, not an octal
-                             else wrap_integer_constants("8'", &yytext[1], &yylval.id);  //octal integer 
+"0"{O}*{IS}?				{if (isdigit(yytext[1])) wrap_integer_constants("8'", &yytext[1], &yylval.id);  //octal integer 
+                             else { //the second char after 0 is not a digit (it's /0, ofr an IS (u|U)(l|L|ll|LL) char), so it's just the constant 0, rather than a true octal 
+                                yylval.id = (char*)malloc(7);
+                                strcpy(yylval.id, "int(0)");    
+                             }
                              return I_CONSTANT;
                             }
 {CP}?"'"([^'\\\n]|{ES})+"'"	{yylval.id = strdup_safe(yytext); return I_CONSTANT;}   //single characters
@@ -236,7 +239,7 @@ void read_comment() {
 }
 
 //add hexademical or octal wrapper and handle u|l|ll variations
-void wrap_integer_constants(char * wrapper, char * input, char ** output) {
+void wrap_integer_constants(char *wrapper, char *input, char **output) {
     int current = strlen(input)-1;
     int has_u = 0, has_l = 0, has_ll = 0;
     int has_suffix = 1;
