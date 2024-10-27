@@ -33,7 +33,12 @@ int differentiate_identifiers(char *);
 void wrap_integer_constants(char *, char *, char **);
 void wrap_floating_point_constants(char *, char *, char **);
 void add_missing_zero(char *, char **);
+
+int open_parens = 0; /* Declaration in the definitions section */
+
 %}
+
+%x ATTRIBUTE
 
 O   [0-7]
 D   [0-9]
@@ -56,9 +61,27 @@ WS  [ \t\v\n\f]
 "/*"                                        { read_comment(); }
 "//".*                                      { /* consume //-comment */ }
 "#pragma".*                                 { /* Ignore the entire line after `#pragma` */ }
-
-"__attribute__"[ ]*\([ ]*\([^)]*\)[ ]*\)    { /* Ignoring all GCC __attribute__ at our peril obviously */ }
 "__extension__"                             { /* Ignoring GCC keyword __extension__ that disables compiler warnings about non-compliant features */ }
+"__attribute__"[ ]*\([ ]*\(    { /* Ignoring all GCC __attribute__ at our peril obviously */ 
+                                             open_parens = 2; /* Start with the initial two opening parentheses */
+                                             BEGIN(ATTRIBUTE); /* Enter the ATTRIBUTE start condition */
+                                            }
+<ATTRIBUTE>. { 
+    if (yytext[0] == '(') { /* Increment for each additional opening parenthesis */
+        open_parens++;
+    } 
+    else if (yytext[0] == ')') { /* Decrement for each closing parenthesis */
+        open_parens--;
+        if (open_parens == 0) {
+            BEGIN(INITIAL); /* Exit ATTRIBUTE mode after the matched parentheses are balanced */
+        }
+    }
+    /* Otherwise, continue reading characters in ATTRIBUTE mode */
+}
+<ATTRIBUTE><<EOF>> { /* Handle unexpected EOF */
+    fprintf(stderr, "Error: Unclosed __attribute__(( found.\n");
+    exit(1);
+}
 "auto"					{ return(AUTO); }
 "break"					{ return(BREAK); }
 "case"					{ return(CASE); }
@@ -79,6 +102,7 @@ WS  [ \t\v\n\f]
 "int"					{ return(INT); }
 "long"					{ return(LONG); }
 "register"				{ return(REGISTER); }
+"__restrict"            { return(RESTRICT); /* GCC version of RESTRICT */ }
 "restrict"				{ return(RESTRICT); }
 "return"				{ return(RETURN); }
 "short"					{ return(SHORT); }
@@ -211,7 +235,7 @@ WS  [ \t\v\n\f]
 "|"					{ return '|'; }
 "?"					{ return '?'; }
 
-{WS}+					{ /* whitespace separates tokens */ }
+{WS}+				{ /* whitespaces (including new lines) separate tokens */ }
 .					{ /* discard bad characters */ }
 
 %%
