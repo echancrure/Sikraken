@@ -99,11 +99,12 @@ WS  [ \t\v\n\f]
 "goto"					{ return(GOTO); }
 "if"					{ return(IF); }
 "inline"				{ return(INLINE); }
+"__inline"				{ return(INLINE); /* GCC version of INLINE */}
 "int"					{ return(INT); }
 "long"					{ return(LONG); }
 "register"				{ return(REGISTER); }
-"__restrict"            { return(RESTRICT); /* GCC version of RESTRICT */ }
 "restrict"				{ return(RESTRICT); }
+"__restrict"            { return(RESTRICT); /* GCC version of RESTRICT */ }
 "return"				{ return(RETURN); }
 "short"					{ return(SHORT); }
 "signed"				{ return(SIGNED); }

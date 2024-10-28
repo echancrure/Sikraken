@@ -37,7 +37,7 @@ void add_typedef_name(const char* id) {
 	if (typedef_list != NULL) new_node->next = typedef_list;
 	else new_node->next = NULL;
 	typedef_list = new_node;
-	//free(result);
+	//free(result);		//crashes but don't know why
 }
 
 int is_typedef_name(char* id) {
