@@ -20,8 +20,8 @@ declare_declarators([Declarator|R], Type_name) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 declare_typedefs([], _).
 declare_typedefs([Typedef|R], Type_name) :-
-    extract_pointers(Typedef, Type_name, Type_name_ptr_opt, Clean_typedef),
-    se_typedef_atts__create(Type_name_ptr_opt, Clean_typedef),
+    extract_pointers(Typedef, Type_name, Type_name_ptr_opt, Clean_typedef_var),
+    se_typedef_atts__create(Type_name_ptr_opt, Clean_typedef_var),
     declare_typedefs(R, Type_name).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %e.g. extract_pointers(pointer(X), int, pointer(int), X)

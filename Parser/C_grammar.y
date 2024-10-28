@@ -577,14 +577,8 @@ init_declarator
 	   	 //free($3);
 	  	}
 	| declarator
-		{if (typedef_flag == 1) {	// we are parsing one typedef declaration
-			if (!strncmp($1, "UC_", 3)) add_typedef_name(&$1[3]);	//removing the "UC_" prefix before adding to collection of typedef
-			else {
-				char original_var_name[MAX_ID_LENGTH+5];
-				original_var_name[0] = tolower($1[0]);
-				strcpy_safe(&original_var_name[1], MAX_ID_LENGTH-1, &$1[1]);//lowering the first letter before adding to collection of typedef
-				add_typedef_name(original_var_name);
-			}
+		{if (typedef_flag == 1) {	// we are parsing a typedef declaration
+			add_typedef_name($1);
 	   	 }
 		 simple_str_copy(&$$, $1);
 	  	}
@@ -834,8 +828,8 @@ direct_declarator
 		 strcpy_safe($$, size, Prolog_var_name);
 		 free($1);
 		} 
-	| '(' declarator ')'			
-		{simple_str_lit_copy(&$$, "D1");}
+	| '(' declarator ')'			//function pointer e.g. int (*func_ptr)(int, int);
+		{simple_str_copy(&$$, $2);}
 	| direct_declarator '[' ']'		
 		{simple_str_lit_copy(&$$, "D2");}
 	| direct_declarator '[' '*' ']'	
