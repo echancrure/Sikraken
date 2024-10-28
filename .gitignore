@@ -24,3 +24,4 @@ SymbolicExecutor/try.pl
 *.zip
 *.log
 instrumented*
+*.info
