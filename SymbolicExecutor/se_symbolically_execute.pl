@@ -193,6 +193,13 @@ symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
          )
         )
     ).
+symbolic_execute(for_stmt(Initialisations, branch(Id, Condition), Statements), Flow) :-
+    !,
+    %checkscoping rules : // push scope?
+    symbolic_execute(Initialisations, Initialisations_flow),
+    symbolically_interpret(Condition, symb(_, Condition_value)),
+    
+
 symbolic_execute(label_stmt(_Label, Statement), Flow) :- 
     !,
     symbolic_execute(Statement, Flow).
