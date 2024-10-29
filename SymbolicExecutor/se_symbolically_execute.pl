@@ -193,13 +193,6 @@ symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
          )
         )
     ).
-symbolic_execute(for_stmt(Initialisations, branch(Id, Condition), Statements), Flow) :-
-    !,
-    %checkscoping rules : // push scope?
-    symbolic_execute(Initialisations, Initialisations_flow),
-    symbolically_interpret(Condition, symb(_, Condition_value)),
-    
-
 symbolic_execute(label_stmt(_Label, Statement), Flow) :- 
     !,
     symbolic_execute(Statement, Flow).
@@ -209,7 +202,7 @@ symbolic_execute(return_stmt, return) :-    %a return with no expression
     %mytrace,
     !.
 %we have anything here: an assignment, comma_op, postfix_inc_op, postfix_dec_op or any expression!
-symbolic_execute(Expression, 'carry_on') :- %assuming tha tthat there is no return in there...
+symbolic_execute(Expression, 'carry_on') :- %assuming that there is no return in there...
     !,
     symbolically_interpret(Expression, _).  %this is a statement: we don't care about its evaluation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

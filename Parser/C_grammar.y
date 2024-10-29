@@ -60,6 +60,11 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 
 %union {
 	char* id;
+	struct for_stmt {
+        char *init;
+        char *cond;
+        char *update;
+    } for_stmt_type;
 }
 
 %token <id> IDENTIFIER TYPEDEF_NAME I_CONSTANT F_CONSTANT ENUMERATION_CONSTANT STRING_LITERAL
@@ -91,11 +96,12 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 %type <id> static_assert_declaration
 %type <id> enum_specifier enumerator_list enumerator
 %type <id> parameter_type_list parameter_list parameter_declaration
-%type <id> expression_statement expression_opt for_stmt_type jump_statement statement labeled_statement compound_statement
+%type <id> expression_statement expression_opt jump_statement statement labeled_statement compound_statement
 %type <id> else_opt selection_statement iteration_statement
 %type <id> block_item_list block_item
 %type <id> declaration declaration_list_opt declaration_list
 %type <id> function_definition
+%type <for_stmt_type> for_stmt_type
 
 %start translation_unit 
 
@@ -1137,7 +1143,7 @@ block_item
 	;
 
 expression_statement
-	: ';'	{simple_str_lit_copy(&$$, "stmt([])");}
+	: ';'	{simple_str_lit_copy(&$$, "stmt([])");}	//todo replace with int(1) ?
 	| expression ';'
 		{size_t const size = strlen("\nstmt()") + strlen($1) + 1;
 		 $$ = (char*)malloc(size);
@@ -1188,42 +1194,27 @@ iteration_statement
 		 free($2);
 		 free($5);
 		} 
-	| FOR '(' for_stmt_type ')' statement
-		{size_t const size = strlen("\nfor_stmt(, )") + strlen($3) + strlen($5) + 1;
+	| FOR '(' for_stmt_type ')' statement	//replaced by an equivalent, a little ugly, while statement
+		{size_t const size = strlen("\ncmp_stmts([, \nwhile_stmt(branch(, ), \ncmp_stmts([, ]))])") + strlen($3.init) + MAX_BRANCH_STR + strlen($3.cond) + strlen($5) + strlen($3.update) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "\nfor_stmt(%s, %s)", $3, $5);
-		 free($3);
+		 sprintf_safe($$, size, "\ncmp_stmts([%s, \nwhile_stmt(branch(%d, %s), \ncmp_stmts([%s, %s]))])", $3.init, branch_nb++, $3.cond, $5, $3.update);
+		 free($3.init);
+		 free($3.cond);
+		 free($3.update);
 		 free($5);
 		} 
 	;
-
+//changed the original grammar by replacing the middle expression_statement (the condition) with expression_opt ';'
 for_stmt_type
-	: expression_statement expression_statement expression_opt 
-	  {size_t const size = strlen(",  ") + strlen($1) + strlen($2) + strlen($3) +1;
-	   $$ = (char*)malloc(size);
-	   sprintf_safe($$, size, "%s, %s %s", $1, $2, $3);
-	   free($1);
-	   free($2);
-	   free($3);
-	  }
-	| declaration expression_statement expression_opt
-	  {size_t const size = strlen(",  ") + strlen($1) + strlen($2) + strlen($3) + 1;
-	   $$ = (char*)malloc(size);
-	   sprintf_safe($$, size, "%s, %s %s", $1, $2, $3);
-	   free($1);
-	   free($2);
-	   free($3);
-	  }
+	: expression_statement expression_opt ';' expression_opt 
+	  {$$ = (struct for_stmt){.init = $1, .cond = $2, .update = $4};}	//a compound literal
+	| declaration expression_opt ';' expression_opt
+	  {$$ = (struct for_stmt){.init = $1, .cond = $2, .update = $4};}	//a compound literal
 	;
 
 expression_opt
-	: /* empty */	{simple_str_lit_copy(&$$, "");}
+	: /* empty */	{simple_str_lit_copy(&$$, "int(1)");}	//i.e. true
 	| expression
-		{size_t const size = strlen(", ") + strlen($1) + 1;
-	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, ", %s", $1);
-	     free($1);
-	    }
 
 jump_statement
 	: GOTO IDENTIFIER ';'
