@@ -148,9 +148,12 @@ symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
         (se_globals__update_ref('current_path_bran', branch(Id, 'true')),
          symbolic_execute(Statements, Inner_flow), 
          (Inner_flow == 'carry_on' ->
-           symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow)
+            symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow)
          ;
-           Flow = Inner_flow
+          Inner_flow == 'break' ->  %terminates this while statement
+            Flow = 'carry_on'
+         ;
+            Flow = Inner_flow
          )
         )
     ;
@@ -165,6 +168,9 @@ symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
                 (traverse(Condition_value, branch(Id, 'true'), Statements, Inner_flow),
                  (Inner_flow == 'carry_on' ->
                     symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow)
+                 ;
+                  Inner_flow == 'break' ->  %terminates this while statement
+                    Flow = 'carry_on'
                  ; 
                     Flow = Inner_flow
                  )
@@ -185,6 +191,9 @@ symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
                 (traverse(Condition_value, branch(Id, 'true'), Statements, Inner_flow),
                  (Inner_flow == 'carry_on' ->
                     symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow)
+                 ;
+                  Inner_flow == 'break' ->  %terminates this while statement
+                    Flow = 'carry_on'
                  ; 
                     Flow = Inner_flow
                  )
@@ -199,7 +208,8 @@ symbolic_execute(label_stmt(_Label, Statement), Flow) :-
 symbolic_execute(return_stmt(Expression), return(Expression)) :-    %will be handled in post function call by checking Flow
     !.  %todo it would make more sense to symbolically execute expression here rather than outside: more logical
 symbolic_execute(return_stmt, return) :-    %a return with no expression
-    %mytrace,
+    !.
+symbolic_execute(break_stmt, 'break') :-    %within iteration and switch statements: basically bubble up to the innermost construct
     !.
 %we have anything here: an assignment, comma_op, postfix_inc_op, postfix_dec_op or any expression!
 symbolic_execute(Expression, 'carry_on') :- %assuming that there is no return in there...
