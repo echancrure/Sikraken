@@ -13,7 +13,13 @@ int main() {
     for (int i = 0; ; ) { //no condition, no update
         tot = tot + i;
         i++;
-        if (i<10) break;
+        if (i>=10) break;
+    }
+    int i = 0;
+    for ( ; ; ) { //no initialisation, no condition, no update
+        tot = tot + i;
+        i++;
+        if (i>=10) break;
     }
     if (v==tot) ;
     else ;
