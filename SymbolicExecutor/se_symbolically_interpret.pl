@@ -416,7 +416,7 @@ symbolically_interpret(stmt_exp(Compound_statement), symb(void, 0)) :-
     symbolic_execute(Compound_statement, _Flow). %not handled properly: if the last statement is an expression, that should be the symbolic value and type
 %%%
 symbolically_interpret(Unhandled_expression, symb(int, 0)) :-
-    common_util__error(9, "Expression is not handled", "Cannot perform symbolic interpretation", [print('Unhandled_expression', Unhandled_expression)], '10_020824', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
+    common_util__error(9, "Expression is not handled", "Cannot perform symbolic interpretation", [print('Unhandled_expression', Unhandled_expression)], '9_020824', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 implicit_type_casting(Same_type, Same_type, Le_symbolic, Ri_symbolic, Same_type, Le_symbolic, Ri_symbolic) :-   %Types are equal: no casting needed
     !.  %added a todo 18/10/2024 to check this rule
@@ -469,9 +469,9 @@ implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, L
     integer_conversion(From_type, unsigned(int), Le_symbolic, Ri_symbolic, unsigned(int), Le_casted_exp, Ri_symbolic) :-
         !,
         ptc_solver__perform_cast(cast(unsigned(int), From_type), Le_symbolic, Le_casted_exp).
-    integer_conversion(Le_type, Ri_type, _, _, _, _, _) :-
+    integer_conversion(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Le_type, Le_symbolic, Ri_symbolic) :-
         !,
-        common_util__error(10, "Should not happen", "Cannot perform symbolic interpretation", [('Le_type', Le_type), ('Ri_type', Ri_type)], '10_040924_3', 'se_symbolically_interpret', 'integer_conversion', no_localisation, no_extra_info).
+        common_util__error(9, "Should not happen", "Cannot perform symbolic interpretation", [('Le_type', Le_type), ('Ri_type', Ri_type)], '9_040924_3', 'se_symbolically_interpret', 'integer_conversion', no_localisation, no_extra_info).
     %%%
     %may need indexing, but order is important so be careful
     float_conversion(long_double, From_type, Le_symbolic, Ri_symbolic, long_double, Le_symbolic, Ri_casted_exp) :-

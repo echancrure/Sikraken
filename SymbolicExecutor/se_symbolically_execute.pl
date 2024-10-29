@@ -70,11 +70,15 @@ symbolic_execute(assign(LValue, Expression), Flow) :-
          (Symbolic_LValue_ptr = addr(New_LValue) ->
             symbolic_execute(assign(New_LValue, Expression), Flow)
          ;
-            common_util__error(10, "Unexpected derefed expression", "Sikraken's logic is wrong", [('Symbolic_LValue_ptr', Symbolic_LValue_ptr)], '10_030824', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
+            (common_util__error(9, "Unexpected derefed expression", "Sikraken's logic is wrong", [('Symbolic_LValue_ptr', Symbolic_LValue_ptr)], '9_030824', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info),
+             Flow = 'carry_on'
+            )
          )
         )
     ;
-        common_util__error(10, "Unexpected LValue", "Sikraken's logic is wrong", [('LValue', LValue)], '10_030824_2', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
+        (common_util__error(9, "Unexpected LValue", "Sikraken's logic is wrong", [('LValue', LValue)], '9_030824_2', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info),
+         Flow = 'carry_on'
+        )
     ).
 symbolic_execute(function_call(Function, Arguments), 'carry_on') :- %as a statement
     !,
