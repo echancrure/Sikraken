@@ -1,4 +1,5 @@
 extern int __VERIFIER_nondet_int();
+extern char __VERIFIER_nondet_char();
 //#include <stdio.h>
 int main() {
     int sol = 0;   
@@ -17,7 +18,7 @@ int main() {
     int shift_right = __VERIFIER_nondet_int();
     if (shift_right >> 1 == 2);     // Bitwise right shift (>>)
     else ;
-
+/*
     // Bitwise AND (&)
     int a = 12;    // 1100 in binary
     int b = 10;    // 1010 in binary
@@ -37,7 +38,6 @@ int main() {
     unsigned int not_result = ~c;  // 11110000 in binary (with unsigned) -> 0xFFFFFFF0
     if (not_result == 0xFFFFFFF0) sol++;
 
-
     // Using bitwise operators with `char` type
     char e = 0x3C;           // 00111100 in binary, 61 in decimal
     char f = 0x0F;           // 00001111 in binary
@@ -49,5 +49,6 @@ int main() {
 
     char char_xor = e ^ f;    // 00110011 in binary -> 51
     if (char_xor == 51) sol++;
+*/
     return 0;
 }

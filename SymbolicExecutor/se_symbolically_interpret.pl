@@ -115,7 +115,7 @@ symbolically_interpret(div_op(Le_exp, Ri_exp), symb(Common_type, Casted)) :-
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp),
     (Common_type == 'int' ->
-        Casted #= eval(Le_casted_exp) // eval(Ri_casted_exp)     %[see ECLiPSe release notes7.1] integer division towards 0; don't understand why handling is different than / ; a bit of a hack
+        ptc_solver__arithmetic(div(Le_casted_exp, Ri_casted_exp), Casted, _)
     ;
         Casted = Le_casted_exp / Ri_casted_exp
     ).
