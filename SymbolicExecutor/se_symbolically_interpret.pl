@@ -115,19 +115,24 @@ symbolically_interpret(div_op(Le_exp, Ri_exp), symb(Common_type, Casted)) :-
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp),
     (Common_type == 'int' ->
-        ptc_solver__arithmetic(div(Le_casted_exp, Ri_casted_exp), Casted, _)
+        (ptc_solver__variable([Casted], Common_type),
+         ptc_solver__arithmetic(div(Le_casted_exp, Ri_casted_exp), Casted, _)
+        )
     ;
         Casted = Le_casted_exp / Ri_casted_exp
     ).
 
-%mod is not an IC constraint, rem is but it behaves differently and any in C: a mod b == a - b(a//b)
-%todo what do we do on div by 0?
-symbolically_interpret(mod_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp - Ri_casted_exp*(Le_casted_exp//Ri_casted_exp))) :-
+%In C: Le mod Ri == Le - Ri*(Le//Ri)
+symbolically_interpret(mod_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp - Ri_casted_exp*Integer_div)) :-
     !,   
-    %mytrace,
+    mytrace,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
-    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
+    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp),
+    %Ri_casted_exp #\= 0,
+    %Integer_div #= Le_casted_exp // Ri_casted_exp.
+    ptc_solver__variable([Integer_div], Common_type),
+    ptc_solver__arithmetic(div(Le_casted_exp, Ri_casted_exp), Integer_div, _).
 
 symbolically_interpret(plus_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp + Ri_casted_exp)) :-
     !,

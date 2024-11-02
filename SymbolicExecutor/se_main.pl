@@ -297,9 +297,9 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
         ;
             (se_globals__get_val('output_mode', Output_mode),
              (Output_mode = 'testcomp' ->
-                (se_globals__get_ref('verifier_inputs', Verifier_inputs),
+                (se_globals__get_ref('verifier_inputs', Verifier_inputs),   %Verifier_inputs is of the form [verif(Type, Input)|...] 
                  %mytrace,
-                 (label_testcomp(Verifier_inputs, Labeled_inputs) ->
+                 (label_testcomp(Verifier_inputs) ->
                     (%%% %%%
                      cancel_after_event('single_test_time_out_event', _CancelledEvents), 
                      statistics(event_time, Current_end_time),
@@ -338,7 +338,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
                      se_globals__set_val('covered_bran', Covered),
                      common_util__error(0, "End of path", 'no_error_consequences', [('Path Nb', Inc_test_nb), ('Newly_covered', Newly_covered), ('Current_path', Current_path)], '0_190824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info),
                      (Output_mode == 'testcomp' ->
-                        print_test_inputs_testcomp(Labeled_inputs)   %but don't print expected outputs
+                        print_test_inputs_testcomp(Verifier_inputs)   %but don't print expected outputs
                      ;
                         (print_test_inputs(SEAV_Inputs),
                          se_globals__pop_scope_stack,    %only after labeling and printed to preserve parameters
@@ -398,11 +398,12 @@ label(SEAV_Inputs) :-
         seav__get(Seav, 'input', Input),
         get_all_inputs(R_seavs, R_inputs).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Verifier_inputs is of the form [verif(Type, Input)|...] 
-label_testcomp(Verifier_inputs, Labeled_inputs) :- 
-    %mytrace,
-    partition(Verifier_inputs, Integers, Floats, Grounded_floats, Labeled_inputs),
-    (ptc_solver__label_integers(Integers) ->
+label_testcomp(Verifier_inputs) :- 
+    mytrace,
+    delayed_goals(All_delayed_goals),
+    term_variables([Verifier_inputs|All_delayed_goals], All_vars),  %some Verifier_inputs variables may not have any constraints imposed on them (e.g. array elements not participating in a Path Traversal Condition, but still need to be instantiated via labelling)
+    partition(All_vars, Integers, Floats, Grounded_floats), 
+    (ptc_solver__label_integers(Integers) ->    %for now we label all integer variables first as they are consiedered to be the most contrained
         (ptc_solver__label_reals(Floats, Grounded_floats) ->    %integers and floats labeling kept separate for now
             true
         ;
@@ -417,18 +418,16 @@ label_testcomp(Verifier_inputs, Labeled_inputs) :-
     ),
     !.
     %%%
-    partition([], [], [], [], []).
-    partition([verif(Type, Input)|R], Integers_out, Floats_out, Grounded_floats, [Labeled_input|R_Labeled]) :-
-        ((Type == float ; Type == double ; Type == long_double) ->
-            (Floats_out = [Input|R_Floats],
-             Grounded_floats = [Ground_float|R_Grounded_floats],    %a list of vars grounded to floating point numbers during labeling
-             Labeled_input = Ground_float,
-             partition(R, Integers_out, R_Floats, R_Grounded_floats, R_Labeled)
+    partition([], [], [], []).
+    partition([Var|R], Integers_out, Floats_out, Grounded_floats) :-
+        (get_solver_type(Var, 'real') ->
+            (Floats_out = [Var|R_Floats],
+             Grounded_floats = [_Ground_float|R_Grounded_floats],    %a list of vars grounded to floating point numbers during labeling
+             partition(R, Integers_out, R_Floats, R_Grounded_floats)
             )
         ;
-            (Integers_out = [verif(Type, Input)|R_Integers],
-             Labeled_input = Input,
-             partition(R, R_Integers, Floats_out, Grounded_floats, R_Labeled)
+            (Integers_out = [Var|R_Integers],
+             partition(R, R_Integers, Floats_out, Grounded_floats)
             )
         ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

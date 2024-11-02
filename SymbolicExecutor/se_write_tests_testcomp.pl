@@ -57,20 +57,20 @@ print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext)
         local_time_string(T, "%c", Date_time).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %create a new test input vector in foo.xml file
-print_test_inputs_testcomp(Labeled_inputs) :-
+%Verifier_inputs is of the form [verif(Type, Input)|...]  is the list of verifier variables in the order they are processed in the path
+print_test_inputs_testcomp(Verifier_inputs) :-
     se_globals__get_val('path_nb', Test_nb),
     concat_atom(['test_input-', Test_nb, '.xml'], Input_vector_filename),
     open(Input_vector_filename, 'write', 'test_input_stream'),
     printf('test_input_stream', "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n", []),
     printf('test_input_stream', "<!DOCTYPE testcase PUBLIC \"+//IDN sosy-lab.org//DTD test-format testcase 1.1//EN\" \"https://sosy-lab.org/test-format/testcase-1.1.dtd\">\n", []),
     printf('test_input_stream', "<testcase>\n", []),
-    %mytrace,
-    print_inputs(Labeled_inputs),
+    print_inputs(Verifier_inputs),
     printf('test_input_stream', "</testcase>", []),
     close('test_input_stream').
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     print_inputs([]).
-    print_inputs([Input|R]) :-
+    print_inputs([verif(_Type, Input)|R]) :-
         printf('test_input_stream', "\t<input>%w</input>\n", [Input]),
         print_inputs(R).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
