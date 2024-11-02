@@ -41,32 +41,41 @@ if [ "$data_model" == "-m32" ]; then
         exit 1
 fi
 
-rel_path_c_file="$4"                    #e.g. ./../SampleCode/atry_bitwise.c
+rel_path_c_file="$4"                    #e.g. ./../SampleCode/atry_bitwise.c or .i
 
-full_path_c_file="$SIKRAKEN_INSTALL_DIR/$rel_path_c_file"    #e.g. /home/chris/Sikraken/SampleCode/atry_bitwise.c
+full_path_c_file="$SIKRAKEN_INSTALL_DIR/$rel_path_c_file"    #e.g. /home/chris/Sikraken/SampleCode/atry_bitwise.c or .i
 
-file_name_no_ext=$(basename "$rel_path_c_file" .c)
+file_name_no_ext="${rel_path_c_file%.*}"
+file_name_no_ext=$(basename "$file_name_no_ext")
 
 output_dir="$SIKRAKEN_INSTALL_DIR/sikraken_output/$file_name_no_ext"
-
 mkdir -p $output_dir
 
-# Preprocess the file using gcc
-gcc -E -P "$full_path_c_file" $data_model -o "$output_dir/$file_name_no_ext.i"
+# Check the file extension
+file_extension="${rel_path_c_file##*.}"
 
-# Check if gcc was successful
-if [ $? -ne 0 ]; then
-    echo "Sikraken wrapper Error: gcc failed on gcc -E -P "$full_path_c_file" $data_model -o "$output_dir/$file_name_no_ext.i""
-    exit 1
+if [ "$file_extension" == "i" ]; then
+    # If the file is already preprocessed (.i), just copy it to $output_dir
+    cp "$full_path_c_file" "$output_dir/"
+    if [ $? -ne 0 ]; then
+        echo "Sikraken wrapper Error: Failed to copy $full_path_c_file to $output_dir"
+        exit 1
+    fi
+else
+    # If the file is not preprocessed, preprocess it with gcc
+    gcc -E -P "$full_path_c_file" $data_model -o "$output_dir/$file_name_no_ext.i"
+    if [ $? -ne 0 ]; then
+        echo "Sikraken wrapper Error: gcc failed on gcc -E -P \"$full_path_c_file\" $data_model -o \"$output_dir/$file_name_no_ext.i\""
+        exit 1
+    fi
 fi
 
-
 # Run the parser
-$SIKRAKEN_INSTALL_DIR/bin//sikraken_parser.exe $data_model -p$output_dir $file_name_no_ext
+$SIKRAKEN_INSTALL_DIR/bin/sikraken_parser.exe $data_model -p$output_dir $file_name_no_ext
 
 # Check if sikraken_parser was successful
 if [ $? -ne 0 ]; then
-    echo "Sikraken wrapper Error: sikraken_parser failed on $SIKRAKEN_INSTALL_DIR/bin//sikraken_parser.exe $data_model -p$output_dir $file_name_no_ext"
+    echo "Sikraken wrapper Error: sikraken_parser failed on $SIKRAKEN_INSTALL_DIR/bin/sikraken_parser.exe $data_model -p$output_dir $file_name_no_ext"
     exit 1
 fi
 
