@@ -5,7 +5,7 @@
 OUTPUT_ZIP="sikraken.zip"
 
 # Create a temporary root directory
-TEMP_ROOT="my_root"
+TEMP_ROOT="sikraken"
 mkdir -p "$TEMP_ROOT"
 
 # Define the list of files and folders you want to include in the zip
