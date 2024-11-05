@@ -24,7 +24,7 @@
 
 #include "C_grammar.tab.h"
 
-
+extern int in_tag_namespace;
 extern int is_typedef_name(char*);
 extern long int TARGET_LONG_MAX;
 
@@ -99,12 +99,12 @@ WS  [ \t\v\n\f]
 "goto"					{ return(GOTO); }
 "if"					{ return(IF); }
 "inline"				{ return(INLINE); }
-"__inline"				{ return(INLINE); /* GCC version of INLINE */}
+"__inline"				{ return(INLINE); }     //GCC version of INLINE
 "int"					{ return(INT); }
 "long"					{ return(LONG); }
 "register"				{ return(REGISTER); }
 "restrict"				{ return(RESTRICT); }
-"__restrict"            { return(RESTRICT); /* GCC version of RESTRICT */ }
+"__restrict"            { return(RESTRICT); }   //GCC version of RESTRICT
 "return"				{ return(RETURN); }
 "short"					{ return(SHORT); }
 "signed"				{ return(SIGNED); }
@@ -118,22 +118,25 @@ WS  [ \t\v\n\f]
 "void"					{ return(VOID); }
 "volatile"				{ return(VOLATILE); }
 "while"					{ return(WHILE); }
-"_Alignas"                              { return ALIGNAS; }
-"_Alignof"                              { return ALIGNOF; }
-"_Atomic"{WS}*"("                       { return ATOMIC_SPECIFIER; }
-"_Atomic"                               { return ATOMIC; }
-"_Bool"                                 { return BOOL; }
-"_Complex"                              { return COMPLEX; }
-"_Generic"                              { return GENERIC; }
-"_Imaginary"                            { return IMAGINARY; }
-"_Noreturn"                             { return NORETURN; }
-"_Static_assert"                        { return STATIC_ASSERT; }
-"_Thread_local"                         { return THREAD_LOCAL; }
-"__PRETTY_FUNCTION__"                   { return FUNC_NAME; } //__PRETTY_FUNCTION__ is a GCC extension: an enhanced version of __func__; which we ignore 
-"__func__"                              { return FUNC_NAME; }
+"__int128"              { return(INT128); }     //GCC builtin 128-bit integer type
+"__float128"            { return(FLOAT128); }   //GCC builtin 128-bit floating-point type
+"__builtin_va_list"     { return(VA_LIST); }    //GCC builtin variable argument list type
+"_Alignas"              { return ALIGNAS; }
+"_Alignof"              { return ALIGNOF; }
+"_Atomic"{WS}*"("       { return ATOMIC_SPECIFIER; }
+"_Atomic"               { return ATOMIC; }
+"_Bool"                 { return BOOL; }
+"_Complex"              { return COMPLEX; }
+"_Generic"              { return GENERIC; }
+"_Imaginary"            { return IMAGINARY; }
+"_Noreturn"             { return NORETURN; }
+"_Static_assert"        { return STATIC_ASSERT; }
+"_Thread_local"         { return THREAD_LOCAL; }
+"__PRETTY_FUNCTION__"   { return FUNC_NAME; }   //__PRETTY_FUNCTION__ is a GCC extension: an enhanced version of __func__; which we ignore 
+"__func__"              { return FUNC_NAME; }
 
 {L}{A}*                     {yylval.id = strdup_safe(yytext);
-                             if (is_typedef_name(yylval.id)) {
+                             if (!in_tag_namespace && is_typedef_name(yylval.id)) {
                                 //if (debugMode) printf("Debug: returning the typedef %s from lexer\n", yytext);
                                 return TYPEDEF_NAME;
                              }

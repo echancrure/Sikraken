@@ -51,6 +51,7 @@ int branch_nb = 1;				//unique id for branches created
 //start: ugly, breaking parsing spirit, flags and temporary variables
 int typedef_flag = 0; 			//indicates that we are within a typedef declaration
 int in_member_decl_flag = 0;	//indicates that we are parsing struct or union declarations and that the ids are part of the members namespace
+int in_tag_namespace = 0;		//indicates to the lexer that we are in the tag namespace (for struct, union and enum tags) and that identifier should not be checked for typedef
 
 
 void yyerror(const char*);
@@ -84,6 +85,7 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 %token	CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
 %token ALIGNAS ALIGNOF ATOMIC_SPECIFIER ATOMIC GENERIC NORETURN STATIC_ASSERT THREAD_LOCAL
+%token INT128 FLOAT128 VA_LIST
 
 %type <id> storage_class_specifier declarator init_declarator initializer direct_declarator pointer type_qualifier type_qualifier_list init_declarator_list declaration_specifiers
 %type <id> type_specifier
@@ -94,7 +96,7 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 %type <id> initializer_list designation designator_list designator
 %type <id> struct_or_union_specifier struct_or_union struct_declaration_list struct_declaration specifier_qualifier_list struct_declarator_list struct_declarator
 %type <id> static_assert_declaration
-%type <id> enum_specifier enumerator_list enumerator
+%type <id> enum_specifier enum_specifier_rest enumerator_list enumerator
 %type <id> parameter_type_list parameter_list parameter_declaration
 %type <id> expression_statement expression_opt jump_statement statement labeled_statement compound_statement
 %type <id> else_opt selection_statement iteration_statement
@@ -511,7 +513,7 @@ declaration
 		 
 		 if (typedef_flag == 1) {	//we were processing typedef declarations
 	    	typedef_flag = 0; 
-			//if (debugMode) printf("Debug: typedef switched to 0\n");
+			if (debugMode) printf("Debug: typedef switched to 0\n");
 	   	 }
 		 
 		 size_t const size = strlen("\ndeclaration([], [])") + strlen($1) + strlen($2) + 1;
@@ -591,9 +593,10 @@ init_declarator
 	;
 
 storage_class_specifier
-	: TYPEDEF	/* identifiers must be flagged as TYPEDEF_NAME in lexer*/
+	: TYPEDEF	/* following typedef declarator identifier must be added to the list of typedefs so that it will get identified as TYPEDEF_NAME in lexer and not as an identifier*/
 		{simple_str_lit_copy(&$$, "typedef");
          typedef_flag = 1;
+		 if (debugMode) printf("Debug: typedef switched to 1\n");
 	    }
 	| EXTERN		{ simple_str_lit_copy(&$$, "extern"); }
 	| STATIC		{ simple_str_lit_copy(&$$, "static"); }
@@ -614,34 +617,38 @@ type_specifier
 	| UNSIGNED				{ simple_str_lit_copy(&$$, "unsigned"); }
 	| BOOL					{ simple_str_lit_copy(&$$, "bool"); }
 	| COMPLEX				{ simple_str_lit_copy(&$$, "complex"); }
-	| IMAGINARY				{ simple_str_lit_copy(&$$, "imaginary"); } 	/* non-mandated extension */
+	| IMAGINARY				{ simple_str_lit_copy(&$$, "imaginary"); } 	// non-mandated C extension
 	| atomic_type_specifier	{ simple_str_lit_copy(&$$, "atomic_type_specifier"); }
 	| struct_or_union_specifier
 	| enum_specifier
-	| TYPEDEF_NAME			/* after it has been defined as such */
+	| TYPEDEF_NAME			/* a type_specififer after it has been defined as such */
 		{$$ = to_prolog_var($1);
 		 free($1);
 		}
+	| INT128				{ simple_str_lit_copy(&$$, "int128"); }		//gcc extension: builtin type
+	| FLOAT128				{ simple_str_lit_copy(&$$, "float128"); }	//gcc extension: builtin type
+	| VA_LIST				{ simple_str_lit_copy(&$$, "va_list"); }	//gcc extension: builtin type
 	;
 
 struct_or_union_specifier
-	: struct_or_union '{' struct_declaration_list '}'
-		{size_t const size = strlen("([])") + strlen($1) + strlen($3) + 1;
+	: struct_or_union '{' {in_tag_namespace = 0;} struct_declaration_list '}'		//anonymous struct or union
+		{size_t const size = strlen("([])") + strlen($1) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "%s([%s])", $1, $3);
+	     sprintf_safe($$, size, "%s([%s])", $1, $4);
 	     free($1);
-	     free($3);
+	     free($4);
 	    }
-	| struct_or_union IDENTIFIER '{' struct_declaration_list '}'	//Tag namespace Id declaration
-		{size_t const size = strlen("(, [])") + strlen($1) + strlen($2) + strlen($4) + 1;
+	| struct_or_union IDENTIFIER {in_tag_namespace = 0;} '{' struct_declaration_list '}'	//Tag namespace Id declaration
+		{size_t const size = strlen("(, [])") + strlen($1) + strlen($2) + strlen($5) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "%s(%s, [%s])", $1, $2, $4);
+	     sprintf_safe($$, size, "%s(%s, [%s])", $1, $2, $5);
 	     free($1);
 	     free($2);
-		 free($4);
+		 free($5);
 	    }
-	| struct_or_union IDENTIFIER	//Tag namespace Id declaration
-		{size_t const size = strlen("()") + strlen($1) + strlen($2) + 1;
+	| struct_or_union IDENTIFIER	//forward declaration Tag namespace Id declaration
+		{in_tag_namespace = 0;
+		 size_t const size = strlen("()") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "%s(%s)", $1, $2);
 	     free($1);
@@ -650,8 +657,14 @@ struct_or_union_specifier
 	;
 
 struct_or_union
-	: STRUCT	{simple_str_lit_copy(&$$, "struct");}
-	| UNION		{simple_str_lit_copy(&$$, "union");}
+	: STRUCT	
+		{simple_str_lit_copy(&$$, "struct");
+		 in_tag_namespace = 1;
+		}
+	| UNION		
+		{simple_str_lit_copy(&$$, "union");
+		 in_tag_namespace = 1;
+		}
 	;
 
 struct_declaration_list
@@ -666,7 +679,7 @@ struct_declaration_list
 	;
 
 struct_declaration
-	: specifier_qualifier_list ';'	/* for anonymous struct/union */
+	: specifier_qualifier_list ';'	/* for anonymous struct/union ?????????? */
 		{size_t const size = strlen("struct_decl_anonymous()") + strlen($1) + 1;
        	 $$ = (char*)malloc(size);
          sprintf_safe($$, size, "struct_decl_anonymous(%s)", $1);
@@ -743,26 +756,26 @@ enum_specifier
          sprintf_safe($$, size, "trailing_comma_anonymous_enum([%s])", $3);
 	     free($3);
         }
-	| ENUM IDENTIFIER '{' enumerator_list '}'	//Tag namespace Id declaration
-		{size_t const size = strlen("enum(, [])") + strlen($2) + strlen($4) + 1;
+	| ENUM {in_tag_namespace = 1;} IDENTIFIER {in_tag_namespace = 0;} enum_specifier_rest 	//Tag namespace Id declaration
+		{size_t const size = strlen("enum(, [])") + strlen($3) + strlen($5) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_safe($$, size, "enum(%s, [%s])", $2, $4);
-	     free($2);
-		 free($4);
+         sprintf_safe($$, size, "enum(%s, [%s])", $3, $5);
+	     free($3);
+		 free($5);
         }
-	| ENUM IDENTIFIER '{' enumerator_list ',' '}'	//Tag namespace Id declaration
-		{size_t const size = strlen("trailing_comma_enum(, [])") + strlen($2) + strlen($4) + 1;
+	;
+//new rule to avoid reduce-reduce conflict when introducing in_tag_namespace in enum_specifier rule just above
+enum_specifier_rest
+	: /* empty */	
+		{simple_str_lit_copy(&$$, "forward_enum");}
+	| '{' enumerator_list '}'
+		{$$ = $2;}
+	| '{' enumerator_list ',' '}'
+		{size_t const size = strlen("trailing_comma_enum([])") + strlen($2) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_safe($$, size, "trailing_comma_enum(%s, [%s])", $2, $4);
+         sprintf_safe($$, size, "trailing_comma_enum([%s])", $2);
 	     free($2);
-		 free($4);
-        }
-	| ENUM IDENTIFIER	//Tag namespace Id declaration
-		{size_t const size = strlen("forward_enum()") + strlen($2) + 1;
-       	 $$ = (char*)malloc(size);
-         sprintf_safe($$, size, "forward_enum(%s)", $2);
-	     free($2);
-        }
+		}
 	;
 
 enumerator_list
