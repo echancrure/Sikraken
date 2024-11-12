@@ -3066,7 +3066,7 @@ yyreduce:
 		 
 		 if (typedef_flag == 1) {	//we were processing typedef declarations
 	    	typedef_flag = 0; 
-			if (debugMode) printf("Debug: typedef switched to 0\n");
+			//if (debugMode) printf("Debug: typedef switched to 0\n");
 	   	 }
 		 
 		 size_t const size = strlen("\ndeclaration([], [])") + strlen((yyvsp[-2].id)) + strlen((yyvsp[-1].id)) + 1;
@@ -3183,7 +3183,7 @@ yyreduce:
 #line 605 "C_grammar.y"
                 {simple_str_lit_copy(&(yyval.id), "typedef");
          typedef_flag = 1;
-		 if (debugMode) printf("Debug: typedef switched to 1\n");
+		 //if (debugMode) printf("Debug: typedef switched to 1\n");
 	    }
 #line 3189 "C_grammar.tab.c"
     break;

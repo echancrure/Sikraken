@@ -519,7 +519,7 @@ declaration
 		 
 		 if (typedef_flag == 1) {	//we were processing typedef declarations
 	    	typedef_flag = 0; 
-			if (debugMode) printf("Debug: typedef switched to 0\n");
+			//if (debugMode) printf("Debug: typedef switched to 0\n");
 	   	 }
 		 
 		 size_t const size = strlen("\ndeclaration([], [])") + strlen($1) + strlen($2) + 1;
@@ -604,7 +604,7 @@ storage_class_specifier
 	: TYPEDEF	/* the following typedef declarator identifier must be added to the list of typedefs so that it will get identified as TYPEDEF_NAME in lexer and not as an identifier*/
 		{simple_str_lit_copy(&$$, "typedef");
          typedef_flag = 1;
-		 if (debugMode) printf("Debug: typedef switched to 1\n");
+		 //if (debugMode) printf("Debug: typedef switched to 1\n");
 	    }
 	| EXTERN		{ simple_str_lit_copy(&$$, "extern"); }
 	| STATIC		{ simple_str_lit_copy(&$$, "static"); }

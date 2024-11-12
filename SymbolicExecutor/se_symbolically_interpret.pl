@@ -52,7 +52,9 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
                      )
                     )
                 ;
-                    common_util__error(10, "Function call to unknown external function", "Cannot perform symbolic interpretation", [('Function_name', Function_name)], '10_150824_3', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info)
+                    (common_util__error(9, "Function call to unknown external function", "Cannot perform symbolic interpretation", [('Function_name', Function_name)], '09_150824_3', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info),
+                     Symbolic_expression = symb(int, 0)
+                    )
                 )
             )
          ;
@@ -395,7 +397,7 @@ symbolically_interpret(bitwise(Op, Le_exp, Ri_exp), symb(Common_type, Result)) :
      Op == right_shift ->
         ptc_solver__arithmetic(right_shift(Le_casted_exp, Ri_casted_exp, Len, Sign), Result, _)
     ;
-        common_util__error(9, "Invalid bitwise operator", "Cannot perform symbolic interpretation", [print('Op', Op)], '9_020824', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info)
+        common_util__error(9, "Invalid bitwise operator", "Cannot perform symbolic interpretation", [print('Op', Op)], '9_020824_2', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info)
     ).
 %%%
 symbolically_interpret(comma_op(Left_expression, Right_expression), Symbolic_expression) :-
