@@ -34,7 +34,7 @@ void wrap_integer_constants(char *, char *, char **);
 void wrap_floating_point_constants(char *, char *, char **);
 void add_missing_zero(char *, char **);
 
-int open_parens = 0; /* Declaration in the definitions section */
+int open_parens = 0;        //Declaration in the definitions section
 
 %}
 
@@ -43,8 +43,8 @@ int open_parens = 0; /* Declaration in the definitions section */
 O   [0-7]
 D   [0-9]
 NZ  [1-9]
-L   [a-zA-Z_]
-A   [a-zA-Z_0-9]
+L   [a-zA-Z$_]
+A   [a-zA-Z$_0-9]
 H   [a-fA-F0-9]
 HP  (0[xX])
 E   ([Ee][+-]?{D}+)
@@ -73,7 +73,7 @@ WS  [ \t\v\n\f]
     else if (yytext[0] == ')') { 
         open_parens--;          //Decrement for each closing parenthesis
         if (open_parens == 0) {
-            BEGIN(INITIAL);     // Exit ATTRIBUTE mode after the matched parentheses are balanced
+            BEGIN(INITIAL);     //Exit ATTRIBUTE mode after the matched parentheses are balanced
         }
     }
     /* Otherwise, continue reading characters in ATTRIBUTE mode */
@@ -139,7 +139,18 @@ WS  [ \t\v\n\f]
 "__PRETTY_FUNCTION__"   { return FUNC_NAME; }   //__PRETTY_FUNCTION__ is a GCC extension: an enhanced version of __func__; which we ignore 
 "__func__"              { return FUNC_NAME; }
 
-{L}{A}*                     {yylval.id = strdup_safe(yytext);
+{L}{A}*                     {size_t const size = strlen(yytext) + 1;
+                             yylval.id = (char*)malloc(size);
+                             int i = 0;
+                             for (; yytext[i] != '\0'; i++) {
+                                if (yytext[i] == '$') {
+                                    yylval.id[i] = 'Z';         //replace all '$' in C identifers (allowed extension) with the character 'Z' becuase $ is not allowed in C var names: this is unsound when another identifier already has this name e.g. $1 and Z1 will clash
+                                } else {
+                                    yylval.id[i] = yytext[i];
+                                }
+                             }
+                             yylval.id[i] = '\0';
+
                              if (!in_tag_namespace && is_typedef_name(yylval.id)) {
                                 //if (debugMode) printf("Debug: returning the typedef %s from lexer\n", yytext);
                                 return TYPEDEF_NAME;
@@ -155,13 +166,13 @@ WS  [ \t\v\n\f]
                             }
                             
 "0"{O}*{IS}?				{if (isdigit(yytext[1])) wrap_integer_constants("8'", &yytext[1], &yylval.id);  //octal integer 
-                             else { //the second char after 0 is not a digit (it's /0, ofr an IS (u|U)(l|L|ll|LL) char), so it's just the constant 0, rather than a true octal 
+                             else {     //the second char after 0 is not a digit (it's /0, ofr an IS (u|U)(l|L|ll|LL) char), so it's just the constant 0, rather than a true octal 
                                 yylval.id = (char*)malloc(7);
                                 strcpy(yylval.id, "int(0)");    
                              }
                              return I_CONSTANT;
                             }
-{CP}?"'"([^'\\\n]|{ES})+"'"	{yylval.id = strdup_safe(yytext); return I_CONSTANT;}   //single characters
+{CP}?"'"([^'\\\n]|{ES})+"'"	{yylval.id = strdup_safe(yytext); return I_CONSTANT;}       //single characters
 
 {D}+{E}{FS}?				{wrap_floating_point_constants("", yytext, &yylval.id);     //Decimal floating-point constants with an exponent.
                              return F_CONSTANT;
@@ -171,18 +182,18 @@ WS  [ \t\v\n\f]
                             }
 {D}+"."{E}?{FS}?			{char* added_0;
                              add_missing_zero(yytext, &added_0);
-                             wrap_floating_point_constants("", added_0, &yylval.id);         //Decimal floating-point constants with a fractional part.
+                             wrap_floating_point_constants("", added_0, &yylval.id);            //Decimal floating-point constants with a fractional part.
                              return F_CONSTANT;
                             }
 {HP}{H}+{P}{FS}?			{wrap_floating_point_constants("hexadecimal", yytext, &yylval.id);  //Hexadecimal floating-point constants: will fail parser in ECLiPSe
                              return F_CONSTANT;
                             }
-{HP}{H}*"."{H}+{P}{FS}?		{wrap_floating_point_constants("hexadecimal", yytext, &yylval.id);    //Hexadecimal floating-point constants with a fractional part.: will fail parser in ECLiPSe
+{HP}{H}*"."{H}+{P}{FS}?		{wrap_floating_point_constants("hexadecimal", yytext, &yylval.id);  //Hexadecimal floating-point constants with a fractional part.: will fail parser in ECLiPSe
                              return F_CONSTANT;
                             }
 {HP}{H}+"."{P}{FS}?			{char* added_0;
                              add_missing_zero(yytext, &added_0);
-                             wrap_floating_point_constants("hexadecimal", added_0, &yylval.id);   //Hexadecimal floating-point constants with digits before the decimal point, but none after. : will fail parser in ECLiPSe
+                             wrap_floating_point_constants("hexadecimal", added_0, &yylval.id); //Hexadecimal floating-point constants with digits before the decimal point, but none after. : will fail parser in ECLiPSe
                              return F_CONSTANT;
                             }
 
@@ -221,30 +232,30 @@ WS  [ \t\v\n\f]
 ";"					    { return ';'; }
 ("{"|"<%")				{ return '{'; }
 ("}"|"%>")				{ return '}'; }
-","					{ return ','; }
-":"					{ return ':'; }
-"="					{ return '='; }
-"("					{ return '('; }
-")"					{ return ')'; }
+","					    { return ','; }
+":"					    { return ':'; }
+"="					    { return '='; }
+"("					    { return '('; }
+")"					    { return ')'; }
 ("["|"<:")				{ return '['; }
 ("]"|":>")				{ return ']'; }
-"."					{ return '.'; }
-"&"					{ return '&'; }
-"!"					{ return '!'; }
-"~"					{ return '~'; }
-"-"					{ return '-'; }
-"+"					{ return '+'; }
-"*"					{ return '*'; }
-"/"					{ return '/'; }
-"%"					{ return '%'; }
-"<"					{ return '<'; }
-">"					{ return '>'; }
-"^"					{ return '^'; }
-"|"					{ return '|'; }
-"?"					{ return '?'; }
+"."					    { return '.'; }
+"&"					    { return '&'; }
+"!"					    { return '!'; }
+"~"					    { return '~'; }
+"-"					    { return '-'; }
+"+"					    { return '+'; }
+"*"					    { return '*'; }
+"/"					    { return '/'; }
+"%"					    { return '%'; }
+"<"					    { return '<'; }
+">"					    { return '>'; }
+"^"					    { return '^'; }
+"|"					    { return '|'; }
+"?"					    { return '?'; }
 
-{WS}+				{ /* whitespaces (including new lines) separate tokens */ }
-.					{ /* discard bad characters */ }
+{WS}+				    { /* whitespaces (including new lines) separate tokens */ }
+.					    { /* discard bad characters */ }
 
 %%
 /* user code section */
@@ -261,10 +272,8 @@ void read_comment() {
         {
             while ((c = input()) == '*')
                 ;
-
             if (c == '/')
                 return;
-
             if (c == 0)
                 break;
         }
