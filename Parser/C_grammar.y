@@ -62,10 +62,14 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 %union {
 	char* id;
 	struct for_stmt {
-        char *init;
-        char *cond;
-        char *update;
+        char *init;				//the first part of a for statement: the initialisations
+        char *cond;				//the second part of a for statement: the condition
+        char *update;			//the third part of a for statement: the update
     } for_stmt_type;
+	struct declarator {
+		char *full;				//the full declarator
+		char *ptr_declarator;	//only the declarator after pointer declarations
+	} declarator_type;
 }
 
 %token <id> IDENTIFIER TYPEDEF_NAME I_CONSTANT F_CONSTANT ENUMERATION_CONSTANT STRING_LITERAL
@@ -87,7 +91,7 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 %token ALIGNAS ALIGNOF ATOMIC_SPECIFIER ATOMIC GENERIC NORETURN STATIC_ASSERT THREAD_LOCAL
 %token INT128 FLOAT128 VA_LIST
 
-%type <id> storage_class_specifier declarator init_declarator initializer direct_declarator pointer type_qualifier type_qualifier_list init_declarator_list declaration_specifiers
+%type <id> storage_class_specifier init_declarator initializer pointer type_qualifier type_qualifier_list init_declarator_list declaration_specifiers
 %type <id> type_specifier
 %type <id> function_specifier expression constant_expression assignment_expression conditional_expression assignment_operator
 %type <id> logical_or_expression logical_and_expression inclusive_or_expression exclusive_or_expression and_expression equality_expression equality_expression_op relational_expression relational_expression_operator shift_expression shift_expression_op additive_expression additive_expression_op
@@ -104,6 +108,7 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 %type <id> declaration declaration_list_opt declaration_list
 %type <id> function_definition
 %type <for_stmt_type> for_stmt_type
+%type <declarator_type> declarator direct_declarator
 
 %start translation_unit 
 
@@ -578,22 +583,24 @@ init_declarator_list
 
 init_declarator
 	: declarator '=' initializer
-		{size_t const size = strlen("initialised(, )") + strlen($1) + strlen($3) + 1;
+		{size_t const size = strlen("initialised(, )") + strlen($1.full) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
-	   	 sprintf_safe($$, size, "initialised(%s, %s)", $1, $3);
-	   	 free($1);
-	   	 //free($3);
+	   	 sprintf_safe($$, size, "initialised(%s, %s)", $1.full, $3);
+	   	 free($1.full);
+		 free($1.ptr_declarator);
+	   	 //free($3);		//todo why is this commented out?
 	  	}
 	| declarator
 		{if (typedef_flag == 1) {	// we are parsing a typedef declaration
-			add_typedef_name($1);
+			add_typedef_name($1.ptr_declarator);	
 	   	 }
-		 simple_str_copy(&$$, $1);
+		 free($1.ptr_declarator);
+		 simple_str_copy(&$$, $1.full);
 	  	}
 	;
 
 storage_class_specifier
-	: TYPEDEF	/* following typedef declarator identifier must be added to the list of typedefs so that it will get identified as TYPEDEF_NAME in lexer and not as an identifier*/
+	: TYPEDEF	/* the following typedef declarator identifier must be added to the list of typedefs so that it will get identified as TYPEDEF_NAME in lexer and not as an identifier*/
 		{simple_str_lit_copy(&$$, "typedef");
          typedef_flag = 1;
 		 if (debugMode) printf("Debug: typedef switched to 1\n");
@@ -720,7 +727,7 @@ struct_declarator_list
 	| struct_declarator_list ',' struct_declarator
 		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_safe($$, size, "%s, %s)", $1, $3);
+         sprintf_safe($$, size, "%s, %s)", $1, $3);	//why the prentrhesis mismatch?
 	   	 free($1);
 	     free($3);
         }
@@ -734,13 +741,18 @@ struct_declarator
 	   	 free($2);
         }
 	| declarator ':' constant_expression
-		{size_t const size = strlen("bit_field(, )") + strlen($1) + strlen($3) + 1;
+		{size_t const size = strlen("bit_field(, )") + strlen($1.full) + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_safe($$, size, "bit_field(%s, %s)", $1, $3);
-	   	 free($1);
+         sprintf_safe($$, size, "bit_field(%s, %s)", $1.full, $3);
+	   	 free($1.full);
+		 free($1.ptr_declarator);
 	     free($3);
         }
 	| declarator
+		{$$ = strdup($1.full);
+		 free($1.full);
+		 free($1.ptr_declarator);
+		}
 	;
 
 enum_specifier
@@ -801,12 +813,12 @@ enumerator	/* identifiers must be flagged as ENUMERATION_CONSTANT */
 	;
 
 atomic_type_specifier		// new in C11 for atomic operation: used in concurrency
-	: ATOMIC_SPECIFIER type_name ')'
+	: ATOMIC_SPECIFIER type_name ')'	//the opening parenthesis '(' is matched by the lexer
 	;
 
 type_qualifier
 	: CONST		{simple_str_lit_copy(&$$, "const");}
-	| RESTRICT	{simple_str_lit_copy(&$$, "restrict");}
+	| RESTRICT	{simple_str_lit_copy(&$$, "restrict");}	//C99, pointer qualifier indicate only reference to object, allows for compiler optimisation
 	| VOLATILE	{simple_str_lit_copy(&$$, "volatile");}
 	| ATOMIC	{simple_str_lit_copy(&$$, "atomic");}
 	;
@@ -823,18 +835,19 @@ alignment_specifier
 
 declarator
 	: pointer direct_declarator
-	  {size_t const size = strlen("()") + strlen($1) + strlen($2) + 1;
-       $$ = (char*)malloc(size);
-       sprintf_safe($$, size, "%s(%s)", $1, $2);
+	  {size_t const size = strlen("ptr_decl(, )") + strlen($1) + strlen($2.full) + 1;
+       $$.full = (char*)malloc(size);
+       sprintf_safe($$.full, size, "ptr_decl(%s, %s)", $1, $2.full);
+	   $$.ptr_declarator = $2.ptr_declarator;
 	   free($1);
-	   free($2);
+	   free($2.full);
       }
 	| direct_declarator
 	;
 
 direct_declarator
 	: IDENTIFIER		//Ordinary namespace id declaration unless within a struct declaration in which case it is a Member namespace id
-		{char Prolog_var_name[MAX_ID_LENGTH+5];
+		{char Prolog_var_name[MAX_ID_LENGTH+5];	//todo should use to_prolog_var($1);
 		 if (islower($1[0])) {
 			Prolog_var_name[0] = toupper($1[0]);
 			strcpy_safe(&Prolog_var_name[1], MAX_ID_LENGTH-1, &$1[1]);
@@ -843,60 +856,92 @@ direct_declarator
 			strcat_safe(Prolog_var_name, MAX_ID_LENGTH, $1);
 		 }
 		 size_t const size = strlen(Prolog_var_name) + 1;
-		 $$ = (char*)malloc(size);
-		 strcpy_safe($$, size, Prolog_var_name);
+		 $$.full = (char*)malloc(size);
+		 strcpy_safe($$.full, size, Prolog_var_name);
+		 $$.ptr_declarator = strdup($$.full);
 		 free($1);
 		} 
 	| '(' declarator ')'			//function pointer e.g. int (*func_ptr)(int, int);
-		{simple_str_copy(&$$, $2);}
+		{$$ = $2;}
 	| direct_declarator '[' ']'		
-		{simple_str_lit_copy(&$$, "D2");}
+		{simple_str_lit_copy(&$$.full, "D2");
+		 free($1.full);
+		 $$.ptr_declarator = $1.ptr_declarator;
+		}
 	| direct_declarator '[' '*' ']'	
-		{simple_str_lit_copy(&$$, "D3");}
+		{simple_str_lit_copy(&$$.full, "D3");
+		 free($1.full);
+		 $$.ptr_declarator = $1.ptr_declarator;
+		}
 	| direct_declarator '[' STATIC type_qualifier_list assignment_expression ']' 
-		{simple_str_lit_copy(&$$, "D4");}
+		{simple_str_lit_copy(&$$.full, "D4");
+		 free($1.full);
+		 $$.ptr_declarator = $1.ptr_declarator;
+		}
 	| direct_declarator '[' STATIC assignment_expression ']'
-		{simple_str_lit_copy(&$$, "D5");}
+		{simple_str_lit_copy(&$$.full, "D5");
+		 free($1.full);
+		 $$.ptr_declarator = $1.ptr_declarator;
+		}
 	| direct_declarator '[' type_qualifier_list '*' ']'
-		{simple_str_lit_copy(&$$, "D6");}
+		{simple_str_lit_copy(&$$.full, "D6");
+		 free($1.full);
+		 $$.ptr_declarator = $1.ptr_declarator;
+		}
 	| direct_declarator '[' type_qualifier_list STATIC assignment_expression ']'
-		{simple_str_lit_copy(&$$, "D7");}
+		{simple_str_lit_copy(&$$.full, "D7");
+		 free($1.full);
+		 $$.ptr_declarator = $1.ptr_declarator;
+		}
 	| direct_declarator '[' type_qualifier_list assignment_expression ']'
-		{simple_str_lit_copy(&$$, "D8");}
+		{simple_str_lit_copy(&$$.full, "D8");
+		 free($1.full);
+		 $$.ptr_declarator = $1.ptr_declarator;
+		}
 	| direct_declarator '[' type_qualifier_list ']'
-		{simple_str_lit_copy(&$$, "D9");}
+		{simple_str_lit_copy(&$$.full, "D9");
+		 free($1.full);
+		 $$.ptr_declarator = $1.ptr_declarator;
+		}
 	| direct_declarator '[' assignment_expression ']'
-		{simple_str_lit_copy(&$$, "D10");}
+		{simple_str_lit_copy(&$$.full, "D10");
+		 free($1.full);
+		 $$.ptr_declarator = $1.ptr_declarator;
+		}
 	| direct_declarator '(' ')'
-		{size_t const size = strlen("function(, [])") + strlen($1) + 1;
-	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "function(%s, [])", $1);
-	     free($1);
+		{size_t const size = strlen("function(, [])") + strlen($1.full) + 1;
+	     $$.full = (char*)malloc(size);
+	     sprintf_safe($$.full, size, "function(%s, [])", $1.full);
+		 free($1.full);
+		 $$.ptr_declarator = $1.ptr_declarator;
 		}
 	| direct_declarator '(' parameter_type_list ')'
-		{size_t const size = strlen("function(, )") + strlen($1) + strlen($3) + 1;
-	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "function(%s, %s)", $1, $3);
-	     free($1);
+		{size_t const size = strlen("function(, )") + strlen($1.full) + strlen($3) + 1;
+	     $$.full = (char*)malloc(size);
+	     sprintf_safe($$.full, size, "function(%s, %s)", $1.full, $3);
+	     free($1.full);
+		 $$.ptr_declarator = $1.ptr_declarator;
 		 free($3);
 		}
-
 	| direct_declarator '(' identifier_list ')'
-		{simple_str_lit_copy(&$$, "D13");}
+		{simple_str_lit_copy(&$$.full, "D13");
+		 free($1.full);
+		 $$.ptr_declarator = $1.ptr_declarator;
+		}
 	;
 
 pointer
-	: '*' type_qualifier_list pointer
-		{size_t const size = strlen("pointer???(, )") + strlen($2) + strlen($3) + 1;
+	: '*' type_qualifier_list pointer		//e.g. const int *volatile *const ptr;
+		{size_t const size = strlen("pointer(quals(), )") + strlen($2) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "pointer???(%s, %s)", $2, $3);
+	     sprintf_safe($$, size, "pointer(quals(%s), %s)", $2, $3);
 		 free($2);
 		 free($3);
 		}
 	| '*' type_qualifier_list
-		{size_t const size = strlen("pointer()") + strlen($2) + 1;
+		{size_t const size = strlen("pointer(quals())") + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "pointer(%s)", $2);
+	     sprintf_safe($$, size, "pointer(quals(%s))", $2);
 	     free($2);
 		}
 	| '*' pointer
@@ -912,9 +957,9 @@ pointer
 type_qualifier_list
 	: type_qualifier
 	| type_qualifier_list type_qualifier
-		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
+		{size_t const size = strlen("[, ]") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "%s, %s", $1, $2);
+	     sprintf_safe($$, size, "[%s, %s]", $1, $2);
 	     free($1);
 		 free($2);
 		}
@@ -948,11 +993,12 @@ parameter_list
 
 parameter_declaration
 	: declaration_specifiers declarator
-		{size_t const size = strlen("param([], )") + strlen($1) + strlen($2) + 1;
+		{size_t const size = strlen("param([], )") + strlen($1) + strlen($2.full) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "param([%s], %s)", $1, $2);
+	     sprintf_safe($$, size, "param([%s], %s)", $1, $2.full);
 	     free($1);
-		 free($2);
+		 free($2.full);
+		 free($2.ptr_declarator);
 		}
 	| declaration_specifiers abstract_declarator
 		{size_t const size = strlen("param_no_decl([], dummy_abstract_declarator)") + strlen($1) + 1;
@@ -1260,11 +1306,12 @@ external_declaration		//printed out
 
 function_definition
 	: declaration_specifiers declarator declaration_list_opt compound_statement
-		{size_t const size = strlen("function([], , [], )") + strlen($1) + strlen($2) + strlen($3) + strlen($4) + 1;
+		{size_t const size = strlen("function([], , [], )") + strlen($1) + strlen($2.full) + strlen($3) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "function([%s], %s, [%s], %s)", $1, $2, $3, $4);
+	     sprintf_safe($$, size, "function([%s], %s, [%s], %s)", $1, $2.full, $3, $4);
 	     free($1);
-		 free($2);
+		 free($2.full);
+		 free($2.ptr_declarator);
 		 free($3);
 		 free($4);
 		}

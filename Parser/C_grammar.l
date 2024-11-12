@@ -62,18 +62,18 @@ WS  [ \t\v\n\f]
 "//".*                                      { /* consume //-comment */ }
 "#pragma".*                                 { /* Ignore the entire line after `#pragma` */ }
 "__extension__"                             { /* Ignoring GCC keyword __extension__ that disables compiler warnings about non-compliant features */ }
-"__attribute__"[ ]*\([ ]*\(    { /* Ignoring all GCC __attribute__ at our peril obviously */ 
-                                             open_parens = 2; /* Start with the initial two opening parentheses */
-                                             BEGIN(ATTRIBUTE); /* Enter the ATTRIBUTE start condition */
+"__attribute__"[ ]*\([ ]*\(                 { /* Ignoring all GCC __attribute__ at our peril obviously */ 
+                                             open_parens = 2;   //Start with the initial two opening parentheses
+                                             BEGIN(ATTRIBUTE);  //Enter the ATTRIBUTE start condition to read everything until the final 2 closing parenthesis
                                             }
-<ATTRIBUTE>. { 
-    if (yytext[0] == '(') { /* Increment for each additional opening parenthesis */
-        open_parens++;
+<ATTRIBUTE>. {                  //use this because flex regular expressions cannot match matching inner parentheses as in __attribute__ ((__nonnull__ (1, 2))) or __asm__("addl $3, %0" : "=r" (result) : "0" (result) : "cc")
+    if (yytext[0] == '(') { 
+        open_parens++;          //Increment for each additional opening parenthesis
     } 
-    else if (yytext[0] == ')') { /* Decrement for each closing parenthesis */
-        open_parens--;
+    else if (yytext[0] == ')') { 
+        open_parens--;          //Decrement for each closing parenthesis
         if (open_parens == 0) {
-            BEGIN(INITIAL); /* Exit ATTRIBUTE mode after the matched parentheses are balanced */
+            BEGIN(INITIAL);     // Exit ATTRIBUTE mode after the matched parentheses are balanced
         }
     }
     /* Otherwise, continue reading characters in ATTRIBUTE mode */
@@ -82,6 +82,10 @@ WS  [ \t\v\n\f]
     fprintf(stderr, "Error: Unclosed __attribute__(( found.\n");
     exit(1);
 }
+"__asm__"[ ]*\(                             { /* Ignoring all GCC __asm__ at our peril obviously */ 
+                                             open_parens = 1;   //Start with the initial single opening parenthesis
+                                             BEGIN(ATTRIBUTE);  //Enter the ATTRIBUTE start condition to read everything until the final closing parenthesis
+                                            }
 "auto"					{ return(AUTO); }
 "break"					{ return(BREAK); }
 "case"					{ return(CASE); }
@@ -214,7 +218,7 @@ WS  [ \t\v\n\f]
 ">="					{ return GE_OP; }
 "=="					{ return EQ_OP; }
 "!="					{ return NE_OP; }
-";"					{ return ';'; }
+";"					    { return ';'; }
 ("{"|"<%")				{ return '{'; }
 ("}"|"%>")				{ return '}'; }
 ","					{ return ','; }

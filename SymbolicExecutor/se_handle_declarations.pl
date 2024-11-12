@@ -12,7 +12,7 @@ declare_declarators([Declarator|R], Type_name) :-
         )
     ),
     %C pointers variables are not ptc_solver variable: they are handled syntactically e.g. seav(pointer(integer), not_needed, addr(Y_2{se_seav_atts : seav(integer, not_needed, 42)}))
-    extract_pointers(Var, Type_name, Type_name_ptr_opt, Clean_var), %e.g. extract_pointers(pointer(Pi_3{c_id(pi)}), integer, pointer(integer), Pi_3)
+    extract_pointers(Var, Type_name, Type_name_ptr_opt, Clean_var), %e.g. extract_pointers(ptr_decl(pointer, Pi_3{c_id(pi)}), integer, pointer(integer), Pi_3)
     seav__create_var(Type_name_ptr_opt, Clean_var),
     seav__update(Clean_var, 'input', 'not_needed'),
     seav__update(Clean_var, 'output', Casted),
@@ -24,17 +24,29 @@ declare_typedefs([Typedef|R], Type_name) :-
     se_typedef_atts__create(Type_name_ptr_opt, Clean_typedef_var),
     declare_typedefs(R, Type_name).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%e.g. extract_pointers(pointer(X), int, pointer(int), X)
+%e.g. extract_pointers(ptr_decl(pointer, X), int, pointer(int), X)
 extract_pointers(Var, Type_name, Type_name_ptr_opt, Clean_var) :-
-    (nonvar(Var), Var = pointer(Inner_var) ->
-        (extract_pointers(Inner_var, Type_name, Inner_type_name, Clean_var),
-         Type_name_ptr_opt = pointer(Inner_type_name)
-        )
+    (nonvar(Var), Var = ptr_decl(Ptr_exp, Clean_var) ->
+        extract_inner_pointers(Ptr_exp, Type_name, Type_name_ptr_opt)
     ;
-        (Type_name_ptr_opt = Type_name,
+        (%not a pointer variable declaration
+         Type_name_ptr_opt = Type_name,
          Clean_var = Var
         )    
     ).
+    %%%
+    extract_inner_pointers(Ptr_exp, Type_name, Type_name_ptr_opt) :-
+        (Ptr_exp == 'pointer' ->
+            Type_name_ptr_opt = pointer(Type_name)
+        ;
+         Ptr_exp = pointer(qual(_Type_qualifier_list)) ->   %we discard the Type_qualifier_list for now [const|restrict|volatile|atomic]
+            Type_name_ptr_opt = pointer(Type_name)
+        ;
+         Ptr_exp = pointer(Inner_ptr_exp) ->
+            (extract_inner_pointers(Inner_ptr_exp, Type_name, Inner_type_name),
+             Type_name_ptr_opt = pointer(Inner_type_name)
+            )
+        ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 declare_params([], []).
 declare_params([param(Specifiers, Param)|R], [Clean_param|R_params]) :-

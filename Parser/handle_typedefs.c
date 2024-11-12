@@ -12,7 +12,8 @@ typedef struct node {
 
 list_node *typedef_list = NULL;
 
-void add_typedef_name(const char* id) {
+void add_typedef_name(char* id) {
+	/* if (debugMode) printf("Debug: processing %s before adding to typedef collection. ", id);
 	//id can be pointer(pointer( ... id ...)) but we only want to add id as a typedef
 	char *result = NULL;
 	char *first_close_paren = strchr(id, ')');
@@ -28,15 +29,16 @@ void add_typedef_name(const char* id) {
 	} else {
 		result = strdup(id); // Duplicate the original string
 	}
-	if (!strncmp(result, "UC_", 3)) result = &result[3];	//removing the "UC_"  prefix before adding to collection of typedef
-	else result[0] = tolower(result[0]);	//lowering the first letter before adding to collection of typedef
-	if (debugMode) printf("Debug: adding %s to typedef collection\n", result);
+	*/
+	if (!strncmp(id, "UC_", 3)) id = &id[3];	//removing the "UC_"  prefix before adding to collection of typedef
+	else id[0] = tolower(id[0]);	//lowering the first letter before adding to collection of typedef
 	list_node* new_node = (list_node *)safe_malloc(sizeof(list_node));
-	new_node->typedef_name = (char*)safe_malloc(strlen(result) + 1);
-	strcpy_safe(new_node->typedef_name, strlen(result) + 1, result);
+	new_node->typedef_name = (char*)safe_malloc(strlen(id) + 1);
+	strcpy_safe(new_node->typedef_name, strlen(id) + 1, id);
 	if (typedef_list != NULL) new_node->next = typedef_list;
 	else new_node->next = NULL;
 	typedef_list = new_node;
+	if (debugMode) printf("Added %s to typedef collection\n", id);
 	//free(result);		//crashes but don't know why
 }
 

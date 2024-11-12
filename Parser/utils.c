@@ -30,6 +30,7 @@ void* safe_malloc(size_t size) {
     return ptr;
 }
 
+//todo use strdup() instead and free explicitly afterwards as usual 
 void simple_str_copy(char **SS, char *S1) {
     size_t size = strlen(S1) + 1;
     *SS = (char*)malloc(size);
