@@ -126,6 +126,20 @@ extract_type(['bool'], bool) :-
     !.
 extract_type(['void'], void) :-
     !.
+extract_type([struct(Tag, Struct_decl_list)], Struct_type) :-
+    !,
+    (Tag == 'anonymous' ->
+        (true
+        )
+    ;
+     Struct_decl_list == 'forward' ->
+        (true
+        )
+    ;
+        (true
+        )
+    ),
+    common_util__error(9, "Struct Declarations are Not Handled", "Sikraken needs expanding", [('Tag', Tag)], '9_121124', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).
 extract_type(Specifiers, _Type_name) :-
     common_util__error(9, "Not Handled", "Sikraken needs expanding", [('Specifiers', Specifiers)], '9_270724', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

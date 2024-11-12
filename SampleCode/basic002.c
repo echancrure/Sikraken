@@ -6,7 +6,15 @@ struct point2 {
     int x, y, z, t;
     float weight;
 } p1, p2;
-
+struct point3;  //forward declaration
+struct point3 {
+    int x, y, z, t;
+    float weight;
+};
+struct {        //anonymous declaration
+    int x, y, z, t;
+    float weight;
+} anon1, anon2;
 int a = 1;
 
 int basic(int x) {

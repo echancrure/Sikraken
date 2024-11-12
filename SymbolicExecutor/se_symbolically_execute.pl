@@ -41,6 +41,9 @@ symbolic_execute(declaration(Declaration_specifiers, Declarators), 'carry_on') :
          declare_declarators(Declarators, Type_name)
         )
     ).
+%e.g. a struct declaration without variables declarations  e.g. declaration([struct(point, [struct_decl([int], [X, Y, Z, T]), struct_decl([float], [Weight])])]), 
+symbolic_execute(declaration(Declaration_specifiers), 'carry_on') :-
+    extract_type(Declaration_specifiers, _Type_name).
 symbolic_execute(function(Specifiers, function(Function_name, Parameters), [], Compound_statement), 'carry_on') :-
     !,
     extract_type(Specifiers, Return_type_name),

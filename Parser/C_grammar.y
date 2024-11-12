@@ -640,9 +640,9 @@ type_specifier
 
 struct_or_union_specifier
 	: struct_or_union '{' {in_tag_namespace = 0;} struct_declaration_list '}'		//anonymous struct or union
-		{size_t const size = strlen("([])") + strlen($1) + strlen($4) + 1;
+		{size_t const size = strlen("('anonymous', [])") + strlen($1) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "%s([%s])", $1, $4);
+	     sprintf_safe($$, size, "%s('anonymous', [%s])", $1, $4);
 	     free($1);
 	     free($4);
 	    }
@@ -656,9 +656,9 @@ struct_or_union_specifier
 	    }
 	| struct_or_union IDENTIFIER	//forward declaration Tag namespace Id declaration
 		{in_tag_namespace = 0;
-		 size_t const size = strlen("()") + strlen($1) + strlen($2) + 1;
+		 size_t const size = strlen("%s(%s, 'forward')") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "%s(%s)", $1, $2);
+	     sprintf_safe($$, size, "%s(%s, 'forward')", $1, $2);
 	     free($1);
 	     free($2);
 	    }

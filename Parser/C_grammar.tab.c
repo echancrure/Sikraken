@@ -3330,9 +3330,9 @@ yyreduce:
 
   case 141: /* struct_or_union_specifier: struct_or_union '{' $@1 struct_declaration_list '}'  */
 #line 643 "C_grammar.y"
-                {size_t const size = strlen("([])") + strlen((yyvsp[-4].id)) + strlen((yyvsp[-1].id)) + 1;
+                {size_t const size = strlen("('anonymous', [])") + strlen((yyvsp[-4].id)) + strlen((yyvsp[-1].id)) + 1;
 	     (yyval.id) = (char*)malloc(size);
-	     sprintf_safe((yyval.id), size, "%s([%s])", (yyvsp[-4].id), (yyvsp[-1].id));
+	     sprintf_safe((yyval.id), size, "%s('anonymous', [%s])", (yyvsp[-4].id), (yyvsp[-1].id));
 	     free((yyvsp[-4].id));
 	     free((yyvsp[-1].id));
 	    }
@@ -3360,9 +3360,9 @@ yyreduce:
   case 144: /* struct_or_union_specifier: struct_or_union IDENTIFIER  */
 #line 658 "C_grammar.y"
                 {in_tag_namespace = 0;
-		 size_t const size = strlen("()") + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1;
+		 size_t const size = strlen("%s(%s, 'forward')") + strlen((yyvsp[-1].id)) + strlen((yyvsp[0].id)) + 1;
 	     (yyval.id) = (char*)malloc(size);
-	     sprintf_safe((yyval.id), size, "%s(%s)", (yyvsp[-1].id), (yyvsp[0].id));
+	     sprintf_safe((yyval.id), size, "%s(%s, 'forward')", (yyvsp[-1].id), (yyvsp[0].id));
 	     free((yyvsp[-1].id));
 	     free((yyvsp[0].id));
 	    }
