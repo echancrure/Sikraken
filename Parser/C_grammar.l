@@ -25,6 +25,7 @@
 #include "C_grammar.tab.h"
 
 extern int in_tag_namespace;
+extern int in_member_namespace;
 extern int is_typedef_name(char*);
 extern long int TARGET_LONG_MAX;
 
@@ -123,7 +124,10 @@ WS  [ \t\v\n\f]
 "volatile"				{ return(VOLATILE); }
 "while"					{ return(WHILE); }
 "__int128"              { return(INT128); }     //GCC builtin 128-bit integer type
+"_Float32"              { return(FLOAT); }      //GCC builtin 32-bit floating-point type
+"_Float64"              { return(DOUBLE); }     //GCC builtin 64-bit floating-point type
 "__float128"            { return(FLOAT128); }   //GCC builtin 128-bit floating-point type
+"_Float128"             { return(FLOAT128); }   //GCC builtin 128-bit floating-point type
 "__builtin_va_list"     { return(VA_LIST); }    //GCC builtin variable argument list type
 "_Alignas"              { return ALIGNAS; }
 "_Alignof"              { return ALIGNOF; }
@@ -151,7 +155,7 @@ WS  [ \t\v\n\f]
                              }
                              yylval.id[i] = '\0';
 
-                             if (!in_tag_namespace && is_typedef_name(yylval.id)) {
+                             if (!in_tag_namespace && !in_member_namespace && is_typedef_name(yylval.id)) { //check for identifers representing typedef except in tag (of structs, unions and enums) and member namespace (of structs and unions)
                                 //if (debugMode) printf("Debug: returning the typedef %s from lexer\n", yytext);
                                 return TYPEDEF_NAME;
                              }

@@ -4,7 +4,8 @@
         ".l": "c",
         "stdio.h": "c",
         "random": "c",
-        "cstring": "c"
+        "cstring": "c",
+        "type_traits": "c"
     },
     "git.detectSubmodulesLimit": 10,
     "sarif-viewer.connectToGithubCodeScanning": "off"

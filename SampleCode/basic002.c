@@ -1,3 +1,7 @@
+struct point {
+    int x, y, z, t;
+    float weight;
+};
 int a = 1;
 
 int basic(int x) {

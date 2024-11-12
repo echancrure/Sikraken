@@ -50,8 +50,8 @@ char pl_file_uri[MAX_PATH];		//the full path to the Pl_file
 int branch_nb = 1;				//unique id for branches created
 //start: ugly, breaking parsing spirit, flags and temporary variables
 int typedef_flag = 0; 			//indicates that we are within a typedef declaration
-int in_member_decl_flag = 0;	//indicates that we are parsing struct or union declarations and that the ids are part of the members namespace
 int in_tag_namespace = 0;		//indicates to the lexer that we are in the tag namespace (for struct, union and enum tags) and that identifier should not be checked for typedef
+int in_member_namespace = 0;	//indicates to the lexer that we are in the member namespace (for members of stuct and unions) and that identifier should not be checked for typedef
 
 
 void yyerror(const char*);
@@ -98,7 +98,8 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 %type <id> multiplicative_expression multiplicative_expression_op cast_expression unary_expression unary_operator unary_inc_dec postfix_expression 
 %type <id> type_name argument_expression_list primary_expression constant string enumeration_constant
 %type <id> initializer_list designation designator_list designator
-%type <id> struct_or_union_specifier struct_or_union struct_declaration_list struct_declaration specifier_qualifier_list struct_declarator_list struct_declarator
+%type <id> struct_or_union_specifier struct_or_union struct_declaration_list struct_declaration specifier_qualifier_list 
+%type <id> struct_declarator_list struct_declarator struct_declarator2
 %type <id> static_assert_declaration
 %type <id> enum_specifier enum_specifier_rest enumerator_list enumerator
 %type <id> parameter_type_list parameter_list parameter_declaration
@@ -692,13 +693,12 @@ struct_declaration
          sprintf_safe($$, size, "struct_decl_anonymous(%s)", $1);
 	   	 free($1);
         }
-	| specifier_qualifier_list {in_member_decl_flag = 1;} struct_declarator_list ';'
-		{in_member_decl_flag = 0;
-		 size_t const size = strlen("struct_decl([], )") + strlen($1) + strlen($3) + 1;
+	| specifier_qualifier_list struct_declarator_list ';'
+		{size_t const size = strlen("struct_decl([], [])") + strlen($1) + strlen($2) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_safe($$, size, "struct_decl([%s], %s)", $1, $3);
+         sprintf_safe($$, size, "struct_decl([%s], [%s])", $1, $2);
 	   	 free($1);
-		 free($3);
+		 free($2);
         }
 	| static_assert_declaration
 	;
@@ -727,28 +727,32 @@ struct_declarator_list
 	| struct_declarator_list ',' struct_declarator
 		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_safe($$, size, "%s, %s)", $1, $3);	//why the prentrhesis mismatch?
+         sprintf_safe($$, size, "%s, %s", $1, $3);
 	   	 free($1);
 	     free($3);
         }
 	;
 
 struct_declarator
-	: ':' constant_expression
-		{size_t const size = strlen("anonymous_bit_field()") + strlen($2) + 1;
+	: {in_member_namespace = 1;} struct_declarator2
+		{$$ = $2;}
+
+struct_declarator2		//added to avoid reduce-reduce conflict
+	: ':' {in_member_namespace = 0;} constant_expression
+		{size_t const size = strlen("anonymous_bit_field()") + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_safe($$, size, "anonymous_bit_field(%s)", $2);
-	   	 free($2);
-        }
-	| declarator ':' constant_expression
-		{size_t const size = strlen("bit_field(, )") + strlen($1.full) + strlen($3) + 1;
+         sprintf_safe($$, size, "anonymous_bit_field(%s)", $3);
+	   	 free($3);
+        } 
+	| declarator {in_member_namespace = 0;} ':'  constant_expression 
+		{size_t const size = strlen("bit_field(, )") + strlen($1.full) + strlen($4) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_safe($$, size, "bit_field(%s, %s)", $1.full, $3);
+         sprintf_safe($$, size, "bit_field(%s, %s)", $1.full, $4);
 	   	 free($1.full);
 		 free($1.ptr_declarator);
-	     free($3);
+	     free($4);
         }
-	| declarator
+	|  declarator {in_member_namespace = 0;} 
 		{$$ = strdup($1.full);
 		 free($1.full);
 		 free($1.ptr_declarator);
@@ -861,7 +865,8 @@ direct_declarator
 		 $$.ptr_declarator = strdup($$.full);
 		 free($1);
 		} 
-	| '(' declarator ')'			//function pointer e.g. int (*func_ptr)(int, int);
+	| '(' declarator {in_member_namespace = 0;} ')'			//function pointer e.g. in "int (*func_ptr)(int, int);" delcarator is "*func_ptr"
+		//added in_member_namespace = 0; in case we are within a union or struct to indicate that we just processed the member and the rest my involve typedefs see diary 12/11/24
 		{$$ = $2;}
 	| direct_declarator '[' ']'		
 		{simple_str_lit_copy(&$$.full, "D2");

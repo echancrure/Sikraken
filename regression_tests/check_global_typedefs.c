@@ -32,6 +32,18 @@ struct _IO_FILE{        //defines struct _IO_FILE
     int  Id_MCDC_0;
 };
 
+// Typedef for a function pointer that takes two ints and returns an int
+typedef int (*operation_fn)(int, int);
+
+// Example function that matches the typedef
+int add(int a, int b) {
+    return a + b;
+}
+
+int subtract(int a, int b) {
+    return a - b;
+}
+
 
 //check if globals can be accessed
 int x = 5;
