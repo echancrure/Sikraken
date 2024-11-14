@@ -35,6 +35,6 @@ int basic(int x) {
 }
 
 
-void main(void) {           //must be main(void) or the parser misbehaves
+void main(void) {
 
 }

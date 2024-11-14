@@ -126,7 +126,7 @@ extract_type(['bool'], bool) :-
     !.
 extract_type(['void'], void) :-
     !.
-extract_type([struct(Tag, Struct_decl_list)], Struct_type) :-
+extract_type([struct(Tag, Struct_decl_list)], _Struct_type) :-
     !,
     (Tag == 'anonymous' ->
         (true

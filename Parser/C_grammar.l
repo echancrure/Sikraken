@@ -176,7 +176,8 @@ WS  [ \t\v\n\f]
                              }
                              return I_CONSTANT;
                             }
-{CP}?"'"([^'\\\n]|{ES})+"'"	{yylval.id = strdup_safe(yytext); return I_CONSTANT;}       //single characters
+{CP}?"'"([^'\\\n]|{ES})+"'"	{yylval.id = strdup_safe(yytext);   //single characters: todo handle escape, octal and hexadecimal characters                             return I_CONSTANT;
+                            }       
 
 {D}+{E}{FS}?				{wrap_floating_point_constants("", yytext, &yylval.id);     //Decimal floating-point constants with an exponent.
                              return F_CONSTANT;

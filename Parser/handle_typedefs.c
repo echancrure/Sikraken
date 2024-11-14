@@ -38,7 +38,7 @@ void add_typedef_name(char* id) {
 	if (typedef_list != NULL) new_node->next = typedef_list;
 	else new_node->next = NULL;
 	typedef_list = new_node;
-	if (debugMode) printf("Added %s to typedef collection\n", id);
+	//if (debugMode) printf("Added %s to typedef collection\n", id);
 	//free(result);		//crashes but don't know why
 }
 

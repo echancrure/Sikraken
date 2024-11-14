@@ -171,7 +171,7 @@ common_util__error2(Error_severity, Error_message, Error_consequences, Arguments
              (ArgumentsL == no_arguments ->
                     true
              ;
-                    (cue_print_warning_arguments(ArgumentsL, release),
+                    (cue_print_warning_arguments(ArgumentsL, debug),
                      printf(user_error, "%n", [])
                     )
              )
