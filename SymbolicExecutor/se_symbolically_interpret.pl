@@ -93,12 +93,14 @@ symbolically_interpret(cast(Raw_typeL, Expression), symb(To_type, Casted)) :-
     ;    
         ptc_solver__perform_cast(cast(To_type, From_type), Symbolic, Casted)
     ).
-symbolically_interpret(addr(Expression), symb(pointer, addr(Expression))) :-
-    !.
+symbolically_interpret(addr(Expression), symb(pointer(Type), addr(LValue))) :-
+    !,
+    get_symbolic_lvalue(Expression, Type, LValue).  %not normal symbolic execution: stop once we get an lvalue
+
 symbolically_interpret(deref(Expression), Symbolic_expression) :-
     !,
     symbolically_interpret(Expression, Symbolic_expression_ptr),
-    (Symbolic_expression_ptr = symb(pointer, addr(Inner_symbolic_expression)) ->   %todo: need testing with many levels of derefs
+    (Symbolic_expression_ptr = symb(_, addr(Inner_symbolic_expression)) ->   %todo: need testing with many levels of derefs
         symbolically_interpret(Inner_symbolic_expression, Symbolic_expression)
     ;
         common_util__error(10, "Dereferencing something which is not a pointer", "Cannot perform symbolic interpretation", [('Symbolic_expression_ptr', Symbolic_expression_ptr)], '10_040924_2', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info)

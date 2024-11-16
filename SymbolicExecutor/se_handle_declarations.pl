@@ -2,21 +2,32 @@
 declare_declarators([], _).
 declare_declarators([Declarator|R], Type_name) :-
     %mytrace,
-    (nonvar(Declarator), Declarator = initialised(Var, Expression) ->   %added nonvar(...) as a guard 30/07/24
-        symbolically_interpret(cast(Type_name, Expression), symb(_Type, Casted))
+    %below is the ugliest Prolog code in Sikraken; I think modifying the parsed output may help
+    (nonvar(Declarator), Declarator = initialised(Var, _) ->   %added nonvar(...) as a guard 30/07/24
+        true
     ;
         (%declaration of non-initialised variable
-         %todo check for redefinition which is allowed: see diary 07/08/24
-         Var = Declarator,
-         Casted = 0 %todo: should be only for global and static variables as non-static and automatic objects are not initialised in C see K&R p. 219
+         %todo check for redefinition which is allowed: see diary 07/08/24 [probably should remove existing scope value...]
+         Var = Declarator
         )
     ),
     %C pointers variables are not ptc_solver variable: they are handled syntactically e.g. seav(pointer(integer), not_needed, addr(Y_2{se_seav_atts : seav(integer, not_needed, 42)}))
     extract_pointers(Var, Type_name, Type_name_ptr_opt, Clean_var), %e.g. extract_pointers(ptr_decl(pointer, Pi_3{c_id(pi)}), integer, pointer(integer), Pi_3)
-    seav__create_var(Type_name_ptr_opt, Clean_var),
-    seav__update(Clean_var, 'input', 'not_needed'),
-    seav__update(Clean_var, 'output', Casted),
+    (nonvar(Declarator), Declarator = initialised(_, Expression) ->
+        true
+    ;
+        (Default = 0, %todo: [in effect same as Declarator = initialised(Var, 0)] but only for global and static variables as non-static and automatic objects are not initialised in C see K&R p. 219
+         get_pointer_type_default(Type_name_ptr_opt, Default, Expression)    %because non-initialised pointers, need to be initialised to addr(...addr(0)...)
+        )
+    ),
+    symbolically_interpret(cast(Type_name_ptr_opt, Expression), symb(_Type, Casted)),
+    seav__create_var(Type_name_ptr_opt, 'not_needed', Casted, Clean_var),
     declare_declarators(R, Type_name).
+    %%%
+    get_pointer_type_default(pointer(Type_expression), Default, addr(Inner_default)) :-
+        !,
+        get_pointer_type_default(Type_expression, Default, Inner_default).
+    get_pointer_type_default(_, Default, Default).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 declare_typedefs([], _).
 declare_typedefs([Typedef|R], Type_name) :-
@@ -58,9 +69,7 @@ declare_params([param(Specifiers, Param)|R], [Clean_param|R_params]) :-
     ;
         Input = Input_var
     ),
-    seav__create_var(Type_name_ptr_opt, Clean_param),
-    seav__update(Clean_param, 'input', Input),      %todo only needed for target function
-    seav__update(Clean_param, 'output', Input),
+    seav__create_var(Type_name_ptr_opt, Input, Input, Clean_param), %todo only needed for target function
     declare_params(R, R_params).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 declare_return(Return_seav, Type_name) :-
@@ -71,10 +80,9 @@ declare_return(Return_seav, Type_name) :-
     ;
          Output = Output_var
     ),
-    seav__create_var(Type_name_ptr_opt, Clean_return),
-    seav__update(Clean_return, 'input', 'not_needed'),
-    seav__update(Clean_return, 'output', Output).
+    seav__create_var(Type_name_ptr_opt, 'not_needed', Output, Clean_return).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%extract the basic type from the list of declaration_specifiers
 %typedef occurs last in the list
 extract_type([Typedef_var], Type) :-
     se_typedef_atts__is_typedef_atts(Typedef_var),

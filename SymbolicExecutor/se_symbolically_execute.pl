@@ -31,12 +31,11 @@ symbolic_execute(declaration(Declaration_specifiers, Declarators), 'carry_on') :
         )
     ;
         (Declaration_specifiers = [Specifier|Rest_declaration_specifiers], Specifier == 'typedef') ->
-            (mytrace,
-             extract_type(Rest_declaration_specifiers, Type_name),
+            (extract_type(Rest_declaration_specifiers, Type_name),
              declare_typedefs(Declarators, Type_name)
             )
     ;
-        (%a variable declaration
+        (%variable declarations
          extract_type(Declaration_specifiers, Type_name),
          declare_declarators(Declarators, Type_name)
         )

@@ -14,7 +14,7 @@
 %   Current_var_scope : a free Prolog variable, which is instantiated on leaving a scope and thus trigger all the id-level scopes for the ids declared in that scope to be popped   
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 :- module('se_seav_atts').
-:- export seav__create_var/2, seav__is_seav/1, seav__get/3, seav__update/3, seav__seav_is_in_scope/1.
+:- export seav__create_var/4, seav__is_seav/1, seav__get/3, seav__update/3, seav__seav_is_in_scope/1.
 :- use_module(['se_globals']).
 :- meta_attribute('se_seav_atts', [unify:unify_seav/2, print:print_seav/2]).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -31,11 +31,11 @@ print_seav(_{se_seav_atts(Scope_list)}, Print) :-
 	-?->
 	Print = seav(Scope_list).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-seav__create_var(Type_name, SEAV):-
-    (seav__is_seav(SEAV) -> %new scope: must shadow
-        push_scope_list(SEAV, scope(Type_name, _, _))
+seav__create_var(Type_name, Input, Output, SEAV):-
+    (seav__is_seav(SEAV) -> %it is already a SEAV, so new scope: must shadow
+        push_scope_list(SEAV, scope(Type_name, Input, Output))
     ;
-        add_attribute(SEAV, se_seav_atts([scope(Type_name, _, _)])) %brand new SEAV only has one scope
+        add_attribute(SEAV, se_seav_atts([scope(Type_name, Input, Output)])) %brand new SEAV only has one scope
     ),
     se_globals__get_ref('scope_stack', [scope(_Current_level, Current_var_scope)|_]),
     suspend(pop_scope_list(SEAV), 3, Current_var_scope->inst).  %delays pop_scope_list until Current_var_scope becomes instantiated (i.e. when leaving a scope)

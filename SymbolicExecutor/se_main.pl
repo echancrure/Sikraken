@@ -3,10 +3,10 @@
 %%                                     <https://github.com/echancrure/Sikraken>
 %% This file is part of Sikraken.
 %% Sikraken is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by
-%%   the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+%%   the Free Software Foundation.
 %% Sikraken is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-%%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-%% You should have received a copy of the GNU General Public License along with Sikraken.  If not, see <https://www.gnu.org/licenses/>.
+%%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+%% GNU Lesser General Public License v3.0 only
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % defines module se_main
 % symbolic execution of parsed C code
@@ -28,7 +28,7 @@ mytrace.            %call this to start debugging
 
 :- use_module(['se_globals', 'se_name_atts', 'se_seav_atts', 'se_sub_atts', 'se_typedef_atts']).
 
-:- compile(['common_util', 'se_handle_declarations', 'se_symbolically_execute', 'se_symbolically_interpret']).
+:- compile(['common_util', 'se_handle_declarations', 'se_symbolically_execute', 'se_symbolically_interpret', 'se_get_symbolic_lvalue']).
 :- compile(['se_write_tests_testcomp']).
 :- compile(['se_coverage']).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
