@@ -30,6 +30,7 @@ extern int is_typedef_name(char*);
 extern long int TARGET_LONG_MAX;
 
 void read_comment();
+int convert_escape_sequence(const char *);
 int differentiate_identifiers(char *);
 void wrap_integer_constants(char *, char *, char **);
 void wrap_floating_point_constants(char *, char *, char **);
@@ -176,7 +177,18 @@ WS  [ \t\v\n\f]
                              }
                              return I_CONSTANT;
                             }
-{CP}?"'"([^'\\\n]|{ES})+"'"	{yylval.id = strdup_safe(yytext);   //single characters: todo handle escape, octal and hexadecimal characters                             return I_CONSTANT;
+{CP}?"'"([^'\\\n]|{ES})+"'"	{//single char 
+                             char *content = yytext + (yytext[0] == '\'' ? 1 : 2);  //Skip prefix and opening quote
+                             content[strlen(content) - 1] = '\0';                   //Remove closing quote
+                             int ascii;
+                             if (content[0] == '\\') {                              //it's an escape sequence
+                                    ascii = convert_escape_sequence(content);
+                             } else {
+                                    ascii = (int)content[0];
+                             }
+                             yylval.id = (char*)malloc(10);
+                             sprintf(yylval.id, "%d", ascii);
+                             return I_CONSTANT;
                             }       
 
 {D}+{E}{FS}?				{wrap_floating_point_constants("", yytext, &yylval.id);     //Decimal floating-point constants with an exponent.
@@ -282,6 +294,29 @@ void read_comment() {
             if (c == 0)
                 break;
         }
+}
+
+int convert_escape_sequence(const char *str) {
+    if (strcmp(str, "\\0") == 0) return '\0';
+    if (strcmp(str, "\\a") == 0) return '\a';
+    if (strcmp(str, "\\b") == 0) return '\b';
+    if (strcmp(str, "\\?") == 0) return '\?';
+    if (strcmp(str, "\\f") == 0) return '\f';
+    if (strcmp(str, "\\n") == 0) return '\n';
+    if (strcmp(str, "\\r") == 0) return '\r';
+    if (strcmp(str, "\\t") == 0) return '\t';
+    if (strcmp(str, "\\v") == 0) return '\v';
+    if (strcmp(str, "\\\\") == 0) return '\\';
+    if (strcmp(str, "\\\'") == 0) return '\'';
+    if (strcmp(str, "\\\"") == 0) return '"';
+    if (str[1] >= '0' && str[1] <= '7') {   //Handle octal escape
+        return (int)strtol(str + 1, NULL, 8);
+    }
+    if (str[1] == 'x') {                    //Handle hexadecimal escape
+        return (int)strtol(str + 2, NULL, 16);
+    }
+    fprintf(stderr, "Invalid escape sequence: %s\n", str);
+    exit(EXIT_FAILURE);
 }
 
 //add hexademical or octal wrapper and handle u|l|ll variations

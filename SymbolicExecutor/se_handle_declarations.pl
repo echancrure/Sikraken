@@ -124,6 +124,8 @@ extract_type(['long'], long) :-
     !.
 extract_type(['long', 'long'], long_long) :-
     !.
+extract_type(['long', 'long', 'int'], long_long) :-
+    !.
 extract_type(['long', 'double'], long_double) :-
     !.
 extract_type(['float'], float) :-
