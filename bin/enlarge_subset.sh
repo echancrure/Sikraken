@@ -5,15 +5,15 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)" #Get the directory of the script <si
 SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."
 
 echo "ENLARGE subset: crash and learn; SIKRAKEN_INSTALL_DIR is $SIKRAKEN_INSTALL_DIR"
-
-# Check if the directory argument is provided
-if [ -z "$1" ]; then
-    echo "Sikraken ENLARGE subset ERROR: script usage is $0 <directory_of_c_files>"
+# Ensure we have at least 2 arguments
+if [ $# -lt 2 ]; then
+    echo "$0.sh usage: $0 <directory_of_c_files> <budget>"
     exit 1
 fi
 
 # Set the directory containing the .c files from the argument
 c_files_directory="$1"
+budget="$2"
 
 # Check if the provided directory exists
 if [ ! -d "$c_files_directory" ]; then
@@ -42,7 +42,7 @@ for regression_test_file in "$c_files_directory"/*.c; do
         echo "Sikraken ENLARGE subset WARNING: .yml file $yml_file does not exist, assuming ILP32"
         data_model="ILP32"
     else
-        data_model=$(grep "data_model:" "$yml_file" | awk '{print $2}')
+        data_model=$(grep "data_model:" "$yml_file" | awk '{print $2}') # $2 is the second field of the line containing "data_model:"
     fi
 
     # Generate GCC flag based on the value of data_model
@@ -66,8 +66,8 @@ for regression_test_file in "$c_files_directory"/*.c; do
     fi
 
     #generate test inputs
-    eclipse_call="se_main(['/home/chris/Sikraken', '$c_files_directory', '$base_name', main, release, testcomp, '$gcc_flag', budget(10)])"
-    $SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e "$eclipse_call"
+    eclipse_call="se_main(['/home/chris/Sikraken', '$c_files_directory', '$base_name', main, release, testcomp, '$gcc_flag', budget($budget)])"
+    $SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e "$eclipse_call" -g 12G -l 1G
 
     if [ $? -ne 0 ]; then
         echo "Sikraken ENLARGE subset ERROR: call to ECLiPSe $eclipse_call failed"
