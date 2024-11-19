@@ -1,5 +1,5 @@
 %The second argument of symbolic_execute/2 is an indication of the control flow.
-%  it can have the following values : 'carry_on'|goto(Label)|exit|return(expression)
+%  it can have the following values : 'carry_on'|exit|return(expression)
 symbolic_execute([], 'carry_on') :-
     !.
 symbolic_execute([Item|R], Flow) :-
@@ -47,6 +47,15 @@ symbolic_execute(function(Specifiers, function(Function_name, Parameters), [], C
     !,
     extract_type(Specifiers, Return_type_name),
     se_sub_atts__create(Return_type_name, Parameters, Compound_statement, Function_name).
+symbolic_execute(goto_stmt(Label, Function), Flow) :-
+    !,
+    %mytrace,
+    se_sub_atts__get(Function, 'body', cmp_stmts(Stmts)),
+    search_label_statement(Label, Stmts, Stmt_list),
+    symbolic_execute(Stmt_list, Flow).
+symbolic_execute(label_stmt(_Label, Stmt), Flow) :-
+    !,
+    symbolic_execute(Stmt, Flow).
 symbolic_execute(cmp_stmts(Stmts), Flow) :-
     !,
     se_globals__push_scope_stack,
@@ -228,4 +237,15 @@ traverse(Condition, Arc, Statements, Flow) :-
     ptc_solver__sdl(Condition),
     se_globals__update_ref('current_path_bran', Arc),
     symbolic_execute(Statements, Flow).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+search_label_statement(Label, Stmts, Stmt_list) :-
+    (append(_, [label_stmt(Label, Stmt)|Rest_smt], Stmts) ->    %quick check to catch most labeled statements tha tare in the top scope in a function body
+        (!,
+         Stmt_list = [label_stmt(Label, Stmt)|Rest_smt]
+        )
+    ;
+        (%must search for the labeled statement
+        common_util__error(10, "Goto to a non-outer labeled statement is unhandled", "Sikraken needs expanding", [('Label', Label)], '10_191124_1', 'se_symbolically_execute', 'search_label_statement', no_localisation, no_extra_info)
+        )
+    ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
