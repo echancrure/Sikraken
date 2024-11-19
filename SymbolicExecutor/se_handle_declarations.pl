@@ -21,9 +21,9 @@ declare_declarators([Declarator|R], Type_name) :-
         )
     ),
     (nonvar(Type_name_ptr_opt), Type_name_ptr_opt = array(Element_type, Size_expr) ->    %array variable creation required
-        (symbolically_interpret(Size_expr, symb(_Type, Size)),
-         symbolically_interpret(Expression, symb(_Type, Initialisation)),   %todo should be casted to Element_type
-         ptc_solver__create_c_array(Element_type, Size, Initialisation, Casted)
+        (symbolically_interpret(Size_expr, symb(_, Size)),
+         symbolically_interpret(Expression, symb(_, Initialisation)),   %todo should be casted to Element_type
+         ptc_solver__create_c_array(Element_type, Size, Default, Initialisation, Casted)
         )
     ;    
         symbolically_interpret(cast(Type_name_ptr_opt, Expression), symb(_Type, Casted))
