@@ -2,11 +2,11 @@
     "configurations": [
       {
         "id": "run1",
-        "description": "arithmetic expressions",
+        "description": "array expressions",
         "restarts": 1,
         "tries": 10,
         "expected_run_time": 1,
-        "expected_test_inputs_number": 3,
+        "expected_test_inputs_number": 2,
         "expected_coverage": 100.0
       }
     ]

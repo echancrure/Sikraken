@@ -53,7 +53,7 @@ int typedef_flag = 0; 			//indicates that we are within a typedef declaration
 int in_tag_namespace = 0;		//indicates to the lexer that we are in the tag namespace (for struct, union and enum tags) and that identifier should not be checked for typedef
 int in_member_namespace = 0;	//indicates to the lexer that we are in the member namespace (for members of stuct and unions) and that identifier should not be checked for typedef
 
-
+char *current_function;			//we keep track of the function being parsed so that we can add it to goto statements
 void yyerror(const char*);
 void my_exit(int);				//attempts to close handles and delete generated files prior to caling exit(int);
 
@@ -922,6 +922,7 @@ direct_declarator
 		{size_t const size = strlen("function(, [])") + strlen($1.full) + 1;
 	     $$.full = (char*)malloc(size);
 	     sprintf_safe($$.full, size, "function(%s, [])", $1.full);
+		 current_function = strdup($1.full);
 		 free($1.full);
 		 $$.ptr_declarator = $1.ptr_declarator;
 		}
@@ -929,6 +930,7 @@ direct_declarator
 		{size_t const size = strlen("function(, )") + strlen($1.full) + strlen($3) + 1;
 	     $$.full = (char*)malloc(size);
 	     sprintf_safe($$.full, size, "function(%s, %s)", $1.full, $3);
+		 current_function = strdup($1.full);
 	     free($1.full);
 		 $$.ptr_declarator = $1.ptr_declarator;
 		 free($3);
@@ -1291,9 +1293,9 @@ expression_opt
 
 jump_statement
 	: GOTO IDENTIFIER ';'
-	  {size_t const size = strlen("\ngoto_stmt()\n") + strlen($2) + 1;
+	  {size_t const size = strlen("\ngoto_stmt(, )\n") + strlen($2) + strlen(current_function) + 1;
 	   $$ = (char*)malloc(size);
-	   sprintf_safe($$, size, "\ngoto_stmt(%s)\n", $2);
+	   sprintf_safe($$, size, "\ngoto_stmt(%s, %s)\n", $2, current_function);
 	   free($2);
 	  }
 	| CONTINUE ';'	{simple_str_lit_copy(&$$, "\ncontinue_stmt\n");}
