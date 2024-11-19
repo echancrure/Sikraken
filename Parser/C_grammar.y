@@ -911,8 +911,11 @@ direct_declarator
 		 $$.ptr_declarator = $1.ptr_declarator;
 		}
 	| direct_declarator '[' assignment_expression ']'
-		{simple_str_lit_copy(&$$.full, "D10");
+		{size_t const size = strlen("array_decl(, )") + strlen($1.full) + strlen($3) + 1;
+         $$.full = (char*)malloc(size);
+         sprintf_safe($$.full, size, "array_decl(%s, %s)", $1.full, $3);
 		 free($1.full);
+		 free($3);
 		 $$.ptr_declarator = $1.ptr_declarator;
 		}
 	| direct_declarator '(' ')'
@@ -1074,10 +1077,10 @@ initializer
 	     sprintf_safe($$, size, "initializer([%s])", $2);
 	     free($2);
 		}
-	| '{' initializer_list ',' '}'
-		{size_t const size = strlen("[]") + strlen($2) + 1;
+	| '{' initializer_list ',' '}'	//trailing commas are just syntactic sugar: they can always be removed
+		{size_t const size = strlen("initializer([])") + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "trailing_comma_initializer([%s])", $2);
+	     sprintf_safe($$, size, "initializer([%s])", $2);
 	     free($2);
 		}
 	| assignment_expression
@@ -1109,11 +1112,11 @@ initializer_list
 		}
 	;
 
-designation
+designation	//C99 this is for named-initializer as opposed to positional-initializer
 	: designator_list '='
-		{size_t const size = strlen("[]") + strlen($1) + 1;
+		{size_t const size = strlen("designation([])") + strlen($1) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "[%s]", $1);
+	     sprintf_safe($$, size, "designation([%s])", $1);
 	     free($1);
 		}
 	;
@@ -1130,9 +1133,13 @@ designator_list
 	;
 
 designator
-	: '[' constant_expression ']'
-		{simple_str_copy(&$$, $2);}
-	| '.' IDENTIFIER
+	: '[' constant_expression ']'		//for named array index
+		{size_t const size = strlen("index()") + strlen($2) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_safe($$, size, "index(%s)", $2);
+		 free($2);
+		}
+	| '.' IDENTIFIER					//for named struct field
 		{size_t const size = strlen("select()") + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "select(%s)", $2);

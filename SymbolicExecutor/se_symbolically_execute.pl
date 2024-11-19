@@ -61,8 +61,7 @@ symbolic_execute(assign(LValue, Expression), Flow) :-
         (!,
          seav__get(LValue, 'type', To_type),
          symbolically_interpret(cast(To_type, Expression), symb(To_type, Casted)),
-         seav__update(LValue, 'output', Casted),
-         Flow = 'carry_on'
+         seav__update(LValue, 'output', Casted)
         )
     ;
      LValue = deref(LValue_ptr) ->
@@ -70,16 +69,21 @@ symbolic_execute(assign(LValue, Expression), Flow) :-
          (Symbolic_LValue_ptr = addr(New_LValue) ->
             symbolic_execute(assign(New_LValue, Expression), Flow)
          ;
-            (common_util__error(9, "Unexpected derefed expression", "Sikraken's logic is wrong", [('Symbolic_LValue_ptr', Symbolic_LValue_ptr)], '9_030824', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info),
-             Flow = 'carry_on'
-            )
+            common_util__error(9, "Unexpected derefed expression", "Sikraken's logic is wrong", [('Symbolic_LValue_ptr', Symbolic_LValue_ptr)], '9_030824', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
          )
         )
     ;
-        (common_util__error(9, "Unexpected LValue", "Sikraken's logic is wrong", [('LValue', LValue)], '9_030824_2', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info),
-         Flow = 'carry_on'
+     LValue = index(Array_exp, Index_exp) ->    %array element assignment e.g. b[0] = 12;
+        (symbolically_interpret(Array_exp, symb(_, Array_value)),
+         symbolically_interpret(Index_exp, symb(_, Index_value)),
+         symbolically_interpret(Expression, symb(_, Expression_value)), %casting ? do it here or in solver?
+         ptc_solver__arithmetic(up_arr(Array_value, [Index_value], Expression_value), New_array, _),
+         seav__update(Array_exp, 'output', New_array)   %will not work is Array_exp is an expression e.g. a function call or anything that returns an array [remember in Mika we had a way to make this work]
         )
-    ).
+    ;
+        common_util__error(9, "Unexpected LValue", "Sikraken's logic is wrong", [('LValue', LValue)], '9_030824_2', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
+    ),
+    Flow = 'carry_on'.
 symbolic_execute(function_call(Function, Arguments), 'carry_on') :- %as a statement
     !,
     symbolically_interpret(function_call(Function, Arguments), _Symbolic_expression).   %todo ok for exit and abort but not is it has a non-void return
