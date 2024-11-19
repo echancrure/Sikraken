@@ -869,9 +869,9 @@ direct_declarator
 		//added in_member_namespace = 0; in case we are within a union or struct to indicate that we just processed the member and the rest my involve typedefs see diary 12/11/24
 		{$$ = $2;}
 	| direct_declarator '[' ']'		
-		{size_t const size = strlen("array_decl(, 0)") + strlen($1.full) + 1;
+		{size_t const size = strlen("array_decl(, int(0))") + strlen($1.full) + 1;
          $$.full = (char*)malloc(size);
-         sprintf_safe($$.full, size, "array_decl(%s, 0)", $1.full);
+         sprintf_safe($$.full, size, "array_decl(%s, int(0))", $1.full);
 		 free($1.full);
 		 $$.ptr_declarator = $1.ptr_declarator;
 		}

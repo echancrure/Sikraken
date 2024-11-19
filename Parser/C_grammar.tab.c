@@ -3679,9 +3679,9 @@ yyreduce:
 
   case 192: /* direct_declarator: direct_declarator '[' ']'  */
 #line 872 "C_grammar.y"
-                {size_t const size = strlen("array_decl(, 0)") + strlen((yyvsp[-2].declarator_type).full) + 1;
+                {size_t const size = strlen("array_decl(, int(0))") + strlen((yyvsp[-2].declarator_type).full) + 1;
          (yyval.declarator_type).full = (char*)malloc(size);
-         sprintf_safe((yyval.declarator_type).full, size, "array_decl(%s, 0)", (yyvsp[-2].declarator_type).full);
+         sprintf_safe((yyval.declarator_type).full, size, "array_decl(%s, int(0))", (yyvsp[-2].declarator_type).full);
 		 free((yyvsp[-2].declarator_type).full);
 		 (yyval.declarator_type).ptr_declarator = (yyvsp[-2].declarator_type).ptr_declarator;
 		}
