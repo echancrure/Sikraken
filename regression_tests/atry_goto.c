@@ -7,9 +7,9 @@ int main(void) {
  if (y == -42) {
    goto weirderror; 
  }
-weirderror: ;
+weirderror: ;   
  if (y == 42) {
-     ; 
+     ;      //Sikraken does not work if you insert weirderror: ;  here
  }
  int z = __VERIFIER_nondet_int();
  if (z == 666) {
