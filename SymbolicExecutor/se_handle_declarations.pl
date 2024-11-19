@@ -3,24 +3,31 @@ declare_declarators([], _).
 declare_declarators([Declarator|R], Type_name) :-
     %mytrace,
     %below is the ugliest Prolog code in Sikraken; I think modifying the parsed output may help
-    (nonvar(Declarator), Declarator = initialised(Var, _) ->   %added nonvar(...) as a guard 30/07/24
+    (nonvar(Declarator), Declarator = initialised(Direct_declarator, _) ->   %added nonvar(...) as a guard 30/07/24
         true
     ;
         (%declaration of non-initialised variable
          %todo check for redefinition which is allowed: see diary 07/08/24 [probably should remove existing scope value...]
-         Var = Declarator
+         Direct_declarator = Declarator
         )
     ),
     %C pointers variables are not ptc_solver variable: they are handled syntactically e.g. seav(pointer(integer), not_needed, addr(Y_2{se_seav_atts : seav(integer, not_needed, 42)}))
-    extract_pointers(Var, Type_name, Type_name_ptr_opt, Clean_var), %e.g. extract_pointers(ptr_decl(pointer, Pi_3{c_id(pi)}), integer, pointer(integer), Pi_3)
+    extract_pointers(Direct_declarator, Type_name, Type_name_ptr_opt, Clean_var), %e.g. extract_pointers(ptr_decl(pointer, Pi_3{c_id(pi)}), integer, pointer(integer), Pi_3)
     (nonvar(Declarator), Declarator = initialised(_, Expression) ->
         true
     ;
-        (Default = 0, %todo: [in effect same as Declarator = initialised(Var, 0)] but only for global and static variables as non-static and automatic objects are not initialised in C see K&R p. 219
+        (Default = 0, %todo: [in effect same as Declarator = initialised(Direct_declarator, 0)] but only for global and static variables as non-static and automatic objects are not initialised in C see K&R p. 219
          get_pointer_type_default(Type_name_ptr_opt, Default, Expression)    %because non-initialised pointers, need to be initialised to addr(...addr(0)...)
         )
     ),
-    symbolically_interpret(cast(Type_name_ptr_opt, Expression), symb(_Type, Casted)),
+    (nonvar(Type_name_ptr_opt), Type_name_ptr_opt = array(Element_type, Size_expr) ->    %array variable creation required
+        (symbolically_interpret(Size_expr, symb(_Type, Size)),
+         symbolically_interpret(Expression, symb(_Type, Initialisation)),   %todo should be casted to Element_type
+         ptc_solver__create_c_array(Element_type, Size, Initialisation, Casted)
+        )
+    ;    
+        symbolically_interpret(cast(Type_name_ptr_opt, Expression), symb(_Type, Casted))
+    ),
     seav__create_var(Type_name_ptr_opt, 'not_needed', Casted, Clean_var),
     declare_declarators(R, Type_name).
     %%%
@@ -36,9 +43,21 @@ declare_typedefs([Typedef|R], Type_name) :-
     declare_typedefs(R, Type_name).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %e.g. extract_pointers(ptr_decl(pointer, X), int, pointer(int), X)
+%e.g. extract_pointers(array_decl(A, Size), int, array(int, Size), A)
 extract_pointers(Var, Type_name, Type_name_ptr_opt, Clean_var) :-
-    (nonvar(Var), Var = ptr_decl(Ptr_exp, Clean_var) ->
-        extract_inner_pointers(Ptr_exp, Type_name, Type_name_ptr_opt)
+    (nonvar(Var) ->
+        (Var = ptr_decl(Ptr_exp, Clean_var) ->
+            extract_inner_pointers(Ptr_exp, Type_name, Type_name_ptr_opt)
+        ;
+         Var = array_decl(Array_var, Size) ->   %e.g. array_decl(A, 0) and array_decl(B, int(5))
+            (var(Array_var) ->
+                (Clean_var = Array_var,
+                 Type_name_ptr_opt = array(Type_name, Size)
+                )
+            ;
+                common_util__error(9, "array declaration not handled", "Sikraken needs expanding", [('Array_var', Array_var)], '9_181124', 'se_handle_all_declarations', 'extract_pointers', no_localisation, no_extra_info)
+            )
+        )
     ;
         (%not a pointer variable declaration
          Type_name_ptr_opt = Type_name,

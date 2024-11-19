@@ -82,7 +82,7 @@ symbolically_interpret(cast(Raw_typeL, Expression), symb(To_type, Casted)) :-
     !,
     (is_list(Raw_typeL) ->
         (%mytrace, 
-         extract_type(Raw_typeL, To_type)    %from the parsed file, needs to be sanitised
+         extract_type(Raw_typeL, To_type)    %list of declaration_specifiers
         )
     ;
         To_type = Raw_typeL     %an internal call, already transformed
@@ -105,6 +105,26 @@ symbolically_interpret(deref(Expression), Symbolic_expression) :-
     ;
         common_util__error(10, "Dereferencing something which is not a pointer", "Cannot perform symbolic interpretation", [('Symbolic_expression_ptr', Symbolic_expression_ptr)], '10_040924_2', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info)
     ).
+symbolically_interpret(index(Array_exp, Index_exp), symb(Element_type, Element)) :-
+    !,
+    symbolically_interpret(Array_exp, symb(Array_type, Array_value)),
+    (Array_type = array(Element_type, _) ->
+        (symbolically_interpret(Index_exp, symb(_, Index_value)),
+         mytrace, ptc_solver__arithmetic(element(Array_value, [Index_value]), Element, _)
+        )
+    ;
+        (common_util__error(9, "Indexing something which is not an array", "Cannot perform symbolic interpretation", [('Array_type', Array_type)], '9_181124', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info),
+         Element_type = int,
+         Element = 0
+        )
+    ).
+symbolically_interpret(initializer([]), symb(initializer, initializer([]))) :-
+    !.
+symbolically_interpret(initializer([Expr|Rest_expr]), symb(initializer, initializer([Value|Value_list]))) :-
+    !,
+    mytrace,
+    symbolically_interpret(Expr, symb(_, Value)),
+    symbolically_interpret(initializer([Expr|Rest_expr]), symb(initializer, initializer(Value_list))).
 symbolically_interpret(multiply_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp * Ri_casted_exp)) :-
     !,
     %mytrace,
