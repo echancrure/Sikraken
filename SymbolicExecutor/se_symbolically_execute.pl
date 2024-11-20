@@ -96,12 +96,37 @@ symbolic_execute(assign(LValue, Expression), Flow) :-
 %basic handling of assignment operators (10 of them)
 %wasteful: LValue is symbolically interpreted twice
 %unsound: if LValue, somehow, has side-effects (e.g. it is a method call that reteurns a pointer)
+symbolic_execute(mul_assign(LValue, Expression), Flow) :-
+    !,
+    symbolic_execute(assign(LValue, multiply_op(LValue, Expression)), Flow).
+symbolic_execute(div_assign(LValue, Expression), Flow) :-
+    !,
+    symbolic_execute(assign(LValue, div_op(LValue, Expression)), Flow).
+symbolic_execute(mod_assign(LValue, Expression), Flow) :-
+    !,
+    symbolic_execute(assign(LValue, mod_op(LValue, Expression)), Flow).
 symbolic_execute(add_assign(LValue, Expression), Flow) :-
     !,
     symbolic_execute(assign(LValue, plus_op(LValue, Expression)), Flow).
 symbolic_execute(sub_assign(LValue, Expression), Flow) :-
     !,
     symbolic_execute(assign(LValue, minus_op(LValue, Expression)), Flow).
+symbolic_execute(left_assign(LValue, Expression), Flow) :-
+    !,
+    symbolic_execute(assign(LValue, bitwise(left_shift, LValue, Expression)), Flow).
+symbolic_execute(right_assign(LValue, Expression), Flow) :-
+    !,
+    symbolic_execute(assign(LValue, bitwise(right_shift, LValue, Expression)), Flow).
+symbolic_execute(and_assign(LValue, Expression), Flow) :-
+    !,
+    symbolic_execute(assign(LValue, bitwise(bw_and, LValue, Expression)), Flow).
+symbolic_execute(xor_assign(LValue, Expression), Flow) :-
+    !,
+    symbolic_execute(assign(LValue, bitwise(bw_xor, LValue, Expression)), Flow).
+symbolic_execute(or_assign(LValue, Expression), Flow) :-
+    !,
+    symbolic_execute(assign(LValue, bitwise(bw_or, LValue, Expression)), Flow).
+%%%
 symbolic_execute(function_call(Function, Arguments), 'carry_on') :- %as a statement
     !,
     symbolically_interpret(function_call(Function, Arguments), _Symbolic_expression).   %todo ok for exit and abort but not is it has a non-void return

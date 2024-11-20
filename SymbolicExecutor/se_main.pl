@@ -162,7 +162,7 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
                 )
             ;
                 (cancel_after_event('single_test_time_out_event', _CancelledEvents),    %to ensure none are left and be triggered later on
-                 common_util__error(9, "Restart ended", "", [], '9_210824_1', 'se_main', 'search_CFG_inner', no_localisation, no_extra_info),
+                 super_util__quick_dev_info("Restart ended", []),
                  fail   %to make sure the not succeeds...
                 )
             )
