@@ -64,8 +64,8 @@ se_main(ArgsL) :-
             Budget = Raw_budget %it's just used as an indication
          ),
          setval('nb_restarts', 1e99),   %infinite restarts and tries allowed
-         setval('nb_tries', 1e99),    
-         First_single_test_time_out is Budget / 10,
+         setval('nb_tries', 1e99),
+         First_single_test_time_out is min(Budget / 100, 2),
          super_util__quick_dev_info("Analysing %w with a budget of %w seconds.", [Target_source_file_name_no_ext, Budget])
         )
     ;
@@ -157,12 +157,12 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
         not(
             (catch(try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)), 'single_test_time_out_exception', handle_single_test_time_out_exception) -> 
                 (%should logically never happen
-                 common_util__error(10, "try_nb_path_budget success: something is seriously wrong", "Big bug", [], '10_240924_1', 'se_main', 'search_CFG_inner', no_localisation, no_extra_info), 
+                 common_util__error(10, "try_nb_path_budget SUCCESS: something is seriously wrong", "Big bug", [], '10_240924_1', 'se_main', 'search_CFG_inner', no_localisation, no_extra_info), 
                  fail
                 )
             ;
                 (cancel_after_event('single_test_time_out_event', _CancelledEvents),    %to ensure none are left and be triggered later on
-                 common_util__error(9, "try_nb_path_budget failed: no more solutions could be found, i.e. full coverage was achieved or time out was triggered", "Could be bug if full coverage is suspicious", [], '10_210824_1', 'se_main', 'search_CFG_inner', no_localisation, no_extra_info),
+                 common_util__error(9, "Restart ended", "", [], '9_210824_1', 'se_main', 'search_CFG_inner', no_localisation, no_extra_info),
                  fail   %to make sure the not succeeds...
                 )
             )
@@ -307,11 +307,11 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
                      Single_test_duration is Current_end_time - Current_start_time,
                      super_util__quick_dev_info("Test generated in %w seconds", [Single_test_duration]),
                      se_globals__get_val('single_test_time_out', Current_single_test_time_out),
-                     Margin = 10,       %multiplier: one order of magnitude
-                     Minimum = 0.5,       %seconds whatever is close but above the overheads
+                     Margin = 100,       %multiplier: one order of magnitude
+                     Minimum = 0.5,     %seconds whatever is close but above the overheads
                      ((Current_single_test_time_out > Minimum, Current_single_test_time_out > Margin * Single_test_duration) ->  %last test generation was faster by a wide margin: allocated budget is reduced
                         (se_globals__get_val('debug_mode', Debug_mode),
-                         (Debug_mode = 'debug' ->
+                         (Debug_mode = 'interactive' -> %'debug' ->
                             true    % no time out
                          ;
                             (New_single_test_time_out is max(Margin * Single_test_duration, Minimum), %but there is a minimum to reduce overheads
