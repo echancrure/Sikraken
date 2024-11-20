@@ -1,4 +1,8 @@
-1.0.2
+1.0.3
+*****Version 1.0.3*****
+November 2024
+  Supporting arrays, gotos, assign operators and continue statement
+
 *****Version 1.0.2*****
 November 2024
   Incremental subset enlargement
