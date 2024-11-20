@@ -16,14 +16,15 @@ declare_declarators([Declarator|R], Type_name) :-
     (nonvar(Declarator), Declarator = initialised(_, Expression) ->
         true
     ;
-        (Default = 0, %todo: [in effect same as Declarator = initialised(Direct_declarator, 0)] but only for global and static variables as non-static and automatic objects are not initialised in C see K&R p. 219
+        (Default = int(0), %todo: [in effect same as Declarator = initialised(Direct_declarator, 0)] but only for global and static variables as non-static and automatic objects are not initialised in C see K&R p. 219
          get_pointer_type_default(Type_name_ptr_opt, Default, Expression)    %because non-initialised pointers, need to be initialised to addr(...addr(0)...)
         )
     ),
     (nonvar(Type_name_ptr_opt), Type_name_ptr_opt = array(Element_type, Size_expr) ->    %array variable creation required
         (symbolically_interpret(Size_expr, symb(_, Size)),
          symbolically_interpret(Expression, symb(_, Initialisation)),   %todo should be casted to Element_type
-         ptc_solver__create_c_array(Element_type, Size, Default, Initialisation, Casted)
+         symbolically_interpret(Default, symb(_, Default_value)),
+         ptc_solver__create_c_array(Element_type, Size, Default_value, Initialisation, Casted)
         )
     ;    
         symbolically_interpret(cast(Type_name_ptr_opt, Expression), symb(_Type, Casted))
