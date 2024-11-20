@@ -1,5 +1,5 @@
 %The second argument of symbolic_execute/2 is an indication of the control flow.
-%  it can have the following values : 'carry_on'|exit|return(expression)
+%  it can have the following values : 'carry_on'|break|continue|exit|return(expression)
 symbolic_execute([], 'carry_on') :-
     !.
 symbolic_execute([Item|R], Flow) :-
@@ -93,6 +93,15 @@ symbolic_execute(assign(LValue, Expression), Flow) :-
         common_util__error(9, "Unexpected LValue", "Sikraken's logic is wrong", [('LValue', LValue)], '9_030824_2', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
     ),
     Flow = 'carry_on'.
+%basic handling of assignment operators (10 of them)
+%wasteful: LValue is symbolically interpreted twice
+%unsound: if LValue, somehow, has side-effects (e.g. it is a method call that reteurns a pointer)
+symbolic_execute(add_assign(LValue, Expression), Flow) :-
+    !,
+    symbolic_execute(assign(LValue, plus_op(LValue, Expression)), Flow).
+symbolic_execute(sub_assign(LValue, Expression), Flow) :-
+    !,
+    symbolic_execute(assign(LValue, minus_op(LValue, Expression)), Flow).
 symbolic_execute(function_call(Function, Arguments), 'carry_on') :- %as a statement
     !,
     symbolically_interpret(function_call(Function, Arguments), _Symbolic_expression).   %todo ok for exit and abort but not is it has a non-void return
@@ -164,7 +173,7 @@ symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
     (Condition_value == 1   ->
         (se_globals__update_ref('current_path_bran', branch(Id, 'true')),
          symbolic_execute(Statements, Inner_flow), 
-         (Inner_flow == 'carry_on' ->
+         ((Inner_flow == 'carry_on' ; Inner_flow == 'continue') ->
             symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow)
          ;
           Inner_flow == 'break' ->  %terminates this while statement
@@ -183,7 +192,7 @@ symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
          (R2 == 0 -> %randomness to ensure true and false branches are given equal chances
             (
                 (traverse(Condition_value, branch(Id, 'true'), Statements, Inner_flow),
-                 (Inner_flow == 'carry_on' ->
+                 ((Inner_flow == 'carry_on' ; Inner_flow == 'continue') ->
                     symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow)
                  ;
                   Inner_flow == 'break' ->  %terminates this while statement
@@ -206,7 +215,7 @@ symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
                 )
             ;%while loop deliberate choice point
                 (traverse(Condition_value, branch(Id, 'true'), Statements, Inner_flow),
-                 (Inner_flow == 'carry_on' ->
+                 ((Inner_flow == 'carry_on' ; Inner_flow == 'continue') ->
                     symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow)
                  ;
                   Inner_flow == 'break' ->  %terminates this while statement
@@ -228,6 +237,8 @@ symbolic_execute(return_stmt, return) :-    %a return with no expression
     !.
 symbolic_execute(break_stmt, 'break') :-    %within iteration and switch statements: basically bubble up to the innermost construct
     !.
+symbolic_execute(continue_stmt, 'continue') :-
+    !. 
 %we have anything here: an assignment, comma_op, postfix_inc_op, postfix_dec_op or any expression!
 symbolic_execute(Expression, 'carry_on') :- %assuming that there is no return in there...
     !,
