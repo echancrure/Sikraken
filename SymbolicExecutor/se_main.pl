@@ -68,7 +68,7 @@ se_main(ArgsL) :-
             Budget = Raw_budget %it's just used as an indication
          ),
          First_single_test_time_out is min(Budget / 100, 2),
-         super_util__quick_dev_info("Analysing %w with a time budget of %.2f seconds.", [Target_source_file_name_no_ext, Budget])
+         super_util__quick_dev_info("Analysing %w with a time budget of %w seconds.", [Target_source_file_name_no_ext, Budget])
         )
     ;
         common_util__error(10, "Calling se_main/? with invalid search algo configuration", "Review search algo argument syntax", [('Search_algo', Search_algo)], '10_240926_1', 'se_main', 'se_main', no_localisation, no_extra_info)
