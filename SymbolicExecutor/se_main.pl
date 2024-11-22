@@ -67,7 +67,7 @@ se_main(ArgsL) :-
          ;
             Budget = Raw_budget %it's just used as an indication
          ),
-         First_single_test_time_out is min(Budget / 100, 2),
+         First_single_test_time_out is Budget / 10,
          super_util__quick_dev_info("Analysing %w with a time budget of %w seconds.", [Target_source_file_name_no_ext, Budget])
         )
     ;
@@ -313,7 +313,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
                      Single_test_duration is Current_end_time - Current_start_time,
                      super_util__quick_dev_info("Test generated in %.2f seconds", [Single_test_duration]),
                      se_globals__get_val('single_test_time_out', Current_single_test_time_out),
-                     Margin = 100,       %multiplier: one order of magnitude
+                     Margin = 10,       %multiplier: one order of magnitude
                      Minimum = 0.5,     %seconds whatever is close but above the overheads
                      ((Current_single_test_time_out > Minimum, Current_single_test_time_out > Margin * Single_test_duration) ->  %last test generation was faster by a wide margin: allocated budget is reduced
                          (getval('algo', 'time_budget') ->
