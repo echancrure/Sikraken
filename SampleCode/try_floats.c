@@ -1,4 +1,7 @@
 int main() {
+    int i = 0x10;
+    double d_testcomp = 0x1.FFFFFEp+127; //from double_req_bl_0682b.c
+    double d_more = 0x1.19999ap0;
     // Floating-point constants
     float f1 = 123.0f;           // float
     float f2 = 123.0F;           // float
@@ -18,7 +21,7 @@ int main() {
     long double ld5 = 1E2l;     // long double, exponent notation with no decimal digits
 
     // Floating-point constants with hexadecimal notation and no digits after the decimal point
-    float f5 = 0x1p2f;         // float, hexadecimal notation with no decimal digits
+    float f5 = 0x1p2f;         // 4.0 float, hexadecimal notation with no decimal digits
     double d6 = 0x1p2;         // double, hexadecimal notation with no decimal digits
     long double ld6 = 0x1p2L;  // long double, hexadecimal notation with no decimal digits
 
