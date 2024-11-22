@@ -48,10 +48,14 @@ se_main(ArgsL) :-
     (Search_algo = regression(Restarts, Tries) ->   %for more stable results during regression testing and to evaluate changes
         (setval('algo', 'regression'),
          setval('nb_restarts', Restarts),
+    (Search_algo = regression(Restarts, Tries) ->   %for more stable results during regression testing and to evaluate changes
+        (setval('algo', 'regression'),
+         setval('nb_restarts', Restarts),
          setval('nb_tries', Tries),
          (Debug_mode = 'debug' ->
             Budget = 1e99        %to work without timeouts at tkeclipse level during developement for example 
          ;   
+            Budget = 65          %we put a limit for some regression tests which may not complete a full restart
             Budget = 65          %we put a limit for some regression tests which may not complete a full restart
          ),
          First_single_test_time_out is Budget - 5,  %ensure not triggered at the same time as overall timeout
@@ -59,6 +63,10 @@ se_main(ArgsL) :-
         )
     ;
      Search_algo = budget(Raw_budget) ->    %for blind, testcomp, testing
+        (setval('algo', 'time_budget'),
+         setval('nb_restarts', 1e99),   %infinite restarts and tries allowed
+         setval('nb_tries', 1e99),
+         (Raw_budget == 900 ->  %we are in testcomp mode
         (setval('algo', 'time_budget'),
          setval('nb_restarts', 1e99),   %infinite restarts and tries allowed
          setval('nb_tries', 1e99),
@@ -131,6 +139,7 @@ se_main(ArgsL) :-
         ;
             (Total_time is Last_successful_restart_time - Session_time,
              super_util__quick_dev_info("Last succesful restart ended in %.2f seconds", [Total_time])
+             super_util__quick_dev_info("Last succesful restart ended in %.2f seconds", [Total_time])
             )
         ),
         print_test_run_log__terminate.
@@ -160,10 +169,12 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
             (catch(try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)), 'single_test_time_out_exception', handle_single_test_time_out_exception) -> 
                 (%should logically never happen
                  common_util__error(10, "try_nb_path_budget SUCCESS: something is seriously wrong", "Big bug", [], '10_240924_1', 'se_main', 'search_CFG_inner', no_localisation, no_extra_info), 
+                 common_util__error(10, "try_nb_path_budget SUCCESS: something is seriously wrong", "Big bug", [], '10_240924_1', 'se_main', 'search_CFG_inner', no_localisation, no_extra_info), 
                  fail
                 )
             ;
                 (cancel_after_event('single_test_time_out_event', _CancelledEvents),    %to ensure none are left and be triggered later on
+                 super_util__quick_dev_info("Restart ended", []),
                  super_util__quick_dev_info("Restart ended", []),
                  fail   %to make sure the not succeeds...
                 )
@@ -173,11 +184,22 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
         getval(restart_time, Start_time),
         Restart_duration is End_time - Start_time,
         super_util__quick_dev_info("Restart overall duration was: %.2f seconds", [Restart_duration]),
+        super_util__quick_dev_info("Restart overall duration was: %.2f seconds", [Restart_duration]),
         setval(restart_time, End_time),
         se_globals__get_val('path_nb', Post_try_solution_number),
         getval(nb_try_solution, Pre_try_solution_number),
         Number_of_new_solutions is Post_try_solution_number - Pre_try_solution_number,
         (Number_of_new_solutions == 0 ->    %we tried a path for Current_single_test_time_out amount of time and no tests were generated
+            (getval('algo', 'time_budget') ->
+                (Maximum = 100,
+                 Margin = 1.1, 
+                 se_globals__get_val('single_test_time_out', Current_single_test_time_out),
+                 New_single_test_time_out is min(Margin * Current_single_test_time_out, Maximum), %but there is a maximum 
+                 se_globals__set_val('single_test_time_out', New_single_test_time_out),   %todo should depend on global budget remaining
+                 super_util__quick_dev_info("Restart time budget increased to: %.2f seconds", [New_single_test_time_out])
+                )
+            ;
+                true
             (getval('algo', 'time_budget') ->
                 (Maximum = 100,
                  Margin = 1.1, 
@@ -226,6 +248,7 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
         statistics(event_time, Current_end_time),
         getval(start_time, Current_start_time),
         Time_since_last_test is Current_end_time - Current_start_time,
+        super_util__quick_dev_info("Time out triggered, last test was generated %.2f seconds ago" , [Time_since_last_test]),
         super_util__quick_dev_info("Time out triggered, last test was generated %.2f seconds ago" , [Time_since_last_test]),
         throw('single_test_time_out_exception').
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -307,21 +330,30 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
                  %mytrace,
                  (label_testcomp(Verifier_inputs, Labeled_inputs) ->
                     (%%%
+                    (%%%
                      cancel_after_event('single_test_time_out_event', _CancelledEvents), 
                      statistics(event_time, Current_end_time),
                      getval(start_time, Current_start_time),
                      Single_test_duration is Current_end_time - Current_start_time,
                      super_util__quick_dev_info("Test generated in %.2f seconds", [Single_test_duration]),
+                     super_util__quick_dev_info("Test generated in %.2f seconds", [Single_test_duration]),
                      se_globals__get_val('single_test_time_out', Current_single_test_time_out),
+                     Margin = 100,       %multiplier: one order of magnitude
+                     Minimum = 0.5,     %seconds whatever is close but above the overheads
                      Margin = 100,       %multiplier: one order of magnitude
                      Minimum = 0.5,     %seconds whatever is close but above the overheads
                      ((Current_single_test_time_out > Minimum, Current_single_test_time_out > Margin * Single_test_duration) ->  %last test generation was faster by a wide margin: allocated budget is reduced
                          (getval('algo', 'time_budget') ->
+                         (getval('algo', 'time_budget') ->
                             (New_single_test_time_out is max(Margin * Single_test_duration, Minimum), %but there is a minimum to reduce overheads
                              se_globals__set_val('single_test_time_out', New_single_test_time_out),
                              super_util__quick_dev_info("Single test budget decreased to: %.2f seconds", [New_single_test_time_out]),
+                             super_util__quick_dev_info("Single test budget decreased to: %.2f seconds", [New_single_test_time_out]),
                              event_after('single_test_time_out_event', New_single_test_time_out)
                             )
+                         ;
+                            true
+                         )
                          ;
                             true
                          )
