@@ -75,8 +75,8 @@ se_main(ArgsL) :-
          ;
             Budget = Raw_budget %it's just used as an indication
          ),
-         First_single_test_time_out is min(Budget / 100, 2),
-         super_util__quick_dev_info("Analysing %w with a time budget of %.2f seconds.", [Target_source_file_name_no_ext, Budget])
+         First_single_test_time_out is Budget / 10,
+         super_util__quick_dev_info("Analysing %w with a time budget of %w seconds.", [Target_source_file_name_no_ext, Budget])
         )
     ;
         common_util__error(10, "Calling se_main/? with invalid search algo configuration", "Review search algo argument syntax", [('Search_algo', Search_algo)], '10_240926_1', 'se_main', 'se_main', no_localisation, no_extra_info)
@@ -338,9 +338,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
                      super_util__quick_dev_info("Test generated in %.2f seconds", [Single_test_duration]),
                      super_util__quick_dev_info("Test generated in %.2f seconds", [Single_test_duration]),
                      se_globals__get_val('single_test_time_out', Current_single_test_time_out),
-                     Margin = 100,       %multiplier: one order of magnitude
-                     Minimum = 0.5,     %seconds whatever is close but above the overheads
-                     Margin = 100,       %multiplier: one order of magnitude
+                     Margin = 10,       %multiplier: one order of magnitude
                      Minimum = 0.5,     %seconds whatever is close but above the overheads
                      ((Current_single_test_time_out > Minimum, Current_single_test_time_out > Margin * Single_test_duration) ->  %last test generation was faster by a wide margin: allocated budget is reduced
                          (getval('algo', 'time_budget') ->
