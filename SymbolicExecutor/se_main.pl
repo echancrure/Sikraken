@@ -46,7 +46,7 @@ se_main(ArgsL) :-
     ),
     %frandom(F), %before seed is set in se_globals__set_globals
     Increase_duration_multiplier is 1.05,
-    super_util__quick_dev_info("Increase_duration_multiplier has been set at %f.", [Increase_duration_multiplier]),
+    printf('output', "Dev Info: Increase_duration_multiplier has been set at %.2f\n", [Increase_duration_multiplier]),
     setval('increase_duration_multiplier', Increase_duration_multiplier),
     se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode, Data_model),
     (Search_algo = regression(Restarts, Tries) ->   %for more stable results during regression testing and to evaluate changes
@@ -59,7 +59,7 @@ se_main(ArgsL) :-
             Budget = 65          %we put a limit for some regression tests which may not complete a full restart
          ),
          First_single_test_time_out is Budget - 5,  %ensure not triggered at the same time as overall timeout
-         super_util__quick_dev_info("Analysing %w with %w restarts and %w tries", [Target_source_file_name_no_ext, Restarts, Tries])
+         printf('output', "Dev Info: Analysing %w with %w restarts and %w tries\n", [Target_source_file_name_no_ext, Restarts, Tries])
         )
     ;
      Search_algo = budget(Raw_budget) ->    %for blind, testcomp, testing
@@ -72,7 +72,7 @@ se_main(ArgsL) :-
             Budget = Raw_budget %it's just used as an indication
          ),
          First_single_test_time_out is 0.2,
-         super_util__quick_dev_info("Analysing %w with a time budget of %w seconds.", [Target_source_file_name_no_ext, Budget])
+         printf('output', "Dev Info: Analysing %w with a time budget of %w seconds.\n", [Target_source_file_name_no_ext, Budget])
         )
     ;
         common_util__error(10, "Calling se_main/? with invalid search algo configuration", "Review search algo argument syntax", [('Search_algo', Search_algo)], '10_240926_1', 'se_main', 'se_main', no_localisation, no_extra_info)
@@ -90,7 +90,6 @@ se_main(ArgsL) :-
     print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext),
     statistics(event_time, Session_time),
     setval('start_session_time', Session_time),
-    setval('restart_time', Session_time),
     %%% where it all happens
     catch(search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code), Any_exception, search_CFG_exception_handler(Any_exception)),
     %%%
@@ -128,37 +127,23 @@ se_main(ArgsL) :-
     log_and_terminate :-
         cancel_after_event('single_test_time_out_exception', _), %to ensure none are left and be triggered later on especially in development mode
         cancel_after_event('overall_generation_time_out', _),    %to ensure none is left and be triggered later on especially in development mode            
-        getval(start_session_time, Session_time),
-        getval(last_successful_restart_time, Last_successful_restart_time),
-        (Last_successful_restart_time == -1 ->
-            super_util__quick_dev_info("No complete restart", [] )
-        ;
-            (Total_time is Last_successful_restart_time - Session_time,
-             super_util__quick_dev_info("Last succesful restart ended in %.2f seconds", [Total_time])
-            )
-        ),
+        statistics(event_time, Current_session_time),
+        printf('output', "Dev Info: Elapsed time %.2f seconds\n", [Current_session_time]),
         print_test_run_log__terminate.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
     set_event_handler('single_test_time_out_event', handle_single_test_time_out_event/0),
     getval('nb_restarts', Restarts),
-    setval('last_successful_restart_time', -1), %i.e. never
     (for(Restart_counter, 1, Restarts), loop_name('restart'), param(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)
         do (
-            super_util__quick_dev_info("Restart number %w", [Restart_counter]),
+            printf('output', "\nDev Info: Restart number %w\n", [Restart_counter]),
             search_CFG_inner(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)
         )
     ).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    search_CFG_inner(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
+    search_CFG_inner(_Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
         se_globals__get_val('single_test_time_out', Current_single_test_time_out),
-        (Debug_mode == 'debug' -> 
-            (
-             super_util__quick_dev_info("Using %.2f seconds for a single test%n", [Current_single_test_time_out])
-            )
-        ; 
-            true
-        ),
+        printf('output', "Dev Info: Time budget for a single test is %w seconds\n", [Current_single_test_time_out]),
         se_globals__get_val('path_nb', Initial_try_solution_number),
         setval(nb_try_solution, Initial_try_solution_number),
         not(
@@ -173,11 +158,6 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
                 )
             )
         ),
-        statistics(event_time, End_time),
-        getval(restart_time, Start_time),
-        Restart_duration is End_time - Start_time,
-        super_util__quick_dev_info("Restart ended, its overall duration was: %.2f seconds", [Restart_duration]),
-        setval(restart_time, End_time),
         se_globals__get_val('path_nb', Post_try_solution_number),
         getval(nb_try_solution, Pre_try_solution_number),
         Number_of_new_solutions is Post_try_solution_number - Pre_try_solution_number,
@@ -187,14 +167,13 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
                  getval('increase_duration_multiplier', Increase_duration_multiplier),
                  New_single_test_time_out is min(Current_single_test_time_out*Increase_duration_multiplier, Maximum), %but there is a maximum 
                  se_globals__set_val('single_test_time_out', New_single_test_time_out),   %todo should depend on global budget remaining
-                 super_util__quick_dev_info("Restart time budget increased to: %.2f seconds", [New_single_test_time_out])
+                 printf('output', "Dev Info: Restart time budget increased to: %.2f seconds\n", [New_single_test_time_out])
                 )
             ;
                 true
             )
         ;
             (%the last inner try did generate solutions
-             setval(last_successful_restart_time, End_time),
              setval(nb_try_solution, Post_try_solution_number)
             )
         ).
@@ -226,10 +205,8 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_single_test_time_out_event :-
         mytrace,
-        statistics(event_time, Current_end_time),
-        getval(start_time, Current_start_time),
-        Time_since_last_test is Current_end_time - Current_start_time,
-        super_util__quick_dev_info("Time out triggered, last test was generated %.2f seconds ago" , [Time_since_last_test]),
+        statistics(event_time, Current_session_time),
+        printf('output', "Dev Info: Time out triggered; overall elapsed time is %.2f seconds\n" , [Current_session_time]),
         throw('single_test_time_out_exception').
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_single_test_time_out_exception :-
@@ -315,27 +292,23 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
                      getval(start_time, Current_start_time),
                      Last_test_duration is Current_end_time - Current_start_time,
                      setval('last_test_duration', Last_test_duration),
-                     super_util__quick_dev_info("Test generated in %.2f seconds", [Last_test_duration]),
-                     se_globals__get_val('single_test_time_out', Current_single_test_time_out),
+                     printf('output', "Dev Info: Test generated in %.2f seconds\n", [Last_test_duration]),
                      Margin = 2,       %multiplier: one order of magnitude
                      Minimum = 0.2,     %seconds whatever is close but above the overheads
-                     /*
-                     ((Current_single_test_time_out > Minimum, Current_single_test_time_out > Margin * Last_test_duration) ->  %the Current_single_test_time_out is more than "margin" times larger than the last test generation: single test budget is reduced
-                     */
-                         (getval('algo', 'time_budget') ->
-                            (New_single_test_time_out is max(Margin * Last_test_duration, Minimum), %but there is a minimum to reduce overheads
-                             se_globals__set_val('single_test_time_out', New_single_test_time_out),
-                             super_util__quick_dev_info("Single test budget changed to: %.2f seconds", [New_single_test_time_out]),
-                             event_after('single_test_time_out_event', New_single_test_time_out)
+                     (getval('algo', 'time_budget') ->
+                        (New_single_test_time_out is max(Margin * Last_test_duration, Minimum), %but there is a minimum to reduce overheads
+                         (true ->
+                            (se_globals__set_val('single_test_time_out', New_single_test_time_out),
+                             printf('output', "Dev Info: Single test budget changed to: %.2f seconds\n", [New_single_test_time_out])
                             )
                          ;
                             true
-                         ),
-                     /*
-                        ;
-                        event_after('single_test_time_out_event', Current_single_test_time_out)    %Single_test_time_out left as is for now
+                         ),    
+                         event_after('single_test_time_out_event', New_single_test_time_out)
+                        )
+                     ;
+                        true
                      ),
-                     */
                      statistics(event_time, New_start_time),
                      setval(start_time, New_start_time),
                      %%% %%%
@@ -521,15 +494,15 @@ print_test_run_log__terminate :-
     close(Test_run_stream).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 easter_egg :-
-    printf('user_error', "                                                                                                       .         .                          \n", []),
-    printf('user_error', "        ,o888888o.     8 8888      88 8888888 8888888888   .8.    8888888 8888888888  8 8888          ,8.       ,8.          8 8888888888   \n", []),
-    printf('user_error', "     . 8888     `88.   8 8888      88       8 8888        .888.         8 8888        8 8888         ,888.     ,888.         8 8888         \n", []),
-    printf('user_error', "    ,8 8888       `8b  8 8888      88       8 8888       :88888.        8 8888        8 8888        .`8888.   .`8888.        8 8888         \n", []),
-    printf('user_error', "    88 8888        `8b 8 8888      88       8 8888      . `88888.       8 8888        8 8888       ,8.`8888. ,8.`8888.       8 8888         \n", []),
-    printf('user_error', "    88 8888         88 8 8888      88       8 8888     .8. `88888.      8 8888        8 8888      ,8'8.`8888,8^8.`8888.      8 888888888888 \n", []),
-    printf('user_error', "    88 8888         88 8 8888      88       8 8888    .8`8. `88888.     8 8888        8 8888     ,8' `8.`8888' `8.`8888.     8 8888         \n", []),
-    printf('user_error', "    88 8888        ,8P 8 8888      88       8 8888   .8' `8. `88888.    8 8888        8 8888    ,8'   `8.`88'   `8.`8888.    8 8888         \n", []),
-    printf('user_error', "    `8 8888       ,8P  ` 8888     ,8P       8 8888  .8'   `8. `88888.   8 8888        8 8888   ,8'     `8.`'     `8.`8888.   8 8888         \n", []),
-    printf('user_error', "     ` 8888     ,88'     8888   ,d8P        8 8888 .888888888. `88888.  8 8888        8 8888  ,8'       `8        `8.`8888.  8 8888         \n", []),
-    printf('user_error', "        `8888888P'        `Y88888P'         8 8888.8'       `8. `88888. 8 8888        8 8888 ,8'         `         `8.`8888. 8 888888888888 \n\n", []).
+    printf('output', "                                                                                                       .         .                          \n", []),
+    printf('output', "        ,o888888o.     8 8888      88 8888888 8888888888   .8.    8888888 8888888888  8 8888          ,8.       ,8.          8 8888888888   \n", []),
+    printf('output', "     . 8888     `88.   8 8888      88       8 8888        .888.         8 8888        8 8888         ,888.     ,888.         8 8888         \n", []),
+    printf('output', "    ,8 8888       `8b  8 8888      88       8 8888       :88888.        8 8888        8 8888        .`8888.   .`8888.        8 8888         \n", []),
+    printf('output', "    88 8888        `8b 8 8888      88       8 8888      . `88888.       8 8888        8 8888       ,8.`8888. ,8.`8888.       8 8888         \n", []),
+    printf('output', "    88 8888         88 8 8888      88       8 8888     .8. `88888.      8 8888        8 8888      ,8'8.`8888,8^8.`8888.      8 888888888888 \n", []),
+    printf('output', "    88 8888         88 8 8888      88       8 8888    .8`8. `88888.     8 8888        8 8888     ,8' `8.`8888' `8.`8888.     8 8888         \n", []),
+    printf('output', "    88 8888        ,8P 8 8888      88       8 8888   .8' `8. `88888.    8 8888        8 8888    ,8'   `8.`88'   `8.`8888.    8 8888         \n", []),
+    printf('output', "    `8 8888       ,8P  ` 8888     ,8P       8 8888  .8'   `8. `88888.   8 8888        8 8888   ,8'     `8.`'     `8.`8888.   8 8888         \n", []),
+    printf('output', "     ` 8888     ,88'     8888   ,d8P        8 8888 .888888888. `88888.  8 8888        8 8888  ,8'       `8        `8.`8888.  8 8888         \n", []),
+    printf('output', "        `8888888P'        `Y88888P'         8 8888.8'       `8. `88888. 8 8888        8 8888 ,8'         `         `8.`8888. 8 888888888888 \n\n", []).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

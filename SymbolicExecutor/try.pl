@@ -15,3 +15,19 @@ try8_28 :-
     try8_28_2(X, Y, Z).
 try8_28_2(X, Y, Z) :-
     eval(X*Y, Z).
+
+test :-
+    statistics(hr_time, Start_time),
+
+    (count(I,1,10000)     do    
+    Message = "hi %d",
+    Arguments = [I],           
+        %printf(output, "Dev Info: hi %d\n", [I])    %todo could you combine 
+        printf('output', "Dev Info: ", []),    %todo could you combine 
+        printf('output', Message, Arguments),
+        printf('output', "\n", [])
+        %,flush(output)
+    ),
+    statistics(hr_time, End_time),
+    Duration is End_time - Start_time,
+    printf(output, "duration is %f", [Duration]).

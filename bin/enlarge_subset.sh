@@ -67,16 +67,18 @@ for regression_test_file in "$c_files_directory"/*.c; do
 
     #generate test inputs
     eclipse_call="se_main(['/home/chris/Sikraken', '$c_files_directory', '$base_name', main, release, testcomp, '$gcc_flag', budget($budget)])"
-    $SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e "$eclipse_call" -g 12G -l 1G
+    $SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e "$eclipse_call" -g 12G -l 1G > "./sikraken_output/enlarge_subset_result/$base_name.log"
 
     if [ $? -ne 0 ]; then
         echo "Sikraken ENLARGE subset ERROR: call to ECLiPSe $eclipse_call failed"
     else
         echo "Sikraken ENLARGE subset generated test inputs for $regression_test_file in $id configuration"
     fi
+    #generate graph
+    ./bin/runtime_graph.sh ./sikraken_output/enlarge_subset_result/"$base_name.log"
 
     #validate test inputs
-    $SIKRAKEN_INSTALL_DIR/bin/run_testcov.sh $regression_test_file $testcov_data_model
+    $SIKRAKEN_INSTALL_DIR/bin/run_testcov.sh $regression_test_file $testcov_data_model > "./sikraken_output/enlarge_subset_result/$base_name.testcov"
     if [ $? -ne 0 ]; then
         echo "Sikraken ENLARGE subset ERROR: TestCov test inputs validation of $regression_test_file failed"
     else
