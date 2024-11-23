@@ -11,12 +11,12 @@
 % defines module se_main
 % symbolic execution of parsed C code
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%:- set_flag('debug_compile', 'off').   %does not really help 
+:- set_flag('debug_compile', 'off').   %does not really help 
 :- get_flag(version, '7.1').            %check for valid ECLiPSe version: issue warning only if not 
 %:- set_flag(after_event_timer, virtual). %causes out of range error when set to virtual (what you want) but ok for real: checked in tkeclipse and from CLI
 
 mytrace.            %call this to start debugging
-:- spy mytrace/0.
+%:- spy mytrace/0.
 %%%
 :- (is_predicate(prolog_c/2) -> abolish prolog_c/2 ; dynamic prolog_c/2).   %to ensure clean environment when using 'make' during development 
 
@@ -44,6 +44,10 @@ se_main(ArgsL) :-
     ;
         common_util__error(10, "Calling se_main/? with invalid argument list", "Review calling syntax of se_main/?", [], '10_240824_1', 'se_main', 'se_main', no_localisation, no_extra_info)
     ),
+    %frandom(F), %before seed is set in se_globals__set_globals
+    Increase_duration_multiplier is 1.05,
+    super_util__quick_dev_info("Increase_duration_multiplier has been set at %f.", [Increase_duration_multiplier]),
+    setval('increase_duration_multiplier', Increase_duration_multiplier),
     se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode, Data_model),
     (Search_algo = regression(Restarts, Tries) ->   %for more stable results during regression testing and to evaluate changes
         (setval('algo', 'regression'),
@@ -67,7 +71,7 @@ se_main(ArgsL) :-
          ;
             Budget = Raw_budget %it's just used as an indication
          ),
-         First_single_test_time_out is Budget / 10,
+         First_single_test_time_out is 0.2,
          super_util__quick_dev_info("Analysing %w with a time budget of %w seconds.", [Target_source_file_name_no_ext, Budget])
         )
     ;
@@ -147,8 +151,9 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
     ).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     search_CFG_inner(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
+        se_globals__get_val('single_test_time_out', Current_single_test_time_out),
         (Debug_mode == 'debug' -> 
-            (se_globals__get_val('single_test_time_out', Current_single_test_time_out),
+            (
              super_util__quick_dev_info("Using %.2f seconds for a single test%n", [Current_single_test_time_out])
             )
         ; 
@@ -164,7 +169,6 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
                 )
             ;
                 (cancel_after_event('single_test_time_out_event', _CancelledEvents),    %to ensure none are left and be triggered later on
-                 super_util__quick_dev_info("Restart ended", []),
                  fail   %to make sure the not succeeds...
                 )
             )
@@ -172,7 +176,7 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
         statistics(event_time, End_time),
         getval(restart_time, Start_time),
         Restart_duration is End_time - Start_time,
-        super_util__quick_dev_info("Restart overall duration was: %.2f seconds", [Restart_duration]),
+        super_util__quick_dev_info("Restart ended, its overall duration was: %.2f seconds", [Restart_duration]),
         setval(restart_time, End_time),
         se_globals__get_val('path_nb', Post_try_solution_number),
         getval(nb_try_solution, Pre_try_solution_number),
@@ -180,9 +184,8 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
         (Number_of_new_solutions == 0 ->    %we tried a path for Current_single_test_time_out amount of time and no tests were generated
             (getval('algo', 'time_budget') ->
                 (Maximum = 100,
-                 Margin = 1.1, 
-                 se_globals__get_val('single_test_time_out', Current_single_test_time_out),
-                 New_single_test_time_out is min(Margin * Current_single_test_time_out, Maximum), %but there is a maximum 
+                 getval('increase_duration_multiplier', Increase_duration_multiplier),
+                 New_single_test_time_out is min(Current_single_test_time_out*Increase_duration_multiplier, Maximum), %but there is a maximum 
                  se_globals__set_val('single_test_time_out', New_single_test_time_out),   %todo should depend on global budget remaining
                  super_util__quick_dev_info("Restart time budget increased to: %.2f seconds", [New_single_test_time_out])
                 )
@@ -310,24 +313,29 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
                      cancel_after_event('single_test_time_out_event', _CancelledEvents), 
                      statistics(event_time, Current_end_time),
                      getval(start_time, Current_start_time),
-                     Single_test_duration is Current_end_time - Current_start_time,
-                     super_util__quick_dev_info("Test generated in %.2f seconds", [Single_test_duration]),
+                     Last_test_duration is Current_end_time - Current_start_time,
+                     setval('last_test_duration', Last_test_duration),
+                     super_util__quick_dev_info("Test generated in %.2f seconds", [Last_test_duration]),
                      se_globals__get_val('single_test_time_out', Current_single_test_time_out),
-                     Margin = 10,       %multiplier: one order of magnitude
-                     Minimum = 0.5,     %seconds whatever is close but above the overheads
-                     ((Current_single_test_time_out > Minimum, Current_single_test_time_out > Margin * Single_test_duration) ->  %last test generation was faster by a wide margin: allocated budget is reduced
+                     Margin = 2,       %multiplier: one order of magnitude
+                     Minimum = 0.2,     %seconds whatever is close but above the overheads
+                     /*
+                     ((Current_single_test_time_out > Minimum, Current_single_test_time_out > Margin * Last_test_duration) ->  %the Current_single_test_time_out is more than "margin" times larger than the last test generation: single test budget is reduced
+                     */
                          (getval('algo', 'time_budget') ->
-                            (New_single_test_time_out is max(Margin * Single_test_duration, Minimum), %but there is a minimum to reduce overheads
+                            (New_single_test_time_out is max(Margin * Last_test_duration, Minimum), %but there is a minimum to reduce overheads
                              se_globals__set_val('single_test_time_out', New_single_test_time_out),
-                             super_util__quick_dev_info("Single test budget decreased to: %.2f seconds", [New_single_test_time_out]),
+                             super_util__quick_dev_info("Single test budget changed to: %.2f seconds", [New_single_test_time_out]),
                              event_after('single_test_time_out_event', New_single_test_time_out)
                             )
                          ;
                             true
-                         )
-                     ;
+                         ),
+                     /*
+                        ;
                         event_after('single_test_time_out_event', Current_single_test_time_out)    %Single_test_time_out left as is for now
                      ),
+                     */
                      statistics(event_time, New_start_time),
                      setval(start_time, New_start_time),
                      %%% %%%

@@ -1,7 +1,7 @@
 :- module('se_globals').
 
 mytrace.            %call this to start debugging
-:- spy mytrace/0.
+%:- spy mytrace/0.
 
 :- export super_util__quick_dev_info/2.
 :- export se_globals__set_globals/5, se_globals__get_val/2, se_globals__set_val/2, se_globals__get_ref/2, se_globals__set_ref/2.
@@ -19,8 +19,8 @@ mytrace.            %call this to start debugging
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 super_util__quick_dev_info(Message, Arguments) :-
     se_globals__get_val('debug_mode', Debug_mode),
-    (Debug_mode = 'debug' ->
-        (printf('user_error', "Dev Info: ", []),
+    (Debug_mode == 'debug' ->
+        (printf('user_error', "Dev Info: ", []),    %todo could you combine 
          printf('user_error', Message, Arguments),
          printf('user_error', "\n", []),
          flush('user_error')        %systematically flushing ALL debug/development messages is important or they may get displayed in a wrong order when mixed with message from other streams and be out of sync with the ECLiPse tracer
