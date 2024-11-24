@@ -86,8 +86,9 @@ for regression_test_file in "$c_files_directory"/*.c; do
 
         id=$(echo "$config" | jq -r '.id')
         description=$(echo "$config" | jq -r '.description')
-        restarts=$(echo "$config" | jq -r '.restarts')
-        tries=$(echo "$config" | jq -r '.tries')
+        algo=$(echo "$config" | jq -r '.algo')
+        #restarts=$(echo "$config" | jq -r '.restarts')
+        #tries=$(echo "$config" | jq -r '.tries')
         expected_run_time=$(echo "$config" | jq -r '.expected_run_time')
         expected_test_inputs_number=$(echo "$config" | jq -r '.expected_test_inputs_number')
         expected_coverage=$(echo "$config" | jq -r '.expected_coverage')
@@ -95,7 +96,7 @@ for regression_test_file in "$c_files_directory"/*.c; do
         echo -e "\e[34mSikraken regression testing script now generating tests for $regression_test_file in $id configuration.\e[0m"
 
         #generate test inputs
-        eclipse_call="se_main(['$SIKRAKEN_INSTALL_DIR', '$SIKRAKEN_INSTALL_DIR/$rel_path_c_file', '$base_name', main, release, testcomp, '$gcc_flag', regression($restarts, $tries)])"
+        eclipse_call="se_main(['$SIKRAKEN_INSTALL_DIR', '$SIKRAKEN_INSTALL_DIR/$rel_path_c_file', '$base_name', main, debug, testcomp, '$gcc_flag', $algo])"
         $SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e "$eclipse_call"
         if [ $? -ne 0 ]; then
             echo "Sikraken regression testing ERROR: call to ECLiPSe $eclipse_call failed"

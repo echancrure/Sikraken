@@ -11,12 +11,12 @@
 % defines module se_main
 % symbolic execution of parsed C code
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-:- set_flag('debug_compile', 'off').   %does not really help 
+:- set_flag('debug_compile', 'on').   %does not really help 
 :- get_flag(version, '7.1').            %check for valid ECLiPSe version: issue warning only if not 
 %:- set_flag(after_event_timer, virtual). %causes out of range error when set to virtual (what you want) but ok for real: checked in tkeclipse and from CLI
 
 mytrace.            %call this to start debugging
-%:- spy mytrace/0.
+:- spy mytrace/0.
 %%%
 :- (is_predicate(prolog_c/2) -> abolish prolog_c/2 ; dynamic prolog_c/2).   %to ensure clean environment when using 'make' during development 
 
@@ -58,7 +58,7 @@ se_main(ArgsL) :-
          ;   
             Budget = 65          %we put a limit for some regression tests which may not complete a full restart
          ),
-         First_single_test_time_out is Budget - 5,  %ensure not triggered at the same time as overall timeout
+         First_single_test_time_out is Budget - 5.0,  %ensure not triggered at the same time as overall timeout
          printf('output', "Dev Info: Analysing %w with %w restarts and %w tries\n", [Target_source_file_name_no_ext, Restarts, Tries])
         )
     ;
@@ -143,7 +143,7 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     search_CFG_inner(_Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
         se_globals__get_val('single_test_time_out', Current_single_test_time_out),
-        printf('output', "Dev Info: Time budget for a single test is %w seconds\n", [Current_single_test_time_out]),
+        printf('output', "Dev Info: Time budget for a single test is %.2f seconds\n", [Current_single_test_time_out]),
         se_globals__get_val('path_nb', Initial_try_solution_number),
         setval(nb_try_solution, Initial_try_solution_number),
         not(
@@ -167,7 +167,7 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
                  getval('increase_duration_multiplier', Increase_duration_multiplier),
                  New_single_test_time_out is min(Current_single_test_time_out*Increase_duration_multiplier, Maximum), %but there is a maximum 
                  se_globals__set_val('single_test_time_out', New_single_test_time_out),   %todo should depend on global budget remaining
-                 printf('output', "Dev Info: Restart time budget increased to: %.2f seconds\n", [New_single_test_time_out])
+                 printf('output', "Dev Info: Restart single test budget changed to: %.2f seconds\n", [New_single_test_time_out])
                 )
             ;
                 true
@@ -291,18 +291,18 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
                      statistics(event_time, Current_end_time),
                      getval(start_time, Current_start_time),
                      Last_test_duration is Current_end_time - Current_start_time,
-                     setval('last_test_duration', Last_test_duration),
                      printf('output', "Dev Info: Test generated in %.2f seconds\n", [Last_test_duration]),
-                     Margin = 2,       %multiplier: one order of magnitude
-                     Minimum = 0.2,     %seconds whatever is close but above the overheads
+                     Margin = 10,       %multiplier: one order of magnitude
+                     Minimum = 0.5,     %seconds whatever is close but above the overheads
                      (getval('algo', 'time_budget') ->
-                        (New_single_test_time_out is max(Margin * Last_test_duration, Minimum), %but there is a minimum to reduce overheads
-                         (true ->
-                            (se_globals__set_val('single_test_time_out', New_single_test_time_out),
-                             printf('output', "Dev Info: Single test budget changed to: %.2f seconds\n", [New_single_test_time_out])
-                            )
+                        (se_globals__get_val('single_test_time_out', Current_single_test_time_out),
+                         (Current_single_test_time_out > Minimum, Current_single_test_time_out > Margin * Last_test_duration ->  %last test generation was faster by a wide margin: allocated budget is reduced
+                           (New_single_test_time_out is max(Margin * Last_test_duration, Minimum), %but there is a minimum to reduce overheads
+                            se_globals__set_val('single_test_time_out', New_single_test_time_out),
+                            printf('output', "Dev Info: Single test budget changed to: %.2f seconds\n", [New_single_test_time_out])
+                           )
                          ;
-                            true
+                           New_single_test_time_out = Current_single_test_time_out
                          ),    
                          event_after('single_test_time_out_event', New_single_test_time_out)
                         )

@@ -3,8 +3,7 @@
     {
       "id": "run1",
       "description": "Validation",
-      "restarts": 1,
-      "tries": 10,
+      "algo": "regression(1, 10)",
       "expected_run_time": 30,
       "expected_test_inputs_number": 7,
       "expected_coverage": 16.55
@@ -12,8 +11,7 @@
     {
       "id": "run2",
       "description": "Should reach the max 46.96%",
-      "restarts": 30,
-      "tries": 25,
+      "algo": "regression(30, 25)",
       "expected_run_time": 150,
       "expected_test_inputs_number": 64,
       "expected_coverage": 46.96

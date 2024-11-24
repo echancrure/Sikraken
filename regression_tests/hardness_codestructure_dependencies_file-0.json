@@ -3,12 +3,11 @@
     {
       "id": "run1",
       "description": "Plenty of floats",
-      "restarts": 5,
-      "tries": 2,
+      "algo": "budget(65)",
       "comment": "record is 86.3% (we can get close to that with 8 tests and 82.35% in budget mode with 65 seconds)",
       "expected_run_time": 60,
-      "expected_test_inputs_number": 4,
-      "expected_coverage": 58.82
+      "expected_test_inputs_number": 10,
+      "expected_coverage": 82.35
     }
   ]
 }

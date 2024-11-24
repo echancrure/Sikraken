@@ -22,30 +22,34 @@
 %Localisation : optional, an atom or a compound term providing further localisation information
 %Extra_info : optional, a string of anything you want
 common_util__error(Error_severity, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info) :-
-    se_globals__get_val('message_mode', Message_mode),
-    (Message_mode == debug ->
-            (se_globals__get_val('errorMessageNb', ErrorNb),
-             ErrorNb1 is ErrorNb + 1,
-             %(ErrorNb1 == 34 -> mytrace ; true),
-             printf(user_error, "Error Nb: %w: ", [ErrorNb1]),
-             se_globals__set_val('errorMessageNb', ErrorNb1),
-             common_util__error2(Error_severity, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode)
-            )
-    ;
-            (se_globals__get_val('already_printed', Already_printed),
-             (memberchk(Error_code, Already_printed) ->
-                    true
-             ;
-                    ((Error_severity == 1 ->
-                            true
-                     ;
-                            se_globals__set_val('already_printed', [Error_code|Already_printed])    %only done if non debug and for errors severity > 1
-                     ),
-                     common_util__error2(Error_severity, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode)
-                    )
-             )
-            )
-    ).
+       se_globals__get_val('already_printed', Already_printed),
+       (memberchk(error(Error_code, Previous_occurrences), Already_printed)  ->
+              (Previous_occurrences == 99 ->
+                     Occurences = 99
+              ;
+                     (append(Start, [error(Error_code, _)|Rest], Already_printed),
+                      Occurences is Previous_occurrences + 1,
+                      append(Start, [error(Error_code, Occurences)|Rest], New_already_printed),
+                      se_globals__set_val('already_printed', New_already_printed)
+                     )
+              )
+       ;
+              (Occurences = 1,
+               se_globals__set_val('already_printed', [error(Error_code, Occurences)|Already_printed])
+              )
+       ),
+       (Occurences == 99 -> %only print the same warning message a fixed number of times to avoid overwhelming the logs
+              true
+       ;
+              (se_globals__get_val('errorMessageNb', ErrorNb),
+               ErrorNb1 is ErrorNb + 1,
+               %(ErrorNb1 == 34 -> mytrace ; true),
+               printf(user_error, "Error Nb: %w: ", [ErrorNb1]),
+               se_globals__set_val('errorMessageNb', ErrorNb1),
+               se_globals__get_val('message_mode', Message_mode),
+               common_util__error2(Error_severity, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode)
+              )
+       ).
 
 common_util__error2(10, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode) :-
     !,

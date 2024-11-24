@@ -3,8 +3,7 @@
       {
         "id": "run1",
         "description": "goto and labeled statements",
-        "restarts": 1,
-        "tries": 2,
+        "algo": "regression(1, 2)",
         "expected_run_time": 1,
         "expected_test_inputs_number": 2,
         "expected_coverage": 100.0

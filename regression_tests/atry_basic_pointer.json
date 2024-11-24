@@ -3,8 +3,7 @@
       {
         "id": "run1",
         "description": "Basic pointer declarations, initialisation, dereference and function calls",
-        "restarts": 1,
-        "tries": 10,
+        "algo": "regression(1, 10)",
         "expected_run_time": 1,
         "expected_test_inputs_number": 2,
         "expected_coverage": 83.33

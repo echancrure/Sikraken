@@ -17,7 +17,7 @@ grep -n -oP 'Dev Info: Test generated in \K[0-9.]+(?= seconds)' "$INPUT_FILE" | 
     awk -F: '{print $1, $2}' > "$TEMP_FILE1"
 
 # Extract values with their line number for "Using for a single test"
-grep -n -oP 'Single test budget changed to: \K[0-9.]+(?= seconds)' "$INPUT_FILE" | \
+grep -n -oP 'test budget changed to: \K[0-9.]+(?= seconds)' "$INPUT_FILE" | \
     awk -F: '{print $1, $2}' > "$TEMP_FILE2"
 
 # Check if any data was extracted
@@ -32,7 +32,7 @@ GNUPLOT_SCRIPT="plot_times.gp"
 cat << EOF > $GNUPLOT_SCRIPT
 set terminal pngcairo size 800,600
 set output '$OUTPUT_FILE'
-set title "Evolution of Times"
+set title "$OUTPUT_FILE: Sikraken Test Run"
 set xlabel "Line Number"
 set ylabel "Time (seconds)"
 set grid

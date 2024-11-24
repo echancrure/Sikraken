@@ -2,6 +2,7 @@ extern int __VERIFIER_nondet_int();
 int main() {
     int x;
     char ab;
+    char m = 'm';   //usual 'm' char, not an escape
     // Standard escape sequences
     char null_char = '\0';              // 0'\x0\   0   Null character    
     char bell = '\a';                   // 0'\a     7   Bell (alert)

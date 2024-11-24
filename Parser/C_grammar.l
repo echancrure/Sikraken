@@ -187,7 +187,7 @@ WS  [ \t\v\n\f]
                                     ascii = (int)content[0];
                              }
                              yylval.id = (char*)malloc(10);
-                             sprintf(yylval.id, "%d", ascii);
+                             sprintf(yylval.id, "int(%d)", ascii);
                              return I_CONSTANT;
                             }       
 
