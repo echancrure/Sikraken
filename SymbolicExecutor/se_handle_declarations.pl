@@ -108,9 +108,14 @@ extract_type([Typedef_var], Type) :-
     se_typedef_atts__is_typedef_atts(Typedef_var),
     !,
     se_typedef_atts__get(Typedef_var, 'type', Type).
-extract_type(['unsigned'|R], unsigned(Type)) :-
+extract_type(Declaration_specifiers_list, unsigned(Type)) :-
+    memberchk('unsigned', Declaration_specifiers_list),
     !,
-    extract_type(R, Type).
+    mytrace,
+    append(Start, ['unsigned'|Rest], Declaration_specifiers_list),
+    append(Start, Rest, Declaration_specifiers_list_rest),
+    !,
+    extract_type(Declaration_specifiers_list_rest, Type).
 extract_type(['signed'|R], Type) :- %signed is the default so we ignore it
     !,
     extract_type(R, Type).
