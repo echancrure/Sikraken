@@ -3054,97 +3054,46 @@ void wrap_floating_point_constants(char * wrapper, char * input, char ** output)
 
     int has_wrapper = strcmp(wrapper, "");
 if (has_wrapper) {
-        // Allocate memory for fraction and power parts
-        char *fraction = malloc((current + 1) * sizeof(char));
-        char *power = malloc((current + 1) * sizeof(char));
-
-        if (!fraction || !power) {
-            printf("Memory allocation failed!\n");
-            return;
-        }
+        char *fraction = malloc((current + 1) * sizeof(char)), *power = malloc((current + 1) * sizeof(char));
 
         int j = 0, isPower = 0;
-
-        // Parse fraction and power parts
         for (int i = 0; i <= current; i++) {
             if (input[i] == 'p') {
-                fraction[i - 2] = '\0'; // Terminate fraction string
-                isPower = 1; // Switch to power part
-                continue; // Skip the 'p' character
+                fraction[i - 2] = '\0'; 
+                isPower = 1; 
+                continue; 
             }
-
             if (isPower) {
                 power[j++] = input[i];
-            } else if (i >= 2) { // Skip "0x" for hex floating point
+            } else if (i >= 2) { 
                 fraction[i - 2] = input[i];
             }
         }
-        power[j] = '\0'; // Terminate power string
-
-        // Determine the type (double, float, long double)
+        power[j] = '\0'; 
         char *type = "double";  // Default to "double"
-        if (has_f) {
-            type = "float";
-        } else if (has_l) {
-            type = "long double";
-        }
+        if (has_f) type = "float";
+        else if (has_l) type = "long double";
 
-        // Calculate the size for the output string
-        int size = strlen(wrapper)                // wrapper
-                   + strlen("hex_float")          // "hex_float"
-                   + strlen(type)                 // type
-                   + strlen(fraction)             // fraction part
-                   + strlen(power)                // power part
-                   + 10;                          // commas, parentheses, and null terminator
+        int size = strlen(wrapper) + strlen("hex_float") + strlen(type) + strlen(fraction) + strlen(power) + 10; 
 
-        // Allocate memory for output string
         *output = (char *)malloc(size);
-        if (!*output) {
-            printf("Memory allocation failed for output!\n");
-            free(fraction);
-            free(power);
-            return;
-        }
-
-        // Format the output string
         snprintf(*output, size, "%s(hex_float(%s,%s,%s))", wrapper, type, fraction, power);
 
-        // Print the formatted string
-        printf("Formatted String: %s\n", *output);
-
-        // Free allocated memory for fraction and power
         free(fraction);
         free(power);
     }else{
 
         // Calculate the length of the result: wrapper + parentheses + prefix + suffix + null terminator
-        int size = current + 1                            // Input string length
-                   + (is_d * strlen("double"))            // Length for double type
-                   + (has_f * strlen("float"))            // Length for float type
-                   + (has_l * strlen("long_double"))      // Length for long double type
-                   + 10;                                  // Parentheses, commas, and null terminator
+        int size = current + 1 + (is_d * strlen("double")) + (has_f * strlen("float")) + (has_l * strlen("long_double")) + 10;
 
-        // Allocate memory for the result
         *output = (char *)malloc(size);
-        if (!*output) {
-            printf("Memory allocation failed!\n");
-            return;
-        }
+        char format_string[100] = ""; 
 
-        // Prepare the format string
-        char format_string[100] = ""; // Initialize to an empty string
+        if (is_d) strcat(format_string, "double(%.*s)");
+        else if (has_f) strcat(format_string, "float(%.*s)");
+        else if (has_l) strcat(format_string, "long_double(%.*s)");
 
-        if (is_d) {
-            strcat(format_string, "double(%.*s)");
-        } else if (has_f) {
-            strcat(format_string, "float(%.*s)");
-        } else if (has_l) {
-            strcat(format_string, "long_double(%.*s)");
-        }
-
-        // Format the string
         snprintf(*output, size, format_string, current + 1, input);
-        printf("Formatted String: %s\n", *output);
     }
 
 }
