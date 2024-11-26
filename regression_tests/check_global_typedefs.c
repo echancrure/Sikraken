@@ -1,6 +1,7 @@
 extern int __VERIFIER_nondet_int();
-struct bus_info {
+/*struct bus_info { //allowed in gcc
 };
+*/
 typedef long unsigned int size_t;   //unsigned can appear anywhare and just at the start as by convention
 //check typedef from aws_array_eq_c_str_harness.i
 typedef struct {
