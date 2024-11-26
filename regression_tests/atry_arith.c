@@ -3,6 +3,7 @@ extern int __VERIFIER_nondet_int();
 extern float __VERIFIER_nondet_float();
 extern unsigned char __VERIFIER_nondet_uchar();
 int main() {
+    unsigned zz;
     int i = 0u + 0U + 0l + 0L + 0ll + 0LL + 01; //checking parsing of octals
     int a;
     a = (-87 - - 196 - - 3 - 306144 + 306115) * 9 / 10; //integer division 747 // 10 == 74

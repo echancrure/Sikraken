@@ -108,6 +108,8 @@ extract_type([Typedef_var], Type) :-
     se_typedef_atts__is_typedef_atts(Typedef_var),
     !,
     se_typedef_atts__get(Typedef_var, 'type', Type).
+extract_type(['unsigned'], int) :-  %unsigned on its own is allowed
+    !.
 extract_type(Declaration_specifiers_list, unsigned(Type)) :-
     memberchk('unsigned', Declaration_specifiers_list),
     !,
