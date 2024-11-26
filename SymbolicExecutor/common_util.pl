@@ -24,8 +24,8 @@
 common_util__error(Error_severity, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info) :-
        se_globals__get_val('already_printed', Already_printed),
        (memberchk(error(Error_code, Previous_occurrences), Already_printed)  ->
-              (Previous_occurrences == 99 ->
-                     Occurences = 99
+              (Previous_occurrences == 9 ->
+                     Occurences = 9
               ;
                      (append(Start, [error(Error_code, _)|Rest], Already_printed),
                       Occurences is Previous_occurrences + 1,
@@ -38,7 +38,7 @@ common_util__error(Error_severity, Error_message, Error_consequences, ArgumentsL
                se_globals__set_val('already_printed', [error(Error_code, Occurences)|Already_printed])
               )
        ),
-       (Occurences == 99 -> %only print the same warning message a fixed number of times to avoid overwhelming the logs
+       (Occurences == 9 -> %only print the same warning message a fixed number of times to avoid overwhelming the logs
               true
        ;
               (se_globals__get_val('errorMessageNb', ErrorNb),
