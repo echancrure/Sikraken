@@ -44,7 +44,7 @@ common_util__error(Error_severity, Error_message, Error_consequences, ArgumentsL
               (se_globals__get_val('errorMessageNb', ErrorNb),
                ErrorNb1 is ErrorNb + 1,
                %(ErrorNb1 == 34 -> mytrace ; true),
-               printf(user_error, "Error Nb: %w: ", [ErrorNb1]),
+               printf(user_error, "\e[31mError Nb: %w: \e[0m", [ErrorNb1]),  %printed in red in bash
                se_globals__set_val('errorMessageNb', ErrorNb1),
                se_globals__get_val('message_mode', Message_mode),
                common_util__error2(Error_severity, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode)
@@ -164,7 +164,8 @@ common_util__error2(Error_severity, Error_message, Error_consequences, Arguments
                     printf(user_error, "%n", [])
              ;
                     printf(user_error, ", %s%n", [Extra_info])
-             )
+             ),
+             flush(user_error)     %only in debug mode as costly
             )
     ;
             ((Error_severity == 1 ->
@@ -180,9 +181,8 @@ common_util__error2(Error_severity, Error_message, Error_consequences, Arguments
                     )
              )
             )
-    ),
-    flush(user_error).
-
+    ).
+    
 cue_print_warning_arguments([], _Debug) :-
     !.
 cue_print_warning_arguments([Warning|Rest], Debug) :-

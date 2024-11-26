@@ -95,7 +95,7 @@ symbolically_interpret(cast(Raw_typeL, Expression), symb(To_type, Casted)) :-
     ).
 symbolically_interpret(addr(Expression), symb(pointer(Type), addr(LValue))) :-
     !,
-    get_symbolic_lvalue(Expression, Type, LValue).  %not normal symbolic execution: stop once we get an lvalue
+    get_symbolic_lvalue_for_addressing(Expression, Type, LValue).  %not normal symbolic execution: stop once we get an lvalue
 
 symbolically_interpret(deref(Expression), Symbolic_expression) :-
     !,

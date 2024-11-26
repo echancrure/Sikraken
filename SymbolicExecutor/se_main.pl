@@ -28,7 +28,7 @@ mytrace.            %call this to start debugging
 
 :- use_module(['se_globals', 'se_name_atts', 'se_seav_atts', 'se_sub_atts', 'se_typedef_atts']).
 
-:- compile(['common_util', 'se_handle_declarations', 'se_symbolically_execute', 'se_symbolically_interpret', 'se_get_symbolic_lvalue']).
+:- compile(['common_util', 'se_handle_declarations', 'se_symbolically_execute', 'se_symbolically_interpret', 'se_get_symbolic_lvalue_for_addressing']).
 :- compile(['se_write_tests_testcomp']).
 :- compile(['se_coverage']).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -321,7 +321,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
                      se_globals__get_val('covered_bran', Already_covered),
                      union(Already_covered, Current_path_no_duplicates, Covered),
                      se_globals__set_val('covered_bran', Covered),
-                     common_util__error(0, "End of path", 'no_error_consequences', [('Path Nb', Inc_test_nb), ('Newly_covered', Newly_covered), ('Current_path', Current_path)], '0_190824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info),
+                     %common_util__error(0, "End of path", 'no_error_consequences', [('Path Nb', Inc_test_nb), ('Newly_covered', Newly_covered), ('Current_path', Current_path)], '0_190824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info),
                      (Output_mode == 'testcomp' ->
                         print_test_inputs_testcomp(Labeled_inputs)   %but don't print expected outputs
                      ;
