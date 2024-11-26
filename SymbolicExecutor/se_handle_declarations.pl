@@ -111,7 +111,6 @@ extract_type([Typedef_var], Type) :-
 extract_type(Declaration_specifiers_list, unsigned(Type)) :-
     memberchk('unsigned', Declaration_specifiers_list),
     !,
-    mytrace,
     append(Start, ['unsigned'|Rest], Declaration_specifiers_list),
     append(Start, Rest, Declaration_specifiers_list_rest),
     !,

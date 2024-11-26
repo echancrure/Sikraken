@@ -29,7 +29,10 @@ if [ $? -ne 0 ]; then
 else
     echo "Sikraken parser successfully recompiled"
 fi
-
+timestamp=$(date +"%Y%m%d_%H%M%S")
+log_output_dir="$c_files_directory"/"$timestamp"
+echo "DEBUG $log_output_dir"
+mkdir -p "$log_output_dir"
 # Loop over all .c files in the directory
 for regression_test_file in "$c_files_directory"/*.c; do
 
@@ -42,6 +45,23 @@ for regression_test_file in "$c_files_directory"/*.c; do
         echo "Sikraken ENLARGE subset WARNING: .yml file $yml_file does not exist, assuming ILP32"
         data_model="ILP32"
     else
+        input_test_file=$(grep "input_files:" "$yml_file" | awk '{print $2}')  #overwrites the regression_test_file
+        input_test_file="${input_test_file//\'/}"  # Remove single quotes
+        file_extension="${input_test_file##*.}"
+        echo "Sikraken ENLARGE: input_test_file file is $input_test_file"
+        base_name="${input_test_file%.*}"
+        echo "Sikraken ENLARGE: nasename $base_name"
+        if [ "$file_extension" == "i" ]; then
+            echo "Sikraken ENLARGE: processing the .i file: $base_name"
+             if [ -f "$c_files_directory"/"$input_test_file" ]; then     # if the file exists
+                echo "Sikraken ENLARGE: the regression_test_file exist: $input_test_file"
+                # the file is already preprocessed (.i), delete the .c and rename the .i
+                echo "Sikraken ENLARGE: running rm "$c_files_directory"/"$base_name".c"
+                rm "$c_files_directory"/"$base_name".c
+                echo "Sikraken ENLARGE: running rm "$c_files_directory"/"$base_name".i "$c_files_directory"/"$base_name".c"
+                mv "$c_files_directory"/"$base_name".i "$c_files_directory"/"$base_name".c
+             fi
+        fi
         data_model=$(grep "data_model:" "$yml_file" | awk '{print $2}') # $2 is the second field of the line containing "data_model:"
     fi
 
@@ -49,7 +69,7 @@ for regression_test_file in "$c_files_directory"/*.c; do
     if [ "$data_model" == "ILP32" ]; then
         gcc_flag="-m32"
         testcov_data_model="-32"
-    elif [ "$data_model" == "ILP64" ]; then
+    elif [ "$data_model" == "LP64" ]; then
         gcc_flag="-m64"
         testcov_data_model="-64"
     else
@@ -60,14 +80,14 @@ for regression_test_file in "$c_files_directory"/*.c; do
     #preprocess the C file using gcc and parse using Sikraken's parser
     ./bin/call_parser.sh $c_files_directory $base_name $gcc_flag
     if [ $? -ne 0 ]; then
-        echo "Sikraken ENLARGE subset ERROR: Sikraken parsing of $regression_test_file failed"
+        echo "Sikraken ENLARGE subset ERROR: Sikraken parsing of $base_name failed"
     else
-        echo "Sikraken successfully parsed $regression_test_file"
+        echo "Sikraken successfully called ./bin/call_parser.sh $c_files_directory $base_name $gcc_flag"
     fi
 
     #generate test inputs
     eclipse_call="se_main(['/home/chris/Sikraken', '$c_files_directory', '$base_name', main, release, testcomp, '$gcc_flag', budget($budget)])"
-    $SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e "$eclipse_call" -g 12G -l 1G > "./sikraken_output/enlarge_subset_result/$base_name.log"
+    $SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e "$eclipse_call" -g 12G -l 1G > "$log_output_dir/$base_name.log"
 
     if [ $? -ne 0 ]; then
         echo "Sikraken ENLARGE subset ERROR: call to ECLiPSe $eclipse_call failed"
@@ -75,10 +95,10 @@ for regression_test_file in "$c_files_directory"/*.c; do
         echo "Sikraken ENLARGE subset generated test inputs for $regression_test_file in $id configuration"
     fi
     #generate graph
-    ./bin/runtime_graph.sh ./sikraken_output/enlarge_subset_result/"$base_name.log"
+    ./bin/runtime_graph.sh "$log_output_dir/$base_name.log"
 
     #validate test inputs
-    $SIKRAKEN_INSTALL_DIR/bin/run_testcov.sh $regression_test_file $testcov_data_model > "./sikraken_output/enlarge_subset_result/$base_name.testcov"
+    $SIKRAKEN_INSTALL_DIR/bin/run_testcov.sh $regression_test_file $testcov_data_model > "$log_output_dir/$base_name.testcov"
     if [ $? -ne 0 ]; then
         echo "Sikraken ENLARGE subset ERROR: TestCov test inputs validation of $regression_test_file failed"
     else

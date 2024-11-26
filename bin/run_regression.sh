@@ -60,7 +60,7 @@ for regression_test_file in "$c_files_directory"/*.c; do
     if [ "$data_model" == "ILP32" ]; then
         gcc_flag="-m32"
         testcov_data_model="-32"
-    elif [ "$data_model" == "ILP64" ]; then
+    elif [ "$data_model" == "LP64" ]; then
         gcc_flag="-m64"
         testcov_data_model="-64"
     else

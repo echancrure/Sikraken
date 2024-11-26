@@ -214,14 +214,23 @@ symbolically_interpret(not_equal_op(Le_exp, Ri_exp), symb(int, R)) :-
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, _Common_type, Le_casted_exp, Ri_casted_exp),
     ptc_solver__relation(\=, Le_casted_exp, Ri_casted_exp, R).
 %%%
+symbolically_interpret(prefix_inc_op(Expression), Symbolic_expression) :-
+    !,
+    symbolically_interpret(plus_op(Expression, int(1)), Symbolic_expression),
+    symbolic_execute(assign(Expression, plus_op(Expression, int(1))), _Flow).  %todo Expression should only be symbolic executed once
+symbolically_interpret(prefix_dec_op(Expression), Symbolic_expression) :-
+    !,
+    symbolically_interpret(minus_op(Expression, int(1)), Symbolic_expression),
+    symbolic_execute(assign(Expression, minus_op(Expression, int(1))), _Flow).      %todo Expression should only be symbolic executed once
+%
 symbolically_interpret(postfix_inc_op(Expression), Symbolic_expression) :-
     !,
     symbolically_interpret(Expression, Symbolic_expression),
-    symbolic_execute(assign(Expression, plus_op(Expression, int(1))), _).       %todo Expression should only be symbolic executed once
+    symbolic_execute(assign(Expression, plus_op(Expression, int(1))), _Flow).       %todo Expression should only be symbolic executed once
 symbolically_interpret(postfix_dec_op(Expression), Symbolic_expression) :-
     !,
     symbolically_interpret(Expression, Symbolic_expression),
-    symbolic_execute(assign(Expression, minus_op(Expression, int(1))), _).      %todo Expression should only be symbolic executed once
+    symbolic_execute(assign(Expression, minus_op(Expression, int(1))), _Flow).      %todo Expression should only be symbolic executed once
 %%%
 %L and R: C semantics of && is always short circuit
 %either L is true and overall truth is R's
