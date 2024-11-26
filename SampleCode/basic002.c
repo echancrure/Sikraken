@@ -34,6 +34,9 @@ int basic(int x) {
     return b+x; //b == 4 + x + 1 + 3 + 2 + x or b == b == x + 4 + 1000 + 3 + 2 + x
 }
 
+void *ldv_malloc(int size) {
+
+};;;;;;;;;; //allowed in gcc
 
 void main(void) {
 
