@@ -33,7 +33,7 @@ void read_comment();
 int convert_escape_sequence(const char *);
 int differentiate_identifiers(char *);
 void wrap_integer_constants(char *, char *, char **);
-void wrap_floating_point_constants(char *, char *, char **);
+void wrap_floating_point_constants(int, char *, char **);
 void add_missing_zero(char *, char **);
 
 int open_parens = 0;        //Declaration in the definitions section
@@ -191,26 +191,26 @@ WS  [ \t\v\n\f]
                              return I_CONSTANT;
                             }       
 
-{D}+{E}{FS}?				{wrap_floating_point_constants("", yytext, &yylval.id);     //Decimal floating-point constants with an exponent.
+{D}+{E}{FS}?				{wrap_floating_point_constants(0, yytext, &yylval.id);     //Decimal floating-point constants with an exponent.
                              return F_CONSTANT;
                             }
-{D}*"."{D}+{E}?{FS}?		{wrap_floating_point_constants("", yytext, &yylval.id);     //Decimal floating-point constants with a fractional part.
+{D}*"."{D}+{E}?{FS}?		{wrap_floating_point_constants(0, yytext, &yylval.id);     //Decimal floating-point constants with a fractional part.
                              return F_CONSTANT;
                             }
 {D}+"."{E}?{FS}?			{char* added_0;
                              add_missing_zero(yytext, &added_0);
-                             wrap_floating_point_constants("", added_0, &yylval.id);            //Decimal floating-point constants with a fractional part.
+                             wrap_floating_point_constants(0, added_0, &yylval.id);            //Decimal floating-point constants with a fractional part.
                              return F_CONSTANT;
                             }
-{HP}{H}+{P}{FS}?			{wrap_floating_point_constants("hexadecimal", yytext, &yylval.id);  //Hexadecimal floating-point constants: will fail parser in ECLiPSe
+{HP}{H}+{P}{FS}?			{wrap_floating_point_constants(1, yytext, &yylval.id);  //Hexadecimal floating-point constants: will fail parser in ECLiPSe
                              return F_CONSTANT;
                             }
-{HP}{H}*"."{H}+{P}{FS}?		{wrap_floating_point_constants("hexadecimal", yytext, &yylval.id);  //Hexadecimal floating-point constants with a fractional part.: will fail parser in ECLiPSe
+{HP}{H}*"."{H}+{P}{FS}?		{wrap_floating_point_constants(1, yytext, &yylval.id);  //Hexadecimal floating-point constants with a fractional part.: will fail parser in ECLiPSe
                              return F_CONSTANT;
                             }
 {HP}{H}+"."{P}{FS}?			{char* added_0;
                              add_missing_zero(yytext, &added_0);
-                             wrap_floating_point_constants("hexadecimal", added_0, &yylval.id); //Hexadecimal floating-point constants with digits before the decimal point, but none after. : will fail parser in ECLiPSe
+                             wrap_floating_point_constants(1, added_0, &yylval.id); //Hexadecimal floating-point constants with digits before the decimal point, but none after. : will fail parser in ECLiPSe
                              return F_CONSTANT;
                             }
 
@@ -344,7 +344,7 @@ void wrap_integer_constants(char *wrapper, char *input, char **output) {
         }
         if (has_suffix) current--;
     }
-    int has_wrapper = strcmp(wrapper, "");
+    int a = strcmp(wrapper, "");
     //calculating the length of the result: length of the wrapper + length of the prefix, the suffix, the underscore, the parenthesis
     int size = strlen(wrapper) + current+1 + 1 + has_u*strlen("unsigned") + has_l*strlen("long") + has_ll*strlen("long_long") + has_u*has_l + has_u*has_ll + (has_u || has_l || has_ll ? 2 : 0);
 
@@ -356,7 +356,7 @@ void wrap_integer_constants(char *wrapper, char *input, char **output) {
         if (constant <= INT_MAX) {
             strcat(format_string, "int(");
             size += strlen("int()");
-        } else if (has_wrapper && constant <= UINT_MAX) {   //different rule for octals and hexademcimals
+        } else if (a && constant <= UINT_MAX) {   //different rule for octals and hexademcimals
             strcat(format_string, "unsigned(");
             size += strlen("unsigned()");
         }
@@ -379,23 +379,24 @@ void wrap_integer_constants(char *wrapper, char *input, char **output) {
     else if (!has_u && !has_l && has_ll) 
         strcat(format_string, "long_long(");
 
-    if (has_wrapper) strcat(format_string, "%s");
+    if (a) strcat(format_string, "%s");
     
     strcat(format_string, "%.*s)");
 
     *output = (char *)malloc(size);
-    if (has_wrapper) {
+    if (a) {
         snprintf(*output, size, format_string, wrapper, current + 1, input);
     } else {
         snprintf(*output, size, format_string, current + 1, input);
     }
 }
 
-//add hexademical wrapper if present and handle f|F|l|L variations
-void wrap_floating_point_constants(char * wrapper, char * input, char ** output) {
+//handle hexademical floating points and handle f|F|l|L variations
+void wrap_floating_point_constants(int is_hexadecimal, char * input, char ** output) {
     int current = strlen(input)-1;
     int has_f = 0, has_l = 0, is_d = 0;
     int has_suffix = 1;
+
     switch (input[current]) {
         case 'f':
         case 'F':
@@ -410,23 +411,44 @@ void wrap_floating_point_constants(char * wrapper, char * input, char ** output)
             has_suffix = 0;
     }
     if (has_suffix) current--;
-    int has_wrapper = strcmp(wrapper, "");
-    //calculating the length of the result: length of the wrapper + 2 parentheses + length of the prefix, the suffix, the parenthesis
-    int size = (has_wrapper ? strlen(wrapper) + 2 : 0) + current+1 + 1 + is_d*strlen("double") + has_f*strlen("float") + has_l*strlen("long_double") + (has_f || has_l || is_d ? 2 : 0);
-    *output = (char *)malloc(size);
-    char format_string[100];
-    if (has_wrapper) strcpy(format_string, "%s("); //starts with the floating point kind wrapper
-    else strcpy(format_string, "");
-    if (is_d)
-        strcat(format_string, "double(%.*s)");      //double is the default type for floating points literals
-    else if (has_f) 
-        strcat(format_string, "float(%.*s)");
-    else if (has_l) 
-        strcat(format_string, "long_double(%.*s)");
-    if (has_wrapper) {
-        strcat(format_string, ")"); //adds the wrapper end parenthesis
-        snprintf(*output, size, format_string, wrapper, current + 1, input);
-    } else {
+
+    if (is_hexadecimal) {          //a floating point hexadecimal e.g. 0x1.FFFFFEp+127 becomes hex_float(double,"1.FFFFFE",+127)
+        char *fraction = malloc((current + 1) * sizeof(char));
+        char *power = malloc((current + 1) * sizeof(char));
+
+        int j = 0, isPower = 0;
+        for (int i = 0; i <= current; i++) {
+            if (input[i] == 'p') {
+                fraction[i - 2] = '\0'; 
+                isPower = 1; 
+                continue; 
+            }
+            if (isPower) {
+                power[j++] = input[i];
+            } else if (i >= 2) { 
+                fraction[i - 2] = input[i];
+            }
+        }
+        power[j] = '\0'; 
+        char *type = "double";  // Default to "double"
+        if (has_f) type = "float";
+        else if (has_l) type = "long_double";
+
+        int size = strlen("hex_float") + strlen(type) + strlen(fraction) + strlen(power) + 12; 
+        *output = (char *)malloc(size);
+        snprintf(*output, size, "hex_float(%s,\"%s\",%s)", type, fraction, power);
+        free(fraction);
+        free(power);
+    }
+    else {  //an ordinary decimal floating point literal
+        //calculating the length of the result: length of the prefix, the suffix, the parenthesis
+        int size = current+1 + 1 + is_d*strlen("double") + has_f*strlen("float") + has_l*strlen("long_double") + (has_f || has_l || is_d ? 2 : 0);
+        *output = (char *)malloc(size);
+        char format_string[100];
+        strcpy(format_string, "");
+        if (is_d) strcat(format_string, "double(%.*s)");      //double is the default type for floating points literals
+        else if (has_f) strcat(format_string, "float(%.*s)");
+        else if (has_l) strcat(format_string, "long_double(%.*s)");
         snprintf(*output, size, format_string, current + 1, input);
     }
 }
