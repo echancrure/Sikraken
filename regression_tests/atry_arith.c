@@ -4,6 +4,7 @@ extern float __VERIFIER_nondet_float();
 extern unsigned char __VERIFIER_nondet_uchar();
 int main() {
     int h = 0x10;
+    float f12 = 0x1.4p1f;
     unsigned zz;
     int i = 0u + 0U + 0l + 0L + 0ll + 0LL + 01; //checking parsing of octals
     int a;

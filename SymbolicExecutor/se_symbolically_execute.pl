@@ -253,6 +253,8 @@ symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
          )
         )
     ).
+symbolic_execute(do_while_stmt(Statements, branch(Id, Condition)), Flow).
+
 symbolic_execute(label_stmt(_Label, Statement), Flow) :- 
     !,
     symbolic_execute(Statement, Flow).

@@ -1263,9 +1263,9 @@ iteration_statement
 		 free($5);
 		} 
 	| DO statement WHILE '(' expression ')' ';'
-		{size_t const size = strlen("\ndo_while_stmt(, )") + strlen($2) + strlen($5) + 1;
+		{size_t const size = strlen("\ndo_while_stmt(, branch(, ))") + strlen($2) + MAX_BRANCH_STR + strlen($5) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "\ndo_while_stmt(%s, %s)", $2, $5);
+		 sprintf_safe($$, size, "\ndo_while_stmt(%s, branch(%d, %s))", $2, branch_nb++, $5);
 		 free($2);
 		 free($5);
 		} 
