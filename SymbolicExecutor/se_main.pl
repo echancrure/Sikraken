@@ -85,6 +85,7 @@ se_main(ArgsL) :-
     capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
     read_parsed_file(Install_dir, Target_source_file_name_no_ext, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors
     %%%pre-symbolic execution
+    %mytrace,
     symbolic_execute(Parsed_prolog_code, _),   %always symbolically execute all global declarations for now: initialisations could be ignored via a switch if desired
     %%%
     print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext),

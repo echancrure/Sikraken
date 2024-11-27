@@ -15,7 +15,11 @@ symbolic_execute(mytrace, 'carry_on') :-
     mytrace.    %within symbolic_execute/2
 symbolic_execute(declaration(Declaration_specifiers, Declarators), 'carry_on') :-
     !,
-    ((Declarators = [Declarator], nonvar(Declarator), Declarator = function(Function_name, Parameters)) ->  %a function forward declaration
+    ((Declarators = [Declarator], nonvar(Declarator), 
+      (Declarator = function(Function_name, Parameters) ; 
+       (Declarator = ptr_decl(pointer, Function), nonvar(Function), Function = function(Function_name, Parameters))
+      )
+     ) ->  %a function forward declaration
         (memberchk('extern', Declaration_specifiers) ->  %(need to use memberchk because 'extern' does not necessarily come first) found an extern function declaration
             (subtract(Declaration_specifiers, ['extern'], Other_specifiers),
              extract_type(Other_specifiers, Return_type_name),
@@ -27,7 +31,7 @@ symbolic_execute(declaration(Declaration_specifiers, Declarators), 'carry_on') :
              se_sub_atts__create(Return_type_name, Parameters, 'no_body_is_extern', Function_name)
             )
         ; 
-            true    %we ignore all other, non-extern, forward function declarations: they will be declared later
+            true    %we ignore all other, non-extern, forward function declarations: they will be defined later
         )
     ;
         (Declaration_specifiers = [Specifier|Rest_declaration_specifiers], Specifier == 'typedef') ->
@@ -47,6 +51,11 @@ symbolic_execute(function(Specifiers, function(Function_name, Parameters), [], C
     !,
     extract_type(Specifiers, Return_type_name),
     se_sub_atts__create(Return_type_name, Parameters, Compound_statement, Function_name).
+symbolic_execute(function(Specifiers, ptr_decl(pointer, function(Function_name, Parameters)), [], Compound_statement), 'carry_on') :-
+    !,
+    extract_type(Specifiers, Return_type_name),
+    extract_pointers(ptr_decl(pointer, function(Function_name, Parameters)), Return_type_name, Type_name_ptr_opt, _Clean_var),
+    se_sub_atts__create(Type_name_ptr_opt, Parameters, Compound_statement, Function_name).
 symbolic_execute(goto_stmt(Label, Function), Flow) :-
     !,
     %mytrace,
