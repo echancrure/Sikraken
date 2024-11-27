@@ -110,11 +110,11 @@ symbolically_interpret(index(Array_exp, Index_exp), symb(Element_type, Element))
     symbolically_interpret(Index_exp, symb(_, Index_value)),
     symbolically_interpret(Array_exp, symb(Array_type, Array_value)),
     (Array_type = array(Element_type, _) ->
-        ptc_solver__arithmetic(element(Array_value, [Index_value]), Element, _)
+        ptc_solver__arithmetic(element(Array_value, [Index_value]), Element)
     ;
      (Array_type = pointer(Element_type), Array_value = addr(Array_var), ptc_solver__is_array(Array_var)) ->
         %dereference of an array name e.g. int *pv = vector; ...pv[3]...
-        ptc_solver__arithmetic(element(Array_var, [Index_value]), Element, _)
+        ptc_solver__arithmetic(element(Array_var, [Index_value]), Element)
     ;
         (common_util__error(9, "Indexing something which is not an array", "Cannot perform symbolic interpretation", [('Array_type', Array_type)], '9_181124', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info),
          Element_type = int,
