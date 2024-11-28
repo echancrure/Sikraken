@@ -64,13 +64,13 @@ seav__seav_is_in_scope(_{Attr}) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 seav__get(_{Attr}, 'type', Type_name) :-        
     -?->
-   Attr = se_seav_atts([scope(Type_name, _, _)|_]).
+    Attr = se_seav_atts([scope(Type_name, _, _)|_]).
 seav__get(_{Attr}, 'input', Input) :-        
     -?->
-   Attr = se_seav_atts([scope(_, Input, _)|_]).
+    Attr = se_seav_atts([scope(_, Input, _)|_]).
 seav__get(_{Attr}, 'output', Output) :-        
     -?->
-   Attr = se_seav_atts([scope(_, _, Output)|_]).
+    Attr = se_seav_atts([scope(_, _, Output)|_]).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 seav__update(_{Attr}, 'input', Input) :-        
     -?->

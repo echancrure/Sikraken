@@ -1,0 +1,12 @@
+{
+    "configurations": [
+      {
+        "id": "run1",
+        "description": "arrys in loops with unknown index",
+        "algo": "regression(2, 10)",
+        "expected_run_time": 3,
+        "expected_test_inputs_number": 4,
+        "expected_coverage": 100.0
+      }
+    ]
+}

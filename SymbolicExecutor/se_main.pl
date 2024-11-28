@@ -205,7 +205,7 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
     fail.       %I know this is ugly: but this will only be reached during regression testing when the number of tries has been reached
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_single_test_time_out_event :-
-        mytrace,
+        %mytrace,
         statistics(event_time, Current_session_time),
         printf('output', "Dev Info: Time out triggered; overall elapsed time is %.2f seconds\n" , [Current_session_time]),
         throw('single_test_time_out_exception').
