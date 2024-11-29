@@ -86,7 +86,7 @@ for regression_test_file in "$c_files_directory"/*.c; do
     fi
 
     #generate test inputs
-    eclipse_call="se_main(['/home/chris/Sikraken', '$c_files_directory', '$base_name', main, release, testcomp, '$gcc_flag', budget($budget)])"
+    eclipse_call="se_main(['/home/chris/Sikraken', '$c_files_directory', '$base_name', main, debug, testcomp, '$gcc_flag', budget($budget)])"
     $SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e "$eclipse_call" -g 12G -l 1G > "$log_output_dir/$base_name.log"
 
     if [ $? -ne 0 ]; then
