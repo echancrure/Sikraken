@@ -74,12 +74,13 @@
             "problemMatcher": []
         },
         {
-            "label": "Run Regression Tests",
+            "label": "Run Parallel Regression Tests",
             "type": "shell",
             "command": "/usr/bin/time",
             "args": [
                 "-v",
-                "${workspaceFolder}/bin/run_regression.sh",
+                "${workspaceFolder}/bin/run_regression_par.sh",
+                "6",
                 "regression_tests"
             ],
             "group": {

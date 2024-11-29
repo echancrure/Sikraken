@@ -1,16 +1,8 @@
 {
   "configurations": [
     {
-      "id": "run1",
-      "description": "Validation",
-      "algo": "regression(1, 10)",
-      "expected_run_time": 30,
-      "expected_test_inputs_number": 7,
-      "expected_coverage": 16.55
-    }, 
-    {
       "id": "run2",
-      "description": "Should reach the max 46.96%",
+      "description": "Should reach the max 46.96% [also regression(1, 10) 7 tests for 16.55%]",
       "algo": "regression(30, 25)",
       "expected_run_time": 150,
       "expected_test_inputs_number": 64,
