@@ -119,7 +119,7 @@ process_file() {
         zipfile="./sikraken_output/$base_name/test-suite.zip"
         rm -f $zipfile
         zip -r $zipfile "./sikraken_output/$base_name/test-suite"
-        local testcov_output=$(testcov --no-isolation $testcov_data_model --test-suite $zipfile $rel_path_c_file --output "./sikraken_output/$base_name/testcov")
+        local testcov_output=$(testcov --no-isolation $testcov_data_model --test-suite $zipfile $rel_path_c_file --output "./sikraken_output/$base_name/testcov" --reduction NONE)
         #local testcov_output=$($SIKRAKEN_INSTALL_DIR/bin/run_testcov.sh "$regression_test_file" "$testcov_data_model")
         if [ $? -ne 0 ]; then
             echo "ERROR: TestCov validation failed for $regression_test_file"
