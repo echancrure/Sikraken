@@ -129,7 +129,7 @@ se_main(ArgsL) :-
         cancel_after_event('single_test_time_out_exception', _), %to ensure none are left and be triggered later on especially in development mode
         cancel_after_event('overall_generation_time_out', _),    %to ensure none is left and be triggered later on especially in development mode            
         statistics(event_time, Current_session_time),
-        printf('output', "Dev Info: Elapsed time %.2f seconds\n", [Current_session_time]),
+        printf('output', "Dev Info: Session time is %.2f seconds\n", [Current_session_time]),
         print_test_run_log__terminate.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
@@ -168,7 +168,8 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
                  getval('increase_duration_multiplier', Increase_duration_multiplier),
                  New_single_test_time_out is min(Current_single_test_time_out*Increase_duration_multiplier, Maximum), %but there is a maximum 
                  se_globals__set_val('single_test_time_out', New_single_test_time_out),   %todo should depend on global budget remaining
-                 printf('output', "Dev Info: Restart single test budget changed to: %.2f seconds\n", [New_single_test_time_out])
+                 statistics(event_time, Current_session_time),
+                 printf('output', "Dev Info: Restart single test budget changed to: %.2f seconds; overall elapsed time is %.2f seconds\n", [New_single_test_time_out, Current_session_time])
                 )
             ;
                 true
@@ -206,8 +207,7 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_single_test_time_out_event :-
         %mytrace,
-        statistics(event_time, Current_session_time),
-        printf('output', "Dev Info: Time out triggered; overall elapsed time is %.2f seconds\n" , [Current_session_time]),
+        printf('output', "Dev Info: Time out triggered.\n", []),
         throw('single_test_time_out_exception').
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_single_test_time_out_exception :-
@@ -289,10 +289,10 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
                  (label_testcomp(Verifier_inputs, Labeled_inputs) ->
                     (%%%
                      cancel_after_event('single_test_time_out_event', _CancelledEvents), 
-                     statistics(event_time, Current_end_time),
+                     statistics(event_time, Current_session_time),
                      getval(start_time, Current_start_time),
-                     Last_test_duration is Current_end_time - Current_start_time,
-                     printf('output', "Dev Info: Test generated in %.2f seconds\n", [Last_test_duration]),
+                     Last_test_duration is Current_session_time - Current_start_time,
+                     printf('output', "Dev Info: Test generated in %.2f seconds; overall elapsed time is %.2f seconds\n", [Last_test_duration, Current_session_time]),
                      Margin = 10,       %multiplier: one order of magnitude
                      Minimum = 0.5,     %seconds whatever is close but above the overheads
                      (getval('algo', 'time_budget') ->
@@ -300,7 +300,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
                          (Current_single_test_time_out > Minimum, Current_single_test_time_out > Margin * Last_test_duration ->  %last test generation was faster by a wide margin: allocated budget is reduced
                            (New_single_test_time_out is max(Margin * Last_test_duration, Minimum), %but there is a minimum to reduce overheads
                             se_globals__set_val('single_test_time_out', New_single_test_time_out),
-                            printf('output', "Dev Info: Single test budget changed to: %.2f seconds\n", [New_single_test_time_out])
+                            printf('output', "Dev Info: Single test budget changed to: %.2f seconds; overall elapsed time is %.2f seconds\n", [New_single_test_time_out, Current_session_time])
                            )
                          ;
                            New_single_test_time_out = Current_single_test_time_out

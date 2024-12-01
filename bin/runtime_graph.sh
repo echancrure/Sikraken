@@ -6,25 +6,19 @@ INPUT_FILENAME=$(basename "$INPUT_FILE" .log)  # Extract the base name (without 
 INPUT_DIR=$(dirname "$1") 
 OUTPUT_FILE="$INPUT_DIR/${INPUT_FILENAME}_plot.png"  # Use the input file name as part of the output file name
 
-TEMP_FILE1="generated_times.dat"
-TEMP_FILE2="single_test_times.dat"
+# Temporary file to store the extracted data for plotting
+TMP_FILE_TEST="$INPUT_DIR/${INPUT_FILENAME}_test_generated.csv"
+TMP_FILE_BUDGET="$INPUT_DIR/${INPUT_FILENAME}_budget_changed.csv"
 
-# Cleanup temp files if they exist
-rm -f $TEMP_FILE1 $TEMP_FILE2
+# Clear any previous content in the temporary files
+> "$TMP_FILE_TEST"
+> "$TMP_FILE_BUDGET"
 
-# Extract values with their line number for "Test generated"
-grep -n -oP 'Dev Info: Test generated in \K[0-9.]+(?= seconds)' "$INPUT_FILE" | \
-    awk -F: '{print $1, $2}' > "$TEMP_FILE1"
+# Extract Test Generated Times and Overall Elapsed Times into separate files
+grep "Dev Info: Test generated" "$INPUT_FILE" | awk -F"Test generated in | seconds; overall elapsed time is " '{print $2 "," $3}' | sed 's/ seconds//' >> "$TMP_FILE_TEST"
 
-# Extract values with their line number for "Using for a single test"
-grep -n -oP 'test budget changed to: \K[0-9.]+(?= seconds)' "$INPUT_FILE" | \
-    awk -F: '{print $1, $2}' > "$TEMP_FILE2"
-
-# Check if any data was extracted
-if [[ ! -s $TEMP_FILE1 && ! -s $TEMP_FILE2 ]]; then
-    echo "No matching data found for either type."
-    exit 1
-fi
+# Extract Restart Budget Changed Times and Overall Elapsed Times into separate files
+grep "Dev Info: Restart single test budget changed" "$INPUT_FILE" | awk -F"Restart single test budget changed to: | seconds; overall elapsed time is " '{print $2 "," $3}' | sed 's/ seconds//' >> "$TMP_FILE_BUDGET"
 
 # Create a GNUPLOT script
 GNUPLOT_SCRIPT="plot_times.gp"
@@ -33,18 +27,20 @@ cat << EOF > $GNUPLOT_SCRIPT
 set terminal pngcairo size 800,600
 set output '$OUTPUT_FILE'
 set title "$OUTPUT_FILE: Sikraken Test Run"
-set xlabel "Line Number"
+set datafile separator ","
+set xlabel "Overall Elapsed Time (seconds)"
 set ylabel "Time (seconds)"
 set grid
-plot \
-    "$TEMP_FILE1" using 1:2 with linespoints title "Test generated", \
-    "$TEMP_FILE2" using 1:2 with linespoints title "Budget"
+
+# Plot the two datasets separately as two curves using column 2 (overall elapsed times) as x-axis
+plot "$TMP_FILE_TEST" using 2:1 with linespoints title "Test Generated Times", \
+     "$TMP_FILE_BUDGET" using 2:1 with linespoints title "Budget Changed Times"
 EOF
 
 # Generate the graph
 gnuplot $GNUPLOT_SCRIPT
 
-# Cleanup temporary files
-rm -f $TEMP_FILE1 $TEMP_FILE2 $GNUPLOT_SCRIPT
+# Clean up temporary files
+#rm "$TMP_FILE_TEST" "$TMP_FILE_BUDGET"
 
 echo "Graph saved as '$OUTPUT_FILE'."

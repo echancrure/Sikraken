@@ -37,8 +37,6 @@ if [ -f regression_tests_run.log ]; then
     rm -f regression_tests_run.log
 fi
 
-
-
 # Job pool to limit the number of background processes
 job_pool() {
     while [ "$(jobs -r | wc -l)" -ge "$max_jobs" ]; do
@@ -178,7 +176,8 @@ call_testcov() {
         fi
     done
 }
-# main
+
+### main starts here
 
 # Loop over all .c files and process them in parallel
 for regression_test_file in "$c_files_directory"/*.c; do
@@ -186,8 +185,7 @@ for regression_test_file in "$c_files_directory"/*.c; do
     generate_tests "$regression_test_file" &  # Run in the background
 done
 
-# Wait for all background jobs to finish
-wait
+wait    # Wait for all background jobs to finish before running TestCov sequentially
 
 # Run testcov sequentially [because I can't find a way to make it run in parallel even in so-called isolation mode and/or runexec]
 for regression_test_file in "$c_files_directory"/*.c; do
