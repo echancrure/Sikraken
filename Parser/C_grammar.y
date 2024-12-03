@@ -647,20 +647,24 @@ struct_or_union_specifier
 	     free($4);
 	    }
 	| struct_or_union IDENTIFIER {in_tag_namespace = 0;} '{' struct_declaration_list '}'	//Tag namespace Id declaration
-		{size_t const size = strlen("(, [])") + strlen($1) + strlen($2) + strlen($5) + 1;
+		{char *tag_to_Prolog_var = to_prolog_var($2);
+		 size_t const size = strlen("(, [])") + strlen($1) + strlen(tag_to_Prolog_var) + strlen($5) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "%s(%s, [%s])", $1, $2, $5);
+	     sprintf_safe($$, size, "%s(%s, [%s])", $1, tag_to_Prolog_var, $5);
 	     free($1);
 	     free($2);
 		 free($5);
+		 free(tag_to_Prolog_var);
 	    }
-	| struct_or_union IDENTIFIER	//forward declaration Tag namespace Id declaration
+	| struct_or_union IDENTIFIER	//forward declaration Tag namespace Id declaration or as part of a variable declaration
 		{in_tag_namespace = 0;
-		 size_t const size = strlen("%s(%s, 'forward')") + strlen($1) + strlen($2) + 1;
+		 char *tag_to_Prolog_var = to_prolog_var($2);
+		 size_t const size = strlen("%s(%s)") + strlen($1) + strlen(tag_to_Prolog_var) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "%s(%s, 'forward')", $1, $2);
+	     sprintf_safe($$, size, "%s(%s)", $1, tag_to_Prolog_var);
 	     free($1);
 	     free($2);
+		 free(tag_to_Prolog_var);
 	    }
 	;
 

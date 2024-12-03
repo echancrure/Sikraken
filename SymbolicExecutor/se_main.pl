@@ -26,7 +26,7 @@ mytrace.            %call this to start debugging
 
 :- use_module("./../PTC-Solver/source/ptc_solver").
 
-:- use_module(['se_globals', 'se_name_atts', 'se_seav_atts', 'se_sub_atts', 'se_typedef_atts']).
+:- use_module(['se_globals', 'se_name_atts', 'se_seav_atts', 'se_sub_atts', 'se_typedef_atts', 'se_struct_atts']).
 
 :- compile(['common_util', 'se_handle_declarations', 'se_symbolically_execute', 'se_symbolically_interpret', 'se_get_symbolic_lvalue_for_addressing']).
 :- compile(['se_write_tests_testcomp']).
@@ -86,7 +86,11 @@ se_main(ArgsL) :-
     read_parsed_file(Install_dir, Target_source_file_name_no_ext, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors
     %%%pre-symbolic execution
     %mytrace,
-    symbolic_execute(Parsed_prolog_code, _),   %always symbolically execute all global declarations for now: initialisations could be ignored via a switch if desired
+    (symbolic_execute(Parsed_prolog_code, _) ->   %always symbolically execute all global declarations for now: initialisations could be ignored via a switch if desired
+        true
+    ;
+        common_util__error(10, "Sikraken failed to execute the declarations: cannot recover from this", "Should never happen: code needs to be traced", [], '10_021224_3', 'se_main', 'search_CFG_inner', no_localisation, no_extra_info)
+    ),
     %%%
     print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext),
     statistics(event_time, Session_time),
@@ -231,16 +235,10 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
     (Output_mode == 'testcomp' ->
         (se_sub_atts__get(Main, 'parameters', Parameters),
          ((Parameters == [] ; Parameters == [param_no_decl([void], [])]) -> %i.e. main() or main(void)
-            (se_sub_atts__get(Main, 'return_type', Return),
-             (Return == 'int' ->
-                (se_sub_atts__get(Main, 'body', Main_compound_statement),
-                 se_globals__update_ref('current_path_bran', start('Target_raw_subprogram_name', true)),
-                 %mytrace,
-                 symbolic_execute(Main_compound_statement, _Flow)
-                )
-             ;
-                common_util__error(10, "Unexpected main return in testcomp mode", "Best not to proceed", [('Return', Return)], '10_050924_1', 'se_main', 'se_main', no_localisation, no_extra_info)
-             )
+            (%gcc allows main not to be declared to return an int, so we don't enfore it either
+             se_sub_atts__get(Main, 'body', Main_compound_statement),
+             se_globals__update_ref('current_path_bran', start('Target_raw_subprogram_name', true)),
+             symbolic_execute(Main_compound_statement, _Flow)
             )
           ;
             common_util__error(10, "Unexpected main parameters in testcomp mode", "Best not to proceed", [('Parameters', Parameters)], '10_140824_1', 'se_main', 'se_main', no_localisation, no_extra_info)

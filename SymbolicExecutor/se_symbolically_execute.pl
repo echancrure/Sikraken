@@ -34,6 +34,23 @@ symbolic_execute(declaration(Declaration_specifiers, Declarators), 'carry_on') :
             true    %we ignore all other, non-extern, forward function declarations: they will be defined later
         )
     ;
+        Declaration_specifiers = [struct(Tag)] ->
+            (se_struct_atts__is_struct_atts(Tag) ->
+                declare_declarators(Declarators, Tag)
+            ;
+                common_util__error(9, "Expected a struct type", "Sonmething is wrong with Sikraken", [('Tag', Tag)], '9_031224_2', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
+            )
+    ;
+        Declaration_specifiers = [struct(Tag, _Struct_declaration_list)]  ->  
+            ((Tag == 'anonymous' ->
+                Struct_type = _     % any free var will do
+             ;
+                Struct_type = Tag
+             ),
+             symbolic_execute(declaration([struct(Struct_type, _Struct_declaration_list)]), 'carry_on'), %the Struct_type will be declared as a se_struct_atts type
+             declare_declarators(Declarators, Struct_type)
+            )
+    ;
         (Declaration_specifiers = [Specifier|Rest_declaration_specifiers], Specifier == 'typedef') ->
             (extract_type(Rest_declaration_specifiers, Type_name),
              declare_typedefs(Declarators, Type_name)
@@ -46,7 +63,17 @@ symbolic_execute(declaration(Declaration_specifiers, Declarators), 'carry_on') :
     ).
 %e.g. a struct declaration without variables declarations  e.g. declaration([struct(point, [struct_decl([int], [X, Y, Z, T]), struct_decl([float], [Weight])])]), 
 symbolic_execute(declaration(Declaration_specifiers), 'carry_on') :-
-    extract_type(Declaration_specifiers, _Type_name).
+    !,
+    (Declaration_specifiers = [struct(Tag, Struct_declaration_list)]  ->  
+        (create_field_valuesL(Struct_declaration_list, Field_valuesL),
+         se_struct_atts__create(Tag, Field_valuesL)
+        )
+    ;
+     Declaration_specifiers = [struct(_Tag)]  ->    %empty struct_declaration_list : forward declaration is ok to ignore
+        true
+    ;
+        common_util__error(9, "Unexpected declaration", "Sikraken needs expanding", [('Declaration', declaration(Declaration_specifiers))], '9_031224_1', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
+    ).
 symbolic_execute(function(Specifiers, function(Function_name, Parameters), [], Compound_statement), 'carry_on') :-
     !,
     extract_type(Specifiers, Return_type_name),
@@ -104,7 +131,7 @@ symbolic_execute(assign(LValue, Expression), Flow) :-
     Flow = 'carry_on'.
 %basic handling of assignment operators (10 of them)
 %wasteful: LValue is symbolically interpreted twice
-%unsound: if LValue, somehow, has side-effects (e.g. it is a method call that reteurns a pointer)
+%unsound: if LValue, somehow, has side-effects (e.g. it is a method call that returns a pointer)
 symbolic_execute(mul_assign(LValue, Expression), Flow) :-
     !,
     symbolic_execute(assign(LValue, multiply_op(LValue, Expression)), Flow).
