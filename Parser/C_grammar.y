@@ -851,19 +851,28 @@ declarator
 
 direct_declarator
 	: IDENTIFIER		//Ordinary namespace id declaration unless within a struct declaration in which case it is a Member namespace id
-		{char Prolog_var_name[MAX_ID_LENGTH+5];	//todo should use to_prolog_var($1);
-		 if (islower($1[0])) {
-			Prolog_var_name[0] = toupper($1[0]);
-			strcpy_safe(&Prolog_var_name[1], MAX_ID_LENGTH-1, &$1[1]);
+		{if (in_member_namespace) {	//this is a member (from a struct or union) no need to transform into a Prolog var
+			size_t const size = strlen($1) + 1;
+			$$.full = (char*)malloc(size);
+		 	strcpy_safe($$.full, size, $1);
+			$$.ptr_declarator = (char*)malloc(size);
+		 	strcpy_safe($$.ptr_declarator, size, $1);
+			in_member_namespace = 0;
 		 } else {
-			strcpy_safe(Prolog_var_name, MAX_ID_LENGTH, "UC_");
-			strcat_safe(Prolog_var_name, MAX_ID_LENGTH, $1);
+			char Prolog_var_name[MAX_ID_LENGTH+5];	//todo should use to_prolog_var($1);
+			if (islower($1[0])) {
+				Prolog_var_name[0] = toupper($1[0]);
+				strcpy_safe(&Prolog_var_name[1], MAX_ID_LENGTH-1, &$1[1]);
+			} else {
+				strcpy_safe(Prolog_var_name, MAX_ID_LENGTH, "UC_");
+				strcat_safe(Prolog_var_name, MAX_ID_LENGTH, $1);
+			}
+			size_t const size = strlen(Prolog_var_name) + 1;
+		 	$$.full = (char*)malloc(size);
+		 	strcpy_safe($$.full, size, Prolog_var_name);
+		 	$$.ptr_declarator = strdup($$.full);
+		 	free($1);
 		 }
-		 size_t const size = strlen(Prolog_var_name) + 1;
-		 $$.full = (char*)malloc(size);
-		 strcpy_safe($$.full, size, Prolog_var_name);
-		 $$.ptr_declarator = strdup($$.full);
-		 free($1);
 		} 
 	| '(' declarator {in_member_namespace = 0;} ')'			//function pointer e.g. in "int (*func_ptr)(int, int);" delcarator is "*func_ptr"
 		//added in_member_namespace = 0; in case we are within a union or struct to indicate that we just processed the member and the rest my involve typedefs see diary 12/11/24

@@ -1,3 +1,5 @@
+extern int __VERIFIER_nondet_int();
+
 struct point {
     int x, y, z, t;
     float weight;
@@ -11,10 +13,11 @@ struct point3 {
     int x, y, z, t;
     float weight;
 };
-struct {        //anonymous declaration
+struct {        //anonymous declaration has no tag
     int x, y, z, t;
     float weight;
 } anon1, anon2;
+
 int a = 1;
 
 int basic(int x) {
@@ -36,8 +39,12 @@ int basic(int x) {
 
 void *ldv_malloc(int size) {
 
-};;;;;;;;;; //allowed in gcc
+}// ;;;;;;;;;; //allowed in gcc
 
 void main(void) {
-
+    struct point s1;
+    struct point s2 = {1, 2, 3, 4, 42.42};  //list of initialisers can only be used at declaration time
+    s1.x = __VERIFIER_nondet_int();
+    if (s1.x == -5) ;
+    else ;
 }
