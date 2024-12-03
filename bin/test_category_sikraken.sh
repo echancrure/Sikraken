@@ -5,9 +5,9 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)" #Get the directory of the script <si
 SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."
 
 echo "Run all the benchmarks from a TestComp category using SIKRAKEN_INSTALL_DIR is $SIKRAKEN_INSTALL_DIR"
-# Ensure we have 4 arguments
-if [ ! $# -eq 4 ]; then
-    echo "$0.sh usage: $0 <path_to_benchmarks> <category> <cores> <budget>"
+# Ensure we have 5 arguments
+if [ ! $# -eq 5 ]; then
+    echo "$0.sh usage: $0 <path_to_benchmarks> <category> <cores> <budget> <mode>"
     exit 1
 fi
 
@@ -15,6 +15,7 @@ path_to_benchmarks="$1" #e.g. /home/chris/sv-benchmarks/c
 category="$2"           #e.g. ReachSafety-ECA
 cores=$3                #e.g. 6
 budget=$4               #e.g. 900
+mode=$5                 #e.g. debug or release
 
 # Check if the path_to_benchmarks exists
 if [ ! -d "$path_to_benchmarks" ]; then
@@ -29,6 +30,16 @@ full_path_to_category_file="$path_to_benchmarks/$category_file"
 if [ ! -f "$full_path_to_category_file" ]; then
     echo "ERROR: the file of categories $category_file does not exist in $path_to_benchmarks"
     exit 1
+fi
+# Define exclusion set for ReachSafety-ECA
+exclude_set=""
+if [ $category == "ReachSafety-ECA" ]; then
+    exclude_set="$SCRIPT_DIR/../SikrakenDevSpace/ReachSafety-ECA-excludes.set"
+    if [ ! -f "$exclude_set" ]; then
+        echo "ERROR: Exclusion set $exclude_set does not exist."
+        exit 1
+    fi
+    echo "Using the exclude set: "$exclude_set""
 fi
 
 echo "Script called: "$0 $@""
@@ -67,39 +78,41 @@ generate_tests() {
     mkdir -p "$benchmark_output_dir"
     local log_file="$benchmark_output_dir"/sikraken.log  
     echo "debug: the log_file is $log_file" 
+    
+    local parsed_dir="$SIKRAKEN_INSTALL_DIR/sikraken_output/$basename"
+    mkdir -p $parsed_dir
+
     # Check the file extension
     file_extension="${benchmark##*.}"
-
     if [ "$file_extension" == "i" ]; then
         # If the file is already preprocessed (.i), just copy it to $output_dir
-        cp "$benchmark" "$benchmark_output_dir/" >> $log_file 2>&1
+        cp "$benchmark" "$parsed_dir/" >> $log_file 2>&1
         if [ $? -ne 0 ]; then
-            echo "Error: Failed to copy $benchmark to $benchmark_output_dir" >> $log_file 
+            echo "Error: Failed to copy $benchmark to $parsed_dir" >> $log_file 
             return 1
         fi
     else
         # If the file is not preprocessed, preprocess it with gcc
-        gcc -E -P "$benchmark" $gcc_flag -o "$benchmark_output_dir/$basename.i" >> $log_file 2>&1
+        gcc -E -P "$benchmark" $gcc_flag -o "$parsed_dir/$basename.i" >> $log_file 2>&1
         if [ $? -ne 0 ]; then
-            echo "Error: gcc failed on gcc -E -P "$benchmark" $gcc_flag -o "$benchmark_output_dir/$basename.i"" >> $log_file
+            echo "Error: gcc failed on gcc -E -P "$benchmark" $gcc_flag -o "$parsed_dir/$basename.i"" >> $log_file
             return 1
         fi
     fi
 
     # Run the parser on foo.i
-    $SIKRAKEN_INSTALL_DIR/bin/sikraken_parser.exe $gcc_flag -p$benchmark_output_dir $basename >> $log_file 2>&1
+    $SIKRAKEN_INSTALL_DIR/bin/sikraken_parser.exe $gcc_flag -p$parsed_dir $basename >> $log_file 2>&1
 
     echo -e "Generating tests for $basename using a budget of $budget seconds" >> $log_file
 
     # Generate test inputs
-    local eclipse_call="se_main(['$SIKRAKEN_INSTALL_DIR', '$SIKRAKEN_INSTALL_DIR/$rel_path_c_file', '$basename', main, debug, testcomp, '$gcc_flag', budget($budget)])"
-
-    $SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e "$eclipse_call"  >> $log_file 2>&1
+    local eclipse_call="$SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e \"se_main(['$SIKRAKEN_INSTALL_DIR', '${SIKRAKEN_INSTALL_DIR}/${rel_path_c_file}', '$basename', main, $mode, testcomp, '$gcc_flag', budget($budget)])\""
+    eval $eclipse_call  >> $log_file 2>&1
     if [ $? -ne 0 ]; then
         echo "ERROR: Call to ECLiPSe $eclipse_call failed"  >> $log_file
         return 1
     else
-        echo -e "\e[32mTest inputs generated for "$basename"\e[0m"
+        echo "Test inputs generated for "$basename" using $eclipse_call"
     fi
 
     #generate graph
@@ -107,12 +120,20 @@ generate_tests() {
 }
 
 ### main starts here
+# Capture start times
+start_wall_time=$(date +"%Y-%m-%d %H:%M:%S")
+
 category_extracted_benchmarks_files=$"$output_dir"/benchmark_files.txt
 
 grep -o '.*\/.*\.yml' "$full_path_to_category_file" | while read -r pattern_benchmark_directory; do
     
     # e.g. for all the *.yml matching pattern_benchmark_directory eca-rers2012/*.yml
     for yml_file in $path_to_benchmarks/$pattern_benchmark_directory; do
+        # Exclude files listed in the exclusion set
+        if [ -n "$exclude_set" ] && grep -Fxq "$yml_file" "$exclude_set"; then
+            echo "Skipping excluded file: $yml_file"
+            continue
+        fi
         echo "yml_file is $yml_file"
         if [ -f "$yml_file" ]; then
             # Check if the file contains the required property_file line
@@ -120,7 +141,7 @@ grep -o '.*\/.*\.yml' "$full_path_to_category_file" | while read -r pattern_benc
                 echo "Extracting benchmark file from $yml_file"
 
                 # Extract the input file (match "input_files: <filename>" for .c or .i files)
-                benchmark=$(grep "input_files:" "$yml_file" | sed -n "s/^[[:space:]]*input_files:[[:space:]]*'\(.*\)'/\1/p")
+                benchmark=$(grep "input_files:" "$yml_file" | sed -n "s/^[[:space:]]*input_files:[[:space:]]*\(['\"]\?\)\(.*\)\1/\2/p")
 
                 # Extract the data model
                 data_model=$(grep "data_model:" "$yml_file" | sed -n "s/^[[:space:]]*data_model:[[:space:]]*\(.*\)/\1/p")
@@ -149,6 +170,21 @@ done
 
 wait    # Wait for all background jobs to finish before running TestCov sequentially
 
+# merge all the  sikraken.log 
+
+
+# Capture end times
+end_wall_time=$(date +"%Y-%m-%d %H:%M:%S")
+echo "Start Wall Time: $start_wall_time"
+echo "End Wall Time: $end_wall_time"
+echo "Running TestCov sequentially"
 ./bin/test_category_testcov.sh $path_to_benchmarks $output_dir
+after_testcov_wall_time=$(date +"%Y-%m-%d %H:%M:%S")
+echo "After TestCov Wall Time: $after_testcov_wall_time"
+
+budget=$4               #e.g. 900
+generate_table_script="./bin/test_category_generate_table.sh "$output_dir" $budget $mode"
+echo "now calling $generate_table_script"
+$generate_table_script
 
 echo "Sikraken $0 has ended."

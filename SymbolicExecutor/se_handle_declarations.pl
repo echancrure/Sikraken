@@ -120,9 +120,8 @@ extract_type(Declaration_specifiers_list, unsigned(Type)) :-
 extract_type(['signed'|R], Type) :- %signed is the default so we ignore it
     !,
     extract_type(R, Type).
-extract_type(['const'|R], Type) :-
+extract_type(['const'|R], Type) :-  %const has no semantic impact for symbolic execution: perhaps could be optimised to mean don't create a SEAV sice it will never be assigned (gain likely to be small)
     !,
-    common_util__error(8, "Type Qualifier: Ignored Semantics", "todo check how semantics is affected", [('type_qualifier', 'const')], '8_261024', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info),
     extract_type(R, Type).
 extract_type(['restrict'|R], Type) :-
     !,
