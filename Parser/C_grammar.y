@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdbool.h>
 #include "parser.h"
 #include "utils.c"
 #include "handle_typedefs.c"
@@ -39,6 +40,9 @@ extern char *yytext;
 
 #define MAX_PATH 256
 #define MAX_BRANCH_STR 9		//maximum length of the string encoding the number of branches (max is "999999999" i.e. 1 billion - 1)
+
+#define MAX_TOKENS 100  // Maximum number of tokens
+#define MAX_LENGTH 256  // Maximum string length
 
 int debugMode = 0;				//flag to indicate if we are in debug mode set by -d command line switch
 int dataModel = 32;				//flag to indicate data model used in the C code under analysis; set by -m32 or -m64 on the command line; default is 32
@@ -56,6 +60,7 @@ int in_member_namespace = 0;	//indicates to the lexer that we are in the member 
 char *current_function;			//we keep track of the function being parsed so that we can add it to goto statements
 void yyerror(const char*);
 void my_exit(int);				//attempts to close handles and delete generated files prior to caling exit(int);
+void process_declaration_specifiers(char a[]); //Processes declaration specifiers to generalize them for Sikraken i.e signed long int -> long.
 
 %}
 
@@ -147,7 +152,7 @@ constant
 	| ENUMERATION_CONSTANT	/* after it has been defined as such */
 	;
 
-enumeration_constant		/* before it has been defined as such */
+enumeration_constant		
 	: IDENTIFIER		//Ordinary namespace Id declaration
 	;
 
@@ -156,16 +161,16 @@ string
 	| FUNC_NAME			{simple_str_lit_copy(&$$, "thisFunctionName");}
 	;
 
-generic_selection	/* to do */
+generic_selection	
 	: GENERIC '(' assignment_expression ',' generic_assoc_list ')'
 	;
 
-generic_assoc_list	/* to do */
+generic_assoc_list	
 	: generic_association
 	| generic_assoc_list ',' generic_association
 	;
 
-generic_association	/* to do */
+generic_association	
 	: type_name ':' assignment_expression
 	| DEFAULT ':' assignment_expression
 	;
@@ -505,7 +510,8 @@ constant_expression
 
 declaration
 	: declaration_specifiers ';'
-		{size_t const size = strlen("\ndeclaration([])") + strlen($1) + 1;
+		{printf("This rule is matched 1 \n");
+		 size_t const size = strlen("\ndeclaration([])") + strlen($1) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "\ndeclaration([%s])", $1);
 		 free($1);
@@ -521,15 +527,18 @@ declaration
 	    	typedef_flag = 0; 
 			//if (debugMode) printf("Debug: typedef switched to 0\n");
 	   	 }
-		 
+		 printf("This rule is matched 2 \n");
+		 //process_declaration_specifiers($1);
 		 size_t const size = strlen("\ndeclaration([], [])") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "\ndeclaration([%s], [%s])", $1, $2);
+		 printf("%s| %s \n", $1, $2);
+		 sprintf_safe($$, size, "\ndeclaration([%s], [%s]) \n", $1, $2);
 		 free($1);
 		 free($2);
 		}
 	| static_assert_declaration
-		{size_t const size = strlen("\n") + strlen($1) + 1;
+		{printf("This rule is matched 7 \n");
+		 size_t const size = strlen("\n") + strlen($1) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "\n%s", $1);
 		 free($1);
@@ -538,7 +547,9 @@ declaration
 
 declaration_specifiers
 	: storage_class_specifier declaration_specifiers
-		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
+		{printf("This rule is matched 3 \n");
+		 size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
+		 printf("%s| %s \n", $1, $2);
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "%s, %s", $1, $2);
 		 free($1);
@@ -546,7 +557,9 @@ declaration_specifiers
 		}
 	| storage_class_specifier
 	| type_specifier declaration_specifiers
-		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
+		{printf("This rule is matched 4 \n");
+		 size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
+		 printf("%s| %s \n", $1, $2);
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "%s, %s", $1, $2);
 		 free($1);
@@ -554,7 +567,9 @@ declaration_specifiers
 		}
 	| type_specifier
 	| type_qualifier declaration_specifiers
-		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
+		{printf("This rule is matched 5 \n");
+		 size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
+		 printf("%s| %s \n", $1, $2);
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "%s, %s", $1, $2);
 		 free($1);
@@ -584,7 +599,8 @@ init_declarator_list
 
 init_declarator
 	: declarator '=' initializer
-		{size_t const size = strlen("initialised(, )") + strlen($1.full) + strlen($3) + 1;
+		{printf("This rule is matched 6 \n");
+		 size_t const size = strlen("initialised(, )") + strlen($1.full) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
 	   	 sprintf_safe($$, size, "initialised(%s, %s)", $1.full, $3);
 	   	 free($1.full);
@@ -601,7 +617,7 @@ init_declarator
 	;
 
 storage_class_specifier
-	: TYPEDEF	/* the following typedef declarator identifier must be added to the list of typedefs so that it will get identified as TYPEDEF_NAME in lexer and not as an identifier*/
+	: TYPEDEF	
 		{simple_str_lit_copy(&$$, "typedef");
          typedef_flag = 1;
 		 //if (debugMode) printf("Debug: typedef switched to 1\n");
@@ -625,11 +641,11 @@ type_specifier
 	| UNSIGNED				{ simple_str_lit_copy(&$$, "unsigned"); }
 	| BOOL					{ simple_str_lit_copy(&$$, "bool"); }
 	| COMPLEX				{ simple_str_lit_copy(&$$, "complex"); }
-	| IMAGINARY				{ simple_str_lit_copy(&$$, "imaginary"); } 	// non-mandated C extension
+	| IMAGINARY				{ simple_str_lit_copy(&$$, "imaginary"); } 	
 	| atomic_type_specifier	{ simple_str_lit_copy(&$$, "atomic_type_specifier"); }
 	| struct_or_union_specifier
 	| enum_specifier
-	| TYPEDEF_NAME			/* a type_specififer after it has been defined as such */
+	| TYPEDEF_NAME			
 		{$$ = to_prolog_var($1);
 		 free($1);
 		}
@@ -654,7 +670,7 @@ struct_or_union_specifier
 	     free($2);
 		 free($5);
 	    }
-	| struct_or_union IDENTIFIER	//forward declaration Tag namespace Id declaration
+	| struct_or_union IDENTIFIER	
 		{in_tag_namespace = 0;
 		 size_t const size = strlen("%s(%s, 'forward')") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
@@ -690,12 +706,14 @@ struct_declaration
 	: specifier_qualifier_list ';'	/* for anonymous struct/union ?????????? */
 		{size_t const size = strlen("struct_decl_anonymous()") + strlen($1) + 1;
        	 $$ = (char*)malloc(size);
+		 printf("%s \n \n", $1);
          sprintf_safe($$, size, "struct_decl_anonymous(%s)", $1);
 	   	 free($1);
         }
 	| specifier_qualifier_list struct_declarator_list ';'
 		{size_t const size = strlen("struct_decl([], [])") + strlen($1) + strlen($2) + 1;
        	 $$ = (char*)malloc(size);
+		 //have to put the function here.
          sprintf_safe($$, size, "struct_decl([%s], [%s])", $1, $2);
 	   	 free($1);
 		 free($2);
@@ -737,7 +755,7 @@ struct_declarator
 	: {in_member_namespace = 1;} struct_declarator2
 		{$$ = $2;}
 
-struct_declarator2		//added to avoid reduce-reduce conflict
+struct_declarator2		
 	: ':' {in_member_namespace = 0;} constant_expression
 		{size_t const size = strlen("anonymous_bit_field()") + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
@@ -805,7 +823,7 @@ enumerator_list
         }
 	;
 
-enumerator	/* identifiers must be flagged as ENUMERATION_CONSTANT */
+enumerator	
 	: enumeration_constant '=' constant_expression
 		{size_t const size = strlen("init_enum(, )") + strlen($1) + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
@@ -816,7 +834,7 @@ enumerator	/* identifiers must be flagged as ENUMERATION_CONSTANT */
 	| enumeration_constant
 	;
 
-atomic_type_specifier		// new in C11 for atomic operation: used in concurrency
+atomic_type_specifier		
 	: ATOMIC_SPECIFIER type_name ')'	//the opening parenthesis '(' is matched by the lexer
 	;
 
@@ -1114,7 +1132,7 @@ initializer_list
 		}
 	;
 
-designation	//C99 this is for named-initializer as opposed to positional-initializer
+designation	
 	: designator_list '='
 		{size_t const size = strlen("designation([])") + strlen($1) + 1;
 	     $$ = (char*)malloc(size);
@@ -1191,7 +1209,7 @@ labeled_statement
 	  }
 	;
 
-compound_statement	//aka a 'block'
+compound_statement	
 	: '{' '}'	{simple_str_lit_copy(&$$, "\ncmp_stmts([])");}
 	| '{' block_item_list '}' 
 	  {size_t const size = strlen("\ncmp_stmts([\n])") + strlen($2) + 1;
@@ -1310,12 +1328,12 @@ jump_statement
 	;
 
 //top level rule
-translation_unit 			//printed out
+translation_unit 			
 	: external_declaration
 	| translation_unit {fprintf(pl_file, ", \n");} external_declaration
 	;
 
-external_declaration		//printed out
+external_declaration		
 	: function_definition	{fprintf(pl_file, "%s", $1); free($1);}
 	| declaration			{fprintf(pl_file, "%s", $1); free($1);}
 	;
@@ -1415,6 +1433,96 @@ int main(int argc, char *argv[]) {
 	fclose(i_file);
 	i_file = NULL;
 	my_exit(EXIT_SUCCESS);
+}
+
+void process_declaration_specifiers(char a[]) {
+typedef struct {
+    bool isTypeDef;
+    bool isExtern;
+    bool isConstant;
+    bool isStatic;
+    bool isInt;
+    bool isChar;
+    bool isDouble;
+    bool isFloat;
+    bool isStruct;
+    bool isSigned;
+    bool isShort;
+    int longCount;
+} SpecifierFlags;
+
+    char *token;
+    SpecifierFlags flags = {false, false, false, false, true, false, false, false,false, true, false, 0};
+
+    // Tokenize the string using commas and spaces as delimiters
+    token = strtok(a, ", ");
+    while (token != NULL) {
+        if(strcmp(token, "double") == 0){
+            flags.isInt = false;
+            flags.isDouble = true;
+        }else if(strcmp(token, "float") == 0){
+            flags.isInt = false;
+            flags.isFloat = true;
+        }else if (strcmp(token, "char") == 0){
+            flags.isInt = false;
+            flags.isChar = true;
+        } else if (strcmp(token, "long") == 0) {
+            flags.longCount++;
+        }else if(strcmp(token, "short") == 0){
+            flags.isShort = true;
+        }else if (strcmp(token, "unsigned") == 0) {
+            flags.isSigned = false;
+        }else if(strcmp(token, "const") == 0){
+            flags.isConstant = true;
+        }else if(strcmp(token, "static") == 0){
+            flags.isStatic = true;
+        }else if(strcmp(token, "extern") == 0){
+            flags.isExtern = true;
+        }else if(strcmp(token, "typedef") == 0){
+            flags.isTypeDef = true;
+        }else if(strcmp(token, "struct") == 0){
+            flags.isStruct = true;
+            flags.isInt = false;
+        }
+        token = strtok(NULL, ", "); // Get the next token
+    }
+    
+    if(flags.isInt){
+        a[0] = '\0';
+        if(flags.isTypeDef){
+            strcpy(a, "typedef, ");
+        }
+        if(flags.isExtern){
+            strcat(a, "extern, ");
+        }
+        if(flags.isConstant){
+            strcat(a, "const, ");
+        }
+        if(flags.isStatic){
+            strcat(a, "static, ");
+        }
+        if(flags.isSigned){
+            if(flags.longCount == 1){
+                strcat(a, "long");
+            }else if(flags.longCount == 2){
+                strcat(a, "long, long");
+            }else if(flags.isShort){
+                strcat(a, "short");
+            }else{
+                strcat(a, "int");
+            }
+        }else{
+            if(flags.longCount == 1){
+                strcat(a, "unsigned, long");
+            }else if(flags.longCount == 2){
+                strcat(a, "unsigned, long, long");
+            }else if(flags.isShort){
+                strcat(a, "unsigned, short");
+            }else{
+                strcat(a, "unsigned, int");
+            }
+        }
+    }
 }
 
 //handles parsing errors: since the C input file is the output of a C pre-processor it will only be called if
