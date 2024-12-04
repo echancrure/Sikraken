@@ -713,7 +713,7 @@ struct_declaration
 	| specifier_qualifier_list struct_declarator_list ';'
 		{size_t const size = strlen("struct_decl([], [])") + strlen($1) + strlen($2) + 1;
        	 $$ = (char*)malloc(size);
-		 //have to put the function here.
+		 process_declaration_specifiers($1);
          sprintf_safe($$, size, "struct_decl([%s], [%s])", $1, $2);
 	   	 free($1);
 		 free($2);

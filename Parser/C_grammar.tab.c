@@ -3295,7 +3295,7 @@ yyreduce:
 #line 714 "C_grammar.y"
                 {size_t const size = strlen("struct_decl([], [])") + strlen((yyvsp[-2].id)) + strlen((yyvsp[-1].id)) + 1;
        	 (yyval.id) = (char*)malloc(size);
-		 //have to put the function here.
+		 process_declaration_specifiers((yyvsp[-2].id));
          sprintf_safe((yyval.id), size, "struct_decl([%s], [%s])", (yyvsp[-2].id), (yyvsp[-1].id));
 	   	 free((yyvsp[-2].id));
 		 free((yyvsp[-1].id));
