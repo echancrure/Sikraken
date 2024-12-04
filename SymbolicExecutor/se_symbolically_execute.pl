@@ -126,6 +126,13 @@ symbolic_execute(assign(LValue, Expression), Flow) :-
          seav__update(Array_exp, 'output', New_array)   %will not work is Array_exp is an expression e.g. a function call or anything that returns an array [remember in Mika we had a way to make this work]
         )
     ;
+    LValue = select(Struct_exp, Field) ->   %struct field assignment e.g. p.x = 12;
+        (symbolically_interpret(Struct_exp, symb(_, Struct_value)),
+         symbolically_interpret(Expression, symb(_, Expression_value)), %casting ? do it here or in solver?
+         ptc_solver__up_record(Struct_value, Field, Expression_value, New_struct),
+         seav__update(Struct_exp, 'output', New_struct)
+        )
+    ;
         common_util__error(9, "Unexpected LValue", "Sikraken's logic is wrong", [('LValue', LValue)], '9_030824_2', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
     ),
     Flow = 'carry_on'.

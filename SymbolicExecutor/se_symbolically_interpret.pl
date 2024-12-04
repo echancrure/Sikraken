@@ -96,7 +96,6 @@ symbolically_interpret(cast(Raw_typeL, Expression), symb(To_type, Casted)) :-
 symbolically_interpret(addr(Expression), symb(pointer(Type), addr(LValue))) :-
     !,
     get_symbolic_lvalue_for_addressing(Expression, Type, LValue).  %not normal symbolic execution: stop once we get an lvalue
-
 symbolically_interpret(deref(Expression), Symbolic_expression) :-
     !,
     symbolically_interpret(Expression, Symbolic_expression_ptr),
@@ -121,6 +120,10 @@ symbolically_interpret(index(Array_exp, Index_exp), symb(Element_type, Element))
          Element = 0
         )
     ).
+symbolically_interpret(select(Struct_exp, Field), symb(_Member_type, Member)) :-
+    !,
+    symbolically_interpret(Struct_exp, symb(_, Struct_value)),
+    ptc_solver__get_field(Struct_value, Field, Member).
 symbolically_interpret(initializer([]), symb(initializer, initializer([]))) :-
     !.
 symbolically_interpret(initializer([Expr|Rest_expr]), symb(initializer, initializer([Value|Value_list]))) :-
