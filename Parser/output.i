@@ -17,21 +17,7 @@ int main(){
     double x = 12.15;
 
     printf("%ld, %ld, %ld, %ld, %d, %lld, %ld, %lld, %ld, %d \n", a, b, c, d ,e ,f ,g, h, j, k);*/
-    typedef struct
-  {
-    int quot;
-    int rem;
-  } div_t;
-  typedef struct
-  {
-    long int quot;
-    long int rem;
-  } ldiv_t;
-__extension__ typedef struct
-  {
-    long long int quot;
-    long long int rem;
-  } lldiv_t;
+
   typedef struct {
     int id;
     char name[50];

@@ -74,74 +74,77 @@ typedef struct {
     char *token;
     SpecifierFlags flags = {false, false, false, false, true, false, false, false,false, true, false, 0};
 
-    // Tokenize the string using commas and spaces as delimiters
-    token = strtok(a, ", ");
-    while (token != NULL) {
-        if(strcmp(token, "double") == 0){
-            flags.isInt = false;
-            flags.isDouble = true;
-        }else if(strcmp(token, "float") == 0){
-            flags.isInt = false;
-            flags.isFloat = true;
-        }else if (strcmp(token, "char") == 0){
-            flags.isInt = false;
-            flags.isChar = true;
-        } else if (strcmp(token, "long") == 0) {
-            flags.longCount++;
-        }else if(strcmp(token, "short") == 0){
-            flags.isShort = true;
-        }else if (strcmp(token, "unsigned") == 0) {
-            flags.isSigned = false;
-        }else if(strcmp(token, "const") == 0){
-            flags.isConstant = true;
-        }else if(strcmp(token, "static") == 0){
-            flags.isStatic = true;
-        }else if(strcmp(token, "extern") == 0){
-            flags.isExtern = true;
-        }else if(strcmp(token, "typedef") == 0){
-            flags.isTypeDef = true;
-        }else if(strcmp(token, "struct") == 0){
+    if(strncmp(a, "struct", 6) == 0 || strncmp(a, "typedef, struct", 15) == 0){
             flags.isStruct = true;
             flags.isInt = false;
-        }
-        token = strtok(NULL, ", "); // Get the next token
-        printf("%s", token);
-    }
-    
-    if(flags.isInt){
-        a[0] = '\0';
-        if(flags.isTypeDef){
-            strcpy(a, "typedef, ");
-        }
-        if(flags.isExtern){
-            strcat(a, "extern, ");
-        }
-        if(flags.isConstant){
-            strcat(a, "const, ");
-        }
-        if(flags.isStatic){
-            strcat(a, "static, ");
-        }
-        if(flags.isSigned){
-            if(flags.longCount == 1){
-                strcat(a, "long");
-            }else if(flags.longCount == 2){
-                strcat(a, "long, long");
-            }else if(flags.isShort){
-                strcat(a, "short");
-            }else{
-                strcat(a, "int");
-            }
         }else{
-            if(flags.longCount == 1){
-                strcat(a, "unsigned, long");
-            }else if(flags.longCount == 2){
-                strcat(a, "unsigned, long, long");
-            }else if(flags.isShort){
-                strcat(a, "unsigned, short");
-            }else{
-                strcat(a, "unsigned, int");
+            // Tokenize the string using commas and spaces as delimiters
+            token = strtok(a, ", ");
+            while (token != NULL) {
+                if(strcmp(token, "double") == 0){
+                    flags.isInt = false;
+                    flags.isDouble = true;
+                }else if(strcmp(token, "float") == 0){
+                    flags.isInt = false;
+                    flags.isFloat = true;
+                }else if (strcmp(token, "char") == 0){
+                    flags.isInt = false;
+                    flags.isChar = true;
+                } else if (strcmp(token, "long") == 0) {
+                    flags.longCount++;
+                }else if(strcmp(token, "short") == 0){
+                    flags.isShort = true;
+                }else if (strcmp(token, "unsigned") == 0) {
+                    flags.isSigned = false;
+                }else if(strcmp(token, "const") == 0){
+                    flags.isConstant = true;
+                }else if(strcmp(token, "static") == 0){
+                    flags.isStatic = true;
+                }else if(strcmp(token, "extern") == 0){
+                    flags.isExtern = true;
+                }else if(strcmp(token, "typedef") == 0){
+                    flags.isTypeDef = true;
+                }
+                token = strtok(NULL, ", "); // Get the next token
             }
+                
+            if(flags.isInt){
+                a[0] = '\0';
+                if(flags.isTypeDef){
+                    strcpy(a, "typedef, ");
+                }
+                if(flags.isExtern){
+                    strcat(a, "extern, ");
+                }
+                if(flags.isConstant){
+                    strcat(a, "const, ");
+                }
+                if(flags.isStatic){
+                    strcat(a, "static, ");
+                }
+                if(flags.isSigned){
+                    if(flags.longCount == 1){
+                        strcat(a, "long");
+                    }else if(flags.longCount == 2){
+                        strcat(a, "long, long");
+                    }else if(flags.isShort){
+                        strcat(a, "short");
+                    }else{
+                        strcat(a, "int");
+                    }
+                }else{
+                    if(flags.longCount == 1){
+                        strcat(a, "unsigned, long");
+                    }else if(flags.longCount == 2){
+                        strcat(a, "unsigned, long, long");
+                    }else if(flags.isShort){
+                        strcat(a, "unsigned, short");
+                    }else{
+                        strcat(a, "unsigned, int");
+                    }
+                }
+            }
+
         }
-    }
+    
 }
