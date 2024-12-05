@@ -34,15 +34,15 @@ symbolic_execute(declaration(Declaration_specifiers, Declarators), 'carry_on') :
             true    %we ignore all other, non-extern, forward function declarations: they will be defined later
         )
     ;
-        (Declaration_specifiers = [Declaration_specifier], nonvar(Declaration_specifier), Declaration_specifier = [struct(Tag)] ->
-            (se_struct_atts__is_struct_atts(Tag) -> 
+        (Declaration_specifiers = [Declaration_specifier], nonvar(Declaration_specifier), Declaration_specifier = struct(Tag) ->
+            (ptc_solver__is_struct_type(Tag) -> 
                 declare_declarators(Declarators, Tag)   %the struct type has already been declared: all good
             ;
                 common_util__error(9, "Expected a struct type", "Something is wrong with Sikraken", [('Tag', Tag)], '9_031224_2', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
             )
         )
     ;
-        (Declaration_specifiers = [Declaration_specifier], nonvar(Declaration_specifier), Declaration_specifier = [struct(Tag, Struct_declaration_list)]  ->  
+        (Declaration_specifiers = [Declaration_specifier], nonvar(Declaration_specifier), Declaration_specifier = struct(Tag, Struct_declaration_list)  ->  
             (create_struct_type(struct(Tag, Struct_declaration_list), Struct_type),
              declare_declarators(Declarators, Struct_type)
             )
@@ -65,8 +65,8 @@ symbolic_execute(declaration(Declaration_specifiers), 'carry_on') :-
     (Declaration_specifiers = [struct(Tag, Struct_declaration_list)]  ->  
         create_struct_type(struct(Tag, Struct_declaration_list), _Struct_type)
     ;
-     Declaration_specifiers = [struct(_Tag)]  ->    %empty struct_declaration_list : no need to create a type, forward declaration is ok to ignore
-        true
+     Declaration_specifiers = [struct(Tag)]  ->    %forward struct declaration: declared as empty, will be destroyed on definition
+        create_struct_type(struct(Tag, []), _Struct_type)
     ;
         common_util__error(9, "Unexpected declaration", "Sikraken needs expanding", [('Declaration', declaration(Declaration_specifiers))], '9_031224_1', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
     ).

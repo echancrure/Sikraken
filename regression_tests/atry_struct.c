@@ -1,5 +1,11 @@
 extern int __VERIFIER_nondet_int();
 
+struct point {
+    int x, y, z, t; 
+    float weight;
+} p78 = {1,2,3,4,4.004};
+
+/*
 typedef struct {
     int n;
 }S; //S is a typedef to an anonymous struct
@@ -7,10 +13,7 @@ typedef struct {
 S Sx;       //an object of type struct
 S Ax[5];    //an array of struct
 
-struct point {
-    int x, y, z, t; 
-    float weight;
-};
+
 struct point2 {
     int x, y, z, t;
     float weight;
@@ -26,29 +29,6 @@ struct {        //anonymous declaration has no tag
 } anon1, anon2;
 
 int a = 1;
-
-int basic(int x) {
-    int a = 2;
-    int b = 0;          //b == 0
-    {
-        int a = 3;
-        { 
-            int a = 4;
-            b = x+a;    //b == x + 4
-            if (b>42) b = b + 1; //b == x + 4 + 1
-            else b = b + 1000;   //b == x + 4 + 1000
-        }
-        b = b+a;        //b == 4 + x + 1 + 3 or b == x + 4 + 1000 + 3
-    }
-    b = b+a;            //b == 4 + x + 1 + 3 + 2 or b == x + 4 + 1000 + 3 + 2 
-    return b+x; //b == 4 + x + 1 + 3 + 2 + x or b == b == x + 4 + 1000 + 3 + 2 + x
-}
-
-void *ldv_malloc(int size) {
-
-}// ;;;;;;;;;; //allowed in gcc
-
-
 
 typedef struct plot plot;   //typedef of a forward declaration
 struct plot {
@@ -77,16 +57,17 @@ typedef Point PointArray[10];  // PointArray is an array of 10 Points
 PointArray points = {{1, 2}, {3, 4}};  // Array of points: only the first 2 points are initialised
 
 
-
 typedef struct Node Node;   //Node is a typedef to struct Node which is a forward declaration
 struct Node {               //the struct Node is declared
     int value;
     Node *next;             // Pointer to the same struct type using the earlier typedef
 };
 Node n = {10, 0};
+*/
 
 void main(void) {
-    S x;
+    float fl = p78.x;  //check that casting is called (int to float)
+/*    S x;
     x.n = __VERIFIER_nondet_int();
     if (x.n == 99) ;
     else ;
@@ -96,4 +77,5 @@ void main(void) {
     s1.x = __VERIFIER_nondet_int();
     if (s1.x == -5) ;
     else ;
+    */
 }

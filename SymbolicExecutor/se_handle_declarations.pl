@@ -27,10 +27,9 @@ declare_single_declarator(Declarator, Type_name, Type_name_ptr_opt, Casted, Clea
          ptc_solver__create_variable(array(Element_type, Size, Initialisation), Casted)
         )
     ;
-     se_struct_atts__is_struct_atts(Type_name_ptr_opt) ->
-        (se_struct_atts__get(Type_name_ptr_opt, 'field_values', Field_valuesL),
-         symbolically_interpret(Initialiser, symb(_, Initialisation)),
-         ptc_solver__create_variable(struct(Field_valuesL, Initialisation), Casted)
+     ptc_solver__is_struct_type(Type_name_ptr_opt) ->
+        (symbolically_interpret(Initialiser, symb(_, Initialisation)),
+         ptc_solver__create_variable(struct(Type_name_ptr_opt, Initialisation), Casted)
         )
     ;    
         %atomic object
@@ -52,6 +51,7 @@ declare_typedefs([Typedef|R], Type_name) :-
     se_typedef_atts__create(Type_name_ptr_opt, Clean_typedef_var),
     declare_typedefs(R, Type_name).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%should be done in the solver
 create_struct_type(struct(Tag, Struct_declaration_list), Struct_type) :-
     (Tag == 'anonymous' ->
         Struct_type = _     % any free var will do
@@ -59,7 +59,7 @@ create_struct_type(struct(Tag, Struct_declaration_list), Struct_type) :-
         Struct_type = Tag
     ),
     (create_field_valuesL(Struct_declaration_list, Field_valuesL),
-     se_struct_atts__create(Struct_type, Field_valuesL)
+     ptc_solver__create_struct_type(Struct_type, Field_valuesL)
     ).
     %%%
     create_field_valuesL([], []).
@@ -69,16 +69,15 @@ create_struct_type(struct(Tag, Struct_declaration_list), Struct_type) :-
         append(Inner_field_values_List, Field_values_Rest, Field_values_List).
         %%%
         single_struct_decl(Type_specifiers_L, Declarators_List, Inner_field_values_List) :-
-            extract_type(Type_specifiers_L, Member_type),   %will have to deal with pointers
-            declarator_list(Declarators_List, Member_type, Inner_field_values_List).
+            extract_type(Type_specifiers_L, Member_type),   %will have to deal with pointers and arrays
+            member_list(Declarators_List, Member_type, Inner_field_values_List).
             
             %%%
-            declarator_list([], _Member_type, []).
-            declarator_list([Declarator|Declarators_List_Rest], Member_type, [(Member, Value)|Inner_field_values_Rest]) :-
+            member_list([], _Member_type, []).
+            member_list([Member|Declarators_List_Rest], Member_type, [(Member, Member_type)|Inner_field_values_Rest]) :-
                 %for Declarator extract the member name and create a Value
                 %a Declarator can be x, *x, x[10]
-                declare_single_declarator(Declarator, Member_type, _Type_name_ptr_opt, Value, Member),
-                declarator_list(Declarators_List_Rest, Member_type, Inner_field_values_Rest).
+                member_list(Declarators_List_Rest, Member_type, Inner_field_values_Rest).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %e.g. extract_pointers(ptr_decl(pointer, X), int, pointer(int), X)
 %e.g. extract_pointers(array_decl(A, Size), int, array(int, Size), A)
@@ -206,8 +205,8 @@ extract_type(['void'], void) :-
 extract_type([struct(Tag, Struct_decl_list)], Struct_type) :-
     !,
     create_struct_type(struct(Tag, Struct_decl_list), Struct_type).
-%e.g. handling a typedef of a forward struct
 extract_type([struct(Tag)], Tag) :-
+    ptc_solver__is_struct_type(Tag),
     !.
 extract_type(Specifiers, _Type_name) :-
     common_util__error(9, "Not Handled", "Sikraken needs expanding", [('Specifiers', Specifiers)], '9_270724', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).

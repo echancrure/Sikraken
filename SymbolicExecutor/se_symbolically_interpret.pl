@@ -122,18 +122,18 @@ symbolically_interpret(index(Array_exp, Index_exp), symb(Element_type, Element))
          Element = 0
         )
     ).
-symbolically_interpret(select(Struct_exp, Field), symb(_Member_type, Member)) :-
+symbolically_interpret(select(Struct_exp, Field), symb(Member_type, Member)) :-
     !,
     symbolically_interpret(Struct_exp, symb(_, Struct_value)),
-    ptc_solver__get_field(Struct_value, Field, Member).
+    ptc_solver__get_field(Struct_value, Field, Member_type, Member).
 symbolically_interpret('no_initialiser', symb(_, 'no_initialiser')) :-
     !.
 symbolically_interpret(initializer([]), symb(_, initialiser([]))) :-
     !.
-symbolically_interpret(initializer([Expr|Rest_expr]), symb(_, initialiser([Value|Value_list]))) :-
+symbolically_interpret(initializer([Expr|Rest_expr]), symb(_, initialiser([symb(Value_type, Value)|Value_list]))) :-
     !,
     %mytrace,
-    symbolically_interpret(Expr, symb(_, Value)),
+    symbolically_interpret(Expr, symb(Value_type, Value)),
     symbolically_interpret(initializer(Rest_expr), symb(_, initialiser(Value_list))).
 symbolically_interpret(multiply_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp * Ri_casted_exp)) :-
     !,

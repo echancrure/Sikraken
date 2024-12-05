@@ -20,7 +20,7 @@ Length len, maxlen;
 typedef long Blockno, *Blockptr;    //K&R p. 221
 typedef unsigned char SORT_1;
 //typedef char *__caddr_t;            
-typedef __caddr_t caddr_t;//sll-buckets-2.c
+typedef __caddr_t caddr_t;//sll-buckets-2.c 
 const SORT_1 mask_SORT_1 = (SORT_1)-1 >> (sizeof(SORT_1) * 8 - 1);
 typedef __builtin_va_list Length2;
 typedef Length2 My_length;
@@ -32,7 +32,7 @@ typedef struct _IO_FILE __FILE;
 
 typedef struct _IO_FILE _IO_FILE;   
 
-struct _IO_FILE{        //defines struct _IO_FILE
+struct _IO_FILE{        //at last defines struct _IO_FILE
     int  Id_MCDC_0;
 };
 

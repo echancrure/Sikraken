@@ -26,7 +26,7 @@ mytrace.            %call this to start debugging
 
 :- use_module("./../PTC-Solver/source/ptc_solver").
 
-:- use_module(['se_globals', 'se_name_atts', 'se_seav_atts', 'se_sub_atts', 'se_typedef_atts', 'se_struct_atts']).
+:- use_module(['se_globals', 'se_name_atts', 'se_seav_atts', 'se_sub_atts', 'se_typedef_atts']).
 
 :- compile(['common_util', 'se_handle_declarations', 'se_symbolically_execute', 'se_symbolically_interpret', 'se_get_symbolic_lvalue_for_addressing']).
 :- compile(['se_write_tests_testcomp']).
