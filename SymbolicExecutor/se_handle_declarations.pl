@@ -12,7 +12,7 @@ declare_single_declarator(Declarator, Type_name, Type_name_ptr_opt, Casted, Clea
     ;
         (Direct_declarator = Declarator,
          (getval('execution_mode', 'local') ->
-            Initialiser = 'no_initialiser'
+            Initialiser = 'uninitialised'
          ;
             Initialiser = int(0)   %will initialise everything to 0 by default
          )
@@ -24,22 +24,24 @@ declare_single_declarator(Declarator, Type_name, Type_name_ptr_opt, Casted, Clea
     (nonvar(Type_name_ptr_opt), Type_name_ptr_opt = array(Element_type, Size_expr) ->    %array variable creation required
         (symbolically_interpret(Size_expr, symb(_, Size)),
          symbolically_interpret(Initialiser, symb(_, Initialisation)),   %todo should be casted to Element_type, should be done within ptc_solver_array
-         ptc_solver__create_c_array(Element_type, Size, Initialisation, Casted)
+         ptc_solver__create_variable(array(Element_type, Size, Initialisation), Casted)
         )
     ;
      se_struct_atts__is_struct_atts(Type_name_ptr_opt) ->
         (se_struct_atts__get(Type_name_ptr_opt, 'field_values', Field_valuesL),
          symbolically_interpret(Initialiser, symb(_, Initialisation)),
-         ptc_solver__initialise_record(Field_valuesL, Initialisation, Casted)
+         ptc_solver__create_variable(struct(Field_valuesL, Initialisation), Casted)
         )
     ;    
         %atomic object
         %don't perform symbolic execution of Initialiser here because it is be done within the cast
-        ((Type_name_ptr_opt = pointer(_), nonvar(Declarator), Declarator \= initialised(Direct_declarator, Initialiser) ->
+        (Type_name_ptr_opt = pointer(_), nonvar(Declarator), Declarator \= initialised(Direct_declarator, Initialiser) ->
             Casted = addr(Initialiser)  %save yourself the trouble: don't go through casting
-         ;
+        ;
+         Initialiser == 'uninitialised' ->
+            Casted = Initialiser
+        ;
             symbolically_interpret(cast(Type_name_ptr_opt, Initialiser), symb(_Type, Casted))
-         )
         )
     ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -122,7 +124,7 @@ declare_params([], []).
 declare_params([param(Specifiers, Param)|R], [Clean_param|R_params]) :-
     extract_type(Specifiers, Type_name),
     extract_pointers(Param, Type_name, Type_name_ptr_opt, Clean_param),
-    ptc_solver__variable([Input_var], Type_name),
+    ptc_solver__create_variable(Type_name, Input_var),
     (Type_name_ptr_opt = pointer(_) ->
         Input = addr(Input_var)         %C pointers variables are not ptc_solver variable: they are handled syntactically e.g. seav(pointer(integer), not_needed, addr(Y_2{se_seav_atts : seav(integer, not_needed, 42)}))
     ;
@@ -133,7 +135,7 @@ declare_params([param(Specifiers, Param)|R], [Clean_param|R_params]) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 declare_return(Return_seav, Type_name) :-
     extract_pointers(Return_seav, Type_name, Type_name_ptr_opt, Clean_return),
-    ptc_solver__variable([Output_var], Type_name),
+    ptc_solver__create_variable(Type_name, Output_var),
     (Type_name_ptr_opt = pointer(_) ->
          Output = addr(Output_var)           %C pointers variables are not ptc_solver variable: they are handled syntactically e.g. seav(pointer(integer), not_needed, addr(Y_2{se_seav_atts : seav(integer, not_needed, 42)}))
     ;

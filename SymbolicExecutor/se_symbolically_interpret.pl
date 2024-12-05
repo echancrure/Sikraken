@@ -4,6 +4,8 @@ symbolically_interpret(Expression, symb(Type, Symbolic_expression)) :-  %need to
     !,
     seav__get(Expression, 'type', Type),
     seav__get(Expression, 'output', Symbolic_expression).
+symbolically_interpret('uninitialised', symb(void, 'uninitialised')) :-
+    !.
 symbolically_interpret(int(Expression), symb(int, Expression)) :-   %constant with no suffix
     !.
 symbolically_interpret(unsigned(Expression), symb(unsigned(int), Expression)) :- %u constant, identified in parser
@@ -30,7 +32,7 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
             (se_name_atts__get(Function, 'name', Function_name),
                 (is_verifier_input_function(Function_name, Type) ->
                     (%mytrace,
-                     ptc_solver__variable([Input_var], Type),
+                     ptc_solver__create_variable(Type, Input_var),
                      se_globals__get_ref('verifier_inputs', Verifier_inputs),
                      append(Verifier_inputs, [verif(Type, Input_var)], New_verifier_inputs),
                      se_globals__set_ref('verifier_inputs', New_verifier_inputs),
@@ -420,7 +422,7 @@ symbolically_interpret(bitwise(Op, Le_exp, Ri_exp), symb(Common_type, Result)) :
     ),
     ptc_solver__size(Common_type, Byte_size),
     Len is Byte_size * 8,
-    ptc_solver__variable([Result], Common_type),
+    ptc_solver__create_variable(Common_type, Result),
     (Op == bw_and ->
         ptc_solver__arithmetic(bw_and(Le_casted_exp, Ri_casted_exp, Len, Sign), Result, _)
     ;
@@ -457,6 +459,7 @@ symbolically_interpret(stmt_exp(Compound_statement), symb(void, 0)) :-
     symbolic_execute(Compound_statement, _Flow). %not handled properly: if the last statement is an expression, that should be the symbolic value and type
 %%%
 symbolically_interpret(Unhandled_expression, symb(int, 0)) :-
+    !,
     common_util__error(9, "Expression is not handled", "Cannot perform symbolic interpretation", [print('Unhandled_expression', Unhandled_expression)], '9_020824', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 implicit_type_casting(Same_type, Same_type, Le_symbolic, Ri_symbolic, Same_type, Le_symbolic, Ri_symbolic) :-   %Types are equal: no casting needed

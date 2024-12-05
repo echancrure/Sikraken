@@ -1,5 +1,12 @@
 extern int __VERIFIER_nondet_int();
 
+typedef struct {
+    int n;
+}S; //S is a typedef to an anonymous struct
+
+S Sx;       //an object of type struct
+S Ax[5];    //an array of struct
+
 struct point {
     int x, y, z, t; 
     float weight;
@@ -41,9 +48,7 @@ void *ldv_malloc(int size) {
 
 }// ;;;;;;;;;; //allowed in gcc
 
-typedef struct {
-    int n;
-}S; //S is a typedef to an anonymous struct
+
 
 typedef struct plot plot;   //typedef of a forward declaration
 struct plot {
