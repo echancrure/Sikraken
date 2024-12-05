@@ -591,7 +591,7 @@ init_declarator
 		 free($1.ptr_declarator);
 	   	 //free($3);		//todo why is this commented out?
 	  	}
-	| declarator
+	| declarator	// at the global level always add the empty initialiser: initializer([]) to trigger initialisation to 0, otherwise add 'no_initializer'
 		{if (typedef_flag == 1) {	// we are parsing a typedef declaration
 			add_typedef_name($1.ptr_declarator);	
 	   	 }
@@ -742,13 +742,13 @@ struct_declarator
 		{$$ = $2;}
 
 struct_declarator2		//added to avoid reduce-reduce conflict
-	: ':' {in_member_namespace = 0;} constant_expression
+	: ':' {in_member_namespace = 0;} constant_expression		//bit field
 		{size_t const size = strlen("anonymous_bit_field()") + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
          sprintf_safe($$, size, "anonymous_bit_field(%s)", $3);
 	   	 free($3);
         } 
-	| declarator {in_member_namespace = 0;} ':'  constant_expression 
+	| declarator {in_member_namespace = 0;} ':'  constant_expression 	//bit field
 		{size_t const size = strlen("bit_field(, )") + strlen($1.full) + strlen($4) + 1;
        	 $$ = (char*)malloc(size);
          sprintf_safe($$, size, "bit_field(%s, %s)", $1.full, $4);

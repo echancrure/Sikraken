@@ -7,7 +7,7 @@ int num = 0;		    //num=seav(num, 0)
 int *pi;				//redefinition of variable pi [pi=seav(ptr(integer), addr_of(null), _)?]			
 
 int a = 10;
-int a;  //redefinition of variable a
+int a;  //redefinition of variable a reset to 0
 
 int basic(int x) {
     int m;

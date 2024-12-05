@@ -1,81 +1,82 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 declare_declarators([], _).
 declare_declarators([Declarator|R], Type_name) :-
+    declare_single_declarator(Declarator, Type_name, Type_name_ptr_opt, Value, Clean_var),
+    seav__create_var(Type_name_ptr_opt, 'not_needed', Value, Clean_var),
+    declare_declarators(R, Type_name).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+declare_single_declarator(Declarator, Type_name, Type_name_ptr_opt, Casted, Clean_var) :-
     %mytrace,
-    %below is the ugliest Prolog code in Sikraken; I think modifying the parsed output may help ; actually entire rewrite is needed
-    (nonvar(Declarator), Declarator = initialised(Direct_declarator, _) ->   %added nonvar(...) as a guard 30/07/24
+    (nonvar(Declarator), Declarator = initialised(Direct_declarator, Initialiser) ->
         true
     ;
-        (%declaration of non-initialised variable
-         %todo check for redefinition which is allowed: see diary 07/08/24 [probably should remove existing scope value...]
-         Direct_declarator = Declarator
+        (Direct_declarator = Declarator,
+         (getval('execution_mode', 'local') ->
+            Initialiser = 'no_initialiser'
+         ;
+            Initialiser = int(0)   %will initialise everything to 0 by default
+         )
         )
     ),
     %C pointers variables are not ptc_solver variable: they are handled syntactically e.g. seav(pointer(integer), not_needed, addr(Y_2{se_seav_atts : seav(integer, not_needed, 42)}))
     extract_pointers(Direct_declarator, Type_name, Type_name_ptr_opt, Clean_var), %e.g. extract_pointers(ptr_decl(pointer, Pi_3{c_id(pi)}), integer, pointer(integer), Pi_3)
-    (nonvar(Declarator), Declarator = initialised(_, Expression) ->
-        true
-    ;
-        (Default = int(0), %todo: [in effect same as Declarator = initialised(Direct_declarator, 0)] but only for global and static variables as non-static and automatic objects are not initialised in C see K&R p. 219
-         get_pointer_type_default(Type_name_ptr_opt, Default, Expression)    %because non-initialised pointers, need to be initialised to addr(...addr(0)...)
-        )
-    ),
+
     (nonvar(Type_name_ptr_opt), Type_name_ptr_opt = array(Element_type, Size_expr) ->    %array variable creation required
         (symbolically_interpret(Size_expr, symb(_, Size)),
-         symbolically_interpret(Expression, symb(_, Initialisation)),   %todo should be casted to Element_type, should be done within ptc_solver_array
-         symbolically_interpret(Default, symb(_, Default_value)),
-         ptc_solver__create_c_array(Element_type, Size, Default_value, Initialisation, Casted)
+         symbolically_interpret(Initialiser, symb(_, Initialisation)),   %todo should be casted to Element_type, should be done within ptc_solver_array
+         ptc_solver__create_c_array(Element_type, Size, Initialisation, Casted)
         )
     ;
      se_struct_atts__is_struct_atts(Type_name_ptr_opt) ->
         (se_struct_atts__get(Type_name_ptr_opt, 'field_values', Field_valuesL),
-         (nonvar(Declarator), Declarator = initialised(_, Expression) ->
-            (symbolically_interpret(Expression, symb(_, Initialisation)),
-             (nonvar(Initialisation), Initialisation = initializer(Initialisation_exp) ->
-                ptc_solver__initialise_record(Field_valuesL, Initialisation_exp, Casted)
-             ;
-                common_util__error(9, "Unexpected item in the packing area", "Should not happen", [('Initialisation', Initialisation)], '9_031224_4', 'se_handle_all_declarations', 'extract_pointers', no_localisation, no_extra_info)
-             )
-            )
-         ;
-            ptc_solver__create_record(Field_valuesL, Casted)    %we assume default initialialisations are made explicit are parsing time 
-         )
+         symbolically_interpret(Initialiser, symb(_, Initialisation)),
+         ptc_solver__initialise_record(Field_valuesL, Initialisation, Casted)
         )
     ;    
-        symbolically_interpret(cast(Type_name_ptr_opt, Expression), symb(_Type, Casted))
-    ),
-    seav__create_var(Type_name_ptr_opt, 'not_needed', Casted, Clean_var),
-    declare_declarators(R, Type_name).
-    %%%
-    get_pointer_type_default(Pointer_expression, Default, addr(Inner_default)) :-
-        nonvar(Pointer_expression),
-        Pointer_expression = pointer(Type_expression),
-        !,
-        get_pointer_type_default(Type_expression, Default, Inner_default).
-    get_pointer_type_default(_, Default, Default).
+        %atomic object
+        %don't perform symbolic execution of Initialiser here because it is be done within the cast
+        ((Type_name_ptr_opt = pointer(_), nonvar(Declarator), Declarator \= initialised(Direct_declarator, Initialiser) ->
+            Casted = addr(Initialiser)  %save yourself the trouble: don't go through casting
+         ;
+            symbolically_interpret(cast(Type_name_ptr_opt, Initialiser), symb(_Type, Casted))
+         )
+        )
+    ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 declare_typedefs([], _).
 declare_typedefs([Typedef|R], Type_name) :-
     extract_pointers(Typedef, Type_name, Type_name_ptr_opt, Clean_typedef_var),
     se_typedef_atts__create(Type_name_ptr_opt, Clean_typedef_var),
     declare_typedefs(R, Type_name).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-create_field_valuesL([], []).
-create_field_valuesL([struct_decl(Type_specifiers_L, Members_L)|Struct_declarations_Rest], Field_values_List) :-
-    single_struct_decl(Type_specifiers_L, Members_L, Inner_field_values_List),
-    create_field_valuesL(Struct_declarations_Rest, Field_values_Rest),
-    append(Inner_field_values_List, Field_values_Rest, Field_values_List).
+create_struct_type(struct(Tag, Struct_declaration_list), Struct_type) :-
+    (Tag == 'anonymous' ->
+        Struct_type = _     % any free var will do
+    ;
+        Struct_type = Tag
+    ),
+    (create_field_valuesL(Struct_declaration_list, Field_valuesL),
+     se_struct_atts__create(Struct_type, Field_valuesL)
+    ).
     %%%
-    single_struct_decl(Type_specifiers_L, Members_L, Inner_field_values_List) :-
-        extract_type(Type_specifiers_L, Member_type),   %will have to deal with pointers
-        length(Members_L, Lenght),
-        length(Values_L, Lenght),
-        ptc_solver__variable(Values_L, Member_type),     %will have to deal with non-basic members e.g. arrays, other struct etc
-        create_inner_field_values_List(Members_L, Values_L, Inner_field_values_List).
+    create_field_valuesL([], []).
+    create_field_valuesL([struct_decl(Type_specifiers_L, Declarators_List)|Struct_declarations_Rest], Field_values_List) :-
+        single_struct_decl(Type_specifiers_L, Declarators_List, Inner_field_values_List),
+        create_field_valuesL(Struct_declarations_Rest, Field_values_Rest),
+        append(Inner_field_values_List, Field_values_Rest, Field_values_List).
         %%%
-        create_inner_field_values_List([], [], []).
-        create_inner_field_values_List([Member|Members_Rest], [Value|Values_Rest], [(Member, Value)|Inner_field_values_Rest]) :-
-            create_inner_field_values_List(Members_Rest, Values_Rest, Inner_field_values_Rest).
+        single_struct_decl(Type_specifiers_L, Declarators_List, Inner_field_values_List) :-
+            extract_type(Type_specifiers_L, Member_type),   %will have to deal with pointers
+            declarator_list(Declarators_List, Member_type, Inner_field_values_List).
+            
+            %%%
+            declarator_list([], _Member_type, []).
+            declarator_list([Declarator|Declarators_List_Rest], Member_type, [(Member, Value)|Inner_field_values_Rest]) :-
+                %for Declarator extract the member name and create a Value
+                %a Declarator can be x, *x, x[10]
+                declare_single_declarator(Declarator, Member_type, _Type_name_ptr_opt, Value, Member),
+                declarator_list(Declarators_List_Rest, Member_type, Inner_field_values_Rest).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %e.g. extract_pointers(ptr_decl(pointer, X), int, pointer(int), X)
 %e.g. extract_pointers(array_decl(A, Size), int, array(int, Size), A)
@@ -92,10 +93,14 @@ extract_pointers(Var, Type_name, Type_name_ptr_opt, Clean_var) :-
             ;
                 common_util__error(9, "array declaration not handled", "Sikraken needs expanding", [('Array_var', Array_var)], '9_181124', 'se_handle_all_declarations', 'extract_pointers', no_localisation, no_extra_info)
             )
+        ;
+         atomic(Var) -> %a struct member
+           (Type_name_ptr_opt = Type_name,
+            Clean_var = Var
+           )
         )
     ;
-        (%not a pointer variable declaration
-         Type_name_ptr_opt = Type_name,
+        (Type_name_ptr_opt = Type_name,
          Clean_var = Var
         )    
     ).
@@ -195,19 +200,13 @@ extract_type(['bool'], bool) :-
     !.
 extract_type(['void'], void) :-
     !.
-extract_type([struct(Tag)], _Struct_type) :-    %empty struct_declaration_list : forward declaration or used as part of variable declaration
+%e.g. handling a typedef of a struct (the Tag can be anonymous): struct type is created
+extract_type([struct(Tag, Struct_decl_list)], Struct_type) :-
     !,
-    common_util__error(9, "Struct Declarations are Not Handled", "Sikraken needs expanding", [('Tag', Tag)], '9_031224', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).
-extract_type([struct(Tag, Struct_decl_list)], _Struct_type) :-
-    !,
-    (Tag == 'anonymous' ->
-        (true
-        )
-    ;
-        (true
-        )
-    ),
-    common_util__error(9, "Struct Declarations are Not Handled", "Sikraken needs expanding", [('Tag', Tag)], '9_121124', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).
+    create_struct_type(struct(Tag, Struct_decl_list), Struct_type).
+%e.g. handling a typedef of a forward struct
+extract_type([struct(Tag)], Tag) :-
+    !.
 extract_type(Specifiers, _Type_name) :-
     common_util__error(9, "Not Handled", "Sikraken needs expanding", [('Specifiers', Specifiers)], '9_270724', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

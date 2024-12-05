@@ -34,42 +34,38 @@ symbolic_execute(declaration(Declaration_specifiers, Declarators), 'carry_on') :
             true    %we ignore all other, non-extern, forward function declarations: they will be defined later
         )
     ;
-        Declaration_specifiers = [struct(Tag)] ->
-            (se_struct_atts__is_struct_atts(Tag) ->
-                declare_declarators(Declarators, Tag)
+        (Declaration_specifiers = [Declaration_specifier], nonvar(Declaration_specifier), Declaration_specifier = [struct(Tag)] ->
+            (se_struct_atts__is_struct_atts(Tag) -> 
+                declare_declarators(Declarators, Tag)   %the struct type has already been declared: all good
             ;
-                common_util__error(9, "Expected a struct type", "Sonmething is wrong with Sikraken", [('Tag', Tag)], '9_031224_2', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
+                common_util__error(9, "Expected a struct type", "Something is wrong with Sikraken", [('Tag', Tag)], '9_031224_2', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
             )
+        )
     ;
-        Declaration_specifiers = [struct(Tag, _Struct_declaration_list)]  ->  
-            ((Tag == 'anonymous' ->
-                Struct_type = _     % any free var will do
-             ;
-                Struct_type = Tag
-             ),
-             symbolic_execute(declaration([struct(Struct_type, _Struct_declaration_list)]), 'carry_on'), %the Struct_type will be declared as a se_struct_atts type
+        (Declaration_specifiers = [Declaration_specifier], nonvar(Declaration_specifier), Declaration_specifier = [struct(Tag, Struct_declaration_list)]  ->  
+            (create_struct_type(struct(Tag, Struct_declaration_list), Struct_type),
              declare_declarators(Declarators, Struct_type)
             )
+        )
     ;
-        (Declaration_specifiers = [Specifier|Rest_declaration_specifiers], Specifier == 'typedef') ->
+        (Declaration_specifiers = [Specifier|Rest_declaration_specifiers], Specifier == 'typedef' ->
             (extract_type(Rest_declaration_specifiers, Type_name),
              declare_typedefs(Declarators, Type_name)
             )
+        )
     ;
         (%variable declarations
          extract_type(Declaration_specifiers, Type_name),
          declare_declarators(Declarators, Type_name)
         )
     ).
-%e.g. a struct declaration without variables declarations  e.g. declaration([struct(point, [struct_decl([int], [X, Y, Z, T]), struct_decl([float], [Weight])])]), 
+%e.g. a struct declaration without variables declarations is just a struct type declaration e.g. declaration([struct(point, [struct_decl([int], [X, Y, Z, T]), struct_decl([float], [Weight])])]), 
 symbolic_execute(declaration(Declaration_specifiers), 'carry_on') :-
     !,
     (Declaration_specifiers = [struct(Tag, Struct_declaration_list)]  ->  
-        (create_field_valuesL(Struct_declaration_list, Field_valuesL),
-         se_struct_atts__create(Tag, Field_valuesL)
-        )
+        create_struct_type(struct(Tag, Struct_declaration_list), _Struct_type)
     ;
-     Declaration_specifiers = [struct(_Tag)]  ->    %empty struct_declaration_list : forward declaration is ok to ignore
+     Declaration_specifiers = [struct(_Tag)]  ->    %empty struct_declaration_list : no need to create a type, forward declaration is ok to ignore
         true
     ;
         common_util__error(9, "Unexpected declaration", "Sikraken needs expanding", [('Declaration', declaration(Declaration_specifiers))], '9_031224_1', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)

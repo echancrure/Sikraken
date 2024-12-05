@@ -89,7 +89,7 @@ symbolically_interpret(cast(Raw_typeL, Expression), symb(To_type, Casted)) :-
     ),
     symbolically_interpret(Expression, symb(From_type, Symbolic)),
     (To_type = 'void' ->    %casting to void: discard the expression, but evaluation above still has to happen
-        Casted = 0     %just to retrun something but hopefully will not be used
+        Casted = addr(0)     %just to return something but hopefully will not be used
     ;    
         ptc_solver__perform_cast(cast(To_type, From_type), Symbolic, Casted)
     ).
@@ -124,13 +124,15 @@ symbolically_interpret(select(Struct_exp, Field), symb(_Member_type, Member)) :-
     !,
     symbolically_interpret(Struct_exp, symb(_, Struct_value)),
     ptc_solver__get_field(Struct_value, Field, Member).
-symbolically_interpret(initializer([]), symb(initializer, initializer([]))) :-
+symbolically_interpret('no_initialiser', symb(_, 'no_initialiser')) :-
     !.
-symbolically_interpret(initializer([Expr|Rest_expr]), symb(initializer, initializer([Value|Value_list]))) :-
+symbolically_interpret(initializer([]), symb(_, initialiser([]))) :-
+    !.
+symbolically_interpret(initializer([Expr|Rest_expr]), symb(_, initialiser([Value|Value_list]))) :-
     !,
     %mytrace,
     symbolically_interpret(Expr, symb(_, Value)),
-    symbolically_interpret(initializer(Rest_expr), symb(initializer, initializer(Value_list))).
+    symbolically_interpret(initializer(Rest_expr), symb(_, initialiser(Value_list))).
 symbolically_interpret(multiply_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp * Ri_casted_exp)) :-
     !,
     %mytrace,

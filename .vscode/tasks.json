@@ -80,7 +80,7 @@
             "args": [
                 "-v",
                 "${workspaceFolder}/bin/run_regression_par.sh",
-                "6",
+                "8",
                 "regression_tests"
             ],
             "group": {
