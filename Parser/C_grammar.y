@@ -32,6 +32,24 @@
 #include "utils.c"
 #include "handle_typedefs.c"
 
+
+typedef struct {
+    bool isTypeDef;
+    bool isExtern;
+    bool isConstant;
+    bool isStatic;
+    bool isInt;
+    bool isChar;
+    bool isDouble;
+    bool isFloat;
+    bool isStruct;
+	bool isUnion;
+    bool isSigned;
+    bool isShort;
+    int longCount;
+} SpecifierFlags;
+
+
 extern int yylex();
 extern int yylineno;
 
@@ -52,14 +70,14 @@ char i_file_uri[MAX_PATH];
 FILE *i_file;
 char pl_file_uri[MAX_PATH];		//the full path to the Pl_file
 int branch_nb = 1;				//unique id for branches created
-//start: ugly, breaking parsing spirit, flags and temporary variables
+//start: ugly, breaking parsing spirit, flags and aorary variables
 int typedef_flag = 0; 			//indicates that we are within a typedef declaration
 int in_tag_namespace = 0;		//indicates to the lexer that we are in the tag namespace (for struct, union and enum tags) and that identifier should not be checked for typedef
 int in_member_namespace = 0;	//indicates to the lexer that we are in the member namespace (for members of stuct and unions) and that identifier should not be checked for typedef
 
 char *current_function;			//we keep track of the function being parsed so that we can add it to goto statements
 void yyerror(const char*);
-void my_exit(int);				//attempts to close handles and delete generated files prior to caling exit(int);
+void my_exit(int);				//atats to close handles and delete generated files prior to caling exit(int);
 void process_declaration_specifiers(char a[]); //Processes declaration specifiers to generalize them for Sikraken i.e signed long int -> long.
 
 %}
@@ -547,9 +565,9 @@ declaration
 
 declaration_specifiers
 	: storage_class_specifier declaration_specifiers
-		{//printf("This rule is matched 3 \n");
+		{printf("This rule is matched 3 \n");
 		 size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
-		 //printf("%s| %s \n", $1, $2);
+		 printf("%s| %s \n", $1, $2);
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "%s, %s", $1, $2);
 		 free($1);
@@ -1436,97 +1454,79 @@ int main(int argc, char *argv[]) {
 }
 
 void process_declaration_specifiers(char a[]) {
-typedef struct {
-    bool isTypeDef;
-    bool isExtern;
-    bool isConstant;
-    bool isStatic;
-    bool isInt;
-    bool isChar;
-    bool isDouble;
-    bool isFloat;
-    bool isStruct;
-    bool isSigned;
-    bool isShort;
-    int longCount;
-} SpecifierFlags;
 
     char *token;
-    SpecifierFlags flags = {false, false, false, false, true, false, false, false,false, true, false, 0};
+    SpecifierFlags flags = {false, false, false, false, true, false, false, false, false, false, true, false, 0};
 
     if(strncmp(a, "struct", 6) == 0 || strncmp(a, "typedef, struct", 15) == 0){
-            flags.isStruct = true;
-            flags.isInt = false;
-        }else{
-            // Tokenize the string using commas and spaces as delimiters
-            token = strtok(a, ", ");
-            while (token != NULL) {
-                if(strcmp(token, "double") == 0){
-                    flags.isInt = false;
-                    flags.isDouble = true;
-                }else if(strcmp(token, "float") == 0){
-                    flags.isInt = false;
-                    flags.isFloat = true;
-                }else if (strcmp(token, "char") == 0){
-                    flags.isInt = false;
-                    flags.isChar = true;
-                } else if (strcmp(token, "long") == 0) {
-                    flags.longCount++;
-                }else if(strcmp(token, "short") == 0){
-                    flags.isShort = true;
-                }else if (strcmp(token, "unsigned") == 0) {
-                    flags.isSigned = false;
-                }else if(strcmp(token, "const") == 0){
-                    flags.isConstant = true;
-                }else if(strcmp(token, "static") == 0){
-                    flags.isStatic = true;
-                }else if(strcmp(token, "extern") == 0){
-                    flags.isExtern = true;
-                }else if(strcmp(token, "typedef") == 0){
-                    flags.isTypeDef = true;
-                }
-                token = strtok(NULL, ", "); // Get the next token
-            }
+        flags.isStruct = true;
+        flags.isInt = false;
+    }else if(strncmp(a, "union", 5) == 0 || strncmp(a, "typedef, union", 14) == 0){
+        flags.isUnion = true;
+        flags.isInt = false;
+    }else{
+        // Tokenize the string using commas and spaces as delimiters
+        token = strtok(a, ", ");
+        while (token != NULL) {
+			if(strcmp(token, "double") == 0){
+				flags.isInt = false;
+				flags.isDouble = true;
+			}else if(strcmp(token, "float") == 0){
+				flags.isInt = false;
+				flags.isFloat = true;
+			}else if (strcmp(token, "char") == 0){
+				flags.isInt = false;
+				flags.isChar = true;
+			} else if (strcmp(token, "long") == 0) {
+				flags.longCount++;
+			}else if(strcmp(token, "short") == 0){
+				flags.isShort = true;
+			}else if (strcmp(token, "unsigned") == 0) {
+				flags.isSigned = false;
+			}else if(strcmp(token, "const") == 0){
+				flags.isConstant = true;
+			}else if(strcmp(token, "static") == 0){
+				flags.isStatic = true;
+			}else if(strcmp(token, "extern") == 0){
+				flags.isExtern = true;
+			}else if(strcmp(token, "typedef") == 0){
+				flags.isTypeDef = true;
+			}
+			token = strtok(NULL, ", "); // Get the next token
+		}
                 
-            if(flags.isInt){
-                a[0] = '\0';
-                if(flags.isTypeDef){
-                    strcpy(a, "typedef, ");
-                }
-                if(flags.isExtern){
-                    strcat(a, "extern, ");
-                }
-                if(flags.isConstant){
-                    strcat(a, "const, ");
-                }
-                if(flags.isStatic){
-                    strcat(a, "static, ");
-                }
-                if(flags.isSigned){
-                    if(flags.longCount == 1){
-                        strcat(a, "long");
-                    }else if(flags.longCount == 2){
-                        strcat(a, "long, long");
-                    }else if(flags.isShort){
-                        strcat(a, "short");
-                    }else{
-                        strcat(a, "int");
-                    }
-                }else{
-                    if(flags.longCount == 1){
-                        strcat(a, "unsigned, long");
-                    }else if(flags.longCount == 2){
-                        strcat(a, "unsigned, long, long");
-                    }else if(flags.isShort){
-                        strcat(a, "unsigned, short");
-                    }else{
-                        strcat(a, "unsigned, int");
-                    }
-                }
-            }
+		if (flags.isInt) {
+			a[0] = '\0';
+			if (flags.isTypeDef)
+				strcat(a, "typedef, ");
+			if (flags.isExtern)
+				strcat(a, "extern, ");
+			if (flags.isConstant)
+				strcat(a, "const, ");
+			if (flags.isStatic)
+				strcat(a, "static, ");
 
-        }
-    
+			if (flags.isSigned) {
+				if (flags.longCount == 1)
+					strcat(a, "long");
+				else if (flags.longCount == 2)
+					strcat(a, "long, long");
+				else if (flags.isShort)
+					strcat(a, "short");
+				else
+					strcat(a, "int");
+			} else {
+				if (flags.longCount == 1)
+					strcat(a, "unsigned, long");
+				else if (flags.longCount == 2)
+					strcat(a, "unsigned, long, long");
+				else if (flags.isShort)
+					strcat(a, "unsigned, short");
+				else
+					strcat(a, "unsigned, int");
+			}
+		}
+    }
 }
 
 //handles parsing errors: since the C input file is the output of a C pre-processor it will only be called if
