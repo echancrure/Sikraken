@@ -27,7 +27,8 @@ common_util__error(Error_severity, Error_message, Error_consequences, ArgumentsL
               (Previous_occurrences == 9 ->
                      Occurences = 9
               ;
-                     (append(Start, [error(Error_code, _)|Rest], Already_printed),
+                     (append(Start, [error(Error_code, _)|Rest], Already_printed), %todo there must be a better way of doing this: don't use a list?
+                      !,    
                       Occurences is Previous_occurrences + 1,
                       append(Start, [error(Error_code, Occurences)|Rest], New_already_printed),
                       se_globals__set_val('already_printed', New_already_printed)

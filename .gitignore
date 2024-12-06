@@ -24,6 +24,7 @@ SymbolicExecutor/try.pl
 *.gcov
 *.zip
 *.log
+*.gp
 instrumented*
 *.info
 log_file

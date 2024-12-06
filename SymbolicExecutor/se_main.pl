@@ -67,11 +67,11 @@ se_main(ArgsL) :-
          setval('nb_restarts', 1e99),   %infinite restarts and tries allowed
          setval('nb_tries', 1e99),
          (Raw_budget == 900 ->  %we are in testcomp mode
-            Budget = 890        %to allow for initial script, interrupts (system calls, stream)
+            Budget = 1000       %be generous because we can only measure wall time, not CPU time and we are single threaded at the moment %was 890 to allow for initial script, interrupts (system calls, stream)
          ;
             Budget = Raw_budget %it's just used as an indication
          ),
-    First_single_test_time_out is 0.2, %can be much too sort for program involving loops which take longer than this: not a problem itself as the budget will increase (but only slowly if the Increase_duration_multiplier is small)
+         First_single_test_time_out is 0.2, %can be much too sort for program involving loops which take longer than this: not a problem itself as the budget will increase (but only slowly if the Increase_duration_multiplier is small)
          printf('output', "Dev Info: Analysing %w with a time budget of %w seconds.\n", [Target_source_file_name_no_ext, Budget])
         )
     ;
@@ -132,8 +132,8 @@ se_main(ArgsL) :-
         ).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     log_and_terminate :-
-        cancel_after_event('single_test_time_out_exception', _), %to ensure none are left and be triggered later on especially in development mode
-        cancel_after_event('overall_generation_time_out', _),    %to ensure none is left and be triggered later on especially in development mode            
+        %cancel_after_event('single_test_time_out_exception', _), %to ensure none are left and be triggered later on especially in development mode
+        %cancel_after_event('overall_generation_time_out', _),    %to ensure none is left and be triggered later on especially in development mode            
         statistics(event_time, Current_session_time),
         printf('output', "Dev Info: Session time is %.2f seconds\n", [Current_session_time]),
         print_test_run_log__terminate.
@@ -234,17 +234,10 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
         ).    
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
-    (Output_mode == 'testcomp' ->
-        (se_sub_atts__get(Main, 'parameters', Parameters),
-         ((Parameters == [] ; Parameters == [param_no_decl([void], [])]) -> %i.e. main() or main(void)
-            (%gcc allows main not to be declared to return an int, so we don't enfore it either
-             se_sub_atts__get(Main, 'body', Main_compound_statement),
-             se_globals__update_ref('current_path_bran', start('Target_raw_subprogram_name', true)),
-             symbolic_execute(Main_compound_statement, _Flow)
-            )
-          ;
-            common_util__error(10, "Unexpected main parameters in testcomp mode", "Best not to proceed", [('Parameters', Parameters)], '10_140824_1', 'se_main', 'se_main', no_localisation, no_extra_info)
-         )
+    (Output_mode == 'testcomp' ->   %in the spirit of C we do not check Main: we accept any version (including argc/argv) 
+        (se_sub_atts__get(Main, 'body', Main_compound_statement),   
+         se_globals__update_ref('current_path_bran', start('Target_raw_subprogram_name', true)),
+         symbolic_execute(Main_compound_statement, _Flow)
         )
     ;
         (%ignore this alternative for now: not testcomp

@@ -60,7 +60,7 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
                 )
             )
          ;
-            (mytrace,
+            (%mytrace,
              se_sub_atts__get(Function, 'parameters', Parameters),
              se_sub_atts__get(Function, 'return_type', Return_type),
              se_globals__push_scope_stack,          %function parameters scope
@@ -94,7 +94,7 @@ symbolically_interpret(cast(Raw_typeL, Expression), symb(To_type, Casted)) :-
         To_type = Raw_typeL     %an internal call, already transformed
     ),
     symbolically_interpret(Expression, symb(From_type, Symbolic)),
-    (To_type = 'void' ->    %casting to void: discard the expression, but evaluation above still has to happen
+    (To_type == 'void' ->    %casting to void: discard the expression, but evaluation above still has to happen
         Casted = addr(0)     %just to return something but hopefully will not be used
     ;    
         ptc_solver__perform_cast(cast(To_type, From_type), Symbolic, Casted)

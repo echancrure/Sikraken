@@ -21,7 +21,8 @@ grep "Dev Info: Test generated" "$INPUT_FILE" | awk -F"Test generated in | secon
 grep "Dev Info: Restart single test budget changed" "$INPUT_FILE" | awk -F"Restart single test budget changed to: | seconds; overall elapsed time is " '{print $2 "," $3}' | sed 's/ seconds//' >> "$TMP_FILE_BUDGET"
 
 # Create a GNUPLOT script
-GNUPLOT_SCRIPT="plot_times.gp"
+GNUPLOT_SCRIPT=$(mktemp "plot_times-XXXXXX.gp")
+echo "Generated file: $GNUPLOT_SCRIPT"
 
 cat << EOF > $GNUPLOT_SCRIPT
 set terminal pngcairo size 800,600
@@ -42,5 +43,6 @@ gnuplot $GNUPLOT_SCRIPT
 
 # Clean up temporary files
 #rm "$TMP_FILE_TEST" "$TMP_FILE_BUDGET"
+rm -f $GNUPLOT_SCRIPT
 
 echo "Graph saved as '$OUTPUT_FILE'."
