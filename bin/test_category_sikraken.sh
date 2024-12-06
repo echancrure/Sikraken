@@ -188,3 +188,4 @@ echo "now calling $generate_table_script"
 $generate_table_script
 
 echo "Sikraken $0 has ended."
+aplay SikrakenDevSpace/call_to_arms.wav

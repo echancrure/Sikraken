@@ -32,7 +32,11 @@ se_sub_atts__is_sub_atts(_{se_sub_atts(_, _, _)}) :-
     true.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 se_sub_atts__create(Return_type, Parameters, Body, Sub_atts) :-
-    add_attribute(Sub_atts, se_sub_atts(Return_type, Parameters, Body)).
+    (se_sub_atts__is_sub_atts(Sub_atts) ->  %redeclaration of a function
+        true    %we assume semantically equivalent since compiler is assumed happy, and keep the original function intact 
+    ;
+        add_attribute(Sub_atts, se_sub_atts(Return_type, Parameters, Body))
+    ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 se_sub_atts__get(_{Attr}, 'return_type', Return_type) :-
     -?->
