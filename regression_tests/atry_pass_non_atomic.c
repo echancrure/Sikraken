@@ -21,6 +21,8 @@ void main(void) {
     else ;    
 
     //struct Point p3 = pt_fn(p1.x, p1.y);    //returning a struct
-    //if (p3.x == p1.y && p3.y == p2.y) ; //i.e. p1.x = p1.y && p2.y == p1.y
-    //else ;
+    struct Point p3;
+    p3 = pt_fn(42, -42);
+    if (p3.x == p1.y && p3.y == p2.y) ; //i.e. p1.x = p1.y && p2.y == p1.y
+    else ;
 }

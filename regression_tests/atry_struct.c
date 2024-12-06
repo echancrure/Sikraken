@@ -5,15 +5,6 @@ struct point {
     float weight;
 } p78 = {1,2,3,4,4.004};
 
-/*
-typedef struct {
-    int n;
-}S; //S is a typedef to an anonymous struct
-
-S Sx;       //an object of type struct
-S Ax[5];    //an array of struct
-
-
 struct point2 {
     int x, y, z, t;
     float weight;
@@ -35,6 +26,15 @@ struct plot {
     int x, y;
 };
 plot p = {10, 20};  // Works due to typedef
+
+
+typedef struct {
+    int n;
+}S; //S is a typedef to an anonymous struct
+
+S Sx;       //an object of type struct
+/*
+S Ax[5];    //an array of struct
 
 int marks[10];
 
@@ -67,15 +67,17 @@ Node n = {10, 0};
 
 void main(void) {
     float fl = p78.x;  //check that casting is called (int to float)
-/*    S x;
+    int gh = p.x + p.y;
+    if (gh == __VERIFIER_nondet_int()) ;
+    else ;
+    S x;
     x.n = __VERIFIER_nondet_int();
     if (x.n == 99) ;
     else ;
-    struct point s1;
+   struct point s1;
     struct point s2 = {1, 2, 3, 4, 42.42};  //list of initialisers can only be used at declaration time
     struct point s3 = {1, 2, 3};    //only partial initialisations is allowed: remaining fields are initialised to 0
     s1.x = __VERIFIER_nondet_int();
     if (s1.x == -5) ;
     else ;
-    */
 }

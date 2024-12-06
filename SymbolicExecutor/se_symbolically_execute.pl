@@ -345,8 +345,10 @@ symbolic_execute(do_while_stmt(Statements, branch(Id, Condition)), Flow) :-
 symbolic_execute(label_stmt(_Label, Statement), Flow) :- 
     !,
     symbolic_execute(Statement, Flow).
-symbolic_execute(return_stmt(Expression), return(Expression)) :-    %will be handled in post function call by checking Flow
-    !.  %todo it would make more sense to symbolically execute expression here rather than outside: more logical
+symbolic_execute(return_stmt(Expression), return(Symbolic_expression)) :-    %will be handled in post function call by checking Flow
+    !,
+    symbolically_interpret(Expression, Symbolic_expression).
+      %todo it would make more sense to symbolically execute expression here rather than outside: more logical
 symbolic_execute(return_stmt, return) :-    %a return with no expression
     !.
 symbolic_execute(break_stmt, 'break') :-    %within iteration and switch statements: basically bubble up to the innermost construct

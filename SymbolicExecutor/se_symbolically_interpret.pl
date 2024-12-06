@@ -60,13 +60,17 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
                 )
             )
          ;
-            (se_sub_atts__get(Function, 'parameters', Parameters),
+            (mytrace,
+             se_sub_atts__get(Function, 'parameters', Parameters),
              se_sub_atts__get(Function, 'return_type', Return_type),
              se_globals__push_scope_stack,          %function parameters scope
              match_parameters_arguments(Parameters, Arguments),
              symbolic_execute(Body, Flow),
-             (Flow = return(Return_expression) ->
-                symbolically_interpret(cast(Return_type, Return_expression), Symbolic_expression)
+             (Flow = return(symb(From_type, Return_expression)) ->
+                (ptc_solver__perform_cast(cast(Return_type, From_type), Return_expression, Casted),
+                 Symbolic_expression = symb(Return_type, Casted)
+                 %was%symbolically_interpret(cast(Return_type, Return_expression), Symbolic_expression)
+                )
              ;
                 Symbolic_expression = symb('void', 0)   %e.g. via a fall through or a simple return statement with no expression
              ),

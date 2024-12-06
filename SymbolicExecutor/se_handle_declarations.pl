@@ -206,10 +206,15 @@ extract_type([struct(Tag, Struct_decl_list)], Struct_type) :-
     !,
     create_struct_type(struct(Tag, Struct_decl_list), Struct_type).
 extract_type([struct(Tag)], Tag) :-
-    ptc_solver__is_struct_type(Tag),
+    (ptc_solver__is_struct_type(Tag) -> %a previously defined struct type
+        true
+    ;
+        create_struct_type(struct(Tag, []), _Struct_type)   %e.g. a typedef for a forward struct declaration... as in "typedef struct plot plot;"   //typedef of a forward declaration
+    ),
     !.
 extract_type(Specifiers, _Type_name) :-
-    common_util__error(9, "Not Handled", "Sikraken needs expanding", [('Specifiers', Specifiers)], '9_270724', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).
+    !,
+    common_util__error(9, "Type not handled or declared", "Sikraken needs expanding", [('Specifiers', Specifiers)], '9_270724', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 match_parameters_arguments([param_no_decl([void], [])], []) :-
     !.
