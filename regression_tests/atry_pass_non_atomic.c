@@ -1,4 +1,5 @@
 extern int __VERIFIER_nondet_int();
+extern int __VERIFIER_nondet_char();
 
 struct Point {
     int x,y;
@@ -13,12 +14,21 @@ struct Point pt_fn(int x, int y) {
     return result;
 }
 
+int calc_avg(char a[], int size) {
+    int result;
+    for (int i=0; i< size; i++) result += a[i];
+    return result / size;
+}
+
 int main(void) {
+    char x[10] = {}; //initialised to 0
+    for (int i=0; i< 10; i++) x[i] = __VERIFIER_nondet_char();
+    int avg = calc_avg(x, 10);
     int i = 99;
     struct Point p1 = {__VERIFIER_nondet_int(), __VERIFIER_nondet_int()};
     struct Point p2 = {__VERIFIER_nondet_int(), __VERIFIER_nondet_int()};
     int sum = sum_fn(p1);   //works: passing a struct as argument: works
-    if (sum == __VERIFIER_nondet_int()) ;
+    if (sum + avg == __VERIFIER_nondet_int()) ;
     else ;    
 
     struct Point p3 = pt_fn(p1.x, p1.y);    //works: returning a struct

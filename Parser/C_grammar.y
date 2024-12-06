@@ -1099,6 +1099,8 @@ initializer
 	     free($2);
 		}
 	| assignment_expression
+	| '{' '}'
+		{simple_str_lit_copy(&$$, "initializer([])");}	//empty initialisers are allowed in GCC/Clang
 	;
 
 initializer_list
