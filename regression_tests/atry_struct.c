@@ -1,5 +1,15 @@
 extern int __VERIFIER_nondet_int();
 
+struct struct_of_struct {
+    int x, y, z, t; 
+    struct {
+        int anon;
+    } inner;
+    struct {
+        int anon;
+    };
+};
+
 struct point {
     int x, y, z, t; 
     float weight;

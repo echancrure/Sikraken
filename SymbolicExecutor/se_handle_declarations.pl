@@ -63,15 +63,17 @@ create_struct_type(struct(Tag, Struct_declaration_list), Struct_type) :-
     ).
     %%%
     create_field_valuesL([], []).
+    create_field_valuesL([anonymous_member(Struct_or_Union)|Rest_i], [Anonymous_struct_or_union_member|Rest_o]) :-    %Anonymous Members in Structs have different access rules
+        single_struct_decl([Struct_or_Union], [_Anonymous_member], Anonymous_struct_or_union_member),
+        create_field_valuesL(Rest_i, Rest_o).
     create_field_valuesL([struct_decl(Type_specifiers_L, Declarators_List)|Struct_declarations_Rest], Field_values_List) :-
         single_struct_decl(Type_specifiers_L, Declarators_List, Inner_field_values_List),
         create_field_valuesL(Struct_declarations_Rest, Field_values_Rest),
         append(Inner_field_values_List, Field_values_Rest, Field_values_List).
         %%%
         single_struct_decl(Type_specifiers_L, Declarators_List, Inner_field_values_List) :-
-            extract_type(Type_specifiers_L, Member_type),   %will have to deal with pointers and arrays
+            extract_type(Type_specifiers_L, Member_type),   %will have to deal with pointers and non-atomic
             member_list(Declarators_List, Member_type, Inner_field_values_List).
-            
             %%%
             member_list([], _Member_type, []).
             member_list([Member|Declarators_List_Rest], Member_type, [(Member, Member_type)|Inner_field_values_Rest]) :-
@@ -212,6 +214,9 @@ extract_type([struct(Tag)], Tag) :-
         create_struct_type(struct(Tag, []), _Struct_type)   %e.g. a typedef for a forward struct declaration... as in "typedef struct plot plot;"   //typedef of a forward declaration
     ),
     !.
+extract_type([union(Tag, Struct_decl_list)], void) :-
+    !,
+    common_util__error(9, "Union types are not handled", "Sikraken needs expanding", [('Union', union(Tag, Struct_decl_list))], '9_071224', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).
 extract_type(Specifiers, _Type_name) :-
     !,
     common_util__error(9, "Type not handled or declared", "Sikraken needs expanding", [('Specifiers', Specifiers)], '9_270724', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).

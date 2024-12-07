@@ -691,12 +691,13 @@ struct_declaration_list
 	;
 
 struct_declaration
-	: specifier_qualifier_list ';'	/* for anonymous struct/union ?????????? */
-		{size_t const size = strlen("struct_decl_anonymous()") + strlen($1) + 1;
+	: specifier_qualifier_list ';'	//for inner "Anonymous Members in Structs" C11
+		{size_t const size = strlen("anonymous_member()") + strlen($1) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_safe($$, size, "struct_decl_anonymous(%s)", $1);
+         sprintf_safe($$, size, "anonymous_member(%s)", $1);
 	   	 free($1);
         }
+
 	| specifier_qualifier_list struct_declarator_list ';'
 		{size_t const size = strlen("struct_decl([], [])") + strlen($1) + strlen($2) + 1;
        	 $$ = (char*)malloc(size);
@@ -704,7 +705,7 @@ struct_declaration
 	   	 free($1);
 		 free($2);
         }
-	| static_assert_declaration
+	| static_assert_declaration	//default action
 	;
 
 specifier_qualifier_list
