@@ -1,4 +1,5 @@
 //#include <stdio.h>
+extern unsigned long __VERIFIER_nondet_ulong();
 extern int __VERIFIER_nondet_int(void);
 int main(int argc, char **argv) {
     int i = __VERIFIER_nondet_int();

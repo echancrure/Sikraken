@@ -15,14 +15,14 @@ print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext)
     concat_atom([Result_folder, '/test-suite.zip'], Zip_filename),
     (exists(Zip_filename) ->
         (concat_string(["rm ", Zip_filename], Delete_zip_file_call),
-    exec(Delete_zip_file_call, [])      %delete existing zip archive from a previous run if it exists [todo remove]?
+         exec(Delete_zip_file_call, [])      %delete existing zip archive from a previous run if it exists [todo remove]?
         )
     ;
         true
     ),
     se_globals__set_val(testcomp_test_suite_folder, Test_suite_folder),
     cd(Test_suite_folder),  %the cwd is now '/sikraken_output/Target_source_file_name_no_ext/testsuite' all read and write commands are from now on 
-    concat_atom([Source_dir, '/', Target_source_file_name_no_ext, '.c'], Target_C_file),
+    concat_atom([Source_dir, '/', Target_source_file_name_no_ext, '.c'], Target_C_file),    %todo could be a .i
     open('metadata.xml', 'write', 'metadata_stream'),
     printf('metadata_stream', "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n", []),
     printf('metadata_stream', "<!DOCTYPE test-metadata PUBLIC \"+//IDN sosy-lab.org//DTD test-format test-metadata 1.1//EN\" \"https://sosy-lab.org/test-format/test-metadata-1.1.dtd\">\n", []),
@@ -47,6 +47,7 @@ print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext)
     close('metadata_stream').
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     get_hash(Install_dir, Target_C_file, Hash) :-
+        %mytrace,
         concat_atom([Install_dir, '/SymbolicExecutor/get_hash.sh ', Target_C_file], Hash_call),
         exec(Hash_call, [_, 'hash_stream', _]),
         read_string('hash_stream', end_of_line, "", _, Hash),

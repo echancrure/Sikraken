@@ -20,10 +20,10 @@ mytrace.            %call this to start debugging
 super_util__quick_dev_info(Message, Arguments) :-
     se_globals__get_val('debug_mode', Debug_mode),
     (Debug_mode == 'debug' ->
-        (printf('user_error', "Dev Info: ", []),    %todo could you combine 
-         printf('user_error', Message, Arguments),
-         printf('user_error', "\n", []),
-         flush('user_error')        %systematically flushing ALL debug/development messages is important or they may get displayed in a wrong order when mixed with message from other streams and be out of sync with the ECLiPse tracer
+        (printf('output', "Dev Info: ", []),    %todo could you combine 
+         printf('output', Message, Arguments),
+         printf('output', "\n", []),
+         flush('output')        %systematically flushing ALL debug/development messages is important or they may get displayed in a wrong order when mixed with message from other streams and be out of sync with the ECLiPse tracer
         )
     ;
         true

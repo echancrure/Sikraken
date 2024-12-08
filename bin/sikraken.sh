@@ -13,7 +13,8 @@ if [ $1 == "-v" ]; then
         exit 1
     fi
 fi
-
+version=$(head -n 1 "$VERSION_FILE") # Read the first line of version.txt
+echo "$version"
 # top-level command for testcomp: parses and generate test inputs for one file file foo.c
 
 echo "Sikraken wrapper sikraken.sh says: SIKRAKEN_INSTALL_DIR is $SIKRAKEN_INSTALL_DIR"

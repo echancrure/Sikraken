@@ -45,7 +45,7 @@ common_util__error(Error_severity, Error_message, Error_consequences, ArgumentsL
               (se_globals__get_val('errorMessageNb', ErrorNb),
                ErrorNb1 is ErrorNb + 1,
                %(ErrorNb1 == 34 -> mytrace ; true),
-               printf(user_error, "\e[31mError Nb: %w: \e[0m", [ErrorNb1]),  %printed in red in bash
+               printf(output, "Error Nb: %w: ", [ErrorNb1]),
                se_globals__set_val('errorMessageNb', ErrorNb1),
                se_globals__get_val('message_mode', Message_mode),
                common_util__error2(Error_severity, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode)
@@ -55,66 +55,66 @@ common_util__error(Error_severity, Error_message, Error_consequences, ArgumentsL
 common_util__error2(10, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode) :-
     !,
     (Message_mode == debug ->
-            (printf(user_error, "###################################%n", []),
-             printf(user_error, "=>Sikraken: a fatal error has occurred%n", []),
-             printf(user_error, "        Error Code: %w%n", [Error_code]),
-             printf(user_error, "        Message: %s%n", [Error_message]),
+            (printf(output, "###################################%n", []),
+             printf(output, "=>Sikraken: a fatal error has occurred%n", []),
+             printf(output, "        Error Code: %w%n", [Error_code]),
+             printf(output, "        Message: %s%n", [Error_message]),
              (ArgumentsL == no_arguments ->
                     true
              ;
-                    (printf(user_error, "        Arguments: ", []),
+                    (printf(output, "        Arguments: ", []),
                      cue_print_error_arguments(ArgumentsL, debug)
                     )
              ),
              (Error_consequences == no_error_consequences ->
                     true
              ;
-                    printf(user_error, "        Consequences: %s%n", [Error_consequences])
+                    printf(output, "        Consequences: %s%n", [Error_consequences])
              ),
-             printf(user_error, "        Localisation: in %w module, at %w predicate", [From_module, From_predicate]),
+             printf(output, "        Localisation: in %w module, at %w predicate", [From_module, From_predicate]),
              (Localisation == no_localisation ->
-                    printf(user_error, "%n", [])
+                    printf(output, "%n", [])
              ;
-                    printf(user_error, ", for %w case%n", [Localisation])
+                    printf(output, ", for %w case%n", [Localisation])
              ),
              (Extra_info == no_extra_info ->
                     true
              ;
-                    printf(user_error, "        Extra Info: %s%n", [Extra_info])
+                    printf(output, "        Extra Info: %s%n", [Extra_info])
              ),
              %debugging information
-             printf(user_error, "        Debugging Info: %n", []),
+             printf(output, "        Debugging Info: %n", []),
              se_globals__get_val('debug_info', Current),
-             printf(user_error, "            Was processing the %w entity when error occurred%n", [Current]),
-             printf(user_error, "            To help debugging, path information prior to error follows ...%n", []),
+             printf(output, "            Was processing the %w entity when error occurred%n", [Current]),
+             printf(output, "            To help debugging, path information prior to error follows ...%n", []),
              se_globals__get_ref('current_path_bran', Current_path_bran),
-             printf(user_error, "            Branches followed prior to error : %w%n", [Current_path_bran]),
-             printf(user_error, "###################################%n", [])
+             printf(output, "            Branches followed prior to error : %w%n", [Current_path_bran]),
+             printf(output, "###################################%n", [])
             )
     ;
-            (printf(user_error, "%2n###################################%n", []),
-             printf(user_error, "=>Sikraken: a fatal error has occurred%n", []),
-             printf(user_error, "        Error Code: %w%n", [Error_code]),
-             printf(user_error, "        Message: %s%n", [Error_message]),
+            (printf(output, "%2n###################################%n", []),
+             printf(output, "=>Sikraken: a fatal error has occurred%n", []),
+             printf(output, "        Error Code: %w%n", [Error_code]),
+             printf(output, "        Message: %s%n", [Error_message]),
              (ArgumentsL = no_arguments ->
                     true
              ;
-                    (printf(user_error, "        Arguments: ", []),
+                    (printf(output, "        Arguments: ", []),
                      cue_print_error_arguments(ArgumentsL, release)
                     )
              ),
-             printf(user_error, "=>Report error to echancrure@gmail.com to have it addressed.%n", []),
-             printf(user_error, "###################################%n", [])
+             printf(output, "=>Report error to echancrure@gmail.com to have it addressed.%n", []),
+             printf(output, "###################################%n", [])
             )
     ),
     log_and_terminate @ eclipse,
-    flush(user_error),
+    flush(output),
     abort.
 
 common_util__error2(0, Error_message, Error_consequences, ArgumentsL, _Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode) :-
     !,
     (Message_mode == debug ->
-            (printf(user_error, "Debug_info: %s", [Error_message]),
+            (printf(output, "Debug_info: %s", [Error_message]),
              (ArgumentsL == no_arguments ->
                     true
              ;
@@ -123,28 +123,28 @@ common_util__error2(0, Error_message, Error_consequences, ArgumentsL, _Error_cod
              (Error_consequences == no_error_consequences ->
                     true
              ;
-                    printf(user_error, ", %s", [Error_consequences])
+                    printf(output, ", %s", [Error_consequences])
              ),
-             printf(user_error, " in %w module, at %w predicate", [From_module, From_predicate]),
+             printf(output, " in %w module, at %w predicate", [From_module, From_predicate]),
              (Localisation == no_localisation ->
                     true
              ;
-                    printf(user_error, ", for %w case", Localisation)
+                    printf(output, ", for %w case", Localisation)
              ),
              (Extra_info == no_extra_info ->
-                    printf(user_error, "%n", [])
+                    printf(output, "%n", [])
              ;
-                    printf(user_error, ", %s%n", [Extra_info])
+                    printf(output, ", %s%n", [Extra_info])
              )
             )
     ;
             true
     ),
-    flush(user_error).
+    flush(output).
 
 common_util__error2(Error_severity, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode) :-
     (Message_mode == debug ->
-            (printf(user_error, "Sikraken warning level %w, %w, %s", [Error_severity, Error_code, Error_message]),
+            (printf(output, "Sikraken warning level %w, %w, %s", [Error_severity, Error_code, Error_message]),
              (ArgumentsL == no_arguments ->
                     true
              ;
@@ -153,32 +153,32 @@ common_util__error2(Error_severity, Error_message, Error_consequences, Arguments
              (Error_consequences == no_error_consequences ->
                     true
              ;
-                    printf(user_error, ", %s", [Error_consequences])
+                    printf(output, ", %s", [Error_consequences])
              ),
-             printf(user_error, " in %w module, at %w predicate", [From_module, From_predicate]),
+             printf(output, " in %w module, at %w predicate", [From_module, From_predicate]),
              (Localisation == no_localisation ->
                     true
              ;
-                    printf(user_error, ", for %w case", Localisation)
+                    printf(output, ", for %w case", Localisation)
              ),
              (Extra_info == no_extra_info ->
-                    printf(user_error, "%n", [])
+                    printf(output, "%n", [])
              ;
-                    printf(user_error, ", %s%n", [Extra_info])
+                    printf(output, ", %s%n", [Extra_info])
              ),
-             flush(user_error)     %only in debug mode as costly
+             flush(output)     %only in debug mode as costly
             )
     ;
             ((Error_severity == 1 ->
-                    printf(user_error, "%s%n", [Error_message])
+                    printf(output, "%s%n", [Error_message])
              ;
-                    printf(user_error, "Sikraken warning level %w %w %s", [Error_severity, Error_code, Error_message])
+                    printf(output, "Sikraken warning level %w %w %s", [Error_severity, Error_code, Error_message])
              ),
              (ArgumentsL == no_arguments ->
                     true
              ;
                     (cue_print_warning_arguments(ArgumentsL, debug),
-                     printf(user_error, "%n", [])
+                     printf(output, "%n", [])
                     )
              )
             )
@@ -188,7 +188,7 @@ cue_print_warning_arguments([], _Debug) :-
     !.
 cue_print_warning_arguments([Warning|Rest], Debug) :-
     (((Debug == debug , Warning = (Entry, Argument)) ; Warning = print(Entry, Argument)) ->
-         printf(user_error, ", %w : %w", [Entry, Argument])
+         printf(output, ", %w : %w", [Entry, Argument])
     ;
        true    %ignored
     ),
@@ -197,18 +197,18 @@ cue_print_warning_arguments([Warning|Rest], Debug) :-
 cue_print_error_arguments([(Entry, Argument)|R], Debug) :-
     !,
     (Debug == debug ->
-            printf(user_error, "%w : %p%n", [Entry, Argument])
+            printf(output, "%w : %p%n", [Entry, Argument])
     ;
-            printf(user_error, "%w : %w%n", [Entry, Argument])
+            printf(output, "%w : %w%n", [Entry, Argument])
     ),
     cuepea_print_error_arguments_rest(R, Debug).
 
 cuepea_print_error_arguments_rest([], _).
 cuepea_print_error_arguments_rest([(Entry, Argument)|R], Debug) :-
     (Debug == debug ->
-            printf(user_error, "                   %w : %p%n", [Entry, Argument])
+            printf(output, "                   %w : %p%n", [Entry, Argument])
     ;
-            printf(user_error, "                   %w : %w%n", [Entry, Argument])
+            printf(output, "                   %w : %w%n", [Entry, Argument])
     ),
     cuepea_print_error_arguments_rest(R, Debug).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

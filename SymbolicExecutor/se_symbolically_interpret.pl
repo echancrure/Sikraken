@@ -26,6 +26,7 @@ symbolically_interpret(long_double(Expression), symb(long_double, Expression)) :
     !.
 symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) :-
     !,
+    %mytrace,
     (se_sub_atts__is_sub_atts(Function) ->
         (se_sub_atts__get(Function, 'body', Body),
          (Body == 'no_body_is_extern' -> %calling an extern function with no body

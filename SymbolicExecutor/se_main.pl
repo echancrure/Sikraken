@@ -172,6 +172,7 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
             (getval('algo', 'time_budget') ->
                 (Maximum = 100,
                  getval('increase_duration_multiplier', Increase_duration_multiplier),
+                 %we should retrieve se_globals__get_val('single_test_time_out', Current_single_test_time_out), because it may have changed within try_nb_path_budget
                  New_single_test_time_out is min(Current_single_test_time_out*Increase_duration_multiplier, Maximum), %but there is a maximum 
                  se_globals__set_val('single_test_time_out', New_single_test_time_out),   %todo should depend on global budget remaining
                  statistics(event_time, Current_session_time),
@@ -273,7 +274,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
     end_of_path_predicate(SEAV_Inputs, Parsed_prolog_code) :-
         se_coverage__bran_newly_covered(Newly_covered),
         (Newly_covered == [] -> %no need to label: saves labelling run and test execution time
-            true %common_util__error(0, "End of path: no new branches", 'no_error_consequences', [], '0_210824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info)
+            true %common_util__error(1, "End of path: no new branches", 'no_error_consequences', [], '0_210824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info)
         ;
             (se_globals__get_val('output_mode', Output_mode),
              (Output_mode = 'testcomp' ->
@@ -315,7 +316,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
                      se_globals__get_val('covered_bran', Already_covered),
                      union(Already_covered, Current_path_no_duplicates, Covered),
                      se_globals__set_val('covered_bran', Covered),
-                     %common_util__error(0, "End of path", 'no_error_consequences', [('Path Nb', Inc_test_nb), ('Newly_covered', Newly_covered), ('Current_path', Current_path)], '0_190824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info),
+                     %common_util__error(1, "End of path", 'no_error_consequences', [('Path Nb', Inc_test_nb), ('Newly_covered', Newly_covered), ('Current_path', Current_path)], '0_190824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info),
                      (Output_mode == 'testcomp' ->
                         print_test_inputs_testcomp(Labeled_inputs)   %but don't print expected outputs
                      ;
@@ -385,12 +386,12 @@ label_testcomp(Verifier_inputs, Labeled_inputs) :-
         (ptc_solver__label_reals(Floats, Grounded_floats) ->    %integers and floats labeling kept separate for now
             true
         ;
-            (common_util__error(0, "Floating point numbers labeling failed", "Perhaps worth investigating", [], '0_100924', 'se_main', 'label_testcomp', no_localisation, no_extra_info),
+            (common_util__error(1, "Floating point numbers labeling failed", "Perhaps worth investigating", [], '0_100924', 'se_main', 'label_testcomp', no_localisation, no_extra_info),
              fail
             )
         )
     ;
-        (common_util__error(0, "Integer labeling failed", "Should be rare: e.g. non-linear, out of bounds", [], '0_200824', 'se_main', 'label_testcomp', no_localisation, no_extra_info),
+        (common_util__error(1, "Integer labeling failed", "Should be rare: e.g. non-linear, out of bounds", [], '0_200824', 'se_main', 'label_testcomp', no_localisation, no_extra_info),
          fail
         )
     ),
