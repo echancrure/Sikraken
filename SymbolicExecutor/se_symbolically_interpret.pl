@@ -81,7 +81,7 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
         )
     ;
         (se_name_atts__get(Function, 'name', Function_name),
-        mytrace,
+         %mytrace,
          common_util__error(9, "Calling a non-extern function that has not been defined", "Seriously wrong; Suggest add include or declare as extern", [('Function_name', Function_name)], '9_100924_1', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info),
          Symbolic_expression = symb(int, 0)
         )
@@ -128,6 +128,12 @@ symbolically_interpret(index(Array_exp, Index_exp), symb(Element_type, Element))
          Element = 0
         )
     ).
+symbolically_interpret(up_rec(Struct_exp, Field, Expression), symb(Struct_type, New_struct)) :-
+    !,
+    symbolically_interpret(Struct_exp, symb(Struct_type, Struct_value)),
+    symbolically_interpret(Expression, symb(_, Expression_value)),  %casting ? do it here or in solver?
+    ptc_solver__up_record(Struct_value, Field, Expression_value, New_struct).
+
 symbolically_interpret(select(Struct_exp, Field), symb(Member_type, Member)) :-
     !,
     symbolically_interpret(Struct_exp, symb(_, Struct_value)),

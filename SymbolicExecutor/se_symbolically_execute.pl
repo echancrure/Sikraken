@@ -123,10 +123,21 @@ symbolic_execute(assign(LValue, Expression), Flow) :-
         )
     ;
     LValue = select(Struct_exp, Field) ->   %struct field assignment e.g. p.x = 12;
-        (symbolically_interpret(Struct_exp, symb(_, Struct_value)),
-         symbolically_interpret(Expression, symb(_, Expression_value)), %casting ? do it here or in solver?
-         ptc_solver__up_record(Struct_value, Field, Expression_value, New_struct),
-         seav__update(Struct_exp, 'output', New_struct)
+        (seav__is_seav(Struct_exp) ->
+            (symbolically_interpret(Struct_exp, symb(_, Struct_value)),
+             symbolically_interpret(Expression, symb(_, Expression_value)), %casting ? do it here or in solver?
+             ptc_solver__up_record(Struct_value, Field, Expression_value, New_struct),
+             seav__update(Struct_exp, 'output', New_struct)
+            )
+        ;%could also be a function call (?) returning a record todo
+            
+         Struct_exp = index(Array_exp, Index_exp) -> % e.g. a[i].n = Expression becomes a[i] = up_rec(a[i], n, Expression)
+            (%todo optimise and make sounder unique call to index(Array_exp, Index_exp) ?
+             %mytrace,
+             symbolic_execute(assign(index(Array_exp, Index_exp), up_rec(index(Array_exp, Index_exp), Field, Expression)), Flow)
+            )
+        ;
+            common_util__error(9, "Unexpected LValue inselect", "Sikraken's logic is wrong", [('LValue', LValue)], '9_091224_1', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
         )
     ;
         common_util__error(9, "Unexpected LValue", "Sikraken's logic is wrong", [('LValue', LValue)], '9_030824_2', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)

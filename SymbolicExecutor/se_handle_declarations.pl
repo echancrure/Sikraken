@@ -24,7 +24,11 @@ declare_single_declarator(Declarator, Type_name, Type_name_ptr_opt, Casted, Clea
 
     (nonvar(Type_name_ptr_opt), Type_name_ptr_opt = array(Element_type, Size_expr) ->    %array variable creation required
         (symbolically_interpret(Size_expr, symb(_, Size)),
-         symbolically_interpret(Initialiser, symb(_, Initialisation)),   %todo should be casted to Element_type, should be done within ptc_solver_array
+         (Initialiser == 'uninitialised' ->
+            symbolically_interpret(int(0), symb(_, Initialisation)) %sticky plaster: this entire predicate needs rewritten
+         ;       
+            symbolically_interpret(Initialiser, symb(_, Initialisation))   %todo should be casted to Element_type, should be done within ptc_solver_array
+         ),
          ptc_solver__create_variable(array(Element_type, Size, Initialisation), Casted)
         )
     ;
@@ -59,7 +63,7 @@ create_struct_type(struct(Tag, Struct_declaration_list), Struct_type) :-
     ;
         Struct_type = Tag
     ),
-    (mytrace,
+    (%mytrace,
      create_field_valuesL(Struct_declaration_list, Field_valuesL),
      ptc_solver__create_struct_type(Struct_type, Field_valuesL)
     ).
