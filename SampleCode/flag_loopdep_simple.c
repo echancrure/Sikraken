@@ -25,20 +25,20 @@ void init(S a[], int size)
  }
 }
 int main()
-{
- S a[1000000];
+{int SIZE = 10; //1000000;
+ S a[SIZE];
  int i;
  int flag;
  flag = 0;
- init(a, 1000000);
- for(i = 0; i < 1000000; i++)
+ init(a, SIZE);
+ for(i = 0; i < SIZE; i++)
  {
   if(a[i].n != 0)
   {
    flag = 1;
   }
  }
- for(i = 0; i < 1000000; i++)
+ for(i = 0; i < SIZE; i++)
  {
   if (flag == 0)
   __VERIFIER_assert(a[i].n == 0 );

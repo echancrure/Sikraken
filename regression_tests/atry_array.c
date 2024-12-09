@@ -6,7 +6,7 @@ int main() {
     int unknown_length_init[] = {__VERIFIER_nondet_int(), 6, 7};   //size 3, fully initialised
     if (unknown_length_init[0] == 43) r++;
     else r--;
-    int c[10] = {5, 6}; //only first 2 elements are initialised, the rest are set to 'uninitialised'
+    int c[10] = {5, 6}; //only first 2 elements are initialised, the rest are set to default
     int zzz = c[0] + c[1];
     zzz += c[2];
     int i = __VERIFIER_nondet_int();

@@ -6,7 +6,7 @@
       "algo": "regression(2, 10)",
       "expected_run_time": 1,
       "expected_test_inputs_number": 5,
-      "expected_coverage": 75.0
+      "expected_coverage": 83.33
     }
   ]
 }

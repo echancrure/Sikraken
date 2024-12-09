@@ -59,15 +59,19 @@ create_struct_type(struct(Tag, Struct_declaration_list), Struct_type) :-
     ;
         Struct_type = Tag
     ),
-    (create_field_valuesL(Struct_declaration_list, Field_valuesL),
+    (mytrace,
+     create_field_valuesL(Struct_declaration_list, Field_valuesL),
      ptc_solver__create_struct_type(Struct_type, Field_valuesL)
     ).
     %%%
     create_field_valuesL([], []).
-    create_field_valuesL([anonymous_member(Struct_or_Union)|Rest_i], [Anonymous_struct_or_union_member|Rest_o]) :-    %Anonymous Members in Structs have different access rules
+    create_field_valuesL([anonymous_member(Struct_or_Union)|Rest_i], Field_values_List) :-    %Anonymous Members in Structs have different access rules
+        !,
         single_struct_decl([Struct_or_Union], [_Anonymous_member], Anonymous_struct_or_union_member),
-        create_field_valuesL(Rest_i, Rest_o).
+        create_field_valuesL(Rest_i, Rest_o),
+        append(Anonymous_struct_or_union_member, Rest_o, Field_values_List).
     create_field_valuesL([struct_decl(Type_specifiers_L, Declarators_List)|Struct_declarations_Rest], Field_values_List) :-
+        !,
         single_struct_decl(Type_specifiers_L, Declarators_List, Inner_field_values_List),
         create_field_valuesL(Struct_declarations_Rest, Field_values_Rest),
         append(Inner_field_values_List, Field_values_Rest, Field_values_List).

@@ -12,7 +12,7 @@ if [ ! $# -eq 5 ]; then
 fi
 
 path_to_benchmarks="$1" #e.g. /home/chris/sv-benchmarks/c
-category="$2"           #e.g. ReachSafety-ECA
+category="$2"           #e.g. ECA
 cores=$3                #e.g. 6
 budget=$4               #e.g. 900
 mode=$5                 #e.g. debug or release
@@ -31,10 +31,10 @@ if [ ! -f "$full_path_to_category_file" ]; then
     echo "ERROR: the file of categories $category_file does not exist in $path_to_benchmarks"
     exit 1
 fi
-# Define exclusion set for ReachSafety-ECA
+# Define exclusion set for ECA
 exclude_set=""
-if [ $category == "ReachSafety-ECA" ]; then
-    exclude_set="$SCRIPT_DIR/../SikrakenDevSpace/ReachSafety-ECA-excludes.set"
+if [ $category == "ECA" ]; then
+    exclude_set="$SCRIPT_DIR/../SikrakenDevSpace/ECA-excludes.set"
     if [ ! -f "$exclude_set" ]; then
         echo "ERROR: Exclusion set $exclude_set does not exist."
         exit 1
@@ -186,6 +186,9 @@ budget=$4               #e.g. 900
 generate_table_script="./bin/test_category_generate_table.sh "$output_dir" $budget $mode"
 echo "now calling $generate_table_script"
 $generate_table_script
+
+# update the category summary table for all the previous runs
+./SikrakenDevSpace/bin/view_category.sh ./SikrakenDevSpace/categories/$category/
 
 echo "Sikraken $0 has ended."
 aplay SikrakenDevSpace/call_to_arms.wav
