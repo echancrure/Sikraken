@@ -1,5 +1,7 @@
 extern int __VERIFIER_nondet_int();
-extern int __VERIFIER_nondet_char();
+extern char __VERIFIER_nondet_char();
+
+int dum[];
 
 struct Point {
     int x,y;
@@ -21,7 +23,7 @@ int calc_avg(char a[], int size) {
 }
 
 int main(void) {
-    char x[10] = {}; //initialised to 0
+    char x[10] = {}; //initialised to 0 
     for (int i=0; i< 10; i++) x[i] = __VERIFIER_nondet_char();
     int avg = calc_avg(x, 10);
     int i = 99;

@@ -107,7 +107,7 @@ generate_tests() {
         else
             echo "Test inputs generated for $regression_test_file in $id configuration"
         fi
-
+        #call_testcov "$regression_test_file" #cannot do this testcov needs to be run sequentially
     done
 }
 
@@ -147,11 +147,7 @@ call_testcov() {
         local expected_test_inputs_number=$(echo "$config" | jq -r '.expected_test_inputs_number')
         local expected_coverage=$(echo "$config" | jq -r '.expected_coverage')
 
-        local zipfile="./sikraken_output/$base_name/test-suite.zip"
-        rm -f $zipfile
-        zip -r $zipfile "./sikraken_output/$base_name/test-suite"
-
-        local testcov_call="testcov $testcov_data_model --test-suite $zipfile $regression_test_file --output "./sikraken_output/$base_name/testcov" --reduction NONE --no-runexec --no-isolation --no-plots"
+        testcov_call="./bin/run_testcov.sh $regression_test_file $testcov_data_model"
         echo "CALL TO TESTCOV IS $testcov_call"
         local testcov_output=$($testcov_call 2>&1)
         if [ $? -ne 0 ]; then

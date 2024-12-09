@@ -225,8 +225,8 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
             ((get_stream(error, X), get_stream(null, X)) -> %error stream has already been set to null
                 true
             ;   
-                (common_util__error(9, "ECLiPSe language violation", "Error stream has been set to null to avoid 100s of messages", [], '9_281024_1', 'se_main', 'se_main', no_localisation, no_extra_info),
-                 set_stream(error, null)   %to avoid thousands additional identical error messages from ECLiPSe
+                (common_util__error(9, "ECLiPSe language violation", "", [], '9_281024_1', 'se_main', 'se_main', no_localisation, no_extra_info)
+                 %,set_stream(error, null)   %to avoid thousands additional identical error messages from ECLiPSe
                  %find_one_path will succeed and count as a try, and hopefully backtrack out of the error and find another subpath, if not it will eventually reach the max number of tries or timeout
                 )
             )

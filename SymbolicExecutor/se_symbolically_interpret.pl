@@ -81,6 +81,7 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
         )
     ;
         (se_name_atts__get(Function, 'name', Function_name),
+        mytrace,
          common_util__error(9, "Calling a non-extern function that has not been defined", "Seriously wrong; Suggest add include or declare as extern", [('Function_name', Function_name)], '9_100924_1', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info),
          Symbolic_expression = symb(int, 0)
         )

@@ -7,11 +7,12 @@ declare_declarators([Declarator|R], Type_name) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 declare_single_declarator(Declarator, Type_name, Type_name_ptr_opt, Casted, Clean_var) :-
     %mytrace,
+    getval('execution_mode', Execution_mode),
     (nonvar(Declarator), Declarator = initialised(Direct_declarator, Initialiser) ->
         true
     ;
         (Direct_declarator = Declarator,
-         (getval('execution_mode', 'local') ->
+         (Execution_mode == 'local' ->
             Initialiser = 'uninitialised'
          ;
             Initialiser = int(0)   %will initialise everything to 0 by default
@@ -38,7 +39,7 @@ declare_single_declarator(Declarator, Type_name, Type_name_ptr_opt, Casted, Clea
             Casted = addr(Initialiser)  %save yourself the trouble: don't go through casting
         ;
          Initialiser == 'uninitialised' ->
-            Casted = Initialiser
+            Casted = _Initialiser
         ;
             symbolically_interpret(cast(Type_name_ptr_opt, Initialiser), symb(_Type, Casted))
         )
@@ -228,7 +229,7 @@ match_parameters_arguments([], []) :-
 match_parameters_arguments([param(Declaration_specifiers, Parameter)|Rest_parameters], [Argument|Rest_arguments]) :-
     !,
     extract_type(Declaration_specifiers, Type_name),
-    declare_declarators([initialised(Parameter, Argument)], Type_name),
+    declare_declarators([initialised(Parameter, Argument)], Type_name), %make a copy?
     match_parameters_arguments(Rest_parameters, Rest_arguments).
 match_parameters_arguments(Parameters, Arguments) :-
     !,
