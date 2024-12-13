@@ -4,6 +4,8 @@
 INPUT_FILE="$1"
 INPUT_FILENAME=$(basename "$INPUT_FILE" .log)  # Extract the base name (without .log extension)
 INPUT_DIR=$(dirname "$1") 
+BENCHMARK=$(basename "$INPUT_DIR")
+
 OUTPUT_FILE="$INPUT_DIR/${INPUT_FILENAME}_plot.png"  # Use the input file name as part of the output file name
 
 # Temporary file to store the extracted data for plotting
@@ -24,10 +26,11 @@ grep "Dev Info: Restart single test budget changed" "$INPUT_FILE" | awk -F"Resta
 GNUPLOT_SCRIPT=$(mktemp "plot_times-XXXXXX.gp")
 echo "Generated file: $GNUPLOT_SCRIPT"
 
+#set term eps
 cat << EOF > $GNUPLOT_SCRIPT
 set terminal pngcairo size 800,600
 set output '$OUTPUT_FILE'
-set title "$OUTPUT_FILE: Sikraken Test Run"
+set title "$BENCHMARK: Sikraken Test Run"
 set datafile separator ","
 set xlabel "Overall Elapsed Time (seconds)"
 set ylabel "Time (seconds)"
