@@ -1474,7 +1474,7 @@ void process_declaration_specifiers(char a[]) {
     flags.isInt = true;
     flags.isSigned = true;
     
-    char temp[500];
+    char *temp = (char *)malloc(sizeof(char)*strlen(a));
     strcpy(temp, a);
 
     // Handle special cases
