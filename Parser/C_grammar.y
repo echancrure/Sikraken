@@ -43,15 +43,16 @@ typedef struct {
     bool isDouble;
     bool isFloat;
     bool isStruct;
-	bool isUnion;
+    bool isUnion;
     bool isSigned;
     bool isShort;
-	bool isBool;
-	bool isRestrict;
-	bool isVolatile;
-	bool isAtomic;
+    bool isBool;
+    bool isRestrict;
+    bool isVolatile;
+    bool isAtomic;
     int longCount;
 } SpecifierFlags;
+
 
 
 extern int yylex();
@@ -1469,101 +1470,70 @@ int main(int argc, char *argv[]) {
 void process_declaration_specifiers(char a[]) {
 
     char *token;
-    SpecifierFlags flags = {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, 0};
-	flags.isInt = true;
-	flags.isSigned = true;
-	
-	char temp[100];
-	strcpy(temp, a);
+    SpecifierFlags flags = {false};
+    flags.isInt = true;
+    flags.isSigned = true;
+    
+    char temp[500];
+    strcpy(temp, a);
 
-    if(strncmp(temp, "struct", 6) == 0 || strncmp(temp, "typedef, struct", 15) == 0){
+    // Handle special cases
+    if (strncmp(temp, "struct", 6) == 0 || strncmp(temp, "typedef, struct", 15) == 0) {
         flags.isStruct = true;
         flags.isInt = false;
-    }else if(strncmp(temp, "union", 5) == 0 || strncmp(temp, "typedef, union", 14) == 0){
+    } else if (strncmp(temp, "union", 5) == 0 || strncmp(temp, "typedef, union", 14) == 0) {
         flags.isUnion = true;
         flags.isInt = false;
-    }else if(strncmp(temp, "*restrict", 9) == 0){
+    } else if (strncmp(temp, "*restrict", 9) == 0) {
         flags.isRestrict = true;
         flags.isInt = false;
-    }else{
+    } else {
         // Tokenize the string using commas and spaces as delimiters
         token = strtok(temp, ", ");
         while (token != NULL) {
-			if(strcmp(token, "double") == 0){
-				printf("double is true \n");
-				flags.isInt = false;
-				flags.isDouble = true;
-			}else if(strcmp(token, "float") == 0){
-				flags.isInt = false;
-				flags.isFloat = true;
-			}else if (strcmp(token, "char") == 0){
-				flags.isInt = false;
-				flags.isChar = true;
-			} else if (strcmp(token, "long") == 0) {
-				flags.longCount++;
-			}else if(strcmp(token, "short") == 0){
-				flags.isShort = true;
-			}else if (strcmp(token, "unsigned") == 0) {
-				flags.isSigned = false;
-			}else if(strcmp(token, "const") == 0){
-				flags.isConstant = true;
-			}else if(strcmp(token, "static") == 0){
-				flags.isStatic = true;
-			}else if(strcmp(token, "extern") == 0){
-				flags.isExtern = true;
-			}else if(strcmp(token, "typedef") == 0){
-				flags.isTypeDef = true;
-			}else if(strcmp(token, "_Bool") == 0){
-				flags.isBool = true;
-				flags.isInt = false;
-			}else if(strcmp(token, "volatile") == 0){
-				flags.isVolatile = true;
-			}else if(strcmp(token, "atomic") == 0){
-				flags.isAtomic = true;
-			}
-			
-			token = strtok(NULL, ", "); // Get the next token
-		}
-                
-		if (flags.isInt) {
-			printf("int is true \n");
-			temp[0] = '\0';
-			if (flags.isTypeDef)
-				strcat(temp, "typedef, ");
-			if (flags.isExtern)
-				strcat(temp, "extern, ");
-			if (flags.isConstant)
-				strcat(temp, "const, ");
-			if (flags.isStatic)
-				strcat(temp, "static, ");
-			if (flags.isVolatile)
-				strcat(temp, "volatile, ");
-			if (flags.isAtomic)
-				strcat(temp, "atomic, ");
+            if (strcmp(token, "double") == 0) { flags.isDouble = true; flags.isInt = false; }
+            else if (strcmp(token, "float") == 0) { flags.isFloat = true; flags.isInt = false; }
+            else if (strcmp(token, "char") == 0) { flags.isChar = true; flags.isInt = false; }
+            else if (strcmp(token, "long") == 0) { flags.longCount++; }
+            else if (strcmp(token, "short") == 0) { flags.isShort = true; }
+            else if (strcmp(token, "unsigned") == 0) { flags.isSigned = false; }
+            else if (strcmp(token, "const") == 0) { flags.isConstant = true; }
+            else if (strcmp(token, "static") == 0) { flags.isStatic = true; }
+            else if (strcmp(token, "extern") == 0) { flags.isExtern = true; }
+            else if (strcmp(token, "typedef") == 0) { flags.isTypeDef = true; }
+            else if (strcmp(token, "_Bool") == 0) { flags.isBool = true; flags.isInt = false; }
+            else if (strcmp(token, "volatile") == 0) { flags.isVolatile = true; }
+            else if (strcmp(token, "atomic") == 0) { flags.isAtomic = true; }
 
-			if (flags.isSigned) {
-				if (flags.longCount == 1)
-					strcat(temp, "long");
-				else if (flags.longCount == 2)
-					strcat(temp, "long, long");
-				else if (flags.isShort)
-					strcat(temp, "short");
-				else
-					strcat(temp, "int");
-			} else {
-				if (flags.longCount == 1)
-					strcat(temp, "unsigned, long");
-				else if (flags.longCount == 2)
-					strcat(temp, "unsigned, long, long");
-				else if (flags.isShort)
-					strcat(temp, "unsigned, short");
-				else
-					strcat(temp, "unsigned, int");
-			}
-			strcpy(a, temp);
-		}
+            token = strtok(NULL, ", ");
+        }
+
+        // Process flags for integer types
+        if (flags.isInt) {
+            temp[0] = '\0'; // Reset temp string
+            if (flags.isTypeDef) strcat(temp, "typedef, ");
+            if (flags.isExtern) strcat(temp, "extern, ");
+            if (flags.isConstant) strcat(temp, "const, ");
+            if (flags.isStatic) strcat(temp, "static, ");
+            if (flags.isVolatile) strcat(temp, "volatile, ");
+            if (flags.isAtomic) strcat(temp, "atomic, ");
+
+            if (flags.isSigned) {
+                if (flags.longCount == 1) strcat(temp, "long");
+                else if (flags.longCount == 2) strcat(temp, "long, long");
+                else if (flags.isShort) strcat(temp, "short");
+                else strcat(temp, "int");
+            } else {
+                if (flags.longCount == 1) strcat(temp, "unsigned, long");
+                else if (flags.longCount == 2) strcat(temp, "unsigned, long, long");
+                else if (flags.isShort) strcat(temp, "unsigned, short");
+                else strcat(temp, "unsigned, int");
+            }
+            strcpy(a, temp);
+        }
     }
 }
+
 
 //handles parsing errors: since the C input file is the output of a C pre-processor it will only be called if
 //  the syntax rules are wrong due to GCC extensions 
