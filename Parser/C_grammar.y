@@ -46,6 +46,10 @@ typedef struct {
 	bool isUnion;
     bool isSigned;
     bool isShort;
+	bool isBool;
+	bool isRestrict;
+	bool isVolatile;
+	bool isAtomic;
     int longCount;
 } SpecifierFlags;
 
@@ -546,6 +550,7 @@ declaration
 			//if (debugMode) printf("Debug: typedef switched to 0\n");
 	   	 }
 		 printf("This rule is matched 2 \n");
+		 printf("%s| %s \n", $1, $2);
 		 process_declaration_specifiers($1);
 		 size_t const size = strlen("\ndeclaration([], [])") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
@@ -585,7 +590,8 @@ declaration_specifiers
 		}
 	| type_specifier
 	| type_qualifier declaration_specifiers
-		{printf("This rule is matched 5 \n");
+		{
+		 printf("This rule is matched 5 \n");
 		 size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 		 printf("%s| %s \n", $1, $2);
 		 $$ = (char*)malloc(size);
@@ -947,7 +953,8 @@ direct_declarator
 		 $$.ptr_declarator = $1.ptr_declarator;
 		}
 	| direct_declarator '[' assignment_expression ']'
-		{size_t const size = strlen("array_decl(, )") + strlen($1.full) + strlen($3) + 1;
+		{printf("THIS RULE IS MATCHED 3!!! \n %s \n",$1.full);
+		 size_t const size = strlen("array_decl(, )") + strlen($1.full) + strlen($3) + 1;
          $$.full = (char*)malloc(size);
          sprintf_safe($$.full, size, "array_decl(%s, %s)", $1.full, $3);
 		 free($1.full);
@@ -955,7 +962,8 @@ direct_declarator
 		 $$.ptr_declarator = $1.ptr_declarator;
 		}
 	| direct_declarator '(' ')'
-		{size_t const size = strlen("function(, [])") + strlen($1.full) + 1;
+		{printf("THIS RULE IS MATCHED 2!!! \n %s \n",$1.full);
+		 size_t const size = strlen("function(, [])") + strlen($1.full) + 1;
 	     $$.full = (char*)malloc(size);
 	     sprintf_safe($$.full, size, "function(%s, [])", $1.full);
 		 current_function = strdup($1.full);
@@ -963,7 +971,9 @@ direct_declarator
 		 $$.ptr_declarator = $1.ptr_declarator;
 		}
 	| direct_declarator '(' parameter_type_list ')'
-		{size_t const size = strlen("function(, )") + strlen($1.full) + strlen($3) + 1;
+		{
+		 printf("THIS RULE IS MATCHED!!! \n %s \n",$1.full);
+		 size_t const size = strlen("function(, )") + strlen($1.full) + strlen($3) + 1;
 	     $$.full = (char*)malloc(size);
 	     sprintf_safe($$.full, size, "function(%s, %s)", $1.full, $3);
 		 current_function = strdup($1.full);
@@ -1041,7 +1051,8 @@ parameter_list
 
 parameter_declaration
 	: declaration_specifiers declarator
-		{size_t const size = strlen("param([], )") + strlen($1) + strlen($2.full) + 1;
+		{process_declaration_specifiers($1);
+		 size_t const size = strlen("param([], )") + strlen($1) + strlen($2.full) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "param([%s], %s)", $1, $2.full);
 	     free($1);
@@ -1358,7 +1369,9 @@ external_declaration
 
 function_definition
 	: declaration_specifiers declarator declaration_list_opt compound_statement
-		{size_t const size = strlen("function([], , [], )") + strlen($1) + strlen($2.full) + strlen($3) + strlen($4) + 1;
+		{printf("THIS RULE IS MATCHED 4!!! \n %s \n",$1);
+		 process_declaration_specifiers($1);
+		 size_t const size = strlen("function([], , [], )") + strlen($1) + strlen($2.full) + strlen($3) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "function([%s], %s, [%s], %s)", $1, $2.full, $3, $4);
 	     free($1);
@@ -1456,19 +1469,28 @@ int main(int argc, char *argv[]) {
 void process_declaration_specifiers(char a[]) {
 
     char *token;
-    SpecifierFlags flags = {false, false, false, false, true, false, false, false, false, false, true, false, 0};
+    SpecifierFlags flags = {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, 0};
+	flags.isInt = true;
+	flags.isSigned = true;
+	
+	char temp[100];
+	strcpy(temp, a);
 
-    if(strncmp(a, "struct", 6) == 0 || strncmp(a, "typedef, struct", 15) == 0){
+    if(strncmp(temp, "struct", 6) == 0 || strncmp(temp, "typedef, struct", 15) == 0){
         flags.isStruct = true;
         flags.isInt = false;
-    }else if(strncmp(a, "union", 5) == 0 || strncmp(a, "typedef, union", 14) == 0){
+    }else if(strncmp(temp, "union", 5) == 0 || strncmp(temp, "typedef, union", 14) == 0){
         flags.isUnion = true;
+        flags.isInt = false;
+    }else if(strncmp(temp, "*restrict", 9) == 0){
+        flags.isRestrict = true;
         flags.isInt = false;
     }else{
         // Tokenize the string using commas and spaces as delimiters
-        token = strtok(a, ", ");
+        token = strtok(temp, ", ");
         while (token != NULL) {
 			if(strcmp(token, "double") == 0){
+				printf("double is true \n");
 				flags.isInt = false;
 				flags.isDouble = true;
 			}else if(strcmp(token, "float") == 0){
@@ -1491,40 +1513,54 @@ void process_declaration_specifiers(char a[]) {
 				flags.isExtern = true;
 			}else if(strcmp(token, "typedef") == 0){
 				flags.isTypeDef = true;
+			}else if(strcmp(token, "_Bool") == 0){
+				flags.isBool = true;
+				flags.isInt = false;
+			}else if(strcmp(token, "volatile") == 0){
+				flags.isVolatile = true;
+			}else if(strcmp(token, "atomic") == 0){
+				flags.isAtomic = true;
 			}
+			
 			token = strtok(NULL, ", "); // Get the next token
 		}
                 
 		if (flags.isInt) {
-			a[0] = '\0';
+			printf("int is true \n");
+			temp[0] = '\0';
 			if (flags.isTypeDef)
-				strcat(a, "typedef, ");
+				strcat(temp, "typedef, ");
 			if (flags.isExtern)
-				strcat(a, "extern, ");
+				strcat(temp, "extern, ");
 			if (flags.isConstant)
-				strcat(a, "const, ");
+				strcat(temp, "const, ");
 			if (flags.isStatic)
-				strcat(a, "static, ");
+				strcat(temp, "static, ");
+			if (flags.isVolatile)
+				strcat(temp, "volatile, ");
+			if (flags.isAtomic)
+				strcat(temp, "atomic, ");
 
 			if (flags.isSigned) {
 				if (flags.longCount == 1)
-					strcat(a, "long");
+					strcat(temp, "long");
 				else if (flags.longCount == 2)
-					strcat(a, "long, long");
+					strcat(temp, "long, long");
 				else if (flags.isShort)
-					strcat(a, "short");
+					strcat(temp, "short");
 				else
-					strcat(a, "int");
+					strcat(temp, "int");
 			} else {
 				if (flags.longCount == 1)
-					strcat(a, "unsigned, long");
+					strcat(temp, "unsigned, long");
 				else if (flags.longCount == 2)
-					strcat(a, "unsigned, long, long");
+					strcat(temp, "unsigned, long, long");
 				else if (flags.isShort)
-					strcat(a, "unsigned, short");
+					strcat(temp, "unsigned, short");
 				else
-					strcat(a, "unsigned, int");
+					strcat(temp, "unsigned, int");
 			}
+			strcpy(a, temp);
 		}
     }
 }
