@@ -39,14 +39,8 @@ typedef struct {
     bool isConstant;
     bool isStatic;
     bool isInt;
-    bool isChar;
-    bool isDouble;
-    bool isFloat;
-    bool isStruct;
-    bool isUnion;
     bool isSigned;
     bool isShort;
-    bool isBool;
     bool isRestrict;
     bool isVolatile;
     bool isAtomic;
@@ -1476,36 +1470,23 @@ void process_declaration_specifiers(char a[]) {
     char *temp = (char *)malloc(sizeof(char)*strlen(a));
     strcpy(temp, a);
 
-    // Handle special cases
-    if (strncmp(temp, "struct", 6) == 0 || strncmp(temp, "typedef, struct", 15) == 0) {
-        flags.isStruct = true;
-        flags.isInt = false;
-    } else if (strncmp(temp, "union", 5) == 0 || strncmp(temp, "typedef, union", 14) == 0) {
-        flags.isUnion = true;
-        flags.isInt = false;
-    } else if (strncmp(temp, "*restrict", 9) == 0) {
-        flags.isRestrict = true;
-        flags.isInt = false;
-    } else {
-        // Tokenize the string using commas and spaces as delimiters
-        token = strtok(temp, ", ");
-        while (token != NULL) {
-            if (strcmp(token, "double") == 0) { flags.isDouble = true; flags.isInt = false; }
-            else if (strcmp(token, "float") == 0) { flags.isFloat = true; flags.isInt = false; }
-            else if (strcmp(token, "char") == 0) { flags.isChar = true; flags.isInt = false; }
-            else if (strcmp(token, "long") == 0) { flags.longCount++; }
-            else if (strcmp(token, "short") == 0) { flags.isShort = true; }
-            else if (strcmp(token, "unsigned") == 0) { flags.isSigned = false; }
-            else if (strcmp(token, "const") == 0) { flags.isConstant = true; }
-            else if (strcmp(token, "static") == 0) { flags.isStatic = true; }
-            else if (strcmp(token, "extern") == 0) { flags.isExtern = true; }
-            else if (strcmp(token, "typedef") == 0) { flags.isTypeDef = true; }
-            else if (strcmp(token, "_Bool") == 0) { flags.isBool = true; flags.isInt = false; }
-            else if (strcmp(token, "volatile") == 0) { flags.isVolatile = true; }
-            else if (strcmp(token, "atomic") == 0) { flags.isAtomic = true; }
 
-            token = strtok(NULL, ", ");
-        }
+	// Tokenize the string using commas and spaces as delimiters
+	token = strtok(temp, ", ");
+	while (token != NULL) {
+		if (strcmp(token, "int") == 0) { flags.isInt = true;}
+		else if (strcmp(token, "long") == 0) { flags.longCount++; }
+		else if (strcmp(token, "short") == 0) { flags.isShort = true; }
+		else if (strcmp(token, "unsigned") == 0) { flags.isSigned = false; }
+		else if (strcmp(token, "const") == 0) { flags.isConstant = true; }
+		else if (strcmp(token, "static") == 0) { flags.isStatic = true; }
+		else if (strcmp(token, "extern") == 0) { flags.isExtern = true; }
+		else if (strcmp(token, "typedef") == 0) { flags.isTypeDef = true; }
+		else if (strcmp(token, "volatile") == 0) { flags.isVolatile = true; }
+		else if (strcmp(token, "atomic") == 0) { flags.isAtomic = true; }
+
+		token = strtok(NULL, ", ");
+	
 
         // Process flags for integer types
         if (flags.isInt || flags.isShort || flags.longCount > 0) {
