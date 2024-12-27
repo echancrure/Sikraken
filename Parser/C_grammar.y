@@ -1471,7 +1471,6 @@ void process_declaration_specifiers(char a[]) {
 
     char *token;
     SpecifierFlags flags = {false};
-    flags.isInt = true;
     flags.isSigned = true;
     
     char *temp = (char *)malloc(sizeof(char)*strlen(a));
@@ -1509,7 +1508,7 @@ void process_declaration_specifiers(char a[]) {
         }
 
         // Process flags for integer types
-        if (flags.isInt) {
+        if (flags.isInt || flags.isShort || flags.longCount > 0) {
             temp[0] = '\0'; // Reset temp string
             if (flags.isTypeDef) strcat(temp, "typedef, ");
             if (flags.isExtern) strcat(temp, "extern, ");
@@ -1530,6 +1529,7 @@ void process_declaration_specifiers(char a[]) {
                 else strcat(temp, "unsigned, int");
             }
             strcpy(a, temp);
+			
         }
     }
 }
