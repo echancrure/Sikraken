@@ -1486,11 +1486,9 @@ void process_declaration_specifiers(char a[]) {
 		else if (strcmp(token, "atomic") == 0) { flags.isAtomic = true; }
 
 		token = strtok(NULL, ", ");
-	
 
-        // Process flags for integer types
         if (flags.isInt || flags.isShort || flags.longCount > 0) {
-            temp[0] = '\0'; // Reset temp string
+            temp[0] = '\0'; 
             if (flags.isTypeDef) strcat(temp, "typedef, ");
             if (flags.isExtern) strcat(temp, "extern, ");
             if (flags.isConstant) strcat(temp, "const, ");
