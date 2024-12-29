@@ -527,8 +527,7 @@ constant_expression
 
 declaration
 	: declaration_specifiers ';'
-		{printf("This rule is matched 1 \n");
-		 size_t const size = strlen("\ndeclaration([])") + strlen($1) + 1;
+		{size_t const size = strlen("\ndeclaration([])") + strlen($1) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "\ndeclaration([%s])", $1);
 		 free($1);
@@ -544,19 +543,15 @@ declaration
 	    	typedef_flag = 0; 
 			//if (debugMode) printf("Debug: typedef switched to 0\n");
 	   	 }
-		 printf("This rule is matched 2 \n");
-		 printf("%s| %s \n", $1, $2);
 		 process_declaration_specifiers($1);
 		 size_t const size = strlen("\ndeclaration([], [])") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
-		 printf("%s| %s \n", $1, $2);
 		 sprintf_safe($$, size, "\ndeclaration([%s], [%s]) \n", $1, $2);
 		 free($1);
 		 free($2);
 		}
 	| static_assert_declaration
-		{printf("This rule is matched 7 \n");
-		 size_t const size = strlen("\n") + strlen($1) + 1;
+		{size_t const size = strlen("\n") + strlen($1) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "\n%s", $1);
 		 free($1);
@@ -565,9 +560,7 @@ declaration
 
 declaration_specifiers
 	: storage_class_specifier declaration_specifiers
-		{printf("This rule is matched 3 \n");
-		 size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
-		 printf("%s| %s \n", $1, $2);
+		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "%s, %s", $1, $2);
 		 free($1);
@@ -575,9 +568,7 @@ declaration_specifiers
 		}
 	| storage_class_specifier
 	| type_specifier declaration_specifiers
-		{printf("This rule is matched 4 \n");
-		 size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
-		 printf("%s| %s \n", $1, $2);
+		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "%s, %s", $1, $2);
 		 free($1);
@@ -586,9 +577,7 @@ declaration_specifiers
 	| type_specifier
 	| type_qualifier declaration_specifiers
 		{
-		 printf("This rule is matched 5 \n");
 		 size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
-		 printf("%s| %s \n", $1, $2);
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "%s, %s", $1, $2);
 		 free($1);
@@ -618,8 +607,7 @@ init_declarator_list
 
 init_declarator
 	: declarator '=' initializer
-		{printf("This rule is matched 6 \n");
-		 size_t const size = strlen("initialised(, )") + strlen($1.full) + strlen($3) + 1;
+		{size_t const size = strlen("initialised(, )") + strlen($1.full) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
 	   	 sprintf_safe($$, size, "initialised(%s, %s)", $1.full, $3);
 	   	 free($1.full);
@@ -725,7 +713,6 @@ struct_declaration
 	: specifier_qualifier_list ';'	/* for anonymous struct/union ?????????? */
 		{size_t const size = strlen("struct_decl_anonymous()") + strlen($1) + 1;
        	 $$ = (char*)malloc(size);
-		 printf("%s \n \n", $1);
          sprintf_safe($$, size, "struct_decl_anonymous(%s)", $1);
 	   	 free($1);
         }
@@ -948,8 +935,7 @@ direct_declarator
 		 $$.ptr_declarator = $1.ptr_declarator;
 		}
 	| direct_declarator '[' assignment_expression ']'
-		{printf("THIS RULE IS MATCHED 3!!! \n %s \n",$1.full);
-		 size_t const size = strlen("array_decl(, )") + strlen($1.full) + strlen($3) + 1;
+		{size_t const size = strlen("array_decl(, )") + strlen($1.full) + strlen($3) + 1;
          $$.full = (char*)malloc(size);
          sprintf_safe($$.full, size, "array_decl(%s, %s)", $1.full, $3);
 		 free($1.full);
@@ -957,8 +943,7 @@ direct_declarator
 		 $$.ptr_declarator = $1.ptr_declarator;
 		}
 	| direct_declarator '(' ')'
-		{printf("THIS RULE IS MATCHED 2!!! \n %s \n",$1.full);
-		 size_t const size = strlen("function(, [])") + strlen($1.full) + 1;
+		{size_t const size = strlen("function(, [])") + strlen($1.full) + 1;
 	     $$.full = (char*)malloc(size);
 	     sprintf_safe($$.full, size, "function(%s, [])", $1.full);
 		 current_function = strdup($1.full);
@@ -966,9 +951,7 @@ direct_declarator
 		 $$.ptr_declarator = $1.ptr_declarator;
 		}
 	| direct_declarator '(' parameter_type_list ')'
-		{
-		 printf("THIS RULE IS MATCHED!!! \n %s \n",$1.full);
-		 size_t const size = strlen("function(, )") + strlen($1.full) + strlen($3) + 1;
+		{size_t const size = strlen("function(, )") + strlen($1.full) + strlen($3) + 1;
 	     $$.full = (char*)malloc(size);
 	     sprintf_safe($$.full, size, "function(%s, %s)", $1.full, $3);
 		 current_function = strdup($1.full);
@@ -1364,8 +1347,7 @@ external_declaration
 
 function_definition
 	: declaration_specifiers declarator declaration_list_opt compound_statement
-		{printf("THIS RULE IS MATCHED 4!!! \n %s \n",$1);
-		 process_declaration_specifiers($1);
+		{process_declaration_specifiers($1);
 		 size_t const size = strlen("function([], , [], )") + strlen($1) + strlen($2.full) + strlen($3) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "function([%s], %s, [%s], %s)", $1, $2.full, $3, $4);
@@ -1462,56 +1444,61 @@ int main(int argc, char *argv[]) {
 }
 
 void process_declaration_specifiers(char a[]) {
-
     char *token;
     SpecifierFlags flags = {false};
     flags.isSigned = true;
-    
-    char *temp = (char *)malloc(sizeof(char)*strlen(a));
+
+    // Allocate temp with enough space
+    char *temp = (char *)malloc(sizeof(char) * (strlen(a) + 1));
+    if (!temp) {
+        perror("Memory allocation failed");
+        return;
+    }
     strcpy(temp, a);
 
+    char result[1024] = ""; 
+    token = strtok(temp, ", ");
+    while (token != NULL) {
+        if (strcmp(token, "int") == 0) { flags.isInt = true; }
+        else if (strcmp(token, "long") == 0) { flags.longCount++; }
+        else if (strcmp(token, "short") == 0) { flags.isShort = true; }
+        else if (strcmp(token, "unsigned") == 0) { flags.isSigned = false; }
+        else if (strcmp(token, "const") == 0) { flags.isConstant = true; }
+        else if (strcmp(token, "static") == 0) { flags.isStatic = true; }
+        else if (strcmp(token, "extern") == 0) { flags.isExtern = true; }
+        else if (strcmp(token, "typedef") == 0) { flags.isTypeDef = true; }
+        else if (strcmp(token, "volatile") == 0) { flags.isVolatile = true; }
+        else if (strcmp(token, "atomic") == 0) { flags.isAtomic = true; }
 
-	// Tokenize the string using commas and spaces as delimiters
-	token = strtok(temp, ", ");
-	while (token != NULL) {
-		if (strcmp(token, "int") == 0) { flags.isInt = true;}
-		else if (strcmp(token, "long") == 0) { flags.longCount++; }
-		else if (strcmp(token, "short") == 0) { flags.isShort = true; }
-		else if (strcmp(token, "unsigned") == 0) { flags.isSigned = false; }
-		else if (strcmp(token, "const") == 0) { flags.isConstant = true; }
-		else if (strcmp(token, "static") == 0) { flags.isStatic = true; }
-		else if (strcmp(token, "extern") == 0) { flags.isExtern = true; }
-		else if (strcmp(token, "typedef") == 0) { flags.isTypeDef = true; }
-		else if (strcmp(token, "volatile") == 0) { flags.isVolatile = true; }
-		else if (strcmp(token, "atomic") == 0) { flags.isAtomic = true; }
-
-		token = strtok(NULL, ", ");
-
-        if (flags.isInt || flags.isShort || flags.longCount > 0) {
-            temp[0] = '\0'; 
-            if (flags.isTypeDef) strcat(temp, "typedef, ");
-            if (flags.isExtern) strcat(temp, "extern, ");
-            if (flags.isConstant) strcat(temp, "const, ");
-            if (flags.isStatic) strcat(temp, "static, ");
-            if (flags.isVolatile) strcat(temp, "volatile, ");
-            if (flags.isAtomic) strcat(temp, "atomic, ");
-
-            if (flags.isSigned) {
-                if (flags.longCount == 1) strcat(temp, "long");
-                else if (flags.longCount == 2) strcat(temp, "long, long");
-                else if (flags.isShort) strcat(temp, "short");
-                else strcat(temp, "int");
-            } else {
-                if (flags.longCount == 1) strcat(temp, "unsigned, long");
-                else if (flags.longCount == 2) strcat(temp, "unsigned, long, long");
-                else if (flags.isShort) strcat(temp, "unsigned, short");
-                else strcat(temp, "unsigned, int");
-            }
-            strcpy(a, temp);
-			
-        }
+        token = strtok(NULL, ", ");
     }
+
+    // Construct the result based on flags
+    if (flags.isTypeDef) strcat(result, "typedef, ");
+    if (flags.isExtern) strcat(result, "extern, ");
+    if (flags.isConstant) strcat(result, "const, ");
+    if (flags.isStatic) strcat(result, "static, ");
+    if (flags.isVolatile) strcat(result, "volatile, ");
+    if (flags.isAtomic) strcat(result, "atomic, ");
+
+    if (flags.isSigned) {
+        if (flags.longCount == 1) strcat(result, "long");
+        else if (flags.longCount == 2) strcat(result, "long, long");
+        else if (flags.isShort) strcat(result, "short");
+        else strcat(result, "int");
+    } else {
+        if (flags.longCount == 1) strcat(result, "unsigned, long");
+        else if (flags.longCount == 2) strcat(result, "unsigned, long, long");
+        else if (flags.isShort) strcat(result, "unsigned, short");
+        else strcat(result, "unsigned, int");
+    }
+
+    // Copy the result back to the input string
+    strncpy(a, result, strlen(result) + 1);
+
+    free(temp); // Free allocated memory
 }
+
 
 
 //handles parsing errors: since the C input file is the output of a C pre-processor it will only be called if
