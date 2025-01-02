@@ -946,6 +946,12 @@ direct_declarator
 		{size_t const size = strlen("function(, [])") + strlen($1.full) + 1;
 	     $$.full = (char*)malloc(size);
 	     sprintf_safe($$.full, size, "function(%s, [])", $1.full);
+		 if(strncmp($1.full, "Main", 4) == 0){
+			printf("main function declaration %s \n", $1.full);
+		 }else{
+			printf("normal function declaration %s \n", $1.full);
+		 }
+		 
 		 current_function = strdup($1.full);
 		 free($1.full);
 		 $$.ptr_declarator = $1.ptr_declarator;
@@ -1029,7 +1035,8 @@ parameter_list
 
 parameter_declaration
 	: declaration_specifiers declarator
-		{process_declaration_specifiers($1);
+		{printf("Function decalaration \n");
+		 process_declaration_specifiers($1);
 		 size_t const size = strlen("param([], )") + strlen($1) + strlen($2.full) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "param([%s], %s)", $1, $2.full);
@@ -1254,7 +1261,9 @@ expression_statement
 
 selection_statement
 	: IF '(' expression ')' statement else_opt 
-		{size_t const size = strlen("\nif_stmt(branch(, ),  )") + MAX_BRANCH_STR + strlen($3) + strlen($5) + strlen($6) + 1;
+		{printf("IF token matched %d, %s\n", branch_nb, $3);
+		 //printf("%s \n \n \n", $6);
+		 size_t const size = strlen("\nif_stmt(branch(, ),  )") + MAX_BRANCH_STR + strlen($3) + strlen($5) + strlen($6) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "\nif_stmt(branch(%d, %s), %s %s)", branch_nb++, $3, $5, $6);
 		 free($3);
@@ -1273,7 +1282,8 @@ selection_statement
 else_opt
 	: /* empty */		%prec LOWER_THAN_ELSE 	{simple_str_lit_copy(&$$, "");}
 	| ELSE statement
-		{size_t const size = strlen(", ") + strlen($2) + 1;
+		{printf("ELSE token matched %s \n", $2);
+		 size_t const size = strlen(", ") + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, ", %s", $2);
 		 free($2);
@@ -1379,69 +1389,95 @@ declaration_list
 #include "lex.yy.c"
 
 int main(int argc, char *argv[]) {
-	char C_file_path[MAX_PATH];				//directory where the C and .i files are
-	char filename_no_ext[MAX_PATH];
+    char C_file_path[MAX_PATH];                // Directory where the C and .i files are
+    char filename_no_ext[MAX_PATH];
+    char dot_file_uri[3 * MAX_PATH];
 
 #ifdef _MSC_VER
-	strcpy_safe(C_file_path, 3, ".");		//default path for input file is current directory, overwrite with -p on command line
+    strcpy_safe(C_file_path, 3, ".");          // Default path for input file is current directory, overwrite with -p on command line
 #else
-	strcpy_safe(C_file_path, 3, ".");
+    strcpy_safe(C_file_path, 3, ".");
 #endif
-	for (int i = 1; i <= argc - 1; i++) {	//processing command line arguments
-		if (argv[i][0] == '-') {
-			switch (argv[i][1]) {
-			case 'h':
-				printf("Usage: .\\sikraken_parser [OPTION]... FILE_NO_EXT\nParses the .i file of a C file pre-processsed by GCC to Prolog terms.\n\n-h\t Display help information\n-m32|-m64\t Specify the data model, -m32 is the default\n-p\t Path to the .c/.i file (DEFAULT: Current Directory ('.'))\n\nExamples:\n\t.\\sikraken_parser -p\".\" get_sign \n\t.\\sikraken_parser get_sign \n\t.\\sikraken_parser -m64 -p\"C:/Parser/\" sign \n");
-				my_exit(0);
-			case 'p':	//path to the .i pre-processed input C file
-				if (access_safe(&argv[i][2], 0) == -1) {    //checks if it is a valid directory
-					fprintf(stderr, "Sikraken parser error: the indicated source path (via -p switch): %s , cannot be accessed\n", &argv[i][2]);
-					my_exit(1);
-				}
-				strcpy_safe(C_file_path, MAX_PATH, &argv[i][2]);
-				break;
-			case 'd':
-				debugMode = 1;	//we are in debug mode (false is default): will affect output of warnings amongst other things
-				break;
-			case 'm':
-				if (argv[i][2] == '6' && argv[i][3] == '4') {
-					dataModel = 64;		//anything else is assumed default i.e. 32 bit
-					TARGET_LONG_MAX = 9223372036854775807LL;	//i.e. LONG_MAX for 64 bits target (using LL in case compiler is running on a 32bit machine)
-				}
-				break;
-			default:
-				fprintf(stderr, "Sikraken parser: Unsupported flag '-%s', ignoring.\n", argv[i]);
-			}
-		}
-		else {	//must be the filename to analyse
-			strcpy_safe(filename_no_ext, MAX_PATH, argv[i]);
-		}
-	}
-	fprintf(stdout, "Sikraken parser: using %i bits data model.\n", dataModel); 
 
-	sprintf_safe(i_file_uri, 3*MAX_PATH, "%s/%s.i", C_file_path, filename_no_ext);
-	if (fopen_safe(&i_file, i_file_uri, "r") != 0) {
-		fprintf(stderr, ".i file could not be opened for reading at: %s\n", i_file_uri);
-		my_exit(EXIT_FAILURE);
-	}
-	yyin = i_file;	//set the input to the parser
-	sprintf_safe(pl_file_uri, 3*MAX_PATH, "%s/%s.pl", C_file_path, filename_no_ext);
-	if (fopen_safe(&pl_file, pl_file_uri, "w") != 0) {
-		fprintf(stderr, ".pl file could not be created for writing at: %s\n", pl_file_uri);
-		my_exit(EXIT_FAILURE);
-	}
-	fprintf(pl_file, "prolog_c([");			//opening predicate
-	if (yyparse() != 0) {					//the parser is called
-		fprintf(stderr, "Parsing failed.\n");
-		my_exit(EXIT_FAILURE);
-	}	
-	fprintf(pl_file, "\n]).");
-	fclose(pl_file);
-	pl_file = NULL;
-	fclose(i_file);
-	i_file = NULL;
-	my_exit(EXIT_SUCCESS);
+    for (int i = 1; i <= argc - 1; i++) {      // Processing command line arguments
+        if (argv[i][0] == '-') {
+            switch (argv[i][1]) {
+            case 'h':
+                printf("Usage: .\\sikraken_parser [OPTION]... FILE_NO_EXT\nParses the .i file of a C file pre-processed by GCC to Prolog terms.\n\n-h\t Display help information\n-m32|-m64\t Specify the data model, -m32 is the default\n-p\t Path to the .c/.i file (DEFAULT: Current Directory ('.'))\n\nExamples:\n\t.\\sikraken_parser -p\".\" get_sign \n\t.\\sikraken_parser get_sign \n\t.\\sikraken_parser -m64 -p\"C:/Parser/\" sign \n");
+                my_exit(0);
+            case 'p':    // Path to the .i pre-processed input C file
+                if (access_safe(&argv[i][2], 0) == -1) {    // Checks if it is a valid directory
+                    fprintf(stderr, "Sikraken parser error: the indicated source path (via -p switch): %s , cannot be accessed\n", &argv[i][2]);
+                    my_exit(1);
+                }
+                strcpy_safe(C_file_path, MAX_PATH, &argv[i][2]);
+                break;
+            case 'd':
+                debugMode = 1;    // Debug mode (false is default): affects output of warnings among other things
+                break;
+            case 'm':
+                if (argv[i][2] == '6' && argv[i][3] == '4') {
+                    dataModel = 64;        // Anything else is assumed default i.e. 32-bit
+                    TARGET_LONG_MAX = 9223372036854775807LL;    // LONG_MAX for 64 bits target (using LL in case compiler is running on a 32-bit machine)
+                }
+                break;
+            default:
+                fprintf(stderr, "Sikraken parser: Unsupported flag '-%s', ignoring.\n", argv[i]);
+            }
+        } else {    // Must be the filename to analyze
+            strcpy_safe(filename_no_ext, MAX_PATH, argv[i]);
+        }
+    }
+
+    fprintf(stdout, "Sikraken parser: using %i bits data model.\n", dataModel);
+
+    // Construct the file URIs
+    sprintf_safe(i_file_uri, 3 * MAX_PATH, "%s/%s.i", C_file_path, filename_no_ext);
+    if (fopen_safe(&i_file, i_file_uri, "r") != 0) {
+        fprintf(stderr, ".i file could not be opened for reading at: %s\n", i_file_uri);
+        my_exit(EXIT_FAILURE);
+    }
+    yyin = i_file;    // Set the input to the parser
+
+    sprintf_safe(pl_file_uri, 3 * MAX_PATH, "%s/%s.pl", C_file_path, filename_no_ext);
+    if (fopen_safe(&pl_file, pl_file_uri, "w") != 0) {
+        fprintf(stderr, ".pl file could not be created for writing at: %s\n", pl_file_uri);
+        my_exit(EXIT_FAILURE);
+    }
+
+    // Open the .dot file for writing
+    sprintf_safe(dot_file_uri, 3 * MAX_PATH, "%s/%s.dot", C_file_path, filename_no_ext);
+    FILE *dot_file = fopen(dot_file_uri, "w");
+    if (!dot_file) {
+        fprintf(stderr, ".dot file could not be created for writing at: %s\n", dot_file_uri);
+        my_exit(EXIT_FAILURE);
+    }
+
+    // Write initial content to the .dot file
+    fprintf(dot_file, "digraph CFG {\n");
+
+    // Parsing process
+    fprintf(pl_file, "prolog_c([");            // Opening predicate
+    if (yyparse() != 0) {                      // The parser is called
+        fprintf(stderr, "Parsing failed.\n");
+        fclose(dot_file);                      // Close the .dot file on failure
+        my_exit(EXIT_FAILURE);
+    }
+    fprintf(pl_file, "\n]).");
+    fclose(pl_file);
+    pl_file = NULL;
+
+    // Finalize the .dot file
+    fprintf(dot_file, "}\n");
+    fclose(dot_file);
+    dot_file = NULL;
+
+    fclose(i_file);
+    i_file = NULL;
+
+    my_exit(EXIT_SUCCESS);
 }
+
 
 void process_declaration_specifiers(char a[]) {
     char *token;
@@ -1498,8 +1534,6 @@ void process_declaration_specifiers(char a[]) {
 
     free(temp); // Free allocated memory
 }
-
-
 
 //handles parsing errors: since the C input file is the output of a C pre-processor it will only be called if
 //  the syntax rules are wrong due to GCC extensions 
