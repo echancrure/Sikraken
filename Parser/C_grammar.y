@@ -26,10 +26,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <ctype.h>
 #include "parser.h"
 #include "utils.c"
 #include "handle_typedefs.c"
+
+typedef struct {
+    bool isTypeDef;
+    bool isExtern;
+    bool isConstant;
+    bool isStatic;
+    bool isInt;
+    bool isSigned;
+    bool isShort;
+    bool isRestrict;
+    bool isVolatile;
+    bool isAtomic;
+    int longCount;
+} SpecifierFlags;
 
 extern int yylex();
 extern int yylineno;
@@ -54,6 +69,7 @@ int in_tag_namespace = 0;		//indicates to the lexer that we are in the tag names
 int in_member_namespace = 0;	//indicates to the lexer that we are in the member namespace (for members of stuct and unions) and that identifier should not be checked for typedef
 
 char *current_function;			//we keep track of the function being parsed so that we can add it to goto statements
+void process_declaration_specifiers(char a[]); //Processes declaration specifiers to generalize them for Sikraken i.e signed long int -> long.
 void yyerror(const char*);
 void my_exit(int);				//attempts to close handles and delete generated files prior to caling exit(int);
 
@@ -521,7 +537,7 @@ declaration
 	    	typedef_flag = 0; 
 			//if (debugMode) printf("Debug: typedef switched to 0\n");
 	   	 }
-		 
+		 process_declaration_specifiers($1);
 		 size_t const size = strlen("\ndeclaration([], [])") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "\ndeclaration([%s], [%s])", $1, $2);
@@ -701,6 +717,7 @@ struct_declaration
 	| specifier_qualifier_list struct_declarator_list ';'
 		{size_t const size = strlen("struct_decl([], [])") + strlen($1) + strlen($2) + 1;
        	 $$ = (char*)malloc(size);
+		 process_declaration_specifiers($1);
          sprintf_safe($$, size, "struct_decl([%s], [%s])", $1, $2);
 	   	 free($1);
 		 free($2);
@@ -1338,7 +1355,8 @@ external_declaration		//printed out
 
 function_definition
 	: declaration_specifiers declarator declaration_list_opt compound_statement
-		{size_t const size = strlen("function([], , [], )") + strlen($1) + strlen($2.full) + strlen($3) + strlen($4) + 1;
+		{process_declaration_specifiers($1);
+		 size_t const size = strlen("function([], , [], )") + strlen($1) + strlen($2.full) + strlen($3) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "function([%s], %s, [%s], %s)", $1, $2.full, $3, $4);
 	     free($1);
@@ -1432,6 +1450,58 @@ int main(int argc, char *argv[]) {
 	i_file = NULL;
 	my_exit(EXIT_SUCCESS);
 }
+
+void process_declaration_specifiers(char a[]) {
+    char *token;
+    SpecifierFlags flags = {false};
+    flags.isSigned = true;
+
+    // Allocate temp with enough space
+    char *temp = (char *)malloc(sizeof(char) * (strlen(a) + 1));
+    if (!temp) {
+        perror("Memory allocation failed");
+        return;
+    }
+    strcpy(temp, a);
+
+    char result[1024] = ""; 
+    token = strtok(temp, ", ");
+    while (token != NULL) {
+        if (strcmp(token, "int") == 0) { flags.isInt = true; }
+        else if (strcmp(token, "long") == 0) { flags.longCount++; }
+        else if (strcmp(token, "short") == 0) { flags.isShort = true; }
+        else if (strcmp(token, "unsigned") == 0) { flags.isSigned = false; }
+        else if (strcmp(token, "const") == 0) { flags.isConstant = true; }
+        else if (strcmp(token, "static") == 0) { flags.isStatic = true; }
+        else if (strcmp(token, "extern") == 0) { flags.isExtern = true; }
+        else if (strcmp(token, "typedef") == 0) { flags.isTypeDef = true; }
+        else if (strcmp(token, "volatile") == 0) { flags.isVolatile = true; }
+        else if (strcmp(token, "atomic") == 0) { flags.isAtomic = true; }
+
+        token = strtok(NULL, ", ");
+    }
+    if (flags.isTypeDef) strcat(result, "typedef, ");
+    if (flags.isExtern) strcat(result, "extern, ");
+    if (flags.isConstant) strcat(result, "const, ");
+    if (flags.isStatic) strcat(result, "static, ");
+    if (flags.isVolatile) strcat(result, "volatile, ");
+    if (flags.isAtomic) strcat(result, "atomic, ");
+
+    if (flags.isSigned) {
+        if (flags.longCount == 1) strcat(result, "long");
+        else if (flags.longCount == 2) strcat(result, "long, long");
+        else if (flags.isShort) strcat(result, "short");
+        else strcat(result, "int");
+    } else {
+        if (flags.longCount == 1) strcat(result, "unsigned, long");
+        else if (flags.longCount == 2) strcat(result, "unsigned, long, long");
+        else if (flags.isShort) strcat(result, "unsigned, short");
+        else strcat(result, "unsigned, int");
+    }
+    strncpy(a, result, strlen(result) + 1);
+    free(temp);
+}
+
 
 //handles parsing errors: since the C input file is the output of a C pre-processor it will only be called if
 //  the syntax rules are wrong due to GCC extensions 
