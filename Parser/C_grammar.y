@@ -62,6 +62,8 @@ FILE* pl_file;					//the file of containing the Prolog predicated after parsing 
 char i_file_uri[MAX_PATH];
 FILE *i_file;
 char pl_file_uri[MAX_PATH];		//the full path to the Pl_file
+FILE* dot_file;
+char dot_file_uri[3 * MAX_PATH];
 int branch_nb = 1;				//unique id for branches created
 //start: ugly, breaking parsing spirit, flags and temporary variables
 int typedef_flag = 0; 			//indicates that we are within a typedef declaration
@@ -70,8 +72,10 @@ int in_member_namespace = 0;	//indicates to the lexer that we are in the member 
 
 char *current_function;			//we keep track of the function being parsed so that we can add it to goto statements
 void process_declaration_specifiers(char a[]); //Processes declaration specifiers to generalize them for Sikraken i.e signed long int -> long.
+void add_to_cfg(char current_node[]); // This method will add nodes to the control flow graphs in dot format.
 void yyerror(const char*);
 void my_exit(int);				//attempts to close handles and delete generated files prior to caling exit(int);
+char *previous_cfg_node = NULL;
 
 %}
 
@@ -1264,6 +1268,7 @@ selection_statement
 	: IF '(' expression ')' statement else_opt 
 		{size_t const size = strlen("\nif_stmt(branch(, ),  )") + MAX_BRANCH_STR + strlen($3) + strlen($5) + strlen($6) + 1;
 		 $$ = (char*)malloc(size);
+		 add_to_cfg($3);
 		 sprintf_safe($$, size, "\nif_stmt(branch(%d, %s), %s %s)", branch_nb++, $3, $5, $6);
 		 free($3);
 		 free($5);
@@ -1387,70 +1392,97 @@ declaration_list
 #include "lex.yy.c"
 
 int main(int argc, char *argv[]) {
-	char C_file_path[MAX_PATH];				//directory where the C and .i files are
-	char filename_no_ext[MAX_PATH];
+    char C_file_path[MAX_PATH];                // Directory where the C and .i files are
+    char filename_no_ext[MAX_PATH];
 
 #ifdef _MSC_VER
-	strcpy_safe(C_file_path, 3, ".");		//default path for input file is current directory, overwrite with -p on command line
+    strcpy_safe(C_file_path, 3, ".");          // Default path for input file is current directory, overwrite with -p on command line
 #else
-	strcpy_safe(C_file_path, 3, ".");
+    strcpy_safe(C_file_path, 3, ".");
 #endif
-	for (int i = 1; i <= argc - 1; i++) {	//processing command line arguments
-		if (argv[i][0] == '-') {
-			switch (argv[i][1]) {
-			case 'h':
-				printf("Usage: .\\sikraken_parser [OPTION]... FILE_NO_EXT\nParses the .i file of a C file pre-processsed by GCC to Prolog terms.\n\n-h\t Display help information\n-m32|-m64\t Specify the data model, -m32 is the default\n-p\t Path to the .c/.i file (DEFAULT: Current Directory ('.'))\n\nExamples:\n\t.\\sikraken_parser -p\".\" get_sign \n\t.\\sikraken_parser get_sign \n\t.\\sikraken_parser -m64 -p\"C:/Parser/\" sign \n");
-				my_exit(0);
-			case 'p':	//path to the .i pre-processed input C file
-				if (access_safe(&argv[i][2], 0) == -1) {    //checks if it is a valid directory
-					fprintf(stderr, "Sikraken parser error: the indicated source path (via -p switch): %s , cannot be accessed\n", &argv[i][2]);
-					my_exit(1);
-				}
-				strcpy_safe(C_file_path, MAX_PATH, &argv[i][2]);
-				break;
-			case 'd':
-				debugMode = 1;	//we are in debug mode (false is default): will affect output of warnings amongst other things
-				break;
-			case 'm':
-				if (argv[i][2] == '6' && argv[i][3] == '4') {
-					dataModel = 64;		//anything else is assumed default i.e. 32 bit
-					TARGET_LONG_MAX = 9223372036854775807LL;	//i.e. LONG_MAX for 64 bits target (using LL in case compiler is running on a 32bit machine)
-				}
-				break;
-			default:
-				fprintf(stderr, "Sikraken parser: Unsupported flag '-%s', ignoring.\n", argv[i]);
-			}
-		}
-		else {	//must be the filename to analyse
-			strcpy_safe(filename_no_ext, MAX_PATH, argv[i]);
-		}
-	}
-	fprintf(stdout, "Sikraken parser: using %i bits data model.\n", dataModel); 
 
-	sprintf_safe(i_file_uri, 3*MAX_PATH, "%s/%s.i", C_file_path, filename_no_ext);
-	if (fopen_safe(&i_file, i_file_uri, "r") != 0) {
-		fprintf(stderr, ".i file could not be opened for reading at: %s\n", i_file_uri);
-		my_exit(EXIT_FAILURE);
-	}
-	yyin = i_file;	//set the input to the parser
-	sprintf_safe(pl_file_uri, 3*MAX_PATH, "%s/%s.pl", C_file_path, filename_no_ext);
-	if (fopen_safe(&pl_file, pl_file_uri, "w") != 0) {
-		fprintf(stderr, ".pl file could not be created for writing at: %s\n", pl_file_uri);
-		my_exit(EXIT_FAILURE);
-	}
-	fprintf(pl_file, "prolog_c([");			//opening predicate
-	if (yyparse() != 0) {					//the parser is called
-		fprintf(stderr, "Parsing failed.\n");
-		my_exit(EXIT_FAILURE);
-	}	
-	fprintf(pl_file, "\n]).");
-	fclose(pl_file);
-	pl_file = NULL;
-	fclose(i_file);
-	i_file = NULL;
-	my_exit(EXIT_SUCCESS);
+    for (int i = 1; i <= argc - 1; i++) {      // Processing command line arguments
+        if (argv[i][0] == '-') {
+            switch (argv[i][1]) {
+            case 'h':
+                printf("Usage: .\\sikraken_parser [OPTION]... FILE_NO_EXT\nParses the .i file of a C file pre-processed by GCC to Prolog terms.\n\n-h\t Display help information\n-m32|-m64\t Specify the data model, -m32 is the default\n-p\t Path to the .c/.i file (DEFAULT: Current Directory ('.'))\n\nExamples:\n\t.\\sikraken_parser -p\".\" get_sign \n\t.\\sikraken_parser get_sign \n\t.\\sikraken_parser -m64 -p\"C:/Parser/\" sign \n");
+                my_exit(0);
+            case 'p':    // Path to the .i pre-processed input C file
+                if (access_safe(&argv[i][2], 0) == -1) {    // Checks if it is a valid directory
+                    fprintf(stderr, "Sikraken parser error: the indicated source path (via -p switch): %s , cannot be accessed\n", &argv[i][2]);
+                    my_exit(1);
+                }
+                strcpy_safe(C_file_path, MAX_PATH, &argv[i][2]);
+                break;
+            case 'd':
+                debugMode = 1;    // Debug mode (false is default): affects output of warnings among other things
+                break;
+            case 'm':
+                if (argv[i][2] == '6' && argv[i][3] == '4') {
+                    dataModel = 64;        // Anything else is assumed default i.e. 32-bit
+                    TARGET_LONG_MAX = 9223372036854775807LL;    // LONG_MAX for 64 bits target (using LL in case compiler is running on a 32-bit machine)
+                }
+                break;
+            default:
+                fprintf(stderr, "Sikraken parser: Unsupported flag '-%s', ignoring.\n", argv[i]);
+            }
+        } else {    // Must be the filename to analyze
+            strcpy_safe(filename_no_ext, MAX_PATH, argv[i]);
+        }
+    }
+
+    fprintf(stdout, "Sikraken parser: using %i bits data model.\n", dataModel);
+
+    // Construct the file URIs
+    sprintf_safe(i_file_uri, 3 * MAX_PATH, "%s/%s.i", C_file_path, filename_no_ext);
+    if (fopen_safe(&i_file, i_file_uri, "r") != 0) {
+        fprintf(stderr, ".i file could not be opened for reading at: %s\n", i_file_uri);
+        my_exit(EXIT_FAILURE);
+    }
+    yyin = i_file;    // Set the input to the parser
+
+    sprintf_safe(pl_file_uri, 3 * MAX_PATH, "%s/%s.pl", C_file_path, filename_no_ext);
+    if (fopen_safe(&pl_file, pl_file_uri, "w") != 0) {
+        fprintf(stderr, ".pl file could not be created for writing at: %s\n", pl_file_uri);
+        my_exit(EXIT_FAILURE);
+    }
+
+    // Open the .dot file for writing
+    sprintf_safe(dot_file_uri, 3 * MAX_PATH, "%s/%s.dot", C_file_path, filename_no_ext);
+    dot_file = fopen(dot_file_uri, "w");
+    if (!dot_file) {
+        fprintf(stderr, ".dot file could not be created for writing at: %s\n", dot_file_uri);
+        my_exit(EXIT_FAILURE);
+    }
+
+    // Write initial content to the .dot file
+    fprintf(dot_file, "digraph CFG {\n");
+	//previous_cfg_node = (char *)malloc((strlen("start") + 1) * sizeof(char));
+	//strcpy(previous_cfg_node, "Start");
+
+    // Parsing process
+    fprintf(pl_file, "prolog_c([");            // Opening predicate
+    if (yyparse() != 0) {                      // The parser is called
+        fprintf(stderr, "Parsing failed.\n");
+        fclose(dot_file);                      // Close the .dot file on failure
+        my_exit(EXIT_FAILURE);
+    }
+    fprintf(pl_file, "\n]).");
+    fclose(pl_file);
+    pl_file = NULL;
+
+    // Finalize the .dot file
+	//fprintf(dot_file, "\"%s\" -> \"end\";\n", previous_cfg_node);
+    fprintf(dot_file, "}\n");
+	free(previous_cfg_node);
+    fclose(dot_file);
+    dot_file = NULL;
+
+    fclose(i_file);
+    i_file = NULL;
+
+    my_exit(EXIT_SUCCESS);
 }
-
 void process_declaration_specifiers(char a[]) {
     char *token;
     SpecifierFlags flags = {false};
@@ -1500,6 +1532,26 @@ void process_declaration_specifiers(char a[]) {
     }
     strncpy(a, result, strlen(result) + 1);
     free(temp);
+}
+
+void add_to_cfg(char current_node[]){
+	if(previous_cfg_node == NULL || previous_cfg_node[0] == '\0'){
+		previous_cfg_node = (char*)malloc(strlen(current_node)*sizeof(char) + 1);
+		if(previous_cfg_node == NULL){
+			printf("Memory error");
+		}else{
+			strcpy(previous_cfg_node, current_node);
+		}
+	}else{
+		fprintf(dot_file, "\"%s\" -> \"%s\"	[label = \"T\"]; \n", current_node, previous_cfg_node);
+		previous_cfg_node = (char*)malloc(strlen(current_node)*sizeof(char) + 1);
+		if(previous_cfg_node == NULL){
+			printf("Memory error");
+		}else{
+			strcpy(previous_cfg_node, current_node);
+		}
+	}
+	
 }
 
 
