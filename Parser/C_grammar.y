@@ -46,6 +46,8 @@ typedef struct {
     int longCount;
 } SpecifierFlags;
 
+bool otherDataTypes = false;
+
 extern int yylex();
 extern int yylineno;
 
@@ -537,7 +539,12 @@ declaration
 	    	typedef_flag = 0; 
 			//if (debugMode) printf("Debug: typedef switched to 0\n");
 	   	 }
-		 process_declaration_specifiers($1);
+		 if(!otherDataTypes){
+			process_declaration_specifiers($1);
+		 }else{
+			otherDataTypes = false;
+		 }
+		 
 		 size_t const size = strlen("\ndeclaration([], [])") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "\ndeclaration([%s], [%s])", $1, $2);
@@ -635,23 +642,23 @@ type_specifier
 	| SHORT					{ simple_str_lit_copy(&$$, "short"); }
 	| INT					{ simple_str_lit_copy(&$$, "int"); }
 	| LONG					{ simple_str_lit_copy(&$$, "long"); }
-	| FLOAT					{ simple_str_lit_copy(&$$, "float"); }
-	| DOUBLE				{ simple_str_lit_copy(&$$, "double"); }
+	| FLOAT					{ simple_str_lit_copy(&$$, "float"); otherDataTypes = true;}
+	| DOUBLE				{ simple_str_lit_copy(&$$, "double"); otherDataTypes = true;}
 	| SIGNED				{ simple_str_lit_copy(&$$, "signed"); }
 	| UNSIGNED				{ simple_str_lit_copy(&$$, "unsigned"); }
-	| BOOL					{ simple_str_lit_copy(&$$, "bool"); }
+	| BOOL					{ simple_str_lit_copy(&$$, "bool"); otherDataTypes = true;}
 	| COMPLEX				{ simple_str_lit_copy(&$$, "complex"); }
 	| IMAGINARY				{ simple_str_lit_copy(&$$, "imaginary"); } 	// non-mandated C extension
 	| atomic_type_specifier	{ simple_str_lit_copy(&$$, "atomic_type_specifier"); }
-	| struct_or_union_specifier
-	| enum_specifier
+	| struct_or_union_specifier {otherDataTypes = true;}
+	| enum_specifier {otherDataTypes = true;}
 	| TYPEDEF_NAME			/* a type_specififer after it has been defined as such */
 		{$$ = to_prolog_var($1);
 		 free($1);
 		}
-	| INT128				{ simple_str_lit_copy(&$$, "int128"); }		//gcc extension: builtin type
-	| FLOAT128				{ simple_str_lit_copy(&$$, "float128"); }	//gcc extension: builtin type
-	| VA_LIST				{ simple_str_lit_copy(&$$, "va_list"); }	//gcc extension: builtin type
+	| INT128				{ simple_str_lit_copy(&$$, "int128"); otherDataTypes = true;}		//gcc extension: builtin type
+	| FLOAT128				{ simple_str_lit_copy(&$$, "float128"); otherDataTypes = true;}	//gcc extension: builtin type
+	| VA_LIST				{ simple_str_lit_copy(&$$, "va_list"); otherDataTypes = true;}	//gcc extension: builtin type
 	;
 
 struct_or_union_specifier
@@ -1467,7 +1474,7 @@ void process_declaration_specifiers(char a[]) {
     char result[1024] = ""; 
     token = strtok(temp, ", ");
     while (token != NULL) {
-        if (strcmp(token, "int") == 0) { flags.isInt = true; }
+        if (strcmp(token, "int") == 0) { printf("TOKEN:	%s \n", token); }
         else if (strcmp(token, "long") == 0) { flags.longCount++; }
         else if (strcmp(token, "short") == 0) { flags.isShort = true; }
         else if (strcmp(token, "unsigned") == 0) { flags.isSigned = false; }
@@ -1498,6 +1505,7 @@ void process_declaration_specifiers(char a[]) {
         else if (flags.isShort) strcat(result, "unsigned, short");
         else strcat(result, "unsigned, int");
     }
+	otherDataTypes = false;
     strncpy(a, result, strlen(result) + 1);
     free(temp);
 }
