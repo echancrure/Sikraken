@@ -128,7 +128,10 @@ extern int yydebug;
     NORETURN = 329,                /* NORETURN  */
     STATIC_ASSERT = 330,           /* STATIC_ASSERT  */
     THREAD_LOCAL = 331,            /* THREAD_LOCAL  */
-    LOWER_THAN_ELSE = 332          /* LOWER_THAN_ELSE  */
+    INT128 = 332,                  /* INT128  */
+    FLOAT128 = 333,                /* FLOAT128  */
+    VA_LIST = 334,                 /* VA_LIST  */
+    LOWER_THAN_ELSE = 335          /* LOWER_THAN_ELSE  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -137,11 +140,20 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 33 "C_grammar.y"
+#line 80 "C_grammar.y"
 
 	char* id;
+	struct for_stmt {
+        char *init;				//the first part of a for statement: the initialisations
+        char *cond;				//the second part of a for statement: the condition
+        char *update;			//the third part of a for statement: the update
+    } for_stmt_type;
+	struct declarator {
+		char *full;				//the full declarator
+		char *ptr_declarator;	//only the declarator after pointer declarations
+	} declarator_type;
 
-#line 145 "C_grammar.tab.h"
+#line 157 "C_grammar.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
