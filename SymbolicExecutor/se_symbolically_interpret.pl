@@ -147,54 +147,64 @@ symbolically_interpret(initializer([Expr|Rest_expr]), symb(_, initialiser([symb(
     %mytrace,
     symbolically_interpret(Expr, symb(Value_type, Value)),
     symbolically_interpret(initializer(Rest_expr), symb(_, initialiser(Value_list))).
-symbolically_interpret(multiply_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp * Ri_casted_exp)) :-
+symbolically_interpret(multiply_op(Le_exp, Ri_exp), symb(Common_type, Casted_result)) :-
     !,
     %mytrace,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
-    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
+    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp),
+    Result $= Le_casted_exp * Ri_casted_exp,
+    ptc_solver__check_overflow(Common_type, Result, Casted_result).
 
 %todo what do we do on div by 0?
-symbolically_interpret(div_op(Le_exp, Ri_exp), symb(Common_type, Casted)) :-
+symbolically_interpret(div_op(Le_exp, Ri_exp), symb(Common_type, Casted_result)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp),
     (Common_type == 'int' ->
-        ptc_solver__arithmetic(div(Le_casted_exp, Ri_casted_exp), Casted, _)
+        ptc_solver__arithmetic(div(Le_casted_exp, Ri_casted_exp), Result, _)
     ;
-        Casted = Le_casted_exp / Ri_casted_exp
-    ).
-
+        Result $= Le_casted_exp / Ri_casted_exp
+    ),
+    ptc_solver__check_overflow(Common_type, Result, Casted_result).
 %mod is not an IC constraint, rem is but it behaves differently and any in C: a mod b == a - b(a//b)
 %todo what do we do on div by 0?
-symbolically_interpret(mod_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp - Ri_casted_exp*(Le_casted_exp//Ri_casted_exp))) :-
+symbolically_interpret(mod_op(Le_exp, Ri_exp), symb(Common_type, Casted_result)) :-
     !,   
     %mytrace,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
-    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
+    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp),
+    Result $= Le_casted_exp - Ri_casted_exp*(Le_casted_exp//Ri_casted_exp),
+    ptc_solver__check_overflow(Common_type, Result, Casted_result).
 
-symbolically_interpret(plus_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp + Ri_casted_exp)) :-
+symbolically_interpret(plus_op(Le_exp, Ri_exp), symb(Common_type, Casted_result)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
-    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
-symbolically_interpret(minus_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp - Ri_casted_exp)) :-
+    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp),
+    Result $= Le_casted_exp + Ri_casted_exp,
+    ptc_solver__check_overflow(Common_type, Result, Casted_result).
+symbolically_interpret(minus_op(Le_exp, Ri_exp), symb(Common_type, Casted_result)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
-    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
-symbolically_interpret(minus_op(Expression), symb(Promoted_type, Result)) :-
+    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp),
+    Result $= Le_casted_exp - Ri_casted_exp,
+    ptc_solver__check_overflow(Common_type, Result, Casted_result).
+symbolically_interpret(minus_op(Expression), symb(Promoted_type, Checked_result)) :-
     !,
-    %mytrace,
+    mytrace,
     symbolically_interpret(Expression, symb(Type, Symbolic_expression)),
     apply_integral_promotion(Type, Promoted_type),  %special case if Promoted_type is unsigned(int), unsigned(long) or unsigned(long_long)
+    Result $= -Symbolic_expression,
     (Promoted_type = unsigned(Signed_type) ->
-        ptc_solver__perform_cast(cast(Promoted_type, Signed_type), -Symbolic_expression, Result)
+        ptc_solver__perform_cast(cast(Promoted_type, Signed_type), Result, Casted_result)
     ;
-        ptc_solver__perform_cast(cast(Type, Promoted_type), -Symbolic_expression, Result)
-    ).
+        ptc_solver__perform_cast(cast(Type, Promoted_type), Result, Casted_result)
+    ),
+    ptc_solver__check_overflow(Promoted_type, Casted_result, Checked_result).
 %%%relational operators: todo a lot of code is repeated: refactor
 symbolically_interpret(less_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
@@ -494,7 +504,7 @@ implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, L
         )
     ).
     %%%
-    %may need indexing, but order is important so be careful
+    %may need indexing, but order is important so be careful. This very ugly and needs to be refactored
     integer_conversion(unsigned(long_long), From_type, Le_symbolic, Ri_symbolic, unsigned(long_long), Le_symbolic, Ri_casted_exp) :-
         !,
         ptc_solver__perform_cast(cast(unsigned(long_long), From_type), Ri_symbolic, Ri_casted_exp).
@@ -513,6 +523,34 @@ implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, L
     integer_conversion(From_type, unsigned(long), Le_symbolic, Ri_symbolic, unsigned(long), Le_casted_exp, Ri_symbolic) :-
         !,
         ptc_solver__perform_cast(cast(unsigned(long), From_type), Le_symbolic, Le_casted_exp).
+    integer_conversion(long, unsigned(int), Le_symbolic, Ri_symbolic, long, Le_casted_exp, Ri_casted_exp) :-
+        !,
+        %special rule 
+        ptc_solver__last(long, Last_long),
+        ptc_solver__last(unsigned(int), Last_unsigned_int),
+        (Last_long > Last_unsigned_int ->   %for efficiency this check should be a macro: known at ECLiPSe compilation time
+            (Le_casted_exp = Le_symbolic,
+             ptc_solver__perform_cast(cast(long, unsigned(int)), Ri_symbolic, Ri_casted_exp)
+            )
+        ;
+            (ptc_solver__perform_cast(cast(unsigned(long), long), Le_symbolic, Le_casted_exp),
+             ptc_solver__perform_cast(cast(unsigned(long), unsigned(int)), Ri_symbolic, Ri_casted_exp)
+            )
+        ).
+    integer_conversion(unsigned(int), long, Le_symbolic, Ri_symbolic, long, Le_casted_exp, Ri_casted_exp) :-
+        !,
+        %special rule 
+        ptc_solver__last(long, Last_long),
+        ptc_solver__last(unsigned(int), Last_unsigned_int),
+        (Last_long > Last_unsigned_int ->   %for efficiency this check should be a macro: known at ECLiPSe compilation time
+            (ptc_solver__perform_cast(cast(long, unsigned(int)), Le_symbolic, Le_casted_exp),
+             Ri_casted_exp = Ri_symbolic
+            )
+        ;
+            (ptc_solver__perform_cast(cast(unsigned(long), unsigned(int)), Le_symbolic, Le_casted_exp),
+             ptc_solver__perform_cast(cast(unsigned(long), long), Ri_symbolic, Ri_casted_exp)
+            )
+        ).
     integer_conversion(long, From_type, Le_symbolic, Ri_symbolic, long, Le_symbolic, Ri_casted_exp) :-
         !,
         ptc_solver__perform_cast(cast(long, From_type), Ri_symbolic, Ri_casted_exp).
