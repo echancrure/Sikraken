@@ -379,6 +379,8 @@ label(SEAV_Inputs) :-
         seav__get(Seav, 'input', Input),
         get_all_inputs(R_seavs, R_inputs).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%alternative labelling strategy: label all delayed vars not just the inputs
+%not used for now
 label_all :-
     delayed_goals(GoalList),
     term_variables(GoalList, All_delayed_vars),
@@ -405,7 +407,7 @@ label_all :-
              partition_delayed_vars(Rest, Integers, R_Reals)
             )
         ).
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Verifier_inputs is of the form [verif(Type, Input)|...] 
 label_testcomp(Verifier_inputs, Labeled_inputs) :- 
     %mytrace,
