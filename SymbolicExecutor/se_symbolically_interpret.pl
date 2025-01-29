@@ -186,6 +186,13 @@ symbolically_interpret(plus_op(Le_exp, Ri_exp), symb(Common_type, Casted_result)
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp),
     Result $= Le_casted_exp + Ri_casted_exp,
     ptc_solver__check_overflow(Common_type, Result, Casted_result).
+symbolically_interpret(plus_op(Expression), symb(Promoted_type, Checked_result)) :-
+    !,
+    %mytrace,
+    symbolically_interpret(Expression, symb(Type, Symbolic_expression)),
+    apply_integral_promotion(Type, Promoted_type),
+    Result $= Symbolic_expression,
+    ptc_solver__perform_cast(cast(Type, Promoted_type), Result, Checked_result).
 symbolically_interpret(minus_op(Le_exp, Ri_exp), symb(Common_type, Casted_result)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
@@ -205,6 +212,7 @@ symbolically_interpret(minus_op(Expression), symb(Promoted_type, Checked_result)
         ptc_solver__perform_cast(cast(Type, Promoted_type), Result, Casted_result)
     ),
     ptc_solver__check_overflow(Promoted_type, Casted_result, Checked_result).
+
 %%%relational operators: todo a lot of code is repeated: refactor
 symbolically_interpret(less_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
