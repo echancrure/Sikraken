@@ -19,7 +19,7 @@ int main() {
     x--;
     if (x == 10) ;
     else ;
-    int n = 5;
+    int n = +5;
     x = n++;
     a = ++n;
     int s = n + x + a;

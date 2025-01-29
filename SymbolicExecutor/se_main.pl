@@ -281,6 +281,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
                 (se_globals__get_ref('verifier_inputs', Verifier_inputs),
                  %mytrace,
                  (label_testcomp(Verifier_inputs, Labeled_inputs) ->
+                  %label_all ->
                     (%%%
                      cancel_after_event('single_test_time_out_event', _CancelledEvents), 
                      statistics(event_time, Current_session_time),
@@ -342,7 +343,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
 initialise_ptc_solver :-
     ptc_solver__clean_up,
     se_globals__get_val('data_model', Data_model),
-    ptc_solver__default_declarations(Data_model).
+    ptc_solver__default_declarations(Data_model, 'ignore').
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 read_parsed_file(Install_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, CProlog, Main, Target_subprogram_var) :-
     concat_atom([Install_dir, '/sikraken_output/', Target_source_file_name_no_ext, '/', Target_source_file_name_no_ext, '.pl'], Parsed_filename),
@@ -378,6 +379,33 @@ label(SEAV_Inputs) :-
         seav__get(Seav, 'input', Input),
         get_all_inputs(R_seavs, R_inputs).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+label_all :-
+    delayed_goals(GoalList),
+    term_variables(GoalList, All_delayed_vars),
+    partition_delayed_vars(All_delayed_vars, Integers, Reals),
+    (ptc_solver__label_integers(Integers) ->
+        (ptc_solver__label_reals(Reals) ->    %integers and floats labeling kept separate for now
+            true
+        ;
+            (common_util__error(1, "Floating point numbers labeling failed", "Perhaps worth investigating", [], '0_100924', 'se_main', 'label_all', no_localisation, no_extra_info),
+             fail
+            )
+        )
+    ),
+    !.
+    %%%
+    partition_delayed_vars([], [], []).
+    partition_delayed_vars([Var|Rest], Integers, Reals) :-
+        (get_solver_type(Var, integer) ->
+            (Integers = [Var|R_Integers],
+             partition_delayed_vars(Rest, R_Integers, Reals)
+            )
+        ;
+            (Reals = [Var|R_Reals],
+             partition_delayed_vars(Rest, Integers, R_Reals)
+            )
+        ).
+
 %Verifier_inputs is of the form [verif(Type, Input)|...] 
 label_testcomp(Verifier_inputs, Labeled_inputs) :- 
     %mytrace,

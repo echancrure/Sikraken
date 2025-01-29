@@ -195,7 +195,7 @@ symbolically_interpret(minus_op(Le_exp, Ri_exp), symb(Common_type, Casted_result
     ptc_solver__check_overflow(Common_type, Result, Casted_result).
 symbolically_interpret(minus_op(Expression), symb(Promoted_type, Checked_result)) :-
     !,
-    mytrace,
+    %mytrace,
     symbolically_interpret(Expression, symb(Type, Symbolic_expression)),
     apply_integral_promotion(Type, Promoted_type),  %special case if Promoted_type is unsigned(int), unsigned(long) or unsigned(long_long)
     Result $= -Symbolic_expression,

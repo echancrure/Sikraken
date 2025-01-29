@@ -14,7 +14,7 @@ int main() {
     //unsigned long long ull = -5;    // 18446744073709551611 [total is 65742]
     //printf("i + ui + c + uc + s + us + l + ul + ll + ull: %llu\n", i + ui + c + uc + s + us + l + ul + ll + ull);    
     float f = -5;           // -5.0
-    double d = -5;          // -5.0
+    double d = -5;          // -5.0 
     long double ld = -5;    // -5.0
     long long total = i + ui + c + uc + s + us + l + ul + ll + f + d + ld;    // 65732
     if (total == __VERIFIER_nondet_int()) {
