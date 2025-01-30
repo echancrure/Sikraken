@@ -1,7 +1,7 @@
 :- module('se_globals').
 
 mytrace.            %call this to start debugging
-%:- spy mytrace/0.
+:- spy mytrace/0.
 
 :- export super_util__quick_dev_info/2.
 :- export se_globals__set_globals/5, se_globals__get_val/2, se_globals__set_val/2, se_globals__get_ref/2, se_globals__set_ref/2.
@@ -64,14 +64,35 @@ se_globals__get_ref(Global, Value) :-
 se_globals__set_ref(Global, Value) :-
     setref(Global, Value).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-se_globals__update_ref(Global, Value) :-
+%Branch is branch(Id, 'false') or branch(Id, 'true')
+se_globals__update_ref(Global, Branch) :-
     (Global == 'current_path_bran' ->
         (se_globals__get_ref('current_path_bran', Current_path),
-         se_globals__set_ref('current_path_bran', [Value|Current_path])
-         %super_util__quick_dev_info("Following branch: %w", [Value]).
+         se_globals__set_ref('current_path_bran', [Branch|Current_path])
+         /*
+         %start heuristic: if a new branch is being covered, we try to label without generating a test vector
+         ,se_globals__get_val('covered_bran', Already_covered),
+         (memberchk(Branch, Already_covered) -> 
+            true    %not a new branch, so we carry on
+         ;     
+            (mytrace,
+             se_globals__get_ref('verifier_inputs', Verifier_inputs),
+             (call(label_testcomp(Verifier_inputs, _Labeled_inputs)) @ eclipse ->  % we try to label what we have so far
+                (%labeling suceeded, but no test vector was generated
+                 %super_util__quick_dev_info("Following new branch: %w", [Branch])
+                 true
+                )
+             ;   
+                %labeling failed...no test input vector was generated, we abandon this path
+                fail
+             )
+            )
+
+         )
+         */
         )
     ;        
-        setref(Global, Value)
+        setref(Global, Branch)
     ). 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 se_globals__push_scope_stack :-

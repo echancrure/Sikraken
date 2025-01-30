@@ -276,12 +276,12 @@ symbolically_interpret(and_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
     %mytrace, 
     symbolically_interpret(Le_exp, symb(_, Le_symbolic)), %only performed once as it should
-    (Le_symbolic == 1 ->        %to avoid creating unnecessary choice point 
+    (Le_symbolic == 1 ->        
         (R #:: 0..1,
          symbolically_interpret(Ri_exp, symb(_, R))
         )
     ;
-     Le_symbolic == 0 ->        %to avoid creating unnecessary choice point 
+     Le_symbolic == 0 ->        
         R #= 0
     ;    
         (random(2, R2), %i.e. between 0 and 2-1, so only 2 values allowed 0 or 1

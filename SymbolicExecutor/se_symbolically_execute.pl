@@ -187,12 +187,12 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
     symbolically_interpret(Condition, symb(_, Condition_value)),
     (Condition_value == 1   ->
         (se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-            symbolic_execute(True_statements, Flow)
+         symbolic_execute(True_statements, Flow)
         )
     ;
      Condition_value == 0   ->
         (se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-            symbolic_execute(False_statements, Flow)
+         symbolic_execute(False_statements, Flow)
         )
     ;   
      (  %until we have a CFG: this is quick hack easy to check that should be generalised based on what covered to date and potential successors
