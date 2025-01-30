@@ -183,7 +183,7 @@ symbolic_execute(function_call(Function, Arguments), 'carry_on') :- %as a statem
 symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statements), Flow) :-
     !,
     %(Id == 155 -> mytrace ; true),
-    %mytrace,
+    mytrace,
     symbolically_interpret(Condition, symb(_, Condition_value)),
     (Condition_value == 1   ->
         (se_globals__update_ref('current_path_bran', branch(Id, 'true')),
@@ -197,13 +197,32 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
     ;   
      (  %until we have a CFG: this is quick hack easy to check that should be generalised based on what covered to date and potential successors
         (True_statements = cmp_stmts([label_stmt(_, stmt(function_call(Exit, [int(_)])))]),
-            se_name_atts__get(Exit, 'name', 'Exit')
+         se_name_atts__get(Exit, 'name', 'Exit')
         )
      ;%just or
         (True_statements = cmp_stmts([stmt(function_call(Abort, []))]),
-            se_name_atts__get(Abort, 'name', 'Abort')
+         se_name_atts__get(Abort, 'name', 'Abort')
         )
+     ;%just or
+        True_statements = return_stmt(_)    %another opportunity to exit early
+     ;%just or
+        True_statements = cmp_stmts([return_stmt(_)])   %another opportunity to exit early
      ) ->
+        (not se_coverage__bran_newly_covered([]) -> %something new has been covered
+            (traverse(Condition_value, branch(Id, 'true'), True_statements, Flow)    %exit early
+            ;
+             traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow)    %allow continue
+            )
+        ;
+         se_coverage__bran_is_already_covered(branch(Id, 'true')) ->
+            traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow)
+        ;    
+            (   traverse(Condition_value, branch(Id, 'true'), True_statements, Flow)
+            ;%choice point
+                traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow)
+            )
+        )
+     /*
         ((se_coverage__bran_is_already_covered(branch(Id, 'true')),  %costly so left at the end
           se_coverage__bran_newly_covered([])   %this is probably the most costly check: leave it last [unsound if commented out]
          ) ->
@@ -222,6 +241,7 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
              )
             )
         )
+        */
     ;     
      (random(2, R2),
         (R2 == 0 ->

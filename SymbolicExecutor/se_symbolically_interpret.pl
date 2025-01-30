@@ -288,11 +288,11 @@ symbolically_interpret(and_op(Le_exp, Ri_exp), symb(int, R)) :-
             (
                 (
                     (ptc_solver__sdl(Le_symbolic),          %impose true Le first
-                     symbolically_interpret(Ri_exp, symb(_, R))
+                     symbolically_interpret(Ri_exp, symb(_, R)) %R is still undecided
                     )
                 ;%deliberate choice point
                     (ptc_solver__sdl(not(Le_symbolic)),     %impose false Le
-                     R #= 0
+                     R #= 0                                 %R is false
                     )
                 )
             )
@@ -300,11 +300,11 @@ symbolically_interpret(and_op(Le_exp, Ri_exp), symb(int, R)) :-
             (
                 (
                     (ptc_solver__sdl(not(Le_symbolic)),     %impose false Le first
-                     R #= 0
+                     R #= 0                                 %R is false
                     )
                 ;%deliberate choice point
                     (ptc_solver__sdl(Le_symbolic),          %impose true Le
-                     symbolically_interpret(Ri_exp, symb(_, R))
+                     symbolically_interpret(Ri_exp, symb(_, R)) %R is still undecided
                     )
                 )
             )
