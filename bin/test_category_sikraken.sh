@@ -1,5 +1,13 @@
 #!/bin/bash
-
+#e.g. ./bin/test_category_sikraken.sh /home/chris/sv-benchmarks/c ECA 8 30 debug
+# Run all the benchmarks in a TestComp category as defined in the sv-benchmarks/c directory in parallel
+# Outputs logs files in SikrakenDevSpace/categories/<category>/<timestamp>/
+# Takes into account possible exclude set for ECA
+# Generates test inputs for each benchmark and run TestCov on them
+# Generates a summary table for the category
+# Updates the category summary table for all the previous runs
+# Generates a runtime graph for each benchmark
+# Plays a sound at the end of the run
 clear
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)" #Get the directory of the script <sikraken_install>/bin
 SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."

@@ -130,6 +130,7 @@ WS  [ \t\v\n\f]
 "__float128"            { return(FLOAT128); }   //GCC builtin 128-bit floating-point type
 "_Float128"             { return(FLOAT128); }   //GCC builtin 128-bit floating-point type
 "__builtin_va_list"     { return(VA_LIST); }    //GCC builtin variable argument list type
+"__builtin_va_arg"      { return BUILTIN_VA_ARG; }  //GCC builtin for returning the argument of a variadic function
 "_Alignas"              { return ALIGNAS; }
 "_Alignof"              { return ALIGNOF; }
 "_Atomic"{WS}*"("       { return ATOMIC_SPECIFIER; }
@@ -141,6 +142,7 @@ WS  [ \t\v\n\f]
 "_Noreturn"             { return NORETURN; }
 "_Static_assert"        { return STATIC_ASSERT; }
 "_Thread_local"         { return THREAD_LOCAL; }
+"__thread"              { return THREAD_LOCAL; }
 "__PRETTY_FUNCTION__"   { return FUNC_NAME; }   //__PRETTY_FUNCTION__ is a GCC extension: an enhanced version of __func__; which we ignore 
 "__func__"              { return FUNC_NAME; }
 

@@ -67,7 +67,7 @@ se_main(ArgsL) :-
          setval('nb_restarts', 1e99),   %infinite restarts and tries allowed
          setval('nb_tries', 1e99),
          (Raw_budget == 900 ->  %we are in testcomp mode
-            Budget = 1000       %be generous because we can only measure wall time, not CPU time and we are single threaded at the moment %was 890 to allow for initial script, interrupts (system calls, stream)
+            Budget = Raw_budget %1000       %be generous because we can only measure wall time, not CPU time and we are single threaded at the moment %was 890 to allow for initial script, interrupts (system calls, stream)
          ;
             Budget = Raw_budget %it's just used as an indication
          ),

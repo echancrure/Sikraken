@@ -89,7 +89,7 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 %token	CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
 %token ALIGNAS ALIGNOF ATOMIC_SPECIFIER ATOMIC GENERIC NORETURN STATIC_ASSERT THREAD_LOCAL
-%token INT128 FLOAT128 VA_LIST
+%token INT128 FLOAT128 VA_LIST BUILTIN_VA_ARG
 
 %type <id> storage_class_specifier init_declarator initializer pointer type_qualifier type_qualifier_list init_declarator_list declaration_specifiers
 %type <id> type_specifier
@@ -230,6 +230,13 @@ postfix_expression
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "trailing_comma_compound_literal(%s, %s)", $2, $5);
 		 free($2);
+		 free($5);
+		}
+	| BUILTIN_VA_ARG '(' expression ',' type_name ')'	//GCC extension needs special case as type passed as argument
+		{size_t const size = strlen("UC___builtin_va_arg(, )") + strlen($3) + strlen($5) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_safe($$, size, "UC___builtin_va_arg(%s, %s)", $3, $5);
+		 free($3);
 		 free($5);
 		}
 	;
