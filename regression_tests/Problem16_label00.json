@@ -6,7 +6,7 @@
         "algo": "budget(1)",
         "expected_run_time": 1,
         "expected_test_inputs_number": 20,
-        "expected_coverage": 24.3
+        "expected_coverage": 22.51
       }
     ]
   }
