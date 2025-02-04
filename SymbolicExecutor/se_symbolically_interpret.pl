@@ -147,72 +147,59 @@ symbolically_interpret(initializer([Expr|Rest_expr]), symb(_, initialiser([symb(
     %mytrace,
     symbolically_interpret(Expr, symb(Value_type, Value)),
     symbolically_interpret(initializer(Rest_expr), symb(_, initialiser(Value_list))).
-symbolically_interpret(multiply_op(Le_exp, Ri_exp), symb(Common_type, Casted_result)) :-
+symbolically_interpret(multiply_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp * Ri_casted_exp)) :-
     !,
     %mytrace,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
-    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp),
-    Result $= Le_casted_exp * Ri_casted_exp,
-    ptc_solver__check_overflow(Common_type, Result, Casted_result).
+    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
 
 %todo what do we do on div by 0?
-symbolically_interpret(div_op(Le_exp, Ri_exp), symb(Common_type, Casted_result)) :-
+symbolically_interpret(div_op(Le_exp, Ri_exp), symb(Common_type, Casted)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp),
     (Common_type == 'int' ->
-        ptc_solver__arithmetic(div(Le_casted_exp, Ri_casted_exp), Result, _)
+        ptc_solver__arithmetic(div(Le_casted_exp, Ri_casted_exp), Casted, _)
     ;
-        Result $= Le_casted_exp / Ri_casted_exp
-    ),
-    ptc_solver__check_overflow(Common_type, Result, Casted_result).
+        Casted = Le_casted_exp / Ri_casted_exp
+    ).
+
 %mod is not an IC constraint, rem is but it behaves differently and any in C: a mod b == a - b(a//b)
 %todo what do we do on div by 0?
-symbolically_interpret(mod_op(Le_exp, Ri_exp), symb(Common_type, Casted_result)) :-
+symbolically_interpret(mod_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp - Ri_casted_exp*(Le_casted_exp//Ri_casted_exp))) :-
     !,   
     %mytrace,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
-    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp),
-    Result #= Le_casted_exp - Ri_casted_exp*(Le_casted_exp//Ri_casted_exp),
-    ptc_solver__check_overflow(Common_type, Result, Casted_result).
+    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
 
 symbolically_interpret(plus_op(Le_exp, Ri_exp), symb(Common_type, Casted_result)) :-
     !,
+    mytrace,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
     implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp),
     Result $= Le_casted_exp + Ri_casted_exp,
-    ptc_solver__check_overflow(Common_type, Result, Casted_result).
-symbolically_interpret(plus_op(Expression), symb(Promoted_type, Checked_result)) :-
-    !,
-    %mytrace,
-    symbolically_interpret(Expression, symb(Type, Symbolic_expression)),
-    apply_integral_promotion(Type, Promoted_type),
-    Result $= Symbolic_expression,
-    ptc_solver__perform_cast(cast(Type, Promoted_type), Result, Checked_result).
-symbolically_interpret(minus_op(Le_exp, Ri_exp), symb(Common_type, Casted_result)) :-
+    mytrace, 
+    ptc_solver__perform_cast(cast(Common_type, Common_type), Result, Casted_result).
+
+symbolically_interpret(minus_op(Le_exp, Ri_exp), symb(Common_type, Le_casted_exp - Ri_casted_exp)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
     symbolically_interpret(Ri_exp, symb(Ri_type, Ri_symbolic)),
-    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp),
-    Result $= Le_casted_exp - Ri_casted_exp,
-    ptc_solver__check_overflow(Common_type, Result, Casted_result).
-symbolically_interpret(minus_op(Expression), symb(Promoted_type, Checked_result)) :-
+    implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, Le_casted_exp, Ri_casted_exp).
+symbolically_interpret(minus_op(Expression), symb(Promoted_type, Result)) :-
     !,
     %mytrace,
     symbolically_interpret(Expression, symb(Type, Symbolic_expression)),
     apply_integral_promotion(Type, Promoted_type),  %special case if Promoted_type is unsigned(int), unsigned(long) or unsigned(long_long)
-    Result $= -Symbolic_expression,
     (Promoted_type = unsigned(Signed_type) ->
-        ptc_solver__perform_cast(cast(Promoted_type, Signed_type), Result, Casted_result)
+        ptc_solver__perform_cast(cast(Promoted_type, Signed_type), -Symbolic_expression, Result)
     ;
-        ptc_solver__perform_cast(cast(Type, Promoted_type), Result, Casted_result)
-    ),
-    ptc_solver__check_overflow(Promoted_type, Casted_result, Checked_result).
-
+        ptc_solver__perform_cast(cast(Type, Promoted_type), -Symbolic_expression, Result)
+    ).
 %%%relational operators: todo a lot of code is repeated: refactor
 symbolically_interpret(less_op(Le_exp, Ri_exp), symb(int, R)) :-
     !,
@@ -271,62 +258,46 @@ symbolically_interpret(postfix_dec_op(Expression), Symbolic_expression) :-
 %%%
 %L and R: C semantics of && is always short circuit
 %either L is true and overall truth is R's
-%or L is false and overall truth is false 
+%or L is false and overall truth is false
 symbolically_interpret(and_op(Le_exp, Ri_exp), symb(int, R)) :-   
     !,
-    (R == 1 -> %forcing true
-        (symbolically_interpret(Le_exp, symb(_, 1)),
-         symbolically_interpret(Ri_exp, symb(_, 1))
+    %mytrace, 
+    symbolically_interpret(Le_exp, symb(_, Le_symbolic)), %only performed once as it should
+    (Le_symbolic == 1 ->        %to avoid creating unnecessary choice point 
+        (R #:: 0..1,
+         symbolically_interpret(Ri_exp, symb(_, R))
         )
     ;
-     R == 0 -> %forcing false
-        ((random(2, 0) ->
-            (   symbolically_interpret(Le_exp, symb(_, 0))    %force Le to be false
-            ;%deliberate choice point
-                (symbolically_interpret(Le_exp, symb(_, 1)),    %impose true Le first
-                 symbolically_interpret(Ri_exp, symb(_, 0))     %and force Ri to be false
+     Le_symbolic == 0 ->        %to avoid creating unnecessary choice point 
+        R #= 0
+    ;    
+        (random(2, R2), %i.e. between 0 and 2-1, so only 2 values allowed 0 or 1
+         (R2 == 0 -> %randomness to ensure true and false branches are given equal chances
+            (
+                (
+                    (ptc_solver__sdl(Le_symbolic),
+                     R #:: 0..1,
+                     symbolically_interpret(Ri_exp, symb(_, R))
+                    )
+                ;%deliberate choice point
+                    (ptc_solver__sdl(not(Le_symbolic)),
+                     R #= 0
+                    )
                 )
             )
          ;
-            (   (symbolically_interpret(Le_exp, symb(_, 1)),    %impose true Le first
-                 symbolically_interpret(Ri_exp, symb(_, 0))     %and force Ri to be false
+            (
+                (
+                    (ptc_solver__sdl(not(Le_symbolic)),
+                     R #= 0
+                    )
+                ;%deliberate choice point
+                    (ptc_solver__sdl(Le_symbolic),
+                     R #:: 0..1,
+                     symbolically_interpret(Ri_exp, symb(_, R))
+                    )
                 )
-            ;%deliberate choice point
-                symbolically_interpret(Le_exp, symb(_, 0))    %force Le to be false
             )
-         )
-        )  
-    ;
-        (R #:: 0..1,    %not forcing anything
-         %mytrace, 
-         symbolically_interpret(Le_exp, symb(_, Le_symbolic)), %only performed once as it should
-         (Le_symbolic == 1 ->        
-            symbolically_interpret(Ri_exp, symb(_, R))
-         ;
-          Le_symbolic == 0 ->        
-            R #= 0
-         ;    
-          (random(2, 0) -> %i.e. between 0 and 2-1, so only 2 values allowed 0 or 1
-                (
-                    (ptc_solver__sdl(Le_symbolic),          %impose true Le first
-                     symbolically_interpret(Ri_exp, symb(_, R)) %R is still undecided
-                    )
-                ;%deliberate choice point
-                    (ptc_solver__sdl(not(Le_symbolic)),     %impose false Le
-                     R #= 0                                 %R is false
-                    )
-                )
-          ;
-                (
-                    (ptc_solver__sdl(not(Le_symbolic)),     %impose false Le first
-                     R #= 0                                 %R is false
-                    )
-                ;%deliberate choice point
-                    (ptc_solver__sdl(Le_symbolic),          %impose true Le
-                     symbolically_interpret(Ri_exp, symb(_, R)) %R is still undecided
-                    )
-                )
-          )
          )
         )
     ).
@@ -336,45 +307,65 @@ symbolically_interpret(and_op(Le_exp, Ri_exp), symb(int, R)) :-
 %or L is false and overall truth is R's
 symbolically_interpret(or_op(Le_exp, Ri_exp), symb(int, R)) :-   
     !,
-    %mytrace,
-    symbolically_interpret(Le_exp, symb(_, Le_symbolic)), %only performed once as it should
-    (Le_symbolic == 1 ->    %to avoid creating unnecessary choice point 
-        R #= 1
+    (R == 1 -> %forcing true
+        ((random(2, 0) ->
+            (   symbolically_interpret(Le_exp, symb(_, 1))
+            ;%deliberate choice point
+                (symbolically_interpret(Le_exp, symb(_, 0)),
+                 symbolically_interpret(Ri_exp, symb(_, 1))     
+                )
+            )
+         ;
+            (   (symbolically_interpret(Le_exp, symb(_, 0)),
+                 symbolically_interpret(Ri_exp, symb(_, 1))
+                )
+            ;%deliberate choice point
+                symbolically_interpret(Le_exp, symb(_, 1))
+            )
+         )
+        )  
     ;
-     Le_symbolic == 0 ->    %to avoid creating unnecessary choice point 
-        (R #:: 0..1,
-         symbolically_interpret(Ri_exp, symb(_, R))
-        )
+     R == 0 -> %forcing false
+                (symbolically_interpret(Le_exp, symb(_, 0)),
+                 symbolically_interpret(Ri_exp, symb(_, 0))
+                )
     ;
-        (random(2, R2), %i.e. between 0 and 2-1, so only 2 values allowed 0 or 1
-         (R2 == 0 -> %randomness to ensure true and false branches are given equal chances
-            (
+        (R #:: 0..1,    %not forcing anything
+         %mytrace,
+         symbolically_interpret(Le_exp, symb(_, Le_symbolic)), %only performed once as it should
+         (Le_symbolic == 1 ->
+            R #= 1
+         ;
+          Le_symbolic == 0 ->
+            symbolically_interpret(Ri_exp, symb(_, R))
+         ;
+            (random(2, 0) -> %i.e. between 0 and 2-1, so only 2 values allowed 0 or 1
                 (
-                    (ptc_solver__sdl(Le_symbolic),
-                     R #= 1
+                    (
+                        (ptc_solver__sdl(Le_symbolic),
+                         R #= 1
+                        )
+                    ;%deliberate choice point
+                        (ptc_solver__sdl(not(Le_symbolic)),
+                         symbolically_interpret(Ri_exp, symb(_, R))
+                        )
                     )
-                ;%deliberate choice point
-                    (ptc_solver__sdl(not(Le_symbolic)),
-                     R #:: 0..1,
-                     symbolically_interpret(Ri_exp, symb(_, R))
+                )
+             ;
+                (
+                    (
+                        (ptc_solver__sdl(not(Le_symbolic)),
+                         symbolically_interpret(Ri_exp, symb(_, R))
+                        )
+                    ;%deliberate choice point
+                        (ptc_solver__sdl(Le_symbolic),
+                         R #= 1
+                        )
                     )
                 )
             )
-        ;
-            (
-                (
-                    (ptc_solver__sdl(not(Le_symbolic)),
-                     R #:: 0..1,
-                     symbolically_interpret(Ri_exp, symb(_, R))
-                    )
-                ;%deliberate choice point
-                    (ptc_solver__sdl(Le_symbolic),
-                     R #= 1
-                    )
-                )
-            )
+         )
         )
-       )
     ).
 %%%
 %
@@ -528,7 +519,7 @@ implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, L
         )
     ).
     %%%
-    %may need indexing, but order is important so be careful. This very ugly and needs to be refactored
+    %may need indexing, but order is important so be careful
     integer_conversion(unsigned(long_long), From_type, Le_symbolic, Ri_symbolic, unsigned(long_long), Le_symbolic, Ri_casted_exp) :-
         !,
         ptc_solver__perform_cast(cast(unsigned(long_long), From_type), Ri_symbolic, Ri_casted_exp).
@@ -547,34 +538,6 @@ implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, L
     integer_conversion(From_type, unsigned(long), Le_symbolic, Ri_symbolic, unsigned(long), Le_casted_exp, Ri_symbolic) :-
         !,
         ptc_solver__perform_cast(cast(unsigned(long), From_type), Le_symbolic, Le_casted_exp).
-    integer_conversion(long, unsigned(int), Le_symbolic, Ri_symbolic, long, Le_casted_exp, Ri_casted_exp) :-
-        !,
-        %special rule 
-        ptc_solver__last(long, Last_long),
-        ptc_solver__last(unsigned(int), Last_unsigned_int),
-        (Last_long > Last_unsigned_int ->   %for efficiency this check should be a macro: known at ECLiPSe compilation time
-            (Le_casted_exp = Le_symbolic,
-             ptc_solver__perform_cast(cast(long, unsigned(int)), Ri_symbolic, Ri_casted_exp)
-            )
-        ;
-            (ptc_solver__perform_cast(cast(unsigned(long), long), Le_symbolic, Le_casted_exp),
-             ptc_solver__perform_cast(cast(unsigned(long), unsigned(int)), Ri_symbolic, Ri_casted_exp)
-            )
-        ).
-    integer_conversion(unsigned(int), long, Le_symbolic, Ri_symbolic, long, Le_casted_exp, Ri_casted_exp) :-
-        !,
-        %special rule 
-        ptc_solver__last(long, Last_long),
-        ptc_solver__last(unsigned(int), Last_unsigned_int),
-        (Last_long > Last_unsigned_int ->   %for efficiency this check should be a macro: known at ECLiPSe compilation time
-            (ptc_solver__perform_cast(cast(long, unsigned(int)), Le_symbolic, Le_casted_exp),
-             Ri_casted_exp = Ri_symbolic
-            )
-        ;
-            (ptc_solver__perform_cast(cast(unsigned(long), unsigned(int)), Le_symbolic, Le_casted_exp),
-             ptc_solver__perform_cast(cast(unsigned(long), long), Ri_symbolic, Ri_casted_exp)
-            )
-        ).
     integer_conversion(long, From_type, Le_symbolic, Ri_symbolic, long, Le_symbolic, Ri_casted_exp) :-
         !,
         ptc_solver__perform_cast(cast(long, From_type), Ri_symbolic, Ri_casted_exp).
