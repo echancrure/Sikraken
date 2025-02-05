@@ -18,9 +18,13 @@ int hello(int *table) { //table is a parameter, an identifier, not a typedef nam
     return 0;
 }
 
+int hello2(table tt) { 
+    return 0;
+}
+
 int main() {
     int table = 0; //table is a variable, not a typedef name
-    table t;
+    //table t;  //conflict as table represent a var and a typedef in the same scope and the same namespace
     //int x = 6 + table; //table is a variable, not a typedef name
     //table : x = 6; //table is a label, not a typedef name
     return table;

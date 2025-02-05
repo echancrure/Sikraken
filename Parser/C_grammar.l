@@ -26,6 +26,9 @@
 
 extern int in_tag_namespace;
 extern int in_member_namespace;
+
+extern int check_for_typedef;
+
 extern int is_typedef_name(char*);
 extern long int TARGET_LONG_MAX;
 
@@ -98,11 +101,11 @@ WS  [ \t\v\n\f]
 "do"					{ return(DO); }
 "double"				{ return(DOUBLE); }
 "else"					{ return(ELSE); }
-"enum"					{ return(ENUM); }
+"enum"					{ check_for_typedef = 0; return(ENUM); } //no typedef check after ENUM
 "extern"				{ return(EXTERN); }
 "float"					{ return(FLOAT); }
 "for"					{ return(FOR); }
-"goto"					{ return(GOTO); }
+"goto"					{ check_for_typedef = 0; return(GOTO); } //no typedef check after GOTO
 "if"					{ return(IF); }
 "inline"				{ return(INLINE); }
 "__inline"				{ return(INLINE); }     //GCC version of INLINE
@@ -111,7 +114,7 @@ WS  [ \t\v\n\f]
 "register"				{ return(REGISTER); }
 "restrict"				{ return(RESTRICT); }
 "__restrict"            { return(RESTRICT); }   //GCC version of RESTRICT
-"return"				{ return(RETURN); }
+"return"				{ check_for_typedef = 0; return(RETURN); } //no typedef check after RETURN
 "short"					{ return(SHORT); }
 "signed"				{ return(SIGNED); }
 "sizeof"				{ return(SIZEOF); }
@@ -130,7 +133,6 @@ WS  [ \t\v\n\f]
 "__float128"            { return(FLOAT128); }   //GCC builtin 128-bit floating-point type
 "_Float128"             { return(FLOAT128); }   //GCC builtin 128-bit floating-point type
 "__builtin_va_list"     { return(VA_LIST); }    //GCC builtin variable argument list type
-"__builtin_va_arg"      { return BUILTIN_VA_ARG; }  //GCC builtin for returning the argument of a variadic function
 "_Alignas"              { return ALIGNAS; }
 "_Alignof"              { return ALIGNOF; }
 "_Atomic"{WS}*"("       { return ATOMIC_SPECIFIER; }
@@ -142,7 +144,6 @@ WS  [ \t\v\n\f]
 "_Noreturn"             { return NORETURN; }
 "_Static_assert"        { return STATIC_ASSERT; }
 "_Thread_local"         { return THREAD_LOCAL; }
-"__thread"              { return THREAD_LOCAL; }
 "__PRETTY_FUNCTION__"   { return FUNC_NAME; }   //__PRETTY_FUNCTION__ is a GCC extension: an enhanced version of __func__; which we ignore 
 "__func__"              { return FUNC_NAME; }
 
@@ -158,8 +159,8 @@ WS  [ \t\v\n\f]
                              }
                              yylval.id[i] = '\0';
 
-                             if (!in_tag_namespace && !in_member_namespace && is_typedef_name(yylval.id)) { //check for identifers representing typedef except in tag (of structs, unions and enums) and member namespace (of structs and unions)
-                                //if (debugMode) printf("Debug: returning the typedef %s from lexer\n", yytext);
+                             if (check_for_typedef && is_typedef_name(yylval.id)) { //check for identifers representing typedef except in tag (of structs, unions and enums) and member namespace (of structs and unions)
+                                if (debugMode) printf("Debug: returning the typedef %s from lexer\n", yytext);
                                 return TYPEDEF_NAME;
                              }
                              return IDENTIFIER;
