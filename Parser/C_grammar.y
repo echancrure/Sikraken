@@ -133,7 +133,7 @@ primary_expression
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "\nstmt_exp(%s)", $2);
 		 free($2);
-		}			
+		}
 	| '(' expression ')'	
 		{size_t const size = strlen("()") + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
@@ -174,8 +174,6 @@ generic_association	/* to do */
 
 postfix_expression
 	: primary_expression 
-		{$$= $1;
-		}
 	| postfix_expression '[' expression ']'
 		{size_t const size = strlen("index(, )") + strlen($1) + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
@@ -307,7 +305,7 @@ unary_operator
 
 cast_expression
 	: unary_expression
-	| '(' type_name ')' cast_expression
+	| '('  type_name ')' cast_expression		//DIFFICULTY HERE: could be the start of cast as here if a TYPEDEF_NAME is returned by lexer or a parenthesed expression if it returns an IDENTIFIER
 		{size_t const size = strlen("cast(, )") + strlen($2) + strlen($4) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "cast(%s, %s)", $2, $4);
@@ -610,7 +608,7 @@ init_declarator
 	   	 sprintf_safe($$, size, "initialised(%s, %s)", $1.full, $3);
 	   	 free($1.full);
 		 free($1.ptr_declarator);
-	   	 //free($3);		//todo why is this commented out?
+	   	 free($3);
 	  	}
 	| declarator	// at the global level always add the empty initialiser: initializer([]) to trigger initialisation to 0, otherwise add 'no_initializer'
 		{if (typedef_flag == 1) {	// we are parsing a typedef declaration

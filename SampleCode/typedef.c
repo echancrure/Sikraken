@@ -13,8 +13,12 @@ static const table universal_time_zone_table_200015[4]; //table is a typedef nam
 static table tt; //table is a typedef name denoting struct table
 table t3;
 static table ttt; //table is a typedef name denoting struct table
+typedef int my_int;
+int y = (my_int)1;  //my_int is a typedef name
 
-int hello(int *table) { //table is a parameter, an identifier, not a typedef name
+int hello1(int *table) { //table is a parameter, an identifier, not a typedef name
+    int my_int = 42;    //shadowing of typedef name my_int
+    int x = (my_int);   //parenthesis expression
     return 0;
 }
 
