@@ -26,8 +26,7 @@
 
 extern int in_tag_namespace;
 extern int in_member_namespace;
-
-extern int check_for_typedef;
+extern int in_label_namespace;
 
 extern int is_typedef_name(char*);
 extern long int TARGET_LONG_MAX;
@@ -101,11 +100,11 @@ WS  [ \t\v\n\f]
 "do"					{ return(DO); }
 "double"				{ return(DOUBLE); }
 "else"					{ return(ELSE); }
-"enum"					{ check_for_typedef = 0; return(ENUM); } //no typedef check after ENUM
+"enum"					{ return(ENUM); }
 "extern"				{ return(EXTERN); }
 "float"					{ return(FLOAT); }
 "for"					{ return(FOR); }
-"goto"					{ check_for_typedef = 0; return(GOTO); } //no typedef check after GOTO
+"goto"					{ in_label_namespace = 1; return(GOTO); } //special namespace for labels GOTO
 "if"					{ return(IF); }
 "inline"				{ return(INLINE); }
 "__inline"				{ return(INLINE); }     //GCC version of INLINE
@@ -114,7 +113,7 @@ WS  [ \t\v\n\f]
 "register"				{ return(REGISTER); }
 "restrict"				{ return(RESTRICT); }
 "__restrict"            { return(RESTRICT); }   //GCC version of RESTRICT
-"return"				{ check_for_typedef = 0; return(RETURN); } //no typedef check after RETURN
+"return"				{ return(RETURN); }
 "short"					{ return(SHORT); }
 "signed"				{ return(SIGNED); }
 "sizeof"				{ return(SIZEOF); }
@@ -158,12 +157,21 @@ WS  [ \t\v\n\f]
                                 }
                              }
                              yylval.id[i] = '\0';
-
-                             if (check_for_typedef && is_typedef_name(yylval.id)) { //check for identifers representing typedef except in tag (of structs, unions and enums) and member namespace (of structs and unions)
-                                if (debugMode) printf("Debug: returning the typedef %s from lexer\n", yytext);
-                                return TYPEDEF_NAME;
+                             if (in_member_namespace || in_tag_declaration || in_label_namespace) 
+                                return IDENTIFIER;
+                             if (in_ordinary_id_declaration) {  //declaring a new IDENTIFIER
+                                if (is_typedef_name(yylval.id)) {
+                                    //shadowing of typedef occuring: push the identifier onto the typedef stack with the current scope level
+                                    if (debugMode) printf("Debug: SHADOWING of a typedef_name found: %s on line %d\n", yylval.id, yylineno);
+                                }
+                                return IDENTIFIER;
                              }
-                             return IDENTIFIER;
+                             if (is_typedef_name(yylval.id)) {
+                                if (debugMode) printf("Debug: returning TYPEDEF_NAME %s from lexer on line %d\n", yylval.id, yylineno);
+                                return TYPEDEF_NAME;
+                             } else {
+                                return IDENTIFIER; //not an ordinary declaration but ordinary id
+                             }
                             }
 
 {HP}{H}+{IS}?				{wrap_integer_constants("16'", &yytext[2], &yylval.id);     //hexadecimal integer
