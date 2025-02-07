@@ -54,7 +54,7 @@ int in_tag_declaration = 0;		//indicates to the lexer that we are in the tag nam
 int in_member_namespace = 0;	//indicates to the lexer that we are in the member namespace (for members of structs and unions) and that identifier should not be checked for typedef
 int in_ordinary_id_declaration = 0;
 int in_label_namespace = 0;
-int check_for_typedef = 1;
+
 int handled_function_paramaters = 0;
 int current_scope = 0;
 
@@ -551,60 +551,49 @@ declaration
 //always set in_ordinary_id_declaration = 1 afterwards as declarator are always after it
 //specify type
 declaration_specifiers
-	: storage_class_specifier {check_for_typedef = 1;} declaration_specifiers
+	: storage_class_specifier declaration_specifiers
 		{in_ordinary_id_declaration = 1;
-		 check_for_typedef = 0;
-		 size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
+		 size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "%s, %s", $1, $3);
+		 sprintf_safe($$, size, "%s, %s", $1, $2);
 		 free($1);
-		 free($3);
+		 free($2);
 		}
 	| storage_class_specifier 
-		{in_ordinary_id_declaration = 1; 
-		 check_for_typedef = 0;
-		}
-	| type_specifier {printf("declaration_specifiers is %s on line %d\n", $1, yylineno); check_for_typedef = 1;} declaration_specifiers
+		{in_ordinary_id_declaration = 1;}
+	| type_specifier declaration_specifiers
 		{in_ordinary_id_declaration = 1;
-		 check_for_typedef = 0;
-		 size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
+		 size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "%s, %s", $1, $3);
+		 sprintf_safe($$, size, "%s, %s", $1, $2);
 		 free($1);
-		 free($3);
+		 free($2);
 		}
 	| type_specifier 
-		{in_ordinary_id_declaration = 1; 
-		 check_for_typedef = 0;
-		}
-	| type_qualifier {check_for_typedef = 1;} declaration_specifiers
+		{in_ordinary_id_declaration = 1;}
+	| type_qualifier declaration_specifiers
 		{in_ordinary_id_declaration = 1;
-		 check_for_typedef = 0;
-		 size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
+		 size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "%s, %s", $1, $3);
+		 sprintf_safe($$, size, "%s, %s", $1, $2);
 		 free($1);
-		 free($3);
+		 free($2);
 		}
-	| type_qualifier {in_ordinary_id_declaration = 1; check_for_typedef = 0;}
-	| function_specifier {check_for_typedef = 1;} declaration_specifiers
+	| type_qualifier {in_ordinary_id_declaration = 1;}
+	| function_specifier declaration_specifiers
 		{in_ordinary_id_declaration = 1;
-		 check_for_typedef = 0;
 		 simple_str_lit_copy(&$$, "dummy_function_specifier, dummy_declaration_specifiers"); 
 		}
 	| function_specifier
 		{in_ordinary_id_declaration = 1;
-		 check_for_typedef = 0;
 		 simple_str_lit_copy(&$$, "dummy_function_specifier"); 
 		}
-	| alignment_specifier {check_for_typedef = 1;} declaration_specifiers
+	| alignment_specifier declaration_specifiers
 		{in_ordinary_id_declaration = 1;
-		 check_for_typedef = 0;
 		 simple_str_lit_copy(&$$, "dummy_alignment_specifier, dummy_declaration_specifiers"); 
 		}
 	| alignment_specifier
 		{in_ordinary_id_declaration = 1;
-		 check_for_typedef = 0;
 		 simple_str_lit_copy(&$$, "dummy_alignment_specifier"); 
 		}
 	;
@@ -713,20 +702,18 @@ struct_or_union_specifier
 
 struct_or_union
 	: STRUCT	
-		{check_for_typedef = 0;
-		 simple_str_lit_copy(&$$, "struct");
+		{simple_str_lit_copy(&$$, "struct");
 		 in_tag_declaration = 1;
 		}
 	| UNION		
-		{check_for_typedef = 0;
-		 simple_str_lit_copy(&$$, "union");
+		{simple_str_lit_copy(&$$, "union");
 		 in_tag_declaration = 1;
 		}
 	;
 
 struct_declaration_list
-	: {check_for_typedef = 1;} struct_declaration {$$ = $2; check_for_typedef = 1;}
-	| struct_declaration_list struct_declaration {check_for_typedef = 1;}
+	: struct_declaration
+	| struct_declaration_list struct_declaration
 		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "%s, %s", $1, $2);
@@ -755,24 +742,22 @@ struct_declaration
 	;
 
 specifier_qualifier_list
-	: type_specifier {check_for_typedef = 1;} specifier_qualifier_list
-		{check_for_typedef = 0;
-		 size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
+	: type_specifier specifier_qualifier_list
+		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_safe($$, size, "%s, %s", $1, $3);
+         sprintf_safe($$, size, "%s, %s", $1, $2);
 	   	 free($1);
-	     free($3);
+	     free($2);
         }
-	| type_specifier {check_for_typedef = 0;}
-	| type_qualifier {check_for_typedef = 1;} specifier_qualifier_list
-		{check_for_typedef = 0;
-		 size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
+	| type_specifier
+	| type_qualifier specifier_qualifier_list
+		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_safe($$, size, "%s, %s", $1, $3);
+         sprintf_safe($$, size, "%s, %s", $1, $2);
 	   	 free($1);
-	     free($3);
+	     free($2);
         }
-	| type_qualifier {check_for_typedef = 0;}
+	| type_qualifier
 	;
 
 struct_declarator_list
@@ -823,7 +808,7 @@ enum_specifier
 	     free($4);
 		 free($5);
         }
-	| ENUM {in_tag_declaration = 1;} IDENTIFIER {in_tag_declaration = 0; in_ordinary_id_declaration = 1;} enum_specifier_rest 	//Tag namespace Id declaration ; check_for_typedef is already switched off within lexer after ENUM
+	| ENUM {in_tag_declaration = 1;} IDENTIFIER {in_tag_declaration = 0; in_ordinary_id_declaration = 1;} enum_specifier_rest 	//Tag namespace Id declaration ; 
 		{in_ordinary_id_declaration = 0;
 		 size_t const size = strlen("enum(, [])") + strlen($3) + strlen($5) + 1;
        	 $$ = (char*)malloc(size);
@@ -1051,8 +1036,8 @@ parameter_type_list
 	;
 
 parameter_list
-	: parameter_declaration {check_for_typedef = 1;}
-	| parameter_list ',' parameter_declaration {check_for_typedef = 1;}
+	: parameter_declaration
+	| parameter_list ',' parameter_declaration
 		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "%s, %s", $1, $3);
@@ -1091,16 +1076,16 @@ old_style_parameter_list	//for old-style function declaration for the parameters
 	;
 
 type_name
-	: {check_for_typedef = 1;} specifier_qualifier_list abstract_declarator_opt	
-		{if (!strcmp($3, "")) {
-			size_t const size = strlen("[]") + strlen($2) + 1;
+	: specifier_qualifier_list abstract_declarator_opt	
+		{if (!strcmp($2, "")) {
+			size_t const size = strlen("[]") + strlen($1) + 1;
 	     	$$ = (char*)malloc(size);
-	     	sprintf_safe($$, size, "[%s]", $2);
+	     	sprintf_safe($$, size, "[%s]", $1);
 		 } else {
 		 	simple_str_lit_copy(&$$, "type_abstract_declarator_dummy1");
 		 }
+		 free($1);
 		 free($2);
-		 free($3);
 		}
 	;
 
@@ -1220,12 +1205,12 @@ designator
 	;
 
 static_assert_declaration
-	: STATIC_ASSERT {check_for_typedef = 0;} '(' constant_expression ',' STRING_LITERAL ')' ';'
-		{size_t const size = strlen("static_assert(, )") + strlen($4) + strlen($6) + 1;
+	: STATIC_ASSERT '(' constant_expression ',' STRING_LITERAL ')' ';'
+		{size_t const size = strlen("static_assert(, )") + strlen($3) + strlen($5) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "static_assert(%s, %s)", $4, $6);
-		 free($4);
-		 free($6);
+	     sprintf_safe($$, size, "static_assert(%s, %s)", $3, $5);
+		 free($3);
+		 free($5);
 		}
 	;
 
@@ -1257,18 +1242,18 @@ labeled_statement
 	   free($1);
 	   free($3);
 	  }
-	| CASE {check_for_typedef = 0;} constant_expression ':' statement
-	  {size_t const size = strlen("case_stmt(, )") + strlen($3) + strlen($5) + 1;
+	| CASE constant_expression ':' statement
+	  {size_t const size = strlen("case_stmt(, )") + strlen($2) + strlen($4) + 1;
 	   $$ = (char*)malloc(size);
-	   sprintf_safe($$, size, "case_stmt(%s, %s)", $3, $5);
-	   free($3);
-	   free($5);
-	  }
-	| DEFAULT {check_for_typedef = 0;} ':' statement
-	  {size_t const size = strlen("default_stmt(, )") + strlen($4) + 1;
-	   $$ = (char*)malloc(size);
-	   sprintf_safe($$, size, "default_stmt(%s)", $4);
+	   sprintf_safe($$, size, "case_stmt(%s, %s)", $2, $4);
+	   free($2);
 	   free($4);
+	  }
+	| DEFAULT ':' statement
+	  {size_t const size = strlen("default_stmt(, )") + strlen($3) + 1;
+	   $$ = (char*)malloc(size);
+	   sprintf_safe($$, size, "default_stmt(%s)", $3);
+	   free($3);
 	  }
 	;
 
@@ -1309,20 +1294,20 @@ expression_statement
 	;
 
 selection_statement
-	: IF {check_for_typedef = 0;} '(' expression ')' statement else_opt 
-		{size_t const size = strlen("\nif_stmt(branch(, ),  )") + MAX_BRANCH_STR + strlen($4) + strlen($6) + strlen($7) + 1;
+	: IF '(' expression ')' statement else_opt 
+		{size_t const size = strlen("\nif_stmt(branch(, ),  )") + MAX_BRANCH_STR + strlen($3) + strlen($5) + strlen($6) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "\nif_stmt(branch(%d, %s), %s %s)", branch_nb++, $4, $6, $7);
-		 free($4);
+		 sprintf_safe($$, size, "\nif_stmt(branch(%d, %s), %s %s)", branch_nb++, $3, $5, $6);
+		 free($3);
+		 free($5);
 		 free($6);
-		 free($7);
 		} 
-	| SWITCH {check_for_typedef = 0;} '(' expression ')' statement
-		{size_t const size = strlen("\nswitch_stmt(, )") + strlen($4) + strlen($6) + 1;
+	| SWITCH '(' expression ')' statement
+		{size_t const size = strlen("\nswitch_stmt(, )") + strlen($3) + strlen($5) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "\nswitch_stmt(%s, %s)", $4, $6);
-		 free($4);
-		 free($6);
+		 sprintf_safe($$, size, "\nswitch_stmt(%s, %s)", $3, $5);
+		 free($3);
+		 free($5);
 		} 
 	;
 
@@ -1336,36 +1321,36 @@ else_opt
 		} 
 
 iteration_statement
-	: WHILE {check_for_typedef = 0;} '(' expression ')' statement 
-		{size_t const size = strlen("\nwhile_stmt(branch(, ), )") + MAX_BRANCH_STR + strlen($4) + strlen($6) + 1;
+	: WHILE '(' expression ')' statement 
+		{size_t const size = strlen("\nwhile_stmt(branch(, ), )") + MAX_BRANCH_STR + strlen($3) + strlen($5) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "\nwhile_stmt(branch(%d, %s), %s)", branch_nb++, $4, $6);
-		 free($4);
-		 free($6);
-		} 
-	| DO {check_for_typedef = 0;} statement WHILE '(' expression ')' ';'
-		{size_t const size = strlen("\ndo_while_stmt(, branch(, ))") + strlen($3) + MAX_BRANCH_STR + strlen($6) + 1;
-		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "\ndo_while_stmt(%s, branch(%d, %s))", $3, branch_nb++, $6);
+		 sprintf_safe($$, size, "\nwhile_stmt(branch(%d, %s), %s)", branch_nb++, $3, $5);
 		 free($3);
-		 free($6);
+		 free($5);
 		} 
-	| FOR {check_for_typedef = 0;} '(' for_stmt_type ')' statement	//replaced by an equivalent, a little ugly, while statement
-		{size_t const size = strlen("\ncmp_stmts([, \nwhile_stmt(branch(, ), \ncmp_stmts([, ]))])") + strlen($4.init) + MAX_BRANCH_STR + strlen($4.cond) + strlen($6) + strlen($4.update) + 1;
+	| DO statement WHILE '(' expression ')' ';'
+		{size_t const size = strlen("\ndo_while_stmt(, branch(, ))") + strlen($2) + MAX_BRANCH_STR + strlen($5) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "\ncmp_stmts([%s, \nwhile_stmt(branch(%d, %s), \ncmp_stmts([%s, %s]))])", $4.init, branch_nb++, $4.cond, $6, $4.update);
-		 free($4.init);
-		 free($4.cond);
-		 free($4.update);
-		 free($6);
+		 sprintf_safe($$, size, "\ndo_while_stmt(%s, branch(%d, %s))", $2, branch_nb++, $5);
+		 free($2);
+		 free($5);
+		} 
+	| FOR '(' for_stmt_type ')' statement	//replaced by an equivalent, a little ugly, while statement
+		{size_t const size = strlen("\ncmp_stmts([, \nwhile_stmt(branch(, ), \ncmp_stmts([, ]))])") + strlen($3.init) + MAX_BRANCH_STR + strlen($3.cond) + strlen($5) + strlen($3.update) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_safe($$, size, "\ncmp_stmts([%s, \nwhile_stmt(branch(%d, %s), \ncmp_stmts([%s, %s]))])", $3.init, branch_nb++, $3.cond, $5, $3.update);
+		 free($3.init);
+		 free($3.cond);
+		 free($3.update);
+		 free($5);
 		} 
 	;
 //changed the original grammar by replacing the middle expression_statement (the condition) with expression_opt ';'
 for_stmt_type
 	: expression_statement expression_opt ';' expression_opt 
 	  {$$ = (struct for_stmt){.init = $1, .cond = $2, .update = $4};}	//a compound literal
-	| {check_for_typedef = 1;} declaration expression_opt ';' expression_opt
-	  {$$ = (struct for_stmt){.init = $2, .cond = $3, .update = $5};}	//a compound literal
+	| declaration expression_opt ';' expression_opt
+	  {$$ = (struct for_stmt){.init = $1, .cond = $2, .update = $4};}	//a compound literal
 	;
 
 expression_opt
@@ -1383,7 +1368,7 @@ jump_statement
 	| CONTINUE ';'	{simple_str_lit_copy(&$$, "\ncontinue_stmt\n");}
 	| BREAK ';'		{simple_str_lit_copy(&$$, "\nbreak_stmt\n");}
 	| RETURN ';'  	{simple_str_lit_copy(&$$, "\nreturn_stmt\n");}
-	| RETURN expression ';'		//check_for_typedef is already switched off within lexer after RETURN
+	| RETURN expression ';'
 	  {size_t const size = strlen("\nreturn_stmt()\n") + strlen($2) + 1;
 	   $$ = (char*)malloc(size);
 	   sprintf_safe($$, size, "\nreturn_stmt(%s)\n", $2);
@@ -1393,8 +1378,8 @@ jump_statement
 
 //top level rule
 translation_unit 			//printed out
-	: external_declaration {check_for_typedef = 1;}
-	| translation_unit {fprintf(pl_file, ", \n");} external_declaration {check_for_typedef = 1;}
+	: external_declaration
+	| translation_unit {fprintf(pl_file, ", \n");} external_declaration
 	;
 
 external_declaration		//printed out
@@ -1415,16 +1400,16 @@ external_declaration		//printed out
 	;
 //always in_ordinary_id_declaration = 0; after
 function_definition
-	: declaration_specifiers declarator {check_for_typedef = 1;} declaration_list_opt {in_ordinary_id_declaration = 0;} compound_statement
+	: declaration_specifiers declarator declaration_list_opt {in_ordinary_id_declaration = 0;} compound_statement
 		{in_ordinary_id_declaration = 0;
-		 size_t const size = strlen("function([], , [], )") + strlen($1) + strlen($2.full) + strlen($4) + strlen($6) + 1;
+		 size_t const size = strlen("function([], , [], )") + strlen($1) + strlen($2.full) + strlen($3) + strlen($5) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "function([%s], %s, [%s], %s)", $1, $2.full, $4, $6);
+	     sprintf_safe($$, size, "function([%s], %s, [%s], %s)", $1, $2.full, $3, $5);
 	     free($1);
 		 free($2.full);
 		 free($2.ptr_declarator);
-		 free($4);
-		 free($6);
+		 free($3);
+		 free($5);
 		}
 	;
 
@@ -1434,8 +1419,8 @@ declaration_list_opt
 	;
 
 old_style_declaration_list
-	: declaration {check_for_typedef = 1;}
-	| old_style_declaration_list declaration {check_for_typedef = 1;}
+	: declaration
+	| old_style_declaration_list declaration
 	  	{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "%s, %s", $1, $2);
