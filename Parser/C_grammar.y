@@ -55,6 +55,8 @@ int in_member_namespace = 0;	//indicates to the lexer that we are in the member 
 int in_ordinary_id_declaration = 0;
 int in_label_namespace = 0;
 int check_for_typedef = 1;
+int handled_function_paramaters = 0;
+int current_scope = 0;
 
 char *current_function;			//we keep track of the function being parsed so that we can add it to goto statements
 void yyerror(const char*);
@@ -130,11 +132,12 @@ primary_expression
 		}
 	| constant
 	| string
-	| '(' compound_statement ')'	//GCC statement-expression
-		{size_t const size = strlen("\nstmt_exp()") + strlen($2) + 1;
+	| '(' {in_ordinary_id_declaration = 0; current_scope++;} compound_statement ')'	//GCC statement-expression
+		{pop_scope(&current_scope);
+		 size_t const size = strlen("\nstmt_exp()") + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "\nstmt_exp(%s)", $2);
-		 free($2);
+		 sprintf_safe($$, size, "\nstmt_exp(%s)", $3);
+		 free($3);
 		}
 	| '(' expression ')'	
 		{size_t const size = strlen("()") + strlen($2) + 1;
@@ -546,6 +549,7 @@ declaration
 		}
 	;
 //always set in_ordinary_id_declaration = 1 afterwards as declarator are always after it
+//specify type
 declaration_specifiers
 	: storage_class_specifier {check_for_typedef = 1;} declaration_specifiers
 		{in_ordinary_id_declaration = 1;
@@ -571,7 +575,6 @@ declaration_specifiers
 		}
 	| type_specifier 
 		{in_ordinary_id_declaration = 1; 
-		 printf("declaration_specifiers is simple type_specifier %s on line %d\n", $1, yylineno); 
 		 check_for_typedef = 0;
 		}
 	| type_qualifier {check_for_typedef = 1;} declaration_specifiers
@@ -632,7 +635,7 @@ init_declarator
 	  	}
 	| declarator	// at the global level always add the empty initialiser: initializer([]) to trigger initialisation to 0, otherwise add 'no_initializer'
 		{if (typedef_flag == 1) {	// we are parsing a typedef declaration
-			add_typedef_name($1.ptr_declarator);	
+			add_typedef_id(current_scope, $1.ptr_declarator, 1);	//the id as a TYPEDEF_NAME is added to the data structures keeping track of typedef_names and ids shadowing
 	   	 }
 		 free($1.ptr_declarator);
 		 simple_str_copy(&$$, $1.full);
@@ -978,8 +981,9 @@ direct_declarator
 		 free($3);
 		 $$.ptr_declarator = $1.ptr_declarator;
 		}
-	| direct_declarator {in_ordinary_id_declaration = 0; check_for_typedef = 1;} '(' rest_function_definition ')'
-		{in_ordinary_id_declaration = 0;
+	| direct_declarator {in_ordinary_id_declaration = 0; current_scope++;} '(' rest_function_definition ')'
+		{handled_function_paramaters = 1;
+		 in_ordinary_id_declaration = 0;
 		 size_t const size = strlen("function(, )") + strlen($1.full) + strlen($4) + 1;
 	     $$.full = (char*)malloc(size);
 	     sprintf_safe($$.full, size, "function(%s, %s)", $1.full, $4);
@@ -1227,7 +1231,10 @@ static_assert_declaration
 
 statement
 	: labeled_statement
-	| compound_statement
+	| {in_ordinary_id_declaration = 0; current_scope++;} compound_statement	
+	  	{pop_scope(&current_scope);
+		 $$ = $2;
+		}
 	| expression_statement
 	| selection_statement
 	| iteration_statement
@@ -1267,17 +1274,17 @@ labeled_statement
 
 compound_statement	//aka a 'block'
 	: '{' '}'	{simple_str_lit_copy(&$$, "\ncmp_stmts([])");}
-	| '{' {check_for_typedef = 1;} block_item_list '}' 
-	  {size_t const size = strlen("\ncmp_stmts([\n])") + strlen($3) + 1;
+	| '{' block_item_list '}' 
+	  {size_t const size = strlen("\ncmp_stmts([\n])") + strlen($2) + 1;
 	   $$ = (char*)malloc(size);
-	   sprintf_safe($$, size, "\ncmp_stmts([%s\n])", $3);
-	   free($3);
+	   sprintf_safe($$, size, "\ncmp_stmts([%s\n])", $2);
+	   free($2);
 	  }
 	;
-// the placement of {check_for_typedef = 1;} to be performed before each block_item is quite counterintuitive but correct: performs eveytime a block_item_list terminates 
+
 block_item_list
-	: block_item {check_for_typedef = 1;}
-	| block_item_list block_item {check_for_typedef = 1;}
+	: block_item {in_ordinary_id_declaration = 0;}
+	| block_item_list block_item {in_ordinary_id_declaration = 0;}
 	  {size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 	   $$ = (char*)malloc(size);
 	   sprintf_safe($$, size, "%s, %s", $1, $2);
@@ -1391,21 +1398,33 @@ translation_unit 			//printed out
 	;
 
 external_declaration		//printed out
-	: function_definition	{fprintf(pl_file, "%s", $1); free($1);}
-	| declaration			{fprintf(pl_file, "%s", $1); free($1);}
+	: function_definition	
+		{handled_function_paramaters = 0;
+		 pop_scope(&current_scope);
+		 fprintf(pl_file, "%s", $1); 
+		 free($1);
+		}
+	| declaration			
+		{if(handled_function_paramaters) {
+			handled_function_paramaters = 0;
+			pop_scope(&current_scope);
+		 }
+		 fprintf(pl_file, "%s", $1); 
+		 free($1);
+		}
 	;
-//always in_ordinary_id_declaration  = 0; after
+//always in_ordinary_id_declaration = 0; after
 function_definition
-	: declaration_specifiers declarator {check_for_typedef = 1;} declaration_list_opt compound_statement
+	: declaration_specifiers declarator {check_for_typedef = 1;} declaration_list_opt {in_ordinary_id_declaration = 0;} compound_statement
 		{in_ordinary_id_declaration = 0;
-		 size_t const size = strlen("function([], , [], )") + strlen($1) + strlen($2.full) + strlen($4) + strlen($5) + 1;
+		 size_t const size = strlen("function([], , [], )") + strlen($1) + strlen($2.full) + strlen($4) + strlen($6) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "function([%s], %s, [%s], %s)", $1, $2.full, $4, $5);
+	     sprintf_safe($$, size, "function([%s], %s, [%s], %s)", $1, $2.full, $4, $6);
 	     free($1);
 		 free($2.full);
 		 free($2.ptr_declarator);
 		 free($4);
-		 free($5);
+		 free($6);
 		}
 	;
 

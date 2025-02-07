@@ -99,7 +99,7 @@ int main(void) {
     x.n = __VERIFIER_nondet_int();
     if (x.n == 99) i++;
     else i--;
-   struct point s1;
+    struct point s1;
     struct point s2 = {1, 2, 3, 4, 42.42};  //list of initialisers can only be used at declaration time
     struct point s3 = {1, 2, 3};    //only partial initialisations is allowed: remaining fields are initialised to 0
     s1.x = __VERIFIER_nondet_int();

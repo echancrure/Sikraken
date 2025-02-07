@@ -24,13 +24,6 @@
 
 #include "C_grammar.tab.h"
 
-extern int in_tag_namespace;
-extern int in_member_namespace;
-extern int in_label_namespace;
-
-extern int is_typedef_name(char*);
-extern long int TARGET_LONG_MAX;
-
 void read_comment();
 int convert_escape_sequence(const char *);
 int differentiate_identifiers(char *);
@@ -162,6 +155,7 @@ WS  [ \t\v\n\f]
                              if (in_ordinary_id_declaration) {  //declaring a new IDENTIFIER
                                 if (is_typedef_name(yylval.id)) {
                                     //shadowing of typedef occuring: push the identifier onto the typedef stack with the current scope level
+                                    add_typedef_id(current_scope, yylval.id, 0);   //0 indicates that it is an ordinary id
                                     if (debugMode) printf("Debug: SHADOWING of a typedef_name found: %s on line %d\n", yylval.id, yylineno);
                                 }
                                 return IDENTIFIER;
