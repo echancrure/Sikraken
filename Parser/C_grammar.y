@@ -966,8 +966,8 @@ direct_declarator
 		 free($3);
 		 $$.ptr_declarator = $1.ptr_declarator;
 		}
-	| direct_declarator {in_ordinary_id_declaration = 0; current_scope++;} '(' rest_function_definition ')'
-		{handled_function_paramaters = 1;
+	| direct_declarator {in_ordinary_id_declaration = 0; if (!typedef_flag) current_scope++; } '(' rest_function_definition ')'
+		{if (typedef_flag) handled_function_paramaters = 666;
 		 in_ordinary_id_declaration = 0;
 		 size_t const size = strlen("function(, )") + strlen($1.full) + strlen($4) + 1;
 	     $$.full = (char*)malloc(size);
@@ -1390,7 +1390,8 @@ external_declaration		//printed out
 		 free($1);
 		}
 	| declaration			
-		{if(handled_function_paramaters) {
+		{if (handled_function_paramaters == 666) handled_function_paramaters = 0; 
+		else if(handled_function_paramaters) {
 			handled_function_paramaters = 0;
 			pop_scope(&current_scope);
 		 }
