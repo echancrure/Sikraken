@@ -27,9 +27,26 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdbool.h>
 #include "parser.h"
 #include "utils.c"
 #include "handle_typedefs.c"
+
+typedef struct {
+    bool isTypeDef;
+    bool isExtern;
+    bool isConstant;
+    bool isStatic;
+    bool isInt;
+    bool isSigned;
+    bool isShort;
+    bool isRestrict;
+    bool isVolatile;
+    bool isAtomic;
+    int longCount;
+} SpecifierFlags;
+
+bool otherDataTypes = false;
 
 extern int yylex();
 extern int yylineno;
@@ -61,6 +78,7 @@ int current_scope = 0;
 char *current_function;			//we keep track of the function being parsed so that we can add it to goto statements
 void yyerror(const char*);
 void my_exit(int);				//attempts to close handles and delete generated files prior to caling exit(int);
+void process_declaration_specifiers(char a[]);
 
 %}
 
@@ -534,6 +552,11 @@ declaration
 	    	typedef_flag = 0; 
 			//if (debugMode) printf("Debug: typedef switched to 0\n");
 	   	 }
+		 if(!otherDataTypes){
+			process_declaration_specifiers($1);
+		 }else{
+			otherDataTypes = false;
+		 }
 		 size_t const size = strlen("\ndeclaration([], [])") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "\ndeclaration([%s], [%s])", $1, $2);
@@ -650,25 +673,24 @@ type_specifier
 	| SHORT					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "short"); }
 	| INT					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "int"); }
 	| LONG					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "long"); }
-	| FLOAT					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "float"); }
-	| DOUBLE				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "double"); }
+	| FLOAT					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "float"); otherDataTypes = true;}
+	| DOUBLE				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "double"); otherDataTypes = true;}
 	| SIGNED				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "signed"); }
 	| UNSIGNED				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "unsigned"); }
-	| BOOL					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "bool"); }
+	| BOOL					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "bool"); otherDataTypes = true;}
 	| COMPLEX				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "complex"); }
-	| IMAGINARY				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "imaginary"); } 	// non-mandated C extension
+	| IMAGINARY				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "imaginary"); } 	
 	| atomic_type_specifier	{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "atomic_type_specifier"); }
-	| struct_or_union_specifier { in_ordinary_id_declaration = 1; }
-	| enum_specifier		{ in_ordinary_id_declaration = 1; }
-	| TYPEDEF_NAME			/* a type_specififer after it has been defined as such */
+	| struct_or_union_specifier { in_ordinary_id_declaration = 1; otherDataTypes = true;}
+	| enum_specifier		{ in_ordinary_id_declaration = 1;  otherDataTypes = true;}
+	| TYPEDEF_NAME			
 		{in_ordinary_id_declaration = 1; 
 		 $$ = to_prolog_var($1);
 		 free($1);
 		}
-	| INT128				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "int128"); }		//gcc extension: builtin type
-	| FLOAT128				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "float128"); }	//gcc extension: builtin type
-	| VA_LIST				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "va_list"); }	//gcc extension: builtin type
-	;
+	| INT128				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "int128"); otherDataTypes = true;}		//gcc extension: builtin type
+	| FLOAT128				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "float128"); otherDataTypes = true;}	//gcc extension: builtin type
+	| VA_LIST				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "va_list"); otherDataTypes = true;}	//gcc extension: builtin type
 
 struct_or_union_specifier
 	: struct_or_union '{' {in_tag_declaration = 0;} struct_declaration_list '}'		//anonymous struct or union
@@ -1497,6 +1519,59 @@ int main(int argc, char *argv[]) {
 	i_file = NULL;
 	my_exit(EXIT_SUCCESS);
 }
+
+void process_declaration_specifiers(char a[]) {
+    char *token;
+    SpecifierFlags flags = {false};
+    flags.isSigned = true;
+
+    // Allocate temp with enough space
+    char *temp = (char *)malloc(sizeof(char) * (strlen(a) + 1));
+    if (!temp) {
+        perror("Memory allocation failed");
+        return;
+    }
+    strcpy(temp, a);
+
+    char result[1024] = ""; 
+    token = strtok(temp, ", ");
+    while (token != NULL) {
+        if (strcmp(token, "int") == 0) { printf("TOKEN:	%s \n", token); }
+        else if (strcmp(token, "long") == 0) { flags.longCount++; }
+        else if (strcmp(token, "short") == 0) { flags.isShort = true; }
+        else if (strcmp(token, "unsigned") == 0) { flags.isSigned = false; }
+        else if (strcmp(token, "const") == 0) { flags.isConstant = true; }
+        else if (strcmp(token, "static") == 0) { flags.isStatic = true; }
+        else if (strcmp(token, "extern") == 0) { flags.isExtern = true; }
+        else if (strcmp(token, "typedef") == 0) { flags.isTypeDef = true; }
+        else if (strcmp(token, "volatile") == 0) { flags.isVolatile = true; }
+        else if (strcmp(token, "atomic") == 0) { flags.isAtomic = true; }
+
+        token = strtok(NULL, ", ");
+    }
+    if (flags.isTypeDef) strcat(result, "typedef, ");
+    if (flags.isExtern) strcat(result, "extern, ");
+    if (flags.isConstant) strcat(result, "const, ");
+    if (flags.isStatic) strcat(result, "static, ");
+    if (flags.isVolatile) strcat(result, "volatile, ");
+    if (flags.isAtomic) strcat(result, "atomic, ");
+
+    if (flags.isSigned) {
+        if (flags.longCount == 1) strcat(result, "long");
+        else if (flags.longCount == 2) strcat(result, "long, long");
+        else if (flags.isShort) strcat(result, "short");
+        else strcat(result, "int");
+    } else {
+        if (flags.longCount == 1) strcat(result, "unsigned, long");
+        else if (flags.longCount == 2) strcat(result, "unsigned, long, long");
+        else if (flags.isShort) strcat(result, "unsigned, short");
+        else strcat(result, "unsigned, int");
+    }
+	otherDataTypes = false;
+    strncpy(a, result, strlen(result) + 1);
+    free(temp);
+}
+
 
 //handles parsing errors: since the C input file is the output of a C pre-processor it will only be called if
 //  the syntax rules are wrong due to GCC extensions 
