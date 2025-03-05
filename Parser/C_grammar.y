@@ -30,6 +30,20 @@
 #include "parser.h"
 #include "utils.c"
 #include "handle_typedefs.c"
+#include "linkedList.c"
+
+typedef struct{
+	bool isFalse;
+	int  doWhile;
+} ParserContext;
+
+extern void push(bool isFalse); //This will push the nodes onto the stack.
+extern void populate_dot_file(FILE *dot_file);
+extern void pop(int branch_num);
+extern void join_nodes();
+extern int 	stack_count;
+extern void terminate_nodes();
+extern void attach_start(FILE *dot_file);
 
 extern int yylex();
 extern int yylineno;
@@ -46,6 +60,8 @@ long int TARGET_LONG_MAX = 2147483647L; //the default LONG_MAX for the code unde
 FILE* pl_file;					//the file of containing the Prolog predicated after parsing the target C file
 char i_file_uri[MAX_PATH];
 FILE *i_file;
+char dot_file_uri[3 * MAX_PATH];
+FILE* dot_file;
 char pl_file_uri[MAX_PATH];		//the full path to the Pl_file
 int branch_nb = 1;				//unique id for branches created
 //start: ugly, breaking parsing spirit, flags and temporary variables
@@ -59,10 +75,14 @@ int handled_function_paramaters = 0;
 int current_scope = 0;
 
 char *current_function;			//we keep track of the function being parsed so that we can add it to goto statements
-void yyerror(const char*);
+void yyerror(ParserContext *ctx, const char*);
 void my_exit(int);				//attempts to close handles and delete generated files prior to caling exit(int);
 
+void add_to_cfg(int node_num,char current_node[], char false_path[], char true_path[]); // This method will add nodes to the control flow graphs in dot format.
+char *previous_cfg_node = NULL;
 %}
+
+%parse-param { ParserContext *ctx }
 
 %union {
 	char* id;
@@ -467,13 +487,29 @@ logical_or_expression
 
 conditional_expression
 	: logical_or_expression
-	| logical_or_expression '?' expression ':' conditional_expression 
-		{size_t const size = strlen("cond_exp(branch(, ), , )") + branch_nb++ + strlen($1) + strlen($3) + strlen($5) + 1;
+	| logical_or_expression{
+		printf("ternary statement\n");
+		if(stack_count == 0){
+			printf("stack is zero\n");
+			push(ctx->isFalse); 
+			join_nodes();
+		}else{
+			push(ctx->isFalse);
+		}     
+		if(ctx->doWhile > 0){
+			top->inDoWhile == true;
+		}
+		ctx->isFalse = false;
+	} '?' expression ':'{ctx->isFalse = true;} conditional_expression 
+		{size_t const size = strlen("cond_exp(branch(, ), , )") + branch_nb + strlen($1) + strlen($4) + strlen($7) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "cond_exp(branch(%d, %s), %s, %s)", branch_nb++, $1, $3, $5);
+		 pop(branch_nb);
+		 attach_start(dot_file);
+		 sprintf_safe($$, size, "cond_exp(branch(%d, %s), %s, %s)", branch_nb++, $1, $4, $7);
+		 ctx->isFalse = false;
 		 free($1);
-		 free($3);
-		 free($5);
+		 free($4);
+		 free($7);
 		}
 	;
 
@@ -1294,14 +1330,34 @@ expression_statement
 	;
 
 selection_statement
-	: IF '(' expression ')' statement else_opt 
-		{size_t const size = strlen("\nif_stmt(branch(, ),  )") + MAX_BRANCH_STR + strlen($3) + strlen($5) + strlen($6) + 1;
+	: IF '(' expression ')'{
+		printf("If statement %s \n", $3);
+		if(stack_count == 0){
+			printf("stack is zero\n");
+			push(ctx->isFalse); 
+			join_nodes();
+		}else{
+			push(ctx->isFalse);
+		}     
+		if(ctx->doWhile > 0){
+			printf("IN DO WHILE TRUE\n");
+			top->inDoWhile == true;
+		}
+		ctx->isFalse = false;
+		} statement else_opt 
+		{printf("IF token matched %d, %s\n", branch_nb, $3);
+		 //printf("%s \n \n \n", $6);
+		 size_t const size = strlen("\nif_stmt(branch(, ),  )") + MAX_BRANCH_STR + strlen($3) + strlen($6) + strlen($7) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "\nif_stmt(branch(%d, %s), %s %s)", branch_nb++, $3, $5, $6);
+		 //dd_to_cfg(branch_nb, $3, $6, $7);
+		 join_nodes();
+		 pop(branch_nb);
+		 attach_start(dot_file);
+		 sprintf_safe($$, size, "\nif_stmt(branch(%d, %s), %s %s)", branch_nb++, $3, $6, $7);
 		 free($3);
-		 free($5);
 		 free($6);
-		} 
+		 free($7);
+		}  
 	| SWITCH '(' expression ')' statement
 		{size_t const size = strlen("\nswitch_stmt(, )") + strlen($3) + strlen($5) + 1;
 		 $$ = (char*)malloc(size);
@@ -1313,36 +1369,102 @@ selection_statement
 
 else_opt
 	: /* empty */		%prec LOWER_THAN_ELSE 	{simple_str_lit_copy(&$$, "");}
-	| ELSE statement
-		{size_t const size = strlen(", ") + strlen($2) + 1;
+	| ELSE{	printf("else token set to true\n");
+			ctx->isFalse = true;
+		} statement
+		{printf("ELSE token matched %s \n", $3);
+		 size_t const size = strlen(", ") + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, ", %s", $2);
-		 free($2);
-		} 
-
-iteration_statement
-	: WHILE '(' expression ')' statement 
-		{size_t const size = strlen("\nwhile_stmt(branch(, ), )") + MAX_BRANCH_STR + strlen($3) + strlen($5) + 1;
-		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "\nwhile_stmt(branch(%d, %s), %s)", branch_nb++, $3, $5);
+		 sprintf_safe($$, size, ", %s", $3);
+		 ctx->isFalse = false;
 		 free($3);
-		 free($5);
 		} 
-	| DO statement WHILE '(' expression ')' ';'
-		{size_t const size = strlen("\ndo_while_stmt(, branch(, ))") + strlen($2) + MAX_BRANCH_STR + strlen($5) + 1;
+iteration_statement
+	: WHILE '(' expression ')'{ 
+		if(stack_count == 0){
+			printf("stack is zero\n");
+			push(ctx->isFalse); 
+			printf("True path before join: %p\n", top->true_path);
+			join_nodes();
+			printf("True path after join: %p\n", top->true_path);
+
+		}else{
+			push(ctx->isFalse);
+		}
+		if(ctx->doWhile > 0){
+			top->inDoWhile == true;
+		}
+		}statement 
+		{size_t const size = strlen("\nwhile_stmt(branch(, ), )") + MAX_BRANCH_STR + strlen($3) + strlen($6) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "\ndo_while_stmt(%s, branch(%d, %s))", $2, branch_nb++, $5);
-		 free($2);
-		 free($5);
+		 if(top->true_path == NULL){
+			printf("TRUE PATH IS NULL\n");
+			top->true_path = top;
+		 }else{
+			printf("TRUE PATH: %d\n",top->true_path->branch_nb );
+		 }
+		 join_nodes();
+		 pop(branch_nb);
+		 attach_start(dot_file);
+		 printf("while loop poped %d\n", branch_nb);
+		 sprintf_safe($$, size, "\ndo_while_stmt(%s, branch(%d, %s))", $3, branch_nb++, $6);
+		 free($3);
+		 free($6);
 		} 
-	| FOR '(' for_stmt_type ')' statement	//replaced by an equivalent, a little ugly, while statement
-		{size_t const size = strlen("\ncmp_stmts([, \nwhile_stmt(branch(, ), \ncmp_stmts([, ]))])") + strlen($3.init) + MAX_BRANCH_STR + strlen($3.cond) + strlen($5) + strlen($3.update) + 1;
+	| DO {ctx->doWhile++;}statement WHILE '(' expression ')' ';'
+		{printf("do while going onto the stack\n");
+		if(stack_count == 0){
+			printf("stack is zero\n");
+			push(ctx->isFalse); 
+			join_nodes();
+		} else{
+			push(ctx->isFalse);
+			join_nodes();
+		}
+		if(top->true_path == NULL){
+			top->true_path = top;//if there is no nested node. The loop will iterate to itself.
+		}
+		 
+		 pop(branch_nb);
+		 attach_start(dot_file);
+		 ctx->doWhile--;
+		 printf("do while loop poped %d\n", branch_nb);
+		 size_t const size = strlen("\ndo_while_stmt(, )") + strlen($3) + strlen($6) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "\ncmp_stmts([%s, \nwhile_stmt(branch(%d, %s), \ncmp_stmts([%s, %s]))])", $3.init, branch_nb++, $3.cond, $5, $3.update);
+		 sprintf_safe($$, size, "\ndo_while_stmt(%s, branch(%d, %s))", $3, branch_nb++, $6);
+		 free($3);
+		 free($6);
+		} 
+	| FOR '(' for_stmt_type ')' {
+		printf("for loop parsed \n");
+		if(stack_count == 0){
+			printf("stack is zero\n");
+			push(ctx->isFalse);
+			join_nodes();
+			} else{
+				push(ctx->isFalse);
+			}
+		if(ctx->doWhile > 0){
+			top->inDoWhile == true;
+		}
+		} statement	//replaced by an equivalent, a little ugly, while statement
+		{size_t const size = strlen("\ncmp_stmts([, \nwhile_stmt(branch(, ), \ncmp_stmts([, ]))])") + strlen($3.init) + MAX_BRANCH_STR + strlen($3.cond) + strlen($6) + strlen($3.update) + 1;
+		 $$ = (char*)malloc(size);
+		 if(top->true_path == NULL){
+			printf("TRUE PATH IS NULL\n");
+			top->true_path = top;
+		 }else{
+			printf("TRUE PATH: %d\n",top->true_path->branch_nb );
+		 }
+		 join_nodes();
+		 pop(branch_nb);
+		 attach_start(dot_file);
+		 printf("for loop poped %d\n", branch_nb);
+		 sprintf_safe($$, size, "\ncmp_stmts([%s, \nwhile_stmt(branch(%d, %s), \ncmp_stmts([%s, %s]))])", $3.init, branch_nb++, $3.cond, $6, $3.update);
 		 free($3.init);
 		 free($3.cond);
 		 free($3.update);
-		 free($5);
+		 free($6);
 		} 
 	;
 //changed the original grammar by replacing the middle expression_statement (the condition) with expression_opt ';'
@@ -1436,6 +1558,8 @@ old_style_declaration_list
 int main(int argc, char *argv[]) {
 	char C_file_path[MAX_PATH];				//directory where the C and .i files are
 	char filename_no_ext[MAX_PATH];
+	ParserContext ctx = {0};
+
 
 #ifdef _MSC_VER
 	strcpy_safe(C_file_path, 3, ".");		//default path for input file is current directory, overwrite with -p on command line
@@ -1485,14 +1609,30 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr, ".pl file could not be created for writing at: %s\n", pl_file_uri);
 		my_exit(EXIT_FAILURE);
 	}
+	// Open the .dot file for writing
+    sprintf_safe(dot_file_uri, 3 * MAX_PATH, "%s/%s.dot", C_file_path, filename_no_ext);
+    dot_file = fopen(dot_file_uri, "w");
+    if (!dot_file) {
+        fprintf(stderr, ".dot file could not be created for writing at: %s\n", dot_file_uri);
+        my_exit(EXIT_FAILURE);
+    }
+
+    // Write initial content to the .dot file
+    fprintf(dot_file, "digraph CFG {\n");
+
 	fprintf(pl_file, "prolog_c([");			//opening predicate
-	if (yyparse() != 0) {					//the parser is called
+	if (yyparse(&ctx) != 0) {					//the parser is called
 		fprintf(stderr, "Parsing failed.\n");
 		my_exit(EXIT_FAILURE);
 	}	
 	fprintf(pl_file, "\n]).");
 	fclose(pl_file);
 	pl_file = NULL;
+	populate_dot_file(dot_file);
+    fprintf(dot_file, "}\n"); // Finalize the .dot file
+    fclose(dot_file);
+    dot_file = NULL;
+
 	fclose(i_file);
 	i_file = NULL;
 	my_exit(EXIT_SUCCESS);
@@ -1501,7 +1641,7 @@ int main(int argc, char *argv[]) {
 //handles parsing errors: since the C input file is the output of a C pre-processor it will only be called if
 //  the syntax rules are wrong due to GCC extensions 
 //  or if .i file has been generated manually: i.e. during development
-void yyerror(const char* s) {
+void yyerror(ParserContext *ctx, const char* s) {
 	extern char* yytext;  	// Points to the text of the current token
     extern int yyleng;    	// Length of the current token
     const char* token_name = (yychar >= 0 && yychar < YYNTOKENS) ? yytname[yychar] : "unknown token";
