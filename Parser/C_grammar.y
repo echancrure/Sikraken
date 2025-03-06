@@ -1332,17 +1332,7 @@ expression_statement
 selection_statement
 	: IF '(' expression ')'{
 		printf("If statement %s \n", $3);
-		if(stack_count == 0){
-			printf("stack is zero\n");
-			push(ctx->isFalse); 
-			join_nodes();
-		}else{
-			push(ctx->isFalse);
-		}     
-		if(ctx->doWhile > 0){
-			printf("IN DO WHILE TRUE\n");
-			top->inDoWhile == true;
-		}
+		push(ctx->isFalse); 
 		ctx->isFalse = false;
 		} statement else_opt 
 		{printf("IF token matched %d, %s\n", branch_nb, $3);
