@@ -1331,16 +1331,12 @@ expression_statement
 
 selection_statement
 	: IF '(' expression ')'{
-		printf("If statement %s \n", $3);
-		push(ctx->isFalse); 
+		push(ctx->isFalse);
+		join_nodes();
 		ctx->isFalse = false;
 		} statement else_opt 
-		{printf("IF token matched %d, %s\n", branch_nb, $3);
-		 //printf("%s \n \n \n", $6);
-		 size_t const size = strlen("\nif_stmt(branch(, ),  )") + MAX_BRANCH_STR + strlen($3) + strlen($6) + strlen($7) + 1;
+		{size_t const size = strlen("\nif_stmt(branch(, ),  )") + MAX_BRANCH_STR + strlen($3) + strlen($6) + strlen($7) + 1;
 		 $$ = (char*)malloc(size);
-		 //dd_to_cfg(branch_nb, $3, $6, $7);
-		 join_nodes();
 		 pop(branch_nb);
 		 attach_start(dot_file);
 		 sprintf_safe($$, size, "\nif_stmt(branch(%d, %s), %s %s)", branch_nb++, $3, $6, $7);
