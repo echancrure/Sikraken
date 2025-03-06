@@ -4,3 +4,4 @@ parser
 C_grammar.tab.c 
 C_grammar.tab.h
 lex.yy.c 
+.gitignore
