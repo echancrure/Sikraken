@@ -16,8 +16,8 @@ typedef struct Node{
 }Node;
 
 Node    special_node = {0,false,NULL,NULL,NULL};
-Node    *top = NULL;
-Node    *head = NULL;
+Node    *top = NULL; //keeps track of nodes when pushed onto the stack
+Node    *head = NULL; //keeps track of nodes when poped out of stack. 
 bool    startNode = true;
 int     stack_count = 0;
 
@@ -46,14 +46,7 @@ void push(bool isFalse) {
         } else if (top->true_path == NULL) {
             printf("true path\n");
             top->true_path = temp;
-        } else {
-            temp->next_node = top;
-            top = temp;
-            stack_count++;
-            join_nodes();
-            return;
-        }
-
+        } 
         temp->next_node = top;
         top = temp;
     }
@@ -77,9 +70,6 @@ void pop(int branch_num){
 void join_nodes() {
     if (head == NULL || top == NULL) {
         return;  // Prevent segmentation fault
-    }
-    if(head->inDoWhile){
-        top->true_path = head;
     }
     printf("join method called\n");
     Node *temp = head; // Start traversal from head

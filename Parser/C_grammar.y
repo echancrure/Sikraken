@@ -34,9 +34,10 @@
 
 typedef struct{
 	bool isFalse;
-	int  doWhile;
+	bool  doWhile;
 } ParserContext;
 
+extern Node *top;
 extern void push(bool isFalse); //This will push the nodes onto the stack.
 extern void populate_dot_file(FILE *dot_file);
 extern void pop(int branch_num);
@@ -496,7 +497,7 @@ conditional_expression
 		}else{
 			push(ctx->isFalse);
 		}     
-		if(ctx->doWhile > 0){
+		if(ctx->doWhile){
 			top->inDoWhile == true;
 		}
 		ctx->isFalse = false;
@@ -1333,6 +1334,10 @@ selection_statement
 	: IF '(' expression ')'{
 		push(ctx->isFalse);
 		join_nodes();
+		if(ctx->doWhile){
+			top->inDoWhile = true;
+			ctx->doWhile = false;
+		}
 		ctx->isFalse = false;
 		} statement else_opt 
 		{size_t const size = strlen("\nif_stmt(branch(, ),  )") + MAX_BRANCH_STR + strlen($3) + strlen($6) + strlen($7) + 1;
@@ -1355,10 +1360,11 @@ selection_statement
 
 else_opt
 	: /* empty */		%prec LOWER_THAN_ELSE 	{simple_str_lit_copy(&$$, "");}
-	| ELSE{	printf("else token set to true\n");
+	| ELSE{
 			ctx->isFalse = true;
-		} statement
-		{printf("ELSE token matched %s \n", $3);
+			} 
+	statement
+		{
 		 size_t const size = strlen(", ") + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, ", %s", $3);
@@ -1367,53 +1373,45 @@ else_opt
 		} 
 iteration_statement
 	: WHILE '(' expression ')'{ 
-		if(stack_count == 0){
-			printf("stack is zero\n");
-			push(ctx->isFalse); 
-			printf("True path before join: %p\n", top->true_path);
-			join_nodes();
-			printf("True path after join: %p\n", top->true_path);
-
-		}else{
-			push(ctx->isFalse);
-		}
-		if(ctx->doWhile > 0){
-			top->inDoWhile == true;
-		}
+		push(ctx->isFalse);
+		join_nodes();
+		ctx->isFalse = false;
 		}statement 
 		{size_t const size = strlen("\nwhile_stmt(branch(, ), )") + MAX_BRANCH_STR + strlen($3) + strlen($6) + 1;
 		 $$ = (char*)malloc(size);
 		 if(top->true_path == NULL){
-			printf("TRUE PATH IS NULL\n");
 			top->true_path = top;
 		 }else{
-			printf("TRUE PATH: %d\n",top->true_path->branch_nb );
+			join_nodes();// The nested node will go back to iteration node
 		 }
-		 join_nodes();
 		 pop(branch_nb);
 		 attach_start(dot_file);
-		 printf("while loop poped %d\n", branch_nb);
 		 sprintf_safe($$, size, "\ndo_while_stmt(%s, branch(%d, %s))", $3, branch_nb++, $6);
 		 free($3);
 		 free($6);
 		} 
-	| DO {ctx->doWhile++;}statement WHILE '(' expression ')' ';'
-		{printf("do while going onto the stack\n");
-		if(stack_count == 0){
-			printf("stack is zero\n");
-			push(ctx->isFalse); 
-			join_nodes();
-		} else{
-			push(ctx->isFalse);
-			join_nodes();
+	| DO {ctx->doWhile = true;}statement WHILE '(' expression ')' {
+		push(ctx->isFalse);
+		join_nodes();
+		ctx->isFalse = false;} ';'
+		{ Node *temp = head;
+		while (temp != NULL) {
+			if (temp->inDoWhile) {
+				break;  // Stop when we find a node with inDoWhile == true
+			}
+			temp = temp->next_node;
 		}
-		if(top->true_path == NULL){
-			top->true_path = top;//if there is no nested node. The loop will iterate to itself.
+
+		if(temp == NULL){
+			printf("ctx->dowhile false \n");
+			top->true_path = top;
+		}else{
+			top->true_path = temp;
+			temp->inDoWhile = false; //setting it back to false, because it is not used again, helpful for nested doWhile loops.
 		}
-		 
 		 pop(branch_nb);
 		 attach_start(dot_file);
-		 ctx->doWhile--;
+		 ctx->doWhile=false;
 		 printf("do while loop poped %d\n", branch_nb);
 		 size_t const size = strlen("\ndo_while_stmt(, )") + strlen($3) + strlen($6) + 1;
 		 $$ = (char*)malloc(size);
@@ -1422,30 +1420,19 @@ iteration_statement
 		 free($6);
 		} 
 	| FOR '(' for_stmt_type ')' {
-		printf("for loop parsed \n");
-		if(stack_count == 0){
-			printf("stack is zero\n");
-			push(ctx->isFalse);
-			join_nodes();
-			} else{
-				push(ctx->isFalse);
-			}
-		if(ctx->doWhile > 0){
-			top->inDoWhile == true;
-		}
+		push(ctx->isFalse);
+		join_nodes();
+		ctx->isFalse = false;
 		} statement	//replaced by an equivalent, a little ugly, while statement
 		{size_t const size = strlen("\ncmp_stmts([, \nwhile_stmt(branch(, ), \ncmp_stmts([, ]))])") + strlen($3.init) + MAX_BRANCH_STR + strlen($3.cond) + strlen($6) + strlen($3.update) + 1;
 		 $$ = (char*)malloc(size);
 		 if(top->true_path == NULL){
-			printf("TRUE PATH IS NULL\n");
 			top->true_path = top;
 		 }else{
-			printf("TRUE PATH: %d\n",top->true_path->branch_nb );
+			join_nodes();// The nested node will go back to iteration node
 		 }
-		 join_nodes();
 		 pop(branch_nb);
 		 attach_start(dot_file);
-		 printf("for loop poped %d\n", branch_nb);
 		 sprintf_safe($$, size, "\ncmp_stmts([%s, \nwhile_stmt(branch(%d, %s), \ncmp_stmts([%s, %s]))])", $3.init, branch_nb++, $3.cond, $6, $3.update);
 		 free($3.init);
 		 free($3.cond);

@@ -140,7 +140,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 87 "C_grammar.y"
+#line 88 "C_grammar.y"
 
 	char* id;
 	struct for_stmt {
