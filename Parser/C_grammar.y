@@ -47,6 +47,7 @@ typedef struct {
 } SpecifierFlags;
 
 bool otherDataTypes = false;
+bool isInt = false;
 
 extern int yylex();
 extern int yylineno;
@@ -537,7 +538,7 @@ constant_expression
 	;
 
 //always in_ordinary_id_declaration = 0; after
-declaration
+declaration 
 	: declaration_specifiers ';'
 		{in_ordinary_id_declaration = 0;
 		 printf("end of stand alone declaration specifier as a declaration in_ordinary_id_declaration is %d on line %d\n", in_ordinary_id_declaration, yylineno);
@@ -551,12 +552,11 @@ declaration
 		 if (typedef_flag == 1) {	//we were processing typedef declarations
 	    	typedef_flag = 0; 
 			//if (debugMode) printf("Debug: typedef switched to 0\n");
-	   	 }
-		 if(!otherDataTypes){
+	   	 }if(isInt && !otherDataTypes){
 			process_declaration_specifiers($1);
-		 }else{
-			otherDataTypes = false;
 		 }
+		 otherDataTypes = false;
+		 isInt = false;
 		 size_t const size = strlen("\ndeclaration([], [])") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "\ndeclaration([%s], [%s])", $1, $2);
@@ -586,6 +586,7 @@ declaration_specifiers
 		{in_ordinary_id_declaration = 1;}
 	| type_specifier declaration_specifiers
 		{in_ordinary_id_declaration = 1;
+		 printf("I am called, %s \n", $1);
 		 size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "%s, %s", $1, $2);
@@ -593,7 +594,8 @@ declaration_specifiers
 		 free($2);
 		}
 	| type_specifier 
-		{in_ordinary_id_declaration = 1;}
+		{in_ordinary_id_declaration = 1;
+		 printf("I am called, %s \n", $$);}
 	| type_qualifier declaration_specifiers
 		{in_ordinary_id_declaration = 1;
 		 size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
@@ -638,7 +640,8 @@ init_declarator_list
 
 init_declarator
 	: declarator '=' initializer
-		{size_t const size = strlen("initialised(, )") + strlen($1.full) + strlen($3) + 1;
+		{printf("initialized declarator\n");
+		 size_t const size = strlen("initialised(, )") + strlen($1.full) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
 	   	 sprintf_safe($$, size, "initialised(%s, %s)", $1.full, $3);
 	   	 free($1.full);
@@ -649,6 +652,7 @@ init_declarator
 		{if (typedef_flag == 1) {	// we are parsing a typedef declaration
 			add_typedef_id(current_scope, $1.ptr_declarator, 1);	//the id as a TYPEDEF_NAME is added to the data structures keeping track of typedef_names and ids shadowing
 	   	 }
+		 printf("declarator\n");
 		 free($1.ptr_declarator);
 		 simple_str_copy(&$$, $1.full);
 	  	}
@@ -670,27 +674,27 @@ storage_class_specifier
 type_specifier
 	: VOID					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "void"); }
 	| CHAR					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "char"); }
-	| SHORT					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "short"); }
-	| INT					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "int"); }
-	| LONG					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "long"); }
-	| FLOAT					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "float"); otherDataTypes = true;}
+	| SHORT					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "short"); isInt = true;printf("isInt set to true\n"); printf("short\n");}
+	| INT					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "int"); isInt = true;printf("isInt set to true\n");printf("int\n");}
+	| LONG					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "long"); isInt = true;printf("isInt set to true\n");printf("long\n");}
+	| FLOAT					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "float");otherDataTypes = true;}
 	| DOUBLE				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "double"); otherDataTypes = true;}
 	| SIGNED				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "signed"); }
 	| UNSIGNED				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "unsigned"); }
-	| BOOL					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "bool"); otherDataTypes = true;}
+	| BOOL					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "bool"); }
 	| COMPLEX				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "complex"); }
 	| IMAGINARY				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "imaginary"); } 	
 	| atomic_type_specifier	{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "atomic_type_specifier"); }
-	| struct_or_union_specifier { in_ordinary_id_declaration = 1; otherDataTypes = true;}
-	| enum_specifier		{ in_ordinary_id_declaration = 1;  otherDataTypes = true;}
+	| struct_or_union_specifier { in_ordinary_id_declaration = 1; }
+	| enum_specifier		{ in_ordinary_id_declaration = 1;}
 	| TYPEDEF_NAME			
 		{in_ordinary_id_declaration = 1; 
 		 $$ = to_prolog_var($1);
 		 free($1);
 		}
-	| INT128				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "int128"); otherDataTypes = true;}		//gcc extension: builtin type
-	| FLOAT128				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "float128"); otherDataTypes = true;}	//gcc extension: builtin type
-	| VA_LIST				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "va_list"); otherDataTypes = true;}	//gcc extension: builtin type
+	| INT128				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "int128");}		//gcc extension: builtin type
+	| FLOAT128				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "float128"); }	//gcc extension: builtin type
+	| VA_LIST				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "va_list"); }	//gcc extension: builtin type
 
 struct_or_union_specifier
 	: struct_or_union '{' {in_tag_declaration = 0;} struct_declaration_list '}'		//anonymous struct or union
@@ -754,6 +758,11 @@ struct_declaration
 
 	| specifier_qualifier_list {in_member_namespace = 1;} struct_declarator_list ';'
 		{in_member_namespace = 0;
+		 if(isInt && !otherDataTypes){
+			process_declaration_specifiers($1);
+		 }
+		 otherDataTypes = false;
+		 isInt = false;
 		 size_t const size = strlen("struct_decl([], [])") + strlen($1) + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
          sprintf_safe($$, size, "struct_decl([%s], [%s])", $1, $3);
@@ -765,15 +774,17 @@ struct_declaration
 
 specifier_qualifier_list
 	: type_specifier specifier_qualifier_list
-		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
+		{printf("I am called, %s \n", $2);
+		 size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
        	 $$ = (char*)malloc(size);
          sprintf_safe($$, size, "%s, %s", $1, $2);
 	   	 free($1);
 	     free($2);
         }
-	| type_specifier
+	| type_specifier{printf("type_specifier %s", $$);}
 	| type_qualifier specifier_qualifier_list
-		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
+		{
+		 size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
        	 $$ = (char*)malloc(size);
          sprintf_safe($$, size, "%s, %s", $1, $2);
 	   	 free($1);
@@ -1567,7 +1578,6 @@ void process_declaration_specifiers(char a[]) {
         else if (flags.isShort) strcat(result, "unsigned, short");
         else strcat(result, "unsigned, int");
     }
-	otherDataTypes = false;
     strncpy(a, result, strlen(result) + 1);
     free(temp);
 }
