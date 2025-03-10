@@ -46,8 +46,10 @@ typedef struct {
     int longCount;
 } SpecifierFlags;
 
-bool otherDataTypes = false;
-bool isInt = false;
+typedef struct{
+	bool isDouble;
+	bool isInt;
+} ParserContext;
 
 extern int yylex();
 extern int yylineno;
@@ -77,11 +79,13 @@ int handled_function_paramaters = 0;
 int current_scope = 0;
 
 char *current_function;			//we keep track of the function being parsed so that we can add it to goto statements
-void yyerror(const char*);
+void yyerror(ParserContext *ctx, const char*);
 void my_exit(int);				//attempts to close handles and delete generated files prior to caling exit(int);
 void process_declaration_specifiers(char a[]);
 
 %}
+
+%parse-param { ParserContext *ctx }
 
 %union {
 	char* id;
@@ -552,11 +556,11 @@ declaration
 		 if (typedef_flag == 1) {	//we were processing typedef declarations
 	    	typedef_flag = 0; 
 			//if (debugMode) printf("Debug: typedef switched to 0\n");
-	   	 }if(isInt && !otherDataTypes){
+	   	 }if(ctx->isInt && !ctx->isDouble){
 			process_declaration_specifiers($1);
 		 }
-		 otherDataTypes = false;
-		 isInt = false;
+		 ctx->isDouble = false;
+		 ctx->isInt = false;
 		 size_t const size = strlen("\ndeclaration([], [])") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "\ndeclaration([%s], [%s])", $1, $2);
@@ -649,7 +653,6 @@ init_declarator
 		{if (typedef_flag == 1) {	// we are parsing a typedef declaration
 			add_typedef_id(current_scope, $1.ptr_declarator, 1);	//the id as a TYPEDEF_NAME is added to the data structures keeping track of typedef_names and ids shadowing
 	   	 }
-		 printf("declarator\n");
 		 free($1.ptr_declarator);
 		 simple_str_copy(&$$, $1.full);
 	  	}
@@ -671,11 +674,11 @@ storage_class_specifier
 type_specifier
 	: VOID					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "void"); }
 	| CHAR					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "char"); }
-	| SHORT					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "short"); isInt = true;}
-	| INT					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "int"); isInt = true;}
-	| LONG					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "long"); isInt = true;}
+	| SHORT					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "short"); ctx->isInt = true;}
+	| INT					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "int"); ctx->isInt = true;}
+	| LONG					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "long"); ctx->isInt = true;}
 	| FLOAT					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "float");}
-	| DOUBLE				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "double"); otherDataTypes = true;}
+	| DOUBLE				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "double"); ctx->isDouble = true;}
 	| SIGNED				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "signed"); }
 	| UNSIGNED				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "unsigned"); }
 	| BOOL					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "bool"); }
@@ -755,11 +758,11 @@ struct_declaration
 
 	| specifier_qualifier_list {in_member_namespace = 1;} struct_declarator_list ';'
 		{in_member_namespace = 0;
-		 if(isInt && !otherDataTypes){
+		 if(ctx->isInt && !ctx->isDouble){
 			process_declaration_specifiers($1);
 		 }
-		 otherDataTypes = false;
-		 isInt = false;
+		 ctx->isDouble = false;
+		 ctx->isInt = false;
 		 size_t const size = strlen("struct_decl([], [])") + strlen($1) + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
          sprintf_safe($$, size, "struct_decl([%s], [%s])", $1, $3);
@@ -771,14 +774,13 @@ struct_declaration
 
 specifier_qualifier_list
 	: type_specifier specifier_qualifier_list
-		{printf("type_specifier specifier_qualifier_list called, %s \n", $1);
-		 size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
+		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
        	 $$ = (char*)malloc(size);
          sprintf_safe($$, size, "%s, %s", $1, $2);
 	   	 free($1);
 	     free($2);
         }
-	| type_specifier{printf("type_specifier %s\n", $$);}
+	| type_specifier
 	| type_qualifier specifier_qualifier_list
 		{
 		 size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
@@ -1466,6 +1468,7 @@ old_style_declaration_list
 int main(int argc, char *argv[]) {
 	char C_file_path[MAX_PATH];				//directory where the C and .i files are
 	char filename_no_ext[MAX_PATH];
+	ParserContext ctx = {0};
 
 #ifdef _MSC_VER
 	strcpy_safe(C_file_path, 3, ".");		//default path for input file is current directory, overwrite with -p on command line
@@ -1516,7 +1519,7 @@ int main(int argc, char *argv[]) {
 		my_exit(EXIT_FAILURE);
 	}
 	fprintf(pl_file, "prolog_c([");			//opening predicate
-	if (yyparse() != 0) {					//the parser is called
+	if (yyparse(&ctx) != 0) {					//the parser is called
 		fprintf(stderr, "Parsing failed.\n");
 		my_exit(EXIT_FAILURE);
 	}	
@@ -1582,7 +1585,7 @@ void process_declaration_specifiers(char a[]) {
 //handles parsing errors: since the C input file is the output of a C pre-processor it will only be called if
 //  the syntax rules are wrong due to GCC extensions 
 //  or if .i file has been generated manually: i.e. during development
-void yyerror(const char* s) {
+void yyerror(ParserContext *ctx, const char* s) {
 	extern char* yytext;  	// Points to the text of the current token
     extern int yyleng;    	// Length of the current token
     const char* token_name = (yychar >= 0 && yychar < YYNTOKENS) ? yytname[yychar] : "unknown token";
