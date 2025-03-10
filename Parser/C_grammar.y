@@ -586,7 +586,6 @@ declaration_specifiers
 		{in_ordinary_id_declaration = 1;}
 	| type_specifier declaration_specifiers
 		{in_ordinary_id_declaration = 1;
-		 printf("I am called, %s \n", $1);
 		 size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "%s, %s", $1, $2);
@@ -594,8 +593,7 @@ declaration_specifiers
 		 free($2);
 		}
 	| type_specifier 
-		{in_ordinary_id_declaration = 1;
-		 printf("I am called, %s \n", $$);}
+		{in_ordinary_id_declaration = 1;}
 	| type_qualifier declaration_specifiers
 		{in_ordinary_id_declaration = 1;
 		 size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
@@ -640,8 +638,7 @@ init_declarator_list
 
 init_declarator
 	: declarator '=' initializer
-		{printf("initialized declarator\n");
-		 size_t const size = strlen("initialised(, )") + strlen($1.full) + strlen($3) + 1;
+		{size_t const size = strlen("initialised(, )") + strlen($1.full) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
 	   	 sprintf_safe($$, size, "initialised(%s, %s)", $1.full, $3);
 	   	 free($1.full);
@@ -674,10 +671,10 @@ storage_class_specifier
 type_specifier
 	: VOID					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "void"); }
 	| CHAR					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "char"); }
-	| SHORT					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "short"); isInt = true;printf("isInt set to true\n"); printf("short\n");}
-	| INT					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "int"); isInt = true;printf("isInt set to true\n");printf("int\n");}
-	| LONG					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "long"); isInt = true;printf("isInt set to true\n");printf("long\n");}
-	| FLOAT					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "float");otherDataTypes = true;}
+	| SHORT					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "short"); isInt = true;}
+	| INT					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "int"); isInt = true;}
+	| LONG					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "long"); isInt = true;}
+	| FLOAT					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "float");}
 	| DOUBLE				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "double"); otherDataTypes = true;}
 	| SIGNED				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "signed"); }
 	| UNSIGNED				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&$$, "unsigned"); }
@@ -774,14 +771,14 @@ struct_declaration
 
 specifier_qualifier_list
 	: type_specifier specifier_qualifier_list
-		{printf("I am called, %s \n", $2);
+		{printf("type_specifier specifier_qualifier_list called, %s \n", $1);
 		 size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
        	 $$ = (char*)malloc(size);
          sprintf_safe($$, size, "%s, %s", $1, $2);
 	   	 free($1);
 	     free($2);
         }
-	| type_specifier{printf("type_specifier %s", $$);}
+	| type_specifier{printf("type_specifier %s\n", $$);}
 	| type_qualifier specifier_qualifier_list
 		{
 		 size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
@@ -1547,8 +1544,7 @@ void process_declaration_specifiers(char a[]) {
     char result[1024] = ""; 
     token = strtok(temp, ", ");
     while (token != NULL) {
-        if (strcmp(token, "int") == 0) { printf("TOKEN:	%s \n", token); }
-        else if (strcmp(token, "long") == 0) { flags.longCount++; }
+        if (strcmp(token, "long") == 0) { flags.longCount++; }
         else if (strcmp(token, "short") == 0) { flags.isShort = true; }
         else if (strcmp(token, "unsigned") == 0) { flags.isSigned = false; }
         else if (strcmp(token, "const") == 0) { flags.isConstant = true; }
