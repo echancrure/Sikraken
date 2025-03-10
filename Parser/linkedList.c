@@ -163,3 +163,34 @@ void terminate_nodes(){
         top->false_path = &special_node;
     }
 }
+
+void connectDoWhile(int doWhile){
+    printf("connect do while called \n");
+    Node *temp = head; // Start traversal from head
+    
+    while (temp != NULL) {
+        printf("loop\n");
+        if (temp->inDoWhile) {
+            top->true_path = temp;
+            break;
+        }
+        temp = temp->next_node; // Move to the next node
+    }
+
+    // Ensure temp is not NULL before accessing its members
+    if (temp != NULL) {
+        if(doWhile == 0){
+            temp->inDoWhile = false;
+        } else {
+            doWhile--;
+            printf("doWhile %d", doWhile);
+        }
+    }
+
+    // Ensure top->true_path is valid before modifying top->inDoWhile
+    if(top->true_path != NULL){
+        top->inDoWhile = false;
+    } else {
+        top->true_path = top;
+    }
+}
