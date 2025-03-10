@@ -1335,7 +1335,7 @@ selection_statement
 		push(ctx->isFalse);
 		join_nodes();
 		if(ctx->doWhile){
-			top->inDoWhile = true;
+			top->inDoWhile = true;//check
 		}
 		ctx->isFalse = false;
 		} statement else_opt 
