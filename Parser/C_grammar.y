@@ -34,7 +34,7 @@
 
 typedef struct{
 	bool isFalse;
-	bool  doWhile;
+	int  doWhile;
 } ParserContext;
 
 extern Node *top;
@@ -497,7 +497,7 @@ conditional_expression
 		}else{
 			push(ctx->isFalse);
 		}     
-		if(ctx->doWhile){
+		if(ctx->doWhile > 0){
 			top->inDoWhile == true;
 		}
 		ctx->isFalse = false;
@@ -1336,7 +1336,6 @@ selection_statement
 		join_nodes();
 		if(ctx->doWhile){
 			top->inDoWhile = true;
-			ctx->doWhile = false;
 		}
 		ctx->isFalse = false;
 		} statement else_opt 

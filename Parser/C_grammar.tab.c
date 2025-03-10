@@ -97,7 +97,7 @@
 
 typedef struct{
 	bool isFalse;
-	bool  doWhile;
+	int  doWhile;
 } ParserContext;
 
 extern Node *top;
@@ -2902,7 +2902,7 @@ yyreduce:
 		}else{
 			push(ctx->isFalse);
 		}     
-		if(ctx->doWhile){
+		if(ctx->doWhile > 0){
 			top->inDoWhile == true;
 		}
 		ctx->isFalse = false;
@@ -4233,7 +4233,6 @@ yyreduce:
 		join_nodes();
 		if(ctx->doWhile){
 			top->inDoWhile = true;
-			ctx->doWhile = false;
 		}
 		ctx->isFalse = false;
 		}
