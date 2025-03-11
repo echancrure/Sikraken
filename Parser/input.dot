@@ -1,21 +1,17 @@
 digraph CFG {
-"Start" -> "7"	 
-"9" -> "End" [label = "T"];
-"9" -> "End" [label = "F"];
-"8" -> "9" [label = "T"];
-"8" -> "9" [label = "F"];
-"7" -> "3" [label = "T"];
-"7" -> "6" [label = "F"];
-"6" -> "8" [label = "T"];
-"6" -> "5" [label = "F"];
-"5" -> "8" [label = "T"];
-"5" -> "8" [label = "F"];
-"4" -> "6" [label = "T"];
-"4" -> "6" [label = "F"];
-"3" -> "2" [label = "T"];
+"Start" -> "1"	 
+"7" -> "2" [label = "T"];
+"7" -> "End" [label = "F"];
+"6" -> "7" [label = "T"];
+"6" -> "7" [label = "F"];
+"5" -> "4" [label = "T"];
+"5" -> "6" [label = "F"];
+"4" -> "5" [label = "T"];
+"4" -> "5" [label = "F"];
+"3" -> "4" [label = "T"];
 "3" -> "4" [label = "F"];
-"2" -> "4" [label = "T"];
-"2" -> "1" [label = "F"];
-"1" -> "4" [label = "T"];
-"1" -> "4" [label = "F"];
+"2" -> "3" [label = "T"];
+"2" -> "3" [label = "F"];
+"1" -> "2" [label = "T"];
+"1" -> "2" [label = "F"];
 }

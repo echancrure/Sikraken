@@ -34,12 +34,17 @@
 
 typedef struct{
 	bool isFalse;
+	bool breakOn;
+	bool switchOn;
+	bool nestedDoWhile;
 	int  doWhile;
+
 } ParserContext;
 
 extern Node *top;
 extern void push(bool isFalse); //This will push the nodes onto the stack.
 extern void populate_dot_file(FILE *dot_file);
+extern void connectDoWhile(int doWhile);
 extern void pop(int branch_num);
 extern void join_nodes();
 extern int 	stack_count;
@@ -1279,12 +1284,23 @@ labeled_statement
 	   free($1);
 	   free($3);
 	  }
-	| CASE constant_expression ':' statement
-	  {size_t const size = strlen("case_stmt(, )") + strlen($2) + strlen($4) + 1;
+	| CASE {push(ctx->isFalse);
+			printf("case push\n");
+			if(head != NULL){
+				if(ctx->breakOn){
+					head->false_path = top;
+				}else{
+					join_nodes();
+				}
+			}
+			
+		} constant_expression ':' statement
+	  {size_t const size = strlen("case_stmt(, )") + strlen($3) + strlen($5) + 1;
 	   $$ = (char*)malloc(size);
-	   sprintf_safe($$, size, "case_stmt(%s, %s)", $2, $4);
-	   free($2);
-	   free($4);
+	   pop(branch_nb++);
+	   sprintf_safe($$, size, "case_stmt(%s, %s)", $3, $5);
+	   free($3);
+	   free($5);
 	  }
 	| DEFAULT ':' statement
 	  {size_t const size = strlen("default_stmt(, )") + strlen($3) + 1;
@@ -1332,10 +1348,16 @@ expression_statement
 
 selection_statement
 	: IF '(' expression ')'{
+		printf("if push\n");
 		push(ctx->isFalse);
 		join_nodes();
-		if(ctx->doWhile){
-			top->inDoWhile = true;//check
+		if(ctx->switchOn){
+			head->true_path = top;
+		}else{
+			join_nodes;
+		}
+		if(ctx->nestedDoWhile){
+			top->inDoWhile = ctx->doWhile;
 		}
 		ctx->isFalse = false;
 		} statement else_opt 
@@ -1348,12 +1370,20 @@ selection_statement
 		 free($6);
 		 free($7);
 		}  
-	| SWITCH '(' expression ')' statement
-		{size_t const size = strlen("\nswitch_stmt(, )") + strlen($3) + strlen($5) + 1;
+	| SWITCH{
+		push(ctx->isFalse);
+		ctx->switchOn = true;
+		join_nodes();
+		ctx->isFalse = false;
+	} '(' expression ')' statement
+		{size_t const size = strlen("\nswitch_stmt(, )") + strlen($4) + strlen($6) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "\nswitch_stmt(%s, %s)", $3, $5);
-		 free($3);
-		 free($5);
+		 pop(branch_nb);
+		 ctx->switchOn = false;
+		 attach_start(dot_file);
+		 sprintf_safe($$, size, "\nswitch_stmt(%s, %s)", $4, $6);
+		 free($4);
+		 free($6);
 		} 
 	;
 
@@ -1389,28 +1419,16 @@ iteration_statement
 		 free($3);
 		 free($6);
 		} 
-	| DO {ctx->doWhile = true;}statement WHILE '(' expression ')' {
+	| DO {ctx->doWhile++; ctx->nestedDoWhile = true;}statement WHILE '(' expression ')' {
 		push(ctx->isFalse);
 		join_nodes();
 		ctx->isFalse = false;} ';'
 		{ Node *temp = head;
-		while (temp != NULL) {
-			if (temp->inDoWhile) {
-				break;  // Stop when we find a node with inDoWhile == true
-			}
-			temp = temp->next_node;
-		}
-
-		if(temp == NULL){
-			printf("ctx->dowhile false \n");
-			top->true_path = top;
-		}else{
-			top->true_path = temp;
-			temp->inDoWhile = false; //setting it back to false, because it is not used again, helpful for nested doWhile loops.
-		}
+		 connectDoWhile(ctx->doWhile);
 		 pop(branch_nb);
 		 attach_start(dot_file);
-		 ctx->doWhile=false;
+		 ctx->doWhile--;
+		 ctx->nestedDoWhile = false;
 		 printf("do while loop poped %d\n", branch_nb);
 		 size_t const size = strlen("\ndo_while_stmt(, )") + strlen($3) + strlen($6) + 1;
 		 $$ = (char*)malloc(size);
@@ -1460,7 +1478,7 @@ jump_statement
 	   free($2);
 	  }
 	| CONTINUE ';'	{simple_str_lit_copy(&$$, "\ncontinue_stmt\n");}
-	| BREAK ';'		{simple_str_lit_copy(&$$, "\nbreak_stmt\n");}
+	| BREAK ';'		{simple_str_lit_copy(&$$, "\nbreak_stmt\n");ctx->breakOn=true;}
 	| RETURN ';'  	{simple_str_lit_copy(&$$, "\nreturn_stmt\n");}
 	| RETURN expression ';'
 	  {size_t const size = strlen("\nreturn_stmt()\n") + strlen($2) + 1;

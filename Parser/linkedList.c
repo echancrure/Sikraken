@@ -8,7 +8,7 @@ void populate_dot_file();
 
 typedef struct Node{
     int branch_nb;
-    bool inDoWhile;
+    int inDoWhile;
     struct Node *true_path;
     struct Node *false_path;
     struct Node *next_node;
@@ -170,26 +170,17 @@ void connectDoWhile(int doWhile){
     
     while (temp != NULL) {
         printf("loop\n");
-        if (temp->inDoWhile) {
+        if (temp->inDoWhile == doWhile) {
             top->true_path = temp;
-            break;
+            temp->inDoWhile --;
         }
         temp = temp->next_node; // Move to the next node
     }
 
-    // Ensure temp is not NULL before accessing its members
-    if (temp != NULL) {
-        if(doWhile == 0){
-            temp->inDoWhile = false;
-        } else {
-            doWhile--;
-            printf("doWhile %d", doWhile);
-        }
-    }
 
     // Ensure top->true_path is valid before modifying top->inDoWhile
     if(top->true_path != NULL){
-        top->inDoWhile = false;
+        top->inDoWhile = 0;
     } else {
         top->true_path = top;
     }
