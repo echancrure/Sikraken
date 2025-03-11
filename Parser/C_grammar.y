@@ -1405,6 +1405,9 @@ iteration_statement
 		push(ctx->isFalse);
 		join_nodes();
 		ctx->isFalse = false;
+		if(ctx->nestedDoWhile){
+			top->inDoWhile = ctx->doWhile;
+		}
 		}statement 
 		{size_t const size = strlen("\nwhile_stmt(branch(, ), )") + MAX_BRANCH_STR + strlen($3) + strlen($6) + 1;
 		 $$ = (char*)malloc(size);
@@ -1439,6 +1442,9 @@ iteration_statement
 	| FOR '(' for_stmt_type ')' {
 		push(ctx->isFalse);
 		join_nodes();
+		if(ctx->nestedDoWhile){
+			top->inDoWhile = ctx->doWhile;
+		}
 		ctx->isFalse = false;
 		} statement	//replaced by an equivalent, a little ugly, while statement
 		{size_t const size = strlen("\ncmp_stmts([, \nwhile_stmt(branch(, ), \ncmp_stmts([, ]))])") + strlen($3.init) + MAX_BRANCH_STR + strlen($3.cond) + strlen($6) + strlen($3.update) + 1;
