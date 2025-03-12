@@ -1,9 +1,11 @@
 digraph CFG {
-"Start" -> "3"	 
-"3" -> "1" [label = "T"];
+"Start" -> "4"	 
+"4" -> "1" [label = "T"];
+"4" -> "End" [label = "F"];
+"3" -> "End" [label = "T"];
 "3" -> "End" [label = "F"];
 "2" -> "End" [label = "T"];
-"2" -> "End" [label = "F"];
-"1" -> "2" [label = "T"];
+"2" -> "3" [label = "F"];
+"1" -> "End" [label = "T"];
 "1" -> "2" [label = "F"];
 }

@@ -200,14 +200,7 @@ generic_assoc_list	/* to do */
 
 generic_association	/* to do */
 	: type_name ':' assignment_expression
-	| DEFAULT {printf("default pushed \n");
-		push(ctx->isFalse);
-				if(head != NULL){
-					head->false_path = top;
-				}
-				} ':' assignment_expression{
-					pop(branch_nb++);
-				}
+	| DEFAULT ':' assignment_expression
 	;
 
 postfix_expression
@@ -1287,11 +1280,12 @@ labeled_statement
 	   free($3);
 	  }
 	| CASE constant_expression {
+		printf("push case\n");
 		push(ctx->isFalse);
 		if(head!=NULL){
 			head->false_path = top;
 			if(!ctx->breakOn){
-				head->true_path = top;
+				join_nodes();
 			}else{
 				ctx->breakOn = false;
 			}
@@ -1310,11 +1304,18 @@ labeled_statement
 	   free($2);
 	   free($5);
 	  }
-	| DEFAULT ':' statement
-	  {size_t const size = strlen("default_stmt(, )") + strlen($3) + 1;
+	| DEFAULT {printf("default pushed \n");
+				push(ctx->isFalse);
+				if(head != NULL){
+					head->false_path = top;
+				}
+				} ':' statement{
+					pop(branch_nb++);
+				}
+	  {size_t const size = strlen("default_stmt(, )") + strlen($4) + 1;
 	   $$ = (char*)malloc(size);
-	   sprintf_safe($$, size, "default_stmt(%s)", $3);
-	   free($3);
+	   sprintf_safe($$, size, "default_stmt(%s)", $4);
+	   free($4);
 	  }
 	;
 
@@ -1356,6 +1357,7 @@ expression_statement
 
 selection_statement
 	: IF '(' expression ')'{
+		printf("push if\n");
 		push(ctx->isFalse);
 		join_nodes();
 		if(ctx->nestedDoWhile){

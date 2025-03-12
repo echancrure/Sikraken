@@ -6,8 +6,8 @@ int main() {
 
     switch (day) {
         case 1:
-            printf("You selected Monday.\n");
-            if(day == 2);
+            break;
+        case 2:
             break;
         default:
             printf("Invalid selection!\n");
