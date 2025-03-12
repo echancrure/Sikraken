@@ -37,14 +37,11 @@ void push(bool isFalse) {
     Node *temp = makeNode();  // Create a new node
 
     if (top == NULL) {
-		printf("TOP IS NULL\n");
         top = temp;  // Initialize first node
     } else {
         if (isFalse) {
-            printf("is false\n");
             top->false_path = temp;
         } else if (top->true_path == NULL) {
-            printf("true path\n");
             top->true_path = temp;
         } 
         temp->next_node = top;
@@ -52,7 +49,6 @@ void push(bool isFalse) {
     }
 
     stack_count++;
-    printf("STACK: %d\n", stack_count);
 }
 
 
@@ -64,14 +60,11 @@ void pop(int branch_num){
     temp -> next_node = head;
     head = temp;
     stack_count--;
-    printf("stack_count decrease %d\n", stack_count);
-    printf("HEAD %d\n", head->branch_nb);
 }
 void join_nodes() {
     if (head == NULL || top == NULL) {
         return;  // Prevent segmentation fault
     }
-    printf("join method called\n");
     Node *temp = head; // Start traversal from head
     
     while (temp != NULL) {
@@ -165,11 +158,9 @@ void terminate_nodes(){
 }
 
 void connectDoWhile(int doWhile){
-    printf("connect do while called \n");
     Node *temp = head; // Start traversal from head
     
     while (temp != NULL) {
-        printf("loop\n");
         if (temp->inDoWhile == doWhile) {
             top->true_path = temp;
             temp->inDoWhile --;
@@ -179,9 +170,10 @@ void connectDoWhile(int doWhile){
 
 
     // Ensure top->true_path is valid before modifying top->inDoWhile
-    if(top->true_path != NULL){
-        top->inDoWhile = 0;
-    } else {
-        top->true_path = top;
-    }
+    if(top->inDoWhile>0){
+        top->inDoWhile--;
+        if(top->true_path == NULL){
+            top->true_path = top;
+        }
+    } 
 }

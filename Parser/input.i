@@ -1,13 +1,20 @@
 int main() {
     int day;
-    if(day == 360);
-    do{
-        if(day == 10);
-        if(day == 20);
-        do{
-            if(day == 40);
-        }while(day != 50);
-        if(day == 20);
-    }while(day != 100);
+
+    (day == 360) ? (void)0 : (void)0;  // Ternary operator doing nothing
+
+    do {
+        (day == 10) ? (void)0 : (void)0;
+        (day == 20) ? (void)0 : (void)0;
+        do {
+            (day == 40) ? (void)0 : (void)0;
+        } while (day != 50);
+        (day == 20) ? (void)0 : (void)0;
+    } while (day != 100);
+
+    do {
+    } while (day == 120);
+
     return 0;
 }
+

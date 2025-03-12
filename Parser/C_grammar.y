@@ -494,16 +494,11 @@ logical_or_expression
 conditional_expression
 	: logical_or_expression
 	| logical_or_expression{
-		printf("ternary statement\n");
-		if(stack_count == 0){
-			printf("stack is zero\n");
-			push(ctx->isFalse); 
-			join_nodes();
-		}else{
-			push(ctx->isFalse);
-		}     
-		if(ctx->doWhile > 0){
-			top->inDoWhile == true;
+		push(ctx->isFalse);
+		join_nodes();
+		if(ctx->nestedDoWhile){
+			top->inDoWhile = ctx->doWhile;
+			ctx->nestedDoWhile = false;
 		}
 		ctx->isFalse = false;
 	} '?' expression ':'{ctx->isFalse = true;} conditional_expression 
@@ -1348,16 +1343,11 @@ expression_statement
 
 selection_statement
 	: IF '(' expression ')'{
-		printf("if push\n");
 		push(ctx->isFalse);
 		join_nodes();
-		if(ctx->switchOn){
-			head->true_path = top;
-		}else{
-			join_nodes;
-		}
 		if(ctx->nestedDoWhile){
 			top->inDoWhile = ctx->doWhile;
+			ctx->nestedDoWhile = false;
 		}
 		ctx->isFalse = false;
 		} statement else_opt 
@@ -1407,7 +1397,9 @@ iteration_statement
 		ctx->isFalse = false;
 		if(ctx->nestedDoWhile){
 			top->inDoWhile = ctx->doWhile;
+			ctx->nestedDoWhile = false;
 		}
+		ctx->isFalse = false;
 		}statement 
 		{size_t const size = strlen("\nwhile_stmt(branch(, ), )") + MAX_BRANCH_STR + strlen($3) + strlen($6) + 1;
 		 $$ = (char*)malloc(size);
@@ -1425,14 +1417,18 @@ iteration_statement
 	| DO {ctx->doWhile++; ctx->nestedDoWhile = true;}statement WHILE '(' expression ')' {
 		push(ctx->isFalse);
 		join_nodes();
-		ctx->isFalse = false;} ';'
+		ctx->isFalse = false;
+		if(ctx->nestedDoWhile){
+			top->inDoWhile = ctx->doWhile;
+			ctx->nestedDoWhile = false;
+		}
+		} ';'
 		{ Node *temp = head;
 		 connectDoWhile(ctx->doWhile);
 		 pop(branch_nb);
 		 attach_start(dot_file);
 		 ctx->doWhile--;
 		 ctx->nestedDoWhile = false;
-		 printf("do while loop poped %d\n", branch_nb);
 		 size_t const size = strlen("\ndo_while_stmt(, )") + strlen($3) + strlen($6) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "\ndo_while_stmt(%s, branch(%d, %s))", $3, branch_nb++, $6);
@@ -1444,6 +1440,7 @@ iteration_statement
 		join_nodes();
 		if(ctx->nestedDoWhile){
 			top->inDoWhile = ctx->doWhile;
+			ctx->nestedDoWhile = false;
 		}
 		ctx->isFalse = false;
 		} statement	//replaced by an equivalent, a little ugly, while statement
