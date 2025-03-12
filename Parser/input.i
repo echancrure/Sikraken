@@ -1,20 +1,17 @@
 int main() {
     int day;
 
-    (day == 360) ? (void)0 : (void)0;  // Ternary operator doing nothing
+    printf("Enter a number (1-3): ");
+    scanf("%d", &day);
 
-    do {
-        (day == 10) ? (void)0 : (void)0;
-        (day == 20) ? (void)0 : (void)0;
-        do {
-            (day == 40) ? (void)0 : (void)0;
-        } while (day != 50);
-        (day == 20) ? (void)0 : (void)0;
-    } while (day != 100);
-
-    do {
-    } while (day == 120);
+    switch (day) {
+        case 1:
+            printf("You selected Monday.\n");
+            if(day == 2);
+            break;
+        default:
+            printf("Invalid selection!\n");
+    }
 
     return 0;
 }
-

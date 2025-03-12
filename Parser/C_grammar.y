@@ -200,7 +200,14 @@ generic_assoc_list	/* to do */
 
 generic_association	/* to do */
 	: type_name ':' assignment_expression
-	| DEFAULT ':' assignment_expression
+	| DEFAULT {printf("default pushed \n");
+		push(ctx->isFalse);
+				if(head != NULL){
+					head->false_path = top;
+				}
+				} ':' assignment_expression{
+					pop(branch_nb++);
+				}
 	;
 
 postfix_expression
@@ -1279,22 +1286,28 @@ labeled_statement
 	   free($1);
 	   free($3);
 	  }
-	| CASE {push(ctx->isFalse);
-			printf("case push\n");
-			if(head != NULL){
-				if(ctx->breakOn){
-					head->false_path = top;
-				}else{
-					join_nodes();
-				}
+	| CASE constant_expression {
+		push(ctx->isFalse);
+		if(head!=NULL){
+			head->false_path = top;
+			if(!ctx->breakOn){
+				head->true_path = top;
+			}else{
+				ctx->breakOn = false;
 			}
-			
-		} constant_expression ':' statement
-	  {size_t const size = strlen("case_stmt(, )") + strlen($3) + strlen($5) + 1;
+		}
+		if(ctx->nestedDoWhile){
+			top->inDoWhile = ctx->doWhile;
+			ctx->nestedDoWhile = false;
+		}
+		ctx->isFalse = false;
+	} ':' statement
+	  {size_t const size = strlen("case_stmt(, )") + strlen($2) + strlen($5) + 1;
 	   $$ = (char*)malloc(size);
+	   printf("case poped %d\n", branch_nb);
 	   pop(branch_nb++);
-	   sprintf_safe($$, size, "case_stmt(%s, %s)", $3, $5);
-	   free($3);
+	   sprintf_safe($$, size, "case_stmt(%s, %s)", $2, $5);
+	   free($2);
 	   free($5);
 	  }
 	| DEFAULT ':' statement
@@ -1353,6 +1366,7 @@ selection_statement
 		} statement else_opt 
 		{size_t const size = strlen("\nif_stmt(branch(, ),  )") + MAX_BRANCH_STR + strlen($3) + strlen($6) + strlen($7) + 1;
 		 $$ = (char*)malloc(size);
+		 printf("if poped %d\n", branch_nb);
 		 pop(branch_nb);
 		 attach_start(dot_file);
 		 sprintf_safe($$, size, "\nif_stmt(branch(%d, %s), %s %s)", branch_nb++, $3, $6, $7);
@@ -1360,19 +1374,22 @@ selection_statement
 		 free($6);
 		 free($7);
 		}  
-	| SWITCH{
+	| SWITCH '(' expression ')'{
 		push(ctx->isFalse);
-		ctx->switchOn = true;
 		join_nodes();
+		if(ctx->nestedDoWhile){
+			top->inDoWhile = ctx->doWhile;
+			ctx->nestedDoWhile = false;
+		}
 		ctx->isFalse = false;
-	} '(' expression ')' statement
-		{size_t const size = strlen("\nswitch_stmt(, )") + strlen($4) + strlen($6) + 1;
+		} statement
+		{size_t const size = strlen("\nswitch_stmt(, )") + strlen($3) + strlen($6) + 1;
 		 $$ = (char*)malloc(size);
-		 pop(branch_nb);
-		 ctx->switchOn = false;
+		 printf("switch poped %d\n", branch_nb);
+		 pop(branch_nb++);
 		 attach_start(dot_file);
-		 sprintf_safe($$, size, "\nswitch_stmt(%s, %s)", $4, $6);
-		 free($4);
+		 sprintf_safe($$, size, "\nswitch_stmt(%s, %s)", $3, $6);
+		 free($3);
 		 free($6);
 		} 
 	;
@@ -1481,7 +1498,7 @@ jump_statement
 	   free($2);
 	  }
 	| CONTINUE ';'	{simple_str_lit_copy(&$$, "\ncontinue_stmt\n");}
-	| BREAK ';'		{simple_str_lit_copy(&$$, "\nbreak_stmt\n");ctx->breakOn=true;}
+	| BREAK ';'		{simple_str_lit_copy(&$$, "\nbreak_stmt\n"); ctx->breakOn = true;}
 	| RETURN ';'  	{simple_str_lit_copy(&$$, "\nreturn_stmt\n");}
 	| RETURN expression ';'
 	  {size_t const size = strlen("\nreturn_stmt()\n") + strlen($2) + 1;

@@ -33,7 +33,7 @@ Node* makeNode() {
     newNode->next_node = top;  // Assign the top pointer (if relevant)
     return newNode;
 }
-void push(bool isFalse) {						
+void push(bool isFalse) {	
     Node *temp = makeNode();  // Create a new node
 
     if (top == NULL) {
@@ -99,37 +99,6 @@ void populate_dot_file(FILE *dot_file) {
     }
 }
 
-void adjustDoWhile() {
-    if (head == NULL || head->next_node == NULL) return; // Edge case: empty or single node
-
-    Node *oldHead = head;           // Store current head
-    Node *newHead = head->next_node; // Move head to next node
-    Node *temp = head->next_node;
-    Node *lastDoWhileNode = NULL;
-
-    // Traverse the list to find the last node with inDoWhile == true
-    while (temp != NULL) {  
-        if (temp->inDoWhile) {
-            lastDoWhileNode = temp;
-        }
-        temp = temp->next_node;
-    }
-
-    // If no node with inDoWhile == true exists, just update head
-    if (lastDoWhileNode == NULL) {
-        head = newHead;
-        return;
-    }
-
-    // Move head to the next node
-    head = newHead;
-
-    // Insert oldHead after lastDoWhileNode
-    oldHead->next_node = lastDoWhileNode->next_node;
-    lastDoWhileNode->next_node = oldHead;
-    oldHead->true_path = newHead;
-}
-
 void attach_start(FILE *dot_file){
     if(startNode && stack_count == 0){
         fprintf(dot_file, "\"Start\" -> \"%d\"	 \n", head->branch_nb);
@@ -138,25 +107,6 @@ void attach_start(FILE *dot_file){
         return;
     }
 }
-void terminate_nodes(){
-    Node *temp = head; // Start traversal from head
-    while (temp != NULL) {
-        if (temp->true_path == NULL) {
-            temp->true_path = &special_node;
-        }
-        if (temp->false_path == NULL) {
-            temp->false_path = &special_node;
-        }
-        temp = temp->next_node; // Move to the next node
-    }
-    if (top->true_path == NULL) {
-        top->true_path = &special_node;
-    }
-    if (top->false_path == NULL) {
-        top->false_path = &special_node;
-    }
-}
-
 void connectDoWhile(int doWhile){
     Node *temp = head; // Start traversal from head
     
