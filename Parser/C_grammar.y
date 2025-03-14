@@ -35,7 +35,7 @@
 typedef struct{
 	bool isFalse;
 	bool breakOn;
-	bool switchOn;
+	bool isDefault;
 	bool nestedDoWhile;
 	int  doWhile;
 
@@ -47,8 +47,7 @@ extern void populate_dot_file(FILE *dot_file);
 extern void connectDoWhile(int doWhile);
 extern void pop(int branch_num);
 extern void join_nodes();
-extern int 	stack_count;
-extern void terminate_nodes();
+extern void connectCases();
 extern void attach_start(FILE *dot_file);
 
 extern int yylex();
@@ -1282,17 +1281,13 @@ labeled_statement
 	| CASE constant_expression {
 		printf("push case\n");
 		push(ctx->isFalse);
-		if(head!=NULL){
-			head->false_path = top;
-			if(!ctx->breakOn){
-				join_nodes();
-			}else{
-				ctx->breakOn = false;
-			}
-		}
-		if(ctx->nestedDoWhile){
-			top->inDoWhile = ctx->doWhile;
-			ctx->nestedDoWhile = false;
+		top->isCase = true;
+		if(ctx->breakOn){
+			connectCases();
+		}else{
+			printf("join nodes called\n");
+			join_nodes();
+			connectCases();
 		}
 		ctx->isFalse = false;
 	} ':' statement
@@ -1300,18 +1295,12 @@ labeled_statement
 	   $$ = (char*)malloc(size);
 	   printf("case poped %d\n", branch_nb);
 	   pop(branch_nb++);
+	   attach_start(dot_file);
 	   sprintf_safe($$, size, "case_stmt(%s, %s)", $2, $5);
 	   free($2);
 	   free($5);
 	  }
-	| DEFAULT {printf("default pushed \n");
-				push(ctx->isFalse);
-				if(head != NULL){
-					head->false_path = top;
-				}
-				} ':' statement{
-					pop(branch_nb++);
-				}
+	| DEFAULT {ctx->isDefault = true;} ':' statement
 	  {size_t const size = strlen("default_stmt(, )") + strlen($4) + 1;
 	   $$ = (char*)malloc(size);
 	   sprintf_safe($$, size, "default_stmt(%s)", $4);
@@ -1332,7 +1321,8 @@ compound_statement	//aka a 'block'
 block_item_list
 	: block_item {in_ordinary_id_declaration = 0;}
 	| block_item_list block_item {in_ordinary_id_declaration = 0;}
-	  {size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
+	  {
+	   size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 	   $$ = (char*)malloc(size);
 	   sprintf_safe($$, size, "%s, %s", $1, $2);
 	   free($1);
@@ -1357,9 +1347,14 @@ expression_statement
 
 selection_statement
 	: IF '(' expression ')'{
-		printf("push if\n");
+		printf("if pushed\n");
 		push(ctx->isFalse);
-		join_nodes();
+		if(ctx->isDefault){
+			connectCases();
+			ctx->isDefault = false;
+		}else{
+			join_nodes();
+		}
 		if(ctx->nestedDoWhile){
 			top->inDoWhile = ctx->doWhile;
 			ctx->nestedDoWhile = false;
@@ -1376,23 +1371,13 @@ selection_statement
 		 free($6);
 		 free($7);
 		}  
-	| SWITCH '(' expression ')'{
-		push(ctx->isFalse);
-		join_nodes();
-		if(ctx->nestedDoWhile){
-			top->inDoWhile = ctx->doWhile;
-			ctx->nestedDoWhile = false;
-		}
-		ctx->isFalse = false;
-		} statement
-		{size_t const size = strlen("\nswitch_stmt(, )") + strlen($3) + strlen($6) + 1;
+	| SWITCH '(' expression ')' statement
+		{size_t const size = strlen("\nswitch_stmt(, )") + strlen($3) + strlen($5) + 1;
 		 $$ = (char*)malloc(size);
-		 printf("switch poped %d\n", branch_nb);
-		 pop(branch_nb++);
-		 attach_start(dot_file);
-		 sprintf_safe($$, size, "\nswitch_stmt(%s, %s)", $3, $6);
+		 sprintf_safe($$, size, "\nswitch_stmt(%s, %s)", $3, $5);
+		 ctx->isDefault = false;
 		 free($3);
-		 free($6);
+		 free($5);
 		} 
 	;
 

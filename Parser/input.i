@@ -1,17 +1,29 @@
 int main() {
-    int day;
+    int num;
 
     printf("Enter a number (1-3): ");
-    scanf("%d", &day);
+    scanf("%d", &num);
 
-    switch (day) {
-        case 1:
+    if(num == 10);//1
+
+    switch (num) {
+        case 1:  // 4
+            if (num == 1) {  // 3
+                if(num == 2); //2
+            }
+            if(num == 2); //5
             break;
-        case 2:
+        case 2://6
+            printf("Case 2 executed\n");
             break;
+
+        case 3://7
+            printf("Case 3 executed\n");
+            break;
+
         default:
-            printf("Invalid selection!\n");
+            if(num == 10);//8
     }
-
+    if(num == 10);//9
     return 0;
 }

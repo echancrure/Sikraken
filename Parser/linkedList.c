@@ -9,13 +9,13 @@ void populate_dot_file();
 typedef struct Node{
     int branch_nb;
     int inDoWhile;
+    bool isCase;
     struct Node *true_path;
     struct Node *false_path;
     struct Node *next_node;
 
 }Node;
 
-Node    special_node = {0,false,NULL,NULL,NULL};
 Node    *top = NULL; //keeps track of nodes when pushed onto the stack
 Node    *head = NULL; //keeps track of nodes when poped out of stack. 
 bool    startNode = true;
@@ -28,6 +28,7 @@ Node* makeNode() {
     }
     newNode -> branch_nb = 0;
     newNode -> inDoWhile = false;
+    newNode -> isCase = false;
     newNode -> true_path = NULL;
     newNode -> false_path = NULL;
     newNode->next_node = top;  // Assign the top pointer (if relevant)
@@ -82,12 +83,12 @@ void populate_dot_file(FILE *dot_file) {
     if (head != NULL) {
         Node *temp = head; // Start traversal from head
         while (temp != NULL) {
-            if (temp->true_path != NULL && temp->true_path != &special_node)
+            if (temp->true_path != NULL)
                 fprintf(dot_file, "\"%d\" -> \"%d\" [label = \"T\"];\n", temp->branch_nb, temp->true_path->branch_nb);
             else
                 fprintf(dot_file, "\"%d\" -> \"End\" [label = \"T\"];\n", temp->branch_nb);
 
-            if (temp->false_path != NULL && temp->false_path != &special_node)
+            if (temp->false_path != NULL)
                 fprintf(dot_file, "\"%d\" -> \"%d\" [label = \"F\"];\n", temp->branch_nb, temp->false_path->branch_nb);
             else
                 fprintf(dot_file, "\"%d\" -> \"End\" [label = \"F\"];\n", temp->branch_nb);
@@ -126,4 +127,15 @@ void connectDoWhile(int doWhile){
             top->true_path = top;
         }
     } 
+}
+
+void connectCases(){
+    Node *temp = head;
+    while(temp != NULL){
+        if(temp->isCase){
+            temp->false_path = top;
+            temp->isCase = false;
+        }
+        temp = temp->next_node;
+    }
 }
