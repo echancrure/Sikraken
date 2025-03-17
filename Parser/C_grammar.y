@@ -494,7 +494,12 @@ conditional_expression
 	: logical_or_expression
 	| logical_or_expression{
 		push(ctx->isFalse);
-		join_nodes();
+		if(ctx->isDefault){
+			connectCases();
+			ctx->isDefault = false;
+		}else{
+			join_nodes();
+		}
 		if(ctx->nestedDoWhile){
 			top->inDoWhile = ctx->doWhile;
 			ctx->nestedDoWhile = false;
@@ -1397,7 +1402,12 @@ else_opt
 iteration_statement
 	: WHILE '(' expression ')'{ 
 		push(ctx->isFalse);
-		join_nodes();
+		if(ctx->isDefault){
+			connectCases();
+			ctx->isDefault = false;
+		}else{
+			join_nodes();
+		}
 		ctx->isFalse = false;
 		if(ctx->nestedDoWhile){
 			top->inDoWhile = ctx->doWhile;
@@ -1420,7 +1430,12 @@ iteration_statement
 		} 
 	| DO {ctx->doWhile++; ctx->nestedDoWhile = true;}statement WHILE '(' expression ')' {
 		push(ctx->isFalse);
-		join_nodes();
+		if(ctx->isDefault){
+			connectCases();
+			ctx->isDefault = false;
+		}else{
+			join_nodes();
+		}
 		ctx->isFalse = false;
 		if(ctx->nestedDoWhile){
 			top->inDoWhile = ctx->doWhile;
@@ -1441,7 +1456,12 @@ iteration_statement
 		} 
 	| FOR '(' for_stmt_type ')' {
 		push(ctx->isFalse);
-		join_nodes();
+		if(ctx->isDefault){
+			connectCases();
+			ctx->isDefault = false;
+		}else{
+			join_nodes();
+		}
 		if(ctx->nestedDoWhile){
 			top->inDoWhile = ctx->doWhile;
 			ctx->nestedDoWhile = false;
