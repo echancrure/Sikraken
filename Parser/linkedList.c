@@ -18,6 +18,7 @@ typedef struct Node{
 
 Node    *top = NULL; //keeps track of nodes when pushed onto the stack
 Node    *head = NULL; //keeps track of nodes when poped out of stack. 
+Node    *breakPoint = NULL;
 bool    startNode = true;
 int     stack_count = 0;
 
@@ -34,6 +35,7 @@ Node* makeNode() {
     newNode->next_node = top;  // Assign the top pointer (if relevant)
     return newNode;
 }
+
 void push(bool isFalse) {	
     Node *temp = makeNode();  // Create a new node
 
@@ -62,18 +64,19 @@ void pop(int branch_num){
     head = temp;
     stack_count--;
 }
-void join_nodes() {
-    if (head == NULL || top == NULL) {
+void join_nodes(Node *node) {
+    if (head == NULL || node == NULL) {
         return;  // Prevent segmentation fault
     }
     Node *temp = head; // Start traversal from head
     
     while (temp != NULL) {
-        if (temp->true_path == NULL) {
-            temp->true_path = top;
+        if (temp->true_path == NULL ) {
+            printf("true path becomes true\n");
+            temp->true_path = node;
         }
         if (temp->false_path == NULL) {
-            temp->false_path = top;
+            temp->false_path = node;
         }
         temp = temp->next_node; // Move to the next node
     }
@@ -83,12 +86,12 @@ void populate_dot_file(FILE *dot_file) {
     if (head != NULL) {
         Node *temp = head; // Start traversal from head
         while (temp != NULL) {
-            if (temp->true_path != NULL)
+            if (temp->true_path != NULL && temp->true_path!=breakPoint)
                 fprintf(dot_file, "\"%d\" -> \"%d\" [label = \"T\"];\n", temp->branch_nb, temp->true_path->branch_nb);
             else
                 fprintf(dot_file, "\"%d\" -> \"End\" [label = \"T\"];\n", temp->branch_nb);
 
-            if (temp->false_path != NULL)
+            if (temp->false_path != NULL && temp->false_path!=breakPoint)
                 fprintf(dot_file, "\"%d\" -> \"%d\" [label = \"F\"];\n", temp->branch_nb, temp->false_path->branch_nb);
             else
                 fprintf(dot_file, "\"%d\" -> \"End\" [label = \"F\"];\n", temp->branch_nb);
@@ -135,6 +138,26 @@ void connectCases(){
         if(temp->isCase){
             temp->false_path = top;
             temp->isCase = false;
+        }
+        temp = temp->next_node;
+    }
+}
+
+Node* getBreakPoint(){
+    if(breakPoint == NULL){
+        breakPoint = makeNode();
+    }
+    return breakPoint;
+}
+
+void removeBreaks(){
+    Node *temp = head;
+    while(temp != NULL){
+        if(temp->true_path == breakPoint){
+            temp->true_path = NULL;
+        }
+        if(temp->false_path == breakPoint){
+            temp->false_path = NULL;
         }
         temp = temp->next_node;
     }

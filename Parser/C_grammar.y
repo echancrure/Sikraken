@@ -38,6 +38,7 @@ typedef struct{
 	bool isDefault;
 	bool nestedDoWhile;
 	int  doWhile;
+	int depth;
 
 } ParserContext;
 
@@ -46,9 +47,11 @@ extern void push(bool isFalse); //This will push the nodes onto the stack.
 extern void populate_dot_file(FILE *dot_file);
 extern void connectDoWhile(int doWhile);
 extern void pop(int branch_num);
-extern void join_nodes();
+extern void join_nodes(Node *node);
 extern void connectCases();
 extern void attach_start(FILE *dot_file);
+extern void removeBreaks();
+extern Node* getBreakPoint();
 
 extern int yylex();
 extern int yylineno;
@@ -498,7 +501,7 @@ conditional_expression
 			connectCases();
 			ctx->isDefault = false;
 		}else{
-			join_nodes();
+			join_nodes(top);
 		}
 		if(ctx->nestedDoWhile){
 			top->inDoWhile = ctx->doWhile;
@@ -1291,7 +1294,7 @@ labeled_statement
 			connectCases();
 		}else{
 			printf("join nodes called\n");
-			join_nodes();
+			join_nodes(top);
 			connectCases();
 		}
 		ctx->isFalse = false;
@@ -1358,7 +1361,7 @@ selection_statement
 			connectCases();
 			ctx->isDefault = false;
 		}else{
-			join_nodes();
+			join_nodes(top);
 		}
 		if(ctx->nestedDoWhile){
 			top->inDoWhile = ctx->doWhile;
@@ -1406,7 +1409,7 @@ iteration_statement
 			connectCases();
 			ctx->isDefault = false;
 		}else{
-			join_nodes();
+			join_nodes(top);
 		}
 		ctx->isFalse = false;
 		if(ctx->nestedDoWhile){
@@ -1420,9 +1423,11 @@ iteration_statement
 		 if(top->true_path == NULL){
 			top->true_path = top;
 		 }else{
-			join_nodes();// The nested node will go back to iteration node
+			join_nodes(top);// The nested node will go back to iteration node
 		 }
 		 pop(branch_nb);
+		 removeBreaks();
+		 ctx->breakOn = false;
 		 attach_start(dot_file);
 		 sprintf_safe($$, size, "\ndo_while_stmt(%s, branch(%d, %s))", $3, branch_nb++, $6);
 		 free($3);
@@ -1434,7 +1439,7 @@ iteration_statement
 			connectCases();
 			ctx->isDefault = false;
 		}else{
-			join_nodes();
+			join_nodes(top);
 		}
 		ctx->isFalse = false;
 		if(ctx->nestedDoWhile){
@@ -1445,6 +1450,8 @@ iteration_statement
 		{ Node *temp = head;
 		 connectDoWhile(ctx->doWhile);
 		 pop(branch_nb);
+		 removeBreaks();
+		 ctx->breakOn = false;
 		 attach_start(dot_file);
 		 ctx->doWhile--;
 		 ctx->nestedDoWhile = false;
@@ -1460,7 +1467,7 @@ iteration_statement
 			connectCases();
 			ctx->isDefault = false;
 		}else{
-			join_nodes();
+			join_nodes(top);
 		}
 		if(ctx->nestedDoWhile){
 			top->inDoWhile = ctx->doWhile;
@@ -1473,9 +1480,11 @@ iteration_statement
 		 if(top->true_path == NULL){
 			top->true_path = top;
 		 }else{
-			join_nodes();// The nested node will go back to iteration node
+			join_nodes(top);// The nested node will go back to iteration node
 		 }
 		 pop(branch_nb);
+		 removeBreaks();
+		 ctx->breakOn = false;
 		 attach_start(dot_file);
 		 sprintf_safe($$, size, "\ncmp_stmts([%s, \nwhile_stmt(branch(%d, %s), \ncmp_stmts([%s, %s]))])", $3.init, branch_nb++, $3.cond, $6, $3.update);
 		 free($3.init);
@@ -1505,7 +1514,17 @@ jump_statement
 	   free($2);
 	  }
 	| CONTINUE ';'	{simple_str_lit_copy(&$$, "\ncontinue_stmt\n");}
-	| BREAK ';'		{simple_str_lit_copy(&$$, "\nbreak_stmt\n"); ctx->breakOn = true;}
+	| BREAK ';'		{simple_str_lit_copy(&$$, "\nbreak_stmt\n"); 
+												if(ctx->isFalse){
+													top->false_path = getBreakPoint();
+												}
+												else if(top->true_path!=NULL){
+														join_nodes(getBreakPoint());
+												}else{
+													top->true_path = getBreakPoint();
+												}	
+											}
+												
 	| RETURN ';'  	{simple_str_lit_copy(&$$, "\nreturn_stmt\n");}
 	| RETURN expression ';'
 	  {size_t const size = strlen("\nreturn_stmt()\n") + strlen($2) + 1;
