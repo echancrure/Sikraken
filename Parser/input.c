@@ -1,15 +1,17 @@
+#include <stdio.h>
 int main() {
-    int i = 0;
-        for (i = 0; i < 5; i++) {
+        for (int i = 0; i < 5; i++) {
             
             if (i == 3) {
                 goto end_loops;  // Jump out of both loops when i == 3 and j == 2
             }
             
         }
+        printf("statement before label");
 
     end_loops:
-        if(i == 10);
+        printf("Exited the loops\n");
+        printf("secound statement after label\n");
     
     return 0;
 }

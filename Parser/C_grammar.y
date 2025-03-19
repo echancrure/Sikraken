@@ -34,15 +34,17 @@
 
 typedef struct{
 	bool isFalse;
+	bool labelParsed;
+	bool gotoParsed;
 	bool breakOn;
 	bool isDefault;
 	bool nestedDoWhile;
 	int  doWhile;
-	int depth;
 
 } ParserContext;
 
 extern Node *top;
+extern Node *helperNode;
 extern void push(bool isFalse); //This will push the nodes onto the stack.
 extern void populate_dot_file(FILE *dot_file);
 extern void connectDoWhile(int doWhile);
@@ -1271,12 +1273,14 @@ statement
 	;
 
 labeled_statement
-	: IDENTIFIER ':' statement 	//Label Id declaration
-	  {size_t const size = strlen("label_stmt(, )") + strlen($1) + strlen($3) + 1;
+	: IDENTIFIER{ctx->labelParsed = true;
+				 removeBreaks();} ':' statement 	//Label Id declaration
+	  {size_t const size = strlen("label_stmt(, )") + strlen($1) + strlen($4) + 1;
 	   $$ = (char*)malloc(size);
-	   sprintf_safe($$, size, "label_stmt(%s, %s)", $1, $3);
+	   printf("label poped\n");
+	   sprintf_safe($$, size, "label_stmt(%s, %s)", $1, $4);
 	   free($1);
-	   free($3);
+	   free($4);
 	  }
 	| //fake rule in case a label is wrongly identified as a TYPEDEF_NAME
 	  TYPEDEF_NAME ':' statement 	//Label Id declaration
@@ -1462,6 +1466,7 @@ iteration_statement
 		 free($6);
 		} 
 	| FOR '(' for_stmt_type ')' {
+		printf("for pushed \n");
 		push(ctx->isFalse);
 		if(ctx->isDefault){
 			connectCases();
@@ -1483,6 +1488,7 @@ iteration_statement
 			join_nodes(top);// The nested node will go back to iteration node
 		 }
 		 pop(branch_nb);
+		 printf("for poped\n");
 		 removeBreaks();
 		 ctx->breakOn = false;
 		 attach_start(dot_file);
@@ -1509,6 +1515,13 @@ jump_statement
 	: GOTO IDENTIFIER ';'	//in_label_namespace is already switched off within lexer after GOTO
 	  {in_label_namespace = 0;
 	   size_t const size = strlen("\ngoto_stmt(, )\n") + strlen($2) + strlen(current_function) + 1;
+	   ctx->gotoParsed = true;
+	   if(top->true_path == NULL){
+			top->true_path = helperNode;
+	   }else{
+		join_nodes(helperNode);
+	   }
+	   printf("goto poped\n");
 	   $$ = (char*)malloc(size);
 	   sprintf_safe($$, size, "\ngoto_stmt(%s, %s)\n", $2, current_function);
 	   free($2);
@@ -1664,6 +1677,7 @@ int main(int argc, char *argv[]) {
 	fprintf(pl_file, "\n]).");
 	fclose(pl_file);
 	pl_file = NULL;
+	removeBreaks();
 	populate_dot_file(dot_file);
     fprintf(dot_file, "}\n"); // Finalize the .dot file
     fclose(dot_file);
