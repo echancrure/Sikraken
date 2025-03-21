@@ -39,19 +39,21 @@ typedef struct{
 	bool breakOn;
 	bool isDefault;
 	bool nestedDoWhile;
+	char* funName;
 	int  doWhile;
 
 } ParserContext;
 
 extern Node *top;
 extern Node *helperNode;
+extern bool startNode;
 extern void push(bool isFalse); //This will push the nodes onto the stack.
-extern void populate_dot_file(FILE *dot_file);
+extern void populate_dot_file(FILE *dot_file, char* funName);
 extern void connectDoWhile(int doWhile);
 extern void pop(int branch_num);
 extern void join_nodes(Node *node);
 extern void connectCases();
-extern void attach_start(FILE *dot_file);
+extern void attach_start(FILE *dot_file, char* funName);
 extern void removeBreaks();
 extern Node* getBreakPoint();
 
@@ -514,7 +516,7 @@ conditional_expression
 		{size_t const size = strlen("cond_exp(branch(, ), , )") + branch_nb + strlen($1) + strlen($4) + strlen($7) + 1;
 		 $$ = (char*)malloc(size);
 		 pop(branch_nb);
-		 attach_start(dot_file);
+		 attach_start(dot_file, ctx->funName);
 		 sprintf_safe($$, size, "cond_exp(branch(%d, %s), %s, %s)", branch_nb++, $1, $4, $7);
 		 ctx->isFalse = false;
 		 free($1);
@@ -1274,7 +1276,11 @@ statement
 
 labeled_statement
 	: IDENTIFIER{ctx->labelParsed = true;
-				 removeBreaks();} ':' statement 	//Label Id declaration
+				 if(ctx->gotoParsed){
+					removeBreaks();
+					ctx->labelParsed = false;
+					ctx->gotoParsed = false;
+				 }} ':' statement 	//Label Id declaration
 	  {size_t const size = strlen("label_stmt(, )") + strlen($1) + strlen($4) + 1;
 	   $$ = (char*)malloc(size);
 	   printf("label poped\n");
@@ -1307,7 +1313,7 @@ labeled_statement
 	   $$ = (char*)malloc(size);
 	   printf("case poped %d\n", branch_nb);
 	   pop(branch_nb++);
-	   attach_start(dot_file);
+	   attach_start(dot_file, ctx->funName);
 	   sprintf_safe($$, size, "case_stmt(%s, %s)", $2, $5);
 	   free($2);
 	   free($5);
@@ -1371,13 +1377,17 @@ selection_statement
 			top->inDoWhile = ctx->doWhile;
 			ctx->nestedDoWhile = false;
 		}
+		if(ctx->labelParsed && helperNode == NULL){
+			helperNode = top;
+		}
 		ctx->isFalse = false;
 		} statement else_opt 
 		{size_t const size = strlen("\nif_stmt(branch(, ),  )") + MAX_BRANCH_STR + strlen($3) + strlen($6) + strlen($7) + 1;
 		 $$ = (char*)malloc(size);
 		 printf("if poped %d\n", branch_nb);
 		 pop(branch_nb);
-		 attach_start(dot_file);
+		 attach_start(dot_file, ctx->funName);
+		 ;
 		 sprintf_safe($$, size, "\nif_stmt(branch(%d, %s), %s %s)", branch_nb++, $3, $6, $7);
 		 free($3);
 		 free($6);
@@ -1420,6 +1430,9 @@ iteration_statement
 			top->inDoWhile = ctx->doWhile;
 			ctx->nestedDoWhile = false;
 		}
+		if(ctx->labelParsed && helperNode == NULL){
+			helperNode = top;
+		}
 		ctx->isFalse = false;
 		}statement 
 		{size_t const size = strlen("\nwhile_stmt(branch(, ), )") + MAX_BRANCH_STR + strlen($3) + strlen($6) + 1;
@@ -1430,9 +1443,10 @@ iteration_statement
 			join_nodes(top);// The nested node will go back to iteration node
 		 }
 		 pop(branch_nb);
+		 attach_start(dot_file, ctx->funName);
 		 removeBreaks();
 		 ctx->breakOn = false;
-		 attach_start(dot_file);
+		 ;
 		 sprintf_safe($$, size, "\ndo_while_stmt(%s, branch(%d, %s))", $3, branch_nb++, $6);
 		 free($3);
 		 free($6);
@@ -1445,6 +1459,9 @@ iteration_statement
 		}else{
 			join_nodes(top);
 		}
+		if(ctx->labelParsed && helperNode == NULL){
+			helperNode = top;
+		}
 		ctx->isFalse = false;
 		if(ctx->nestedDoWhile){
 			top->inDoWhile = ctx->doWhile;
@@ -1454,9 +1471,10 @@ iteration_statement
 		{ Node *temp = head;
 		 connectDoWhile(ctx->doWhile);
 		 pop(branch_nb);
+		 attach_start(dot_file, ctx->funName);
 		 removeBreaks();
 		 ctx->breakOn = false;
-		 attach_start(dot_file);
+		 ;
 		 ctx->doWhile--;
 		 ctx->nestedDoWhile = false;
 		 size_t const size = strlen("\ndo_while_stmt(, )") + strlen($3) + strlen($6) + 1;
@@ -1474,6 +1492,9 @@ iteration_statement
 		}else{
 			join_nodes(top);
 		}
+		if(ctx->labelParsed && helperNode == NULL){
+			helperNode = top;
+		}
 		if(ctx->nestedDoWhile){
 			top->inDoWhile = ctx->doWhile;
 			ctx->nestedDoWhile = false;
@@ -1488,10 +1509,12 @@ iteration_statement
 			join_nodes(top);// The nested node will go back to iteration node
 		 }
 		 pop(branch_nb);
-		 printf("for poped\n");
-		 removeBreaks();
-		 ctx->breakOn = false;
-		 attach_start(dot_file);
+		 attach_start(dot_file, ctx->funName);
+		 if(ctx->breakOn){
+			removeBreaks();
+			ctx->breakOn = false;
+		 }
+		 ;
 		 sprintf_safe($$, size, "\ncmp_stmts([%s, \nwhile_stmt(branch(%d, %s), \ncmp_stmts([%s, %s]))])", $3.init, branch_nb++, $3.cond, $6, $3.update);
 		 free($3.init);
 		 free($3.cond);
@@ -1514,14 +1537,16 @@ expression_opt
 jump_statement
 	: GOTO IDENTIFIER ';'	//in_label_namespace is already switched off within lexer after GOTO
 	  {in_label_namespace = 0;
-	   size_t const size = strlen("\ngoto_stmt(, )\n") + strlen($2) + strlen(current_function) + 1;
 	   ctx->gotoParsed = true;
-	   if(top->true_path == NULL){
-			top->true_path = helperNode;
+	   if(ctx->labelParsed){
+		top->true_path = helperNode;
+		ctx->labelParsed = false;
+		ctx->gotoParsed = false;
+		helperNode = NULL;
 	   }else{
-		join_nodes(helperNode);
+		top->true_path = getBreakPoint();
 	   }
-	   printf("goto poped\n");
+	   size_t const size = strlen("\ngoto_stmt(, )\n") + strlen($2) + strlen(current_function) + 1;
 	   $$ = (char*)malloc(size);
 	   sprintf_safe($$, size, "\ngoto_stmt(%s, %s)\n", $2, current_function);
 	   free($2);
@@ -1558,6 +1583,7 @@ external_declaration		//printed out
 		{handled_function_paramaters = 0;
 		 pop_scope(&current_scope);
 		 fprintf(pl_file, "%s", $1); 
+		 
 		 free($1);
 		}
 	| declaration			
@@ -1572,11 +1598,19 @@ external_declaration		//printed out
 	;
 //always in_ordinary_id_declaration = 0; after
 function_definition
-	: declaration_specifiers declarator declaration_list_opt {in_ordinary_id_declaration = 0;} compound_statement
+	: declaration_specifiers declarator declaration_list_opt {in_ordinary_id_declaration = 0;   ctx->funName = NULL;
+																								ctx->funName = strdup($2.ptr_declarator);
+																								printf("function name %s\n", ctx->funName);
+																								fprintf(dot_file, "subgraph %s{\n", $2.ptr_declarator);
+																								startNode = true;
+																								printf("function definition %s\n", $2.ptr_declarator);
+		} compound_statement
 		{in_ordinary_id_declaration = 0;
 		 size_t const size = strlen("function([], , [], )") + strlen($1) + strlen($2.full) + strlen($3) + strlen($5) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "function([%s], %s, [%s], %s)", $1, $2.full, $3, $5);
+		 populate_dot_file(dot_file,ctx->funName);
+		 fprintf(dot_file, "}\n");
 	     free($1);
 		 free($2.full);
 		 free($2.ptr_declarator);
@@ -1678,8 +1712,8 @@ int main(int argc, char *argv[]) {
 	fclose(pl_file);
 	pl_file = NULL;
 	removeBreaks();
-	populate_dot_file(dot_file);
-    fprintf(dot_file, "}\n"); // Finalize the .dot file
+	//populate_dot_file(dot_file);
+	fprintf(dot_file, "}\n");
     fclose(dot_file);
     dot_file = NULL;
 

@@ -1,9 +1,23 @@
 digraph CFG {
-"Start" -> "2"	 
-"3" -> "End" [label = "T"];
-"3" -> "End" [label = "F"];
+subgraph Main{
+"Start Main" -> "2"	 
+"4" -> "End Main" [label = "T"];
+"4" -> "End Main" [label = "F"];
+"3" -> "4" [label = "T"];
+"3" -> "4" [label = "F"];
 "2" -> "1" [label = "T"];
 "2" -> "3" [label = "F"];
-"1" -> "3" [label = "T"];
+"1" -> "4" [label = "T"];
 "1" -> "2" [label = "F"];
+}
+subgraph GetRecords{
+"Start GetRecords" -> "5"	 
+"6" -> "End GetRecords" [label = "T"];
+"6" -> "End GetRecords" [label = "F"];
+"5" -> "6" [label = "T"];
+"5" -> "6" [label = "F"];
+}
+subgraph SetRecords{
+"Start SetRecords" -> "End SetRecords";
+}
 }
