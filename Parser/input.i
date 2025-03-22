@@ -1,25 +1,21 @@
 int main() {
-    int i = 0;
-    
-        for (i = 0; i < 5; i++) {//2
-            
-            if (i == 3) {//1
-                goto end_loops;
-            }
-            
-        }
-        if(i == 100);//3
-    end_loops:
-        if(i == 10);//4
-    
-    return 0;
-}
+    int day;
 
-void getRecords(){
-    int i = 0;
-    if(i == 10);//4
-    if(i == 11);
-}
-void setRecords(){
-    
+    // Asking user to enter a number
+    printf("Enter a number (1-7) to get the day of the week: ");
+    scanf("%d", &day);
+
+    for(int i = 0; i < 10; i++){//3
+        for(int j = 0; j < 10; j++){//2
+            if(j == 5){//1
+                break;
+            }
+        }
+        if(i == 5){//4
+            break;
+        }
+    }
+
+    if(day == 7);
+    return 0;
 }

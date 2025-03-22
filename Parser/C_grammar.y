@@ -56,6 +56,7 @@ extern void connectCases();
 extern void attach_start(FILE *dot_file, char* funName);
 extern void removeBreaks();
 extern Node* getBreakPoint();
+void connectNodes(ParserContext *ctx);
 
 extern int yylex();
 extern int yylineno;
@@ -501,17 +502,7 @@ conditional_expression
 	: logical_or_expression
 	| logical_or_expression{
 		push(ctx->isFalse);
-		if(ctx->isDefault){
-			connectCases();
-			ctx->isDefault = false;
-		}else{
-			join_nodes(top);
-		}
-		if(ctx->nestedDoWhile){
-			top->inDoWhile = ctx->doWhile;
-			ctx->nestedDoWhile = false;
-		}
-		ctx->isFalse = false;
+		connectNodes(ctx);
 	} '?' expression ':'{ctx->isFalse = true;} conditional_expression 
 		{size_t const size = strlen("cond_exp(branch(, ), , )") + branch_nb + strlen($1) + strlen($4) + strlen($7) + 1;
 		 $$ = (char*)malloc(size);
@@ -1299,14 +1290,8 @@ labeled_statement
 	| CASE constant_expression {
 		printf("push case\n");
 		push(ctx->isFalse);
-		top->isCase = true;
-		if(ctx->breakOn){
-			connectCases();
-		}else{
-			printf("join nodes called\n");
-			join_nodes(top);
-			connectCases();
-		}
+		connectNodes(ctx);
+		join_nodes(top);
 		ctx->isFalse = false;
 	} ':' statement
 	  {size_t const size = strlen("case_stmt(, )") + strlen($2) + strlen($5) + 1;
@@ -1314,11 +1299,12 @@ labeled_statement
 	   printf("case poped %d\n", branch_nb);
 	   pop(branch_nb++);
 	   attach_start(dot_file, ctx->funName);
+	   printf("start attached\n");
 	   sprintf_safe($$, size, "case_stmt(%s, %s)", $2, $5);
 	   free($2);
 	   free($5);
 	  }
-	| DEFAULT {ctx->isDefault = true;} ':' statement
+	| DEFAULT {removeBreaks();} ':' statement
 	  {size_t const size = strlen("default_stmt(, )") + strlen($4) + 1;
 	   $$ = (char*)malloc(size);
 	   sprintf_safe($$, size, "default_stmt(%s)", $4);
@@ -1367,27 +1353,13 @@ selection_statement
 	: IF '(' expression ')'{
 		printf("if pushed\n");
 		push(ctx->isFalse);
-		if(ctx->isDefault){
-			connectCases();
-			ctx->isDefault = false;
-		}else{
-			join_nodes(top);
-		}
-		if(ctx->nestedDoWhile){
-			top->inDoWhile = ctx->doWhile;
-			ctx->nestedDoWhile = false;
-		}
-		if(ctx->labelParsed && helperNode == NULL){
-			helperNode = top;
-		}
-		ctx->isFalse = false;
+		connectNodes(ctx);
 		} statement else_opt 
 		{size_t const size = strlen("\nif_stmt(branch(, ),  )") + MAX_BRANCH_STR + strlen($3) + strlen($6) + strlen($7) + 1;
 		 $$ = (char*)malloc(size);
 		 printf("if poped %d\n", branch_nb);
 		 pop(branch_nb);
 		 attach_start(dot_file, ctx->funName);
-		 ;
 		 sprintf_safe($$, size, "\nif_stmt(branch(%d, %s), %s %s)", branch_nb++, $3, $6, $7);
 		 free($3);
 		 free($6);
@@ -1419,21 +1391,7 @@ else_opt
 iteration_statement
 	: WHILE '(' expression ')'{ 
 		push(ctx->isFalse);
-		if(ctx->isDefault){
-			connectCases();
-			ctx->isDefault = false;
-		}else{
-			join_nodes(top);
-		}
-		ctx->isFalse = false;
-		if(ctx->nestedDoWhile){
-			top->inDoWhile = ctx->doWhile;
-			ctx->nestedDoWhile = false;
-		}
-		if(ctx->labelParsed && helperNode == NULL){
-			helperNode = top;
-		}
-		ctx->isFalse = false;
+		connectNodes(ctx);
 		}statement 
 		{size_t const size = strlen("\nwhile_stmt(branch(, ), )") + MAX_BRANCH_STR + strlen($3) + strlen($6) + 1;
 		 $$ = (char*)malloc(size);
@@ -1453,20 +1411,7 @@ iteration_statement
 		} 
 	| DO {ctx->doWhile++; ctx->nestedDoWhile = true;}statement WHILE '(' expression ')' {
 		push(ctx->isFalse);
-		if(ctx->isDefault){
-			connectCases();
-			ctx->isDefault = false;
-		}else{
-			join_nodes(top);
-		}
-		if(ctx->labelParsed && helperNode == NULL){
-			helperNode = top;
-		}
-		ctx->isFalse = false;
-		if(ctx->nestedDoWhile){
-			top->inDoWhile = ctx->doWhile;
-			ctx->nestedDoWhile = false;
-		}
+		connectNodes(ctx);
 		} ';'
 		{ Node *temp = head;
 		 connectDoWhile(ctx->doWhile);
@@ -1486,20 +1431,7 @@ iteration_statement
 	| FOR '(' for_stmt_type ')' {
 		printf("for pushed \n");
 		push(ctx->isFalse);
-		if(ctx->isDefault){
-			connectCases();
-			ctx->isDefault = false;
-		}else{
-			join_nodes(top);
-		}
-		if(ctx->labelParsed && helperNode == NULL){
-			helperNode = top;
-		}
-		if(ctx->nestedDoWhile){
-			top->inDoWhile = ctx->doWhile;
-			ctx->nestedDoWhile = false;
-		}
-		ctx->isFalse = false;
+		connectNodes(ctx);
 		} statement	//replaced by an equivalent, a little ugly, while statement
 		{size_t const size = strlen("\ncmp_stmts([, \nwhile_stmt(branch(, ), \ncmp_stmts([, ]))])") + strlen($3.init) + MAX_BRANCH_STR + strlen($3.cond) + strlen($6) + strlen($3.update) + 1;
 		 $$ = (char*)malloc(size);
@@ -1509,12 +1441,8 @@ iteration_statement
 			join_nodes(top);// The nested node will go back to iteration node
 		 }
 		 pop(branch_nb);
-		 attach_start(dot_file, ctx->funName);
-		 if(ctx->breakOn){
-			removeBreaks();
-			ctx->breakOn = false;
-		 }
-		 ;
+		 attach_start(dot_file, ctx->funName); 
+		 removeBreaks();
 		 sprintf_safe($$, size, "\ncmp_stmts([%s, \nwhile_stmt(branch(%d, %s), \ncmp_stmts([%s, %s]))])", $3.init, branch_nb++, $3.cond, $6, $3.update);
 		 free($3.init);
 		 free($3.cond);
@@ -1552,16 +1480,22 @@ jump_statement
 	   free($2);
 	  }
 	| CONTINUE ';'	{simple_str_lit_copy(&$$, "\ncontinue_stmt\n");}
-	| BREAK ';'		{simple_str_lit_copy(&$$, "\nbreak_stmt\n"); 
-												if(ctx->isFalse){
-													top->false_path = getBreakPoint();
-												}
-												else if(top->true_path!=NULL){
-														join_nodes(getBreakPoint());
-												}else{
-													top->true_path = getBreakPoint();
-												}	
-											}
+	| BREAK ';'		{simple_str_lit_copy(&$$, "\nbreak_stmt\n"); printf("break statement\n");
+					 if(top != NULL){
+						if(ctx->isFalse){
+							top->false_path = getBreakPoint();
+						}
+						else if(top->true_path!=NULL){
+								printf("join_nodes called\n");
+								join_nodes(getBreakPoint());
+						}else{
+							top->true_path = getBreakPoint();
+						}	
+					}else{
+						head->true_path = getBreakPoint();
+					}
+												
+	}
 												
 	| RETURN ';'  	{simple_str_lit_copy(&$$, "\nreturn_stmt\n");}
 	| RETURN expression ';'
@@ -1609,6 +1543,7 @@ function_definition
 		 size_t const size = strlen("function([], , [], )") + strlen($1) + strlen($2.full) + strlen($3) + strlen($5) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "function([%s], %s, [%s], %s)", $1, $2.full, $3, $5);
+		 removeBreaks();
 		 populate_dot_file(dot_file,ctx->funName);
 		 fprintf(dot_file, "}\n");
 	     free($1);
@@ -1711,8 +1646,6 @@ int main(int argc, char *argv[]) {
 	fprintf(pl_file, "\n]).");
 	fclose(pl_file);
 	pl_file = NULL;
-	removeBreaks();
-	//populate_dot_file(dot_file);
 	fprintf(dot_file, "}\n");
     fclose(dot_file);
     dot_file = NULL;
@@ -1720,6 +1653,18 @@ int main(int argc, char *argv[]) {
 	fclose(i_file);
 	i_file = NULL;
 	my_exit(EXIT_SUCCESS);
+}
+
+void connectNodes(ParserContext *ctx){	
+		join_nodes(top);
+		if(ctx->nestedDoWhile){
+			top->inDoWhile = ctx->doWhile;
+			ctx->nestedDoWhile = false;
+		}
+		if(ctx->labelParsed && helperNode == NULL){
+			helperNode = top;
+		}
+		ctx->isFalse = false;
 }
 
 //handles parsing errors: since the C input file is the output of a C pre-processor it will only be called if
