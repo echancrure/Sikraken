@@ -76,8 +76,9 @@ extern void connectCases();
 extern void attach_start(FILE *dot_file, char* funName);
 extern void removeBreaks(int loopNo);
 extern Node* getBreakPoint();
-void connectNodes(ParserContext *ctx);
-Node* find_loop(int loopNo);
+extern void terminateNode();
+extern void connectNodes(ParserContext *ctx);
+extern Node* find_loop(int loopNo);
 
 extern int yylex();
 extern int yylineno;
@@ -1531,17 +1532,18 @@ jump_statement
 							top->true_path = getBreakPoint();
 						}	
 						top->breakOn = ctx->loopNo;//if break is in loop than it will contain the loop no 1, 2, etc, otherwise 0.
-					}else{
+					 }else{
 						head->true_path = getBreakPoint();
 						head->breakOn = ctx->loopNo;
-					}
+					 }
 					
 												
 	}
 												
-	| RETURN ';'  	{simple_str_lit_copy(&$$, "\nreturn_stmt\n");}
+	| RETURN ';'  	{simple_str_lit_copy(&$$, "\nreturn_stmt\n"); terminateNode();}
 	| RETURN expression ';'
 	  {size_t const size = strlen("\nreturn_stmt()\n") + strlen($2) + 1;
+	   terminateNode();
 	   $$ = (char*)malloc(size);
 	   sprintf_safe($$, size, "\nreturn_stmt(%s)\n", $2);
 	   free($2);

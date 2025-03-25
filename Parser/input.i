@@ -3,10 +3,10 @@ int main(){
     for(i = 0; i < 10; i++){//4
         while(i != 10){//3
             if(i == 5){//1
-                continue;
+                return;
             }
             if(i == 6){//2
-    
+                return 0;
             }
             i++;
         }

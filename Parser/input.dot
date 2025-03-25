@@ -5,9 +5,9 @@ subgraph Main{
 "4" -> "End Main" [label = "F"];
 "3" -> "1" [label = "T"];
 "3" -> "4" [label = "F"];
-"2" -> "3" [label = "T"];
+"2" -> "End Main" [label = "T"];
 "2" -> "3" [label = "F"];
-"1" -> "4" [label = "T"];
+"1" -> "End Main" [label = "T"];
 "1" -> "2" [label = "F"];
 }
 }

@@ -22,6 +22,7 @@ Node    *head = NULL; //keeps track of nodes when poped out of stack.
 Node    *breakPoint = NULL;
 Node    *helperNode = NULL;
 Node    *tempNode = NULL;
+Node    *terminalNode = NULL;
 bool    startNode = true;
 int     stack_count = 0;
 
@@ -94,12 +95,12 @@ void populate_dot_file(FILE *dot_file, char* funName) {
     if (head != NULL) {
         Node *temp = head; // Start traversal from head
         while (temp != NULL) {
-            if (temp->true_path != NULL)
+            if (temp->true_path != NULL && temp->true_path != terminalNode)
                 fprintf(dot_file, "\"%d\" -> \"%d\" [label = \"T\"];\n", temp->branch_nb, temp->true_path->branch_nb);
             else
                 fprintf(dot_file, "\"%d\" -> \"End %s\" [label = \"T\"];\n", temp->branch_nb, funName);
 
-            if (temp->false_path != NULL)
+            if (temp->false_path != NULL && temp->false_path != terminalNode)
                 fprintf(dot_file, "\"%d\" -> \"%d\" [label = \"F\"];\n", temp->branch_nb, temp->false_path->branch_nb);
             else
                 fprintf(dot_file, "\"%d\" -> \"End %s\" [label = \"F\"];\n", temp->branch_nb, funName);
@@ -171,4 +172,16 @@ Node* find_loop(int loopNo){
         temp = temp->next_node;
     }
     return tempNode;
+}
+
+void terminateNode(){
+    if(terminalNode == NULL){
+        terminalNode = makeNode();
+        terminalNode->branch_nb = -1;
+    }
+    if(top != NULL && top->true_path == NULL){
+        top->true_path = terminalNode;
+    }else{
+        join_nodes(terminalNode);
+    }   
 }
