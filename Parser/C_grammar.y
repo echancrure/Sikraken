@@ -36,9 +36,11 @@ typedef struct{
 	bool isFalse;
 	bool labelParsed;
 	bool gotoParsed;
-	bool breakOn;
+	int  breakOn;
+	int  loopNo;
 	bool isDefault;
 	bool nestedDoWhile;
+	bool switchOn;
 	char* funName;
 	int  doWhile;
 
@@ -46,6 +48,7 @@ typedef struct{
 
 extern Node *top;
 extern Node *helperNode;
+extern Node *tempNode;
 extern bool startNode;
 extern void push(bool isFalse); //This will push the nodes onto the stack.
 extern void populate_dot_file(FILE *dot_file, char* funName);
@@ -54,7 +57,7 @@ extern void pop(int branch_num);
 extern void join_nodes(Node *node);
 extern void connectCases();
 extern void attach_start(FILE *dot_file, char* funName);
-extern void removeBreaks();
+extern void removeBreaks(int loopNo);
 extern Node* getBreakPoint();
 void connectNodes(ParserContext *ctx);
 
@@ -1268,7 +1271,7 @@ statement
 labeled_statement
 	: IDENTIFIER{ctx->labelParsed = true;
 				 if(ctx->gotoParsed){
-					removeBreaks();
+					removeBreaks(ctx->loopNo);
 					ctx->labelParsed = false;
 					ctx->gotoParsed = false;
 				 }} ':' statement 	//Label Id declaration
@@ -1304,7 +1307,7 @@ labeled_statement
 	   free($2);
 	   free($5);
 	  }
-	| DEFAULT {removeBreaks();} ':' statement
+	| DEFAULT {ctx->isDefault == true;} ':' statement
 	  {size_t const size = strlen("default_stmt(, )") + strlen($4) + 1;
 	   $$ = (char*)malloc(size);
 	   sprintf_safe($$, size, "default_stmt(%s)", $4);
@@ -1365,13 +1368,14 @@ selection_statement
 		 free($6);
 		 free($7);
 		}  
-	| SWITCH '(' expression ')' statement
-		{size_t const size = strlen("\nswitch_stmt(, )") + strlen($3) + strlen($5) + 1;
+	| SWITCH '(' expression ')'{ctx->switchOn = true;} statement
+		{size_t const size = strlen("\nswitch_stmt(, )") + strlen($3) + strlen($6) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "\nswitch_stmt(%s, %s)", $3, $5);
+		 sprintf_safe($$, size, "\nswitch_stmt(%s, %s)", $3, $6);
 		 ctx->isDefault = false;
+		 removeBreaks(ctx->loopNo);
 		 free($3);
-		 free($5);
+		 free($6);
 		} 
 	;
 
@@ -1392,6 +1396,7 @@ iteration_statement
 	: WHILE '(' expression ')'{ 
 		push(ctx->isFalse);
 		connectNodes(ctx);
+		ctx->loopNo++;
 		}statement 
 		{size_t const size = strlen("\nwhile_stmt(branch(, ), )") + MAX_BRANCH_STR + strlen($3) + strlen($6) + 1;
 		 $$ = (char*)malloc(size);
@@ -1402,9 +1407,8 @@ iteration_statement
 		 }
 		 pop(branch_nb);
 		 attach_start(dot_file, ctx->funName);
-		 removeBreaks();
-		 ctx->breakOn = false;
-		 ;
+		 removeBreaks(ctx->loopNo);
+		 ctx->loopNo--;
 		 sprintf_safe($$, size, "\ndo_while_stmt(%s, branch(%d, %s))", $3, branch_nb++, $6);
 		 free($3);
 		 free($6);
@@ -1412,16 +1416,16 @@ iteration_statement
 	| DO {ctx->doWhile++; ctx->nestedDoWhile = true;}statement WHILE '(' expression ')' {
 		push(ctx->isFalse);
 		connectNodes(ctx);
+		ctx->loopNo++;
 		} ';'
 		{ Node *temp = head;
 		 connectDoWhile(ctx->doWhile);
 		 pop(branch_nb);
 		 attach_start(dot_file, ctx->funName);
-		 removeBreaks();
-		 ctx->breakOn = false;
-		 ;
+		 removeBreaks(ctx->loopNo);
 		 ctx->doWhile--;
 		 ctx->nestedDoWhile = false;
+		 ctx->loopNo--;
 		 size_t const size = strlen("\ndo_while_stmt(, )") + strlen($3) + strlen($6) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "\ndo_while_stmt(%s, branch(%d, %s))", $3, branch_nb++, $6);
@@ -1432,6 +1436,7 @@ iteration_statement
 		printf("for pushed \n");
 		push(ctx->isFalse);
 		connectNodes(ctx);
+		ctx->loopNo++;
 		} statement	//replaced by an equivalent, a little ugly, while statement
 		{size_t const size = strlen("\ncmp_stmts([, \nwhile_stmt(branch(, ), \ncmp_stmts([, ]))])") + strlen($3.init) + MAX_BRANCH_STR + strlen($3.cond) + strlen($6) + strlen($3.update) + 1;
 		 $$ = (char*)malloc(size);
@@ -1442,7 +1447,8 @@ iteration_statement
 		 }
 		 pop(branch_nb);
 		 attach_start(dot_file, ctx->funName); 
-		 removeBreaks();
+		 removeBreaks(ctx->loopNo);
+		 ctx->loopNo--;
 		 sprintf_safe($$, size, "\ncmp_stmts([%s, \nwhile_stmt(branch(%d, %s), \ncmp_stmts([%s, %s]))])", $3.init, branch_nb++, $3.cond, $6, $3.update);
 		 free($3.init);
 		 free($3.cond);
@@ -1479,9 +1485,9 @@ jump_statement
 	   sprintf_safe($$, size, "\ngoto_stmt(%s, %s)\n", $2, current_function);
 	   free($2);
 	  }
-	| CONTINUE ';'	{simple_str_lit_copy(&$$, "\ncontinue_stmt\n");}
+	| CONTINUE ';'	{simple_str_lit_copy(&$$, "\ncontinue_stmt\n"); tempNode = top;}
 	| BREAK ';'		{simple_str_lit_copy(&$$, "\nbreak_stmt\n"); printf("break statement\n");
-					 if(top != NULL){
+					 if(top != NULL && !ctx->switchOn){
 						if(ctx->isFalse){
 							top->false_path = getBreakPoint();
 						}
@@ -1491,9 +1497,12 @@ jump_statement
 						}else{
 							top->true_path = getBreakPoint();
 						}	
+						top->breakOn = ctx->loopNo;//if break is in loop than it will contain the loop no 1, 2, etc, otherwise 0.
 					}else{
 						head->true_path = getBreakPoint();
+						head->breakOn = ctx->loopNo;
 					}
+					
 												
 	}
 												
@@ -1543,7 +1552,7 @@ function_definition
 		 size_t const size = strlen("function([], , [], )") + strlen($1) + strlen($2.full) + strlen($3) + strlen($5) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "function([%s], %s, [%s], %s)", $1, $2.full, $3, $5);
-		 removeBreaks();
+		 removeBreaks(ctx->loopNo);
 		 populate_dot_file(dot_file,ctx->funName);
 		 fprintf(dot_file, "}\n");
 	     free($1);

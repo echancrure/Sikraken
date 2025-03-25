@@ -1,31 +1,31 @@
 prolog_c([function([int], function(Main, []), [], 
 cmp_stmts([
-declaration([int], [Day]), 
-stmt(function_call(Printf, ["Enter a number (1-7) to get the day of the week: "])), 
-stmt(function_call(Scanf, ["%d", addr(Day)])), 
+declaration([int], [Choice]), 
+do_while_stmt(int(1), branch(4, 
 cmp_stmts([
-declaration([int], [initialised(I, int(0))]), 
-while_stmt(branch(4, less_op(I, int(10))), 
-cmp_stmts([
-cmp_stmts([
-cmp_stmts([
-declaration([int], [initialised(J, int(0))]), 
-while_stmt(branch(2, less_op(J, int(10))), 
-cmp_stmts([
-cmp_stmts([
-if_stmt(branch(1, equal_op(J, int(5))), 
-cmp_stmts([
+stmt(function_call(Printf, ["\nMenu:\n"])), 
+stmt(function_call(Printf, ["1. Say Hello\n"])), 
+stmt(function_call(Printf, ["2. Print a Number\n"])), 
+stmt(function_call(Printf, ["3. Exit\n"])), 
+stmt(function_call(Printf, ["Enter your choice: "])), 
+stmt(function_call(Scanf, ["%d", addr(Choice)])), 
+switch_stmt(Choice, 
+cmp_stmts([case_stmt(int(1), 
+stmt(function_call(Printf, ["Hello, User!\n"]))), 
 break_stmt
-
-]) )
-]), postfix_inc_op(J)]))]), 
-if_stmt(branch(3, equal_op(I, int(5))), 
-cmp_stmts([
+, case_stmt(int(2), 
+stmt(function_call(Printf, ["Enter a number: "]))), 
+declaration([int], [Num]), 
+stmt(function_call(Scanf, ["%d", addr(Num)])), 
+stmt(function_call(Printf, ["You entered: %d\n", Num])), 
 break_stmt
-
-]) )
-]), postfix_inc_op(I)]))]), 
-if_stmt(branch(5, equal_op(Day, int(7))), stmt([]) ), 
+, case_stmt(int(3), 
+stmt(function_call(Printf, ["Exiting the program...\n"]))), 
+return_stmt(int(0))
+, default_stmt(
+stmt(function_call(Printf, ["Invalid choice! Please enter a valid option.\n"])))
+]))
+]))), 
 return_stmt(int(0))
 
 ]))

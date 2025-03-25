@@ -1,18 +1,31 @@
 prolog_c([function([int], function(Main, []), [], 
 cmp_stmts([
-declaration([int], [initialised(I, int(0))]), label_stmt(end_loops, 
-cmp_stmts([
-stmt(assign(I, int(0))), 
-while_stmt(branch(2, less_op(I, int(5))), 
-cmp_stmts([
-cmp_stmts([
-goto_stmt(end_loops, Main)
-, 
-if_stmt(branch(1, equal_op(I, int(3))), 
-cmp_stmts([]) )
-]), postfix_inc_op(I)]))])), 
-if_stmt(branch(3, equal_op(I, int(100))), stmt([]) ), 
-if_stmt(branch(4, equal_op(I, int(10))), stmt([]) ), 
+declaration([int], [Day]), 
+stmt(function_call(Printf, ["Enter a number (1-7) to get the corresponding day of the week: "])), 
+stmt(function_call(Scanf, ["%d", addr(Day)])), 
+switch_stmt(Day, 
+cmp_stmts([case_stmt(int(1), 
+stmt(function_call(Printf, ["Sunday\n"]))), case_stmt(int(2), 
+stmt(function_call(Printf, ["Monday\n"]))), 
+break_stmt
+, case_stmt(int(3), 
+stmt(function_call(Printf, ["Tuesday\n"]))), 
+break_stmt
+, case_stmt(int(4), 
+stmt(function_call(Printf, ["Wednesday\n"]))), 
+break_stmt
+, case_stmt(int(5), 
+stmt(function_call(Printf, ["Thursday\n"]))), 
+break_stmt
+, case_stmt(int(6), 
+stmt(function_call(Printf, ["Friday\n"]))), 
+break_stmt
+, case_stmt(int(7), 
+stmt(function_call(Printf, ["Saturday\n"]))), 
+break_stmt
+, default_stmt(
+if_stmt(branch(8, equal_op(Day, int(100))), stmt([]) ))
+])), 
 return_stmt(int(0))
 
 ]))

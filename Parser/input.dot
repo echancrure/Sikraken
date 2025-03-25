@@ -1,15 +1,13 @@
 digraph CFG {
 subgraph Main{
 "Start Main" -> "4"	 
-"5" -> "End Main" [label = "T"];
-"5" -> "End Main" [label = "F"];
-"4" -> "2" [label = "T"];
-"4" -> "5" [label = "F"];
-"3" -> "5" [label = "T"];
+"4" -> "1" [label = "T"];
+"4" -> "End Main" [label = "F"];
+"3" -> "4" [label = "T"];
 "3" -> "4" [label = "F"];
-"2" -> "1" [label = "T"];
+"2" -> "4" [label = "T"];
 "2" -> "3" [label = "F"];
-"1" -> "3" [label = "T"];
+"1" -> "4" [label = "T"];
 "1" -> "2" [label = "F"];
 }
 }

@@ -9,7 +9,7 @@ void populate_dot_file();
 typedef struct Node{
     int branch_nb;
     int inDoWhile;
-    bool isCase;
+    int breakOn;
     struct Node *true_path;
     struct Node *false_path;
     struct Node *next_node;
@@ -20,6 +20,7 @@ Node    *top = NULL; //keeps track of nodes when pushed onto the stack
 Node    *head = NULL; //keeps track of nodes when poped out of stack. 
 Node    *breakPoint = NULL;
 Node    *helperNode = NULL;
+Node    *tempNode = NULL;
 bool    startNode = true;
 int     stack_count = 0;
 
@@ -30,7 +31,6 @@ Node* makeNode() {
     }
     newNode -> branch_nb = 0;
     newNode -> inDoWhile = false;
-    newNode -> isCase = false;
     newNode -> true_path = NULL;
     newNode -> false_path = NULL;
     newNode->next_node = top;  // Assign the top pointer (if relevant)
@@ -73,7 +73,7 @@ void join_nodes(Node *node) {
     Node *temp = head; // Start traversal from head
     
     while (temp != NULL) {
-        if (temp->true_path == NULL ) {
+        if (temp->true_path == NULL) {
             printf("true path becomes true\n");
             temp->true_path = node;
         }
@@ -136,17 +136,6 @@ void connectDoWhile(int doWhile){
     } 
 }
 
-void connectCases(){
-    Node *temp = head;
-    while(temp != NULL){
-        if(temp->isCase){
-            temp->false_path = top;
-            temp->isCase = false;
-        }
-        temp = temp->next_node;
-    }
-}
-
 Node* getBreakPoint(){
     if(breakPoint == NULL){
         breakPoint = makeNode();
@@ -154,13 +143,13 @@ Node* getBreakPoint(){
     return breakPoint;
 }
 
-void removeBreaks(){
+void removeBreaks(int loopNo){
     Node *temp = head;
     while(temp != NULL){
-        if(temp->true_path == breakPoint){
+        if(temp->true_path == breakPoint && temp->breakOn == loopNo){
             temp->true_path = NULL;
         }
-        if(temp->false_path == breakPoint){
+        if(temp->false_path == breakPoint && temp->breakOn == loopNo){
             temp->false_path = NULL;
         }
         temp = temp->next_node;
