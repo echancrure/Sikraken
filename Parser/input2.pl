@@ -14,17 +14,8 @@ break_stmt
 , case_stmt(int(4), 
 stmt(function_call(Printf, ["Wednesday\n"]))), 
 break_stmt
-, case_stmt(int(5), 
-stmt(function_call(Printf, ["Thursday\n"]))), 
-break_stmt
-, case_stmt(int(6), 
-stmt(function_call(Printf, ["Friday\n"]))), 
-break_stmt
-, case_stmt(int(7), 
-stmt(function_call(Printf, ["Saturday\n"]))), 
-break_stmt
 , default_stmt(
-if_stmt(branch(8, equal_op(Day, int(100))), stmt([]) ))
+if_stmt(branch(5, equal_op(Day, int(100))), stmt([]) ))
 ])), 
 return_stmt(int(0))
 
