@@ -31,6 +31,7 @@
 #include "parser.h"
 #include "utils.c"
 #include "handle_typedefs.c"
+#include "linkedList.c"
 
 typedef struct {
     bool isTypeDef;
@@ -47,12 +48,6 @@ typedef struct {
 } SpecifierFlags;
 
 typedef struct{
-	bool isDouble;
-	bool isInt;
-} ParserContext;
-#include "linkedList.c"
-
-typedef struct{
 	bool isFalse;
 	bool labelParsed;
 	bool gotoParsed;
@@ -63,6 +58,8 @@ typedef struct{
 	bool switchOn;
 	char* funName;
 	int  doWhile;
+	bool isDouble;
+	bool isInt;
 
 } ParserContext;
 
@@ -70,7 +67,7 @@ extern Node *top;
 extern Node *helperNode;
 extern Node *tempNode;
 extern bool startNode;
-extern void push(bool isFalse); //This will push the nodes onto the stack.
+extern void push(bool isFalse, int loopNo); //This will push the nodes onto the stack.
 extern void populate_dot_file(FILE *dot_file, char* funName);
 extern void connectDoWhile(int doWhile);
 extern void pop(int branch_num);
@@ -80,6 +77,7 @@ extern void attach_start(FILE *dot_file, char* funName);
 extern void removeBreaks(int loopNo);
 extern Node* getBreakPoint();
 void connectNodes(ParserContext *ctx);
+Node* find_loop(int loopNo);
 
 extern int yylex();
 extern int yylineno;
@@ -525,7 +523,7 @@ logical_or_expression
 conditional_expression
 	: logical_or_expression
 	| logical_or_expression{
-		push(ctx->isFalse);
+		push(ctx->isFalse, ctx->loopNo);
 		connectNodes(ctx);
 	} '?' expression ':'{ctx->isFalse = true;} conditional_expression 
 		{size_t const size = strlen("cond_exp(branch(, ), , )") + branch_nb + strlen($1) + strlen($4) + strlen($7) + 1;
@@ -1322,7 +1320,7 @@ labeled_statement
 	  }
 	| CASE constant_expression {
 		printf("push case\n");
-		push(ctx->isFalse);
+		push(ctx->isFalse, ctx->loopNo);
 		connectNodes(ctx);
 		join_nodes(top);
 		ctx->isFalse = false;
@@ -1385,7 +1383,7 @@ expression_statement
 selection_statement
 	: IF '(' expression ')'{
 		printf("if pushed\n");
-		push(ctx->isFalse);
+		push(ctx->isFalse, ctx->loopNo);
 		connectNodes(ctx);
 		} statement else_opt 
 		{size_t const size = strlen("\nif_stmt(branch(, ),  )") + MAX_BRANCH_STR + strlen($3) + strlen($6) + strlen($7) + 1;
@@ -1424,7 +1422,7 @@ else_opt
 		} 
 iteration_statement
 	: WHILE '(' expression ')'{ 
-		push(ctx->isFalse);
+		push(ctx->isFalse, ctx->loopNo);
 		connectNodes(ctx);
 		ctx->loopNo++;
 		}statement 
@@ -1444,7 +1442,7 @@ iteration_statement
 		 free($6);
 		} 
 	| DO {ctx->doWhile++; ctx->nestedDoWhile = true;}statement WHILE '(' expression ')' {
-		push(ctx->isFalse);
+		push(ctx->isFalse, ctx->loopNo);
 		connectNodes(ctx);
 		ctx->loopNo++;
 		} ';'
@@ -1464,7 +1462,7 @@ iteration_statement
 		} 
 	| FOR '(' for_stmt_type ')' {
 		printf("for pushed \n");
-		push(ctx->isFalse);
+		push(ctx->isFalse, ctx->loopNo);
 		connectNodes(ctx);
 		ctx->loopNo++;
 		} statement	//replaced by an equivalent, a little ugly, while statement
@@ -1515,7 +1513,12 @@ jump_statement
 	   sprintf_safe($$, size, "\ngoto_stmt(%s, %s)\n", $2, current_function);
 	   free($2);
 	  }
-	| CONTINUE ';'	{simple_str_lit_copy(&$$, "\ncontinue_stmt\n"); tempNode = top;}
+	| CONTINUE ';'	{simple_str_lit_copy(&$$, "\ncontinue_stmt\n"); if(top->true_path == NULL){
+																		top->true_path = find_loop(ctx->loopNo);
+																	}else{
+																		join_nodes(find_loop(ctx->loopNo));
+																	}
+																	}
 	| BREAK ';'		{simple_str_lit_copy(&$$, "\nbreak_stmt\n"); printf("break statement\n");
 					 if(top != NULL && !ctx->switchOn){
 						if(ctx->isFalse){

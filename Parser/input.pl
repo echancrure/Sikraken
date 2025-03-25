@@ -1,31 +1,23 @@
 prolog_c([function([int], function(Main, []), [], 
 cmp_stmts([
-declaration([int], [Choice]), 
-do_while_stmt(int(1), branch(4, 
+declaration([int], [initialised(I, int(0))]), 
 cmp_stmts([
-stmt(function_call(Printf, ["\nMenu:\n"])), 
-stmt(function_call(Printf, ["1. Say Hello\n"])), 
-stmt(function_call(Printf, ["2. Print a Number\n"])), 
-stmt(function_call(Printf, ["3. Exit\n"])), 
-stmt(function_call(Printf, ["Enter your choice: "])), 
-stmt(function_call(Scanf, ["%d", addr(Choice)])), 
-switch_stmt(Choice, 
-cmp_stmts([case_stmt(int(1), 
-stmt(function_call(Printf, ["Hello, User!\n"]))), 
-break_stmt
-, case_stmt(int(2), 
-stmt(function_call(Printf, ["Enter a number: "]))), 
-declaration([int], [Num]), 
-stmt(function_call(Scanf, ["%d", addr(Num)])), 
-stmt(function_call(Printf, ["You entered: %d\n", Num])), 
-break_stmt
-, case_stmt(int(3), 
-stmt(function_call(Printf, ["Exiting the program...\n"]))), 
-return_stmt(int(0))
-, default_stmt(
-stmt(function_call(Printf, ["Invalid choice! Please enter a valid option.\n"])))
-]))
-]))), 
+stmt(assign(I, int(0))), 
+while_stmt(branch(4, less_op(I, int(10))), 
+cmp_stmts([
+cmp_stmts([
+do_while_stmt(not_equal_op(I, int(10)), branch(3, 
+cmp_stmts([
+if_stmt(branch(1, equal_op(I, int(5))), 
+cmp_stmts([
+continue_stmt
+
+]) ), 
+if_stmt(branch(2, equal_op(I, int(6))), 
+cmp_stmts([]) ), 
+stmt(postfix_inc_op(I))
+])))
+]), postfix_inc_op(I)]))]), 
 return_stmt(int(0))
 
 ]))

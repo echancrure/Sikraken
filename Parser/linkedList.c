@@ -10,6 +10,7 @@ typedef struct Node{
     int branch_nb;
     int inDoWhile;
     int breakOn;
+    int loopNo;
     struct Node *true_path;
     struct Node *false_path;
     struct Node *next_node;
@@ -30,6 +31,9 @@ Node* makeNode() {
         exit(EXIT_FAILURE);  // Proper exit call
     }
     newNode -> branch_nb = 0;
+    newNode -> inDoWhile = 0;
+    newNode -> breakOn = 0;
+    newNode -> loopNo = 0;
     newNode -> inDoWhile = false;
     newNode -> true_path = NULL;
     newNode -> false_path = NULL;
@@ -37,10 +41,11 @@ Node* makeNode() {
     return newNode;
 }
 
-void push(bool isFalse) {	
+void push(bool isFalse, int loopNo) {	
     Node *temp = makeNode();  // Create a new node
 
     if (top == NULL) {
+        temp->loopNo = loopNo;
         top = temp;  // Initialize first node
     } else {
         if (isFalse) {
@@ -48,6 +53,7 @@ void push(bool isFalse) {
         } else if (top->true_path == NULL) {
             top->true_path = temp;
         } 
+        temp->loopNo = loopNo;
         temp->next_node = top;
         top = temp;
     }
@@ -154,4 +160,15 @@ void removeBreaks(int loopNo){
         }
         temp = temp->next_node;
     }
+}
+
+Node* find_loop(int loopNo){
+    Node* temp = top;
+    while(temp != NULL){
+        if(temp->loopNo = loopNo){
+            tempNode = temp;
+        }
+        temp = temp->next_node;
+    }
+    return tempNode;
 }
