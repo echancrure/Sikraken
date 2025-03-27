@@ -60,6 +60,7 @@ typedef struct{
 	int  doWhile;
 	bool isDouble;
 	bool isInt;
+	char label_name[50];
 
 } ParserContext;
 
@@ -76,9 +77,12 @@ extern void connectCases();
 extern void attach_start(FILE *dot_file, char* funName);
 extern void removeBreaks(int loopNo);
 extern Node* getBreakPoint();
-extern void terminateNode();
-extern void connectNodes(ParserContext *ctx);
+extern void terminateNode(bool isFalse);
+void connectNodes(ParserContext *ctx);
 extern Node* find_loop(int loopNo);
+extern void add_goto(const char *name, Node* jumpNode, bool isFalse);
+extern void add_label(const char *name, Node* targetNode);
+extern void resolve_gotos();
 
 extern int yylex();
 extern int yylineno;
@@ -1298,12 +1302,7 @@ statement
 	;
 
 labeled_statement
-	: IDENTIFIER{ctx->labelParsed = true;
-				 if(ctx->gotoParsed){
-					removeBreaks(ctx->loopNo);
-					ctx->labelParsed = false;
-					ctx->gotoParsed = false;
-				 }} ':' statement 	//Label Id declaration
+	: IDENTIFIER{ctx->labelParsed = true; strcpy(ctx->label_name, $1);} ':' statement 	//Label Id declaration
 	  {size_t const size = strlen("label_stmt(, )") + strlen($1) + strlen($4) + 1;
 	   $$ = (char*)malloc(size);
 	   printf("label poped\n");
@@ -1501,14 +1500,18 @@ jump_statement
 	: GOTO IDENTIFIER ';'	//in_label_namespace is already switched off within lexer after GOTO
 	  {in_label_namespace = 0;
 	   ctx->gotoParsed = true;
-	   if(ctx->labelParsed){
-		top->true_path = helperNode;
-		ctx->labelParsed = false;
-		ctx->gotoParsed = false;
-		helperNode = NULL;
-	   }else{
-		top->true_path = getBreakPoint();
-	   }
+	   printf("goto label %s\n", $2);
+	   if(top != NULL){
+			add_goto($2, top, ctx->isFalse);
+	   }else if(head != NULL){
+			if(head->true_path == NULL){
+				add_goto($2, head, 0);
+			}
+			if(head->false_path == NULL){
+				add_goto($2, head, 1);
+			}
+	    }
+	   ctx->isFalse = false;
 	   size_t const size = strlen("\ngoto_stmt(, )\n") + strlen($2) + strlen(current_function) + 1;
 	   $$ = (char*)malloc(size);
 	   sprintf_safe($$, size, "\ngoto_stmt(%s, %s)\n", $2, current_function);
@@ -1540,10 +1543,10 @@ jump_statement
 												
 	}
 												
-	| RETURN ';'  	{simple_str_lit_copy(&$$, "\nreturn_stmt\n"); terminateNode();}
+	| RETURN ';'  	{simple_str_lit_copy(&$$, "\nreturn_stmt\n"); terminateNode(ctx->isFalse);}
 	| RETURN expression ';'
 	  {size_t const size = strlen("\nreturn_stmt()\n") + strlen($2) + 1;
-	   terminateNode();
+	   terminateNode(ctx->isFalse);
 	   $$ = (char*)malloc(size);
 	   sprintf_safe($$, size, "\nreturn_stmt(%s)\n", $2);
 	   free($2);
@@ -1588,6 +1591,7 @@ function_definition
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "function([%s], %s, [%s], %s)", $1, $2.full, $3, $5);
 		 removeBreaks(ctx->loopNo);
+		 resolve_gotos();
 		 populate_dot_file(dot_file,ctx->funName);
 		 fprintf(dot_file, "}\n");
 	     free($1);
@@ -1755,8 +1759,10 @@ void connectNodes(ParserContext *ctx){
 			top->inDoWhile = ctx->doWhile;
 			ctx->nestedDoWhile = false;
 		}
-		if(ctx->labelParsed && helperNode == NULL){
-			helperNode = top;
+		if(ctx->labelParsed){
+			add_label(ctx->label_name, top);
+			ctx->labelParsed = false;
+			strcpy(ctx->label_name, "");
 		}
 		ctx->isFalse = false;
 }

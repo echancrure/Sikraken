@@ -174,14 +174,76 @@ Node* find_loop(int loopNo){
     return tempNode;
 }
 
-void terminateNode(){
+void terminateNode(bool isFalse){
     if(terminalNode == NULL){
         terminalNode = makeNode();
         terminalNode->branch_nb = -1;
     }
-    if(top != NULL && top->true_path == NULL){
-        top->true_path = terminalNode;
+    if(top != NULL){
+        if(!isFalse && top->true_path == NULL){
+            top->true_path = terminalNode;
+        }else if(top->false_path == NULL){
+            top->false_path = terminalNode;
+        }else{
+            join_nodes(terminalNode);
+        }
+            
+        
     }else{
         join_nodes(terminalNode);
     }   
+}
+
+#define MAX_LABELS 100
+
+typedef struct {
+    char    label_name[50];
+    Node*   targetNode;
+} LabelInfo;
+
+LabelInfo labels[MAX_LABELS];
+int label_count = 0;
+
+#define MAX_GOTOS 100
+
+typedef struct {
+    char    target_label[50];
+    Node*   jumpNode;
+    bool    isFalse;
+} GotoInfo;
+
+GotoInfo gotos[MAX_GOTOS];
+int goto_count = 0;
+
+void add_label(const char *name, Node* targetNode) {
+    if (label_count < MAX_LABELS) {
+        strcpy(labels[label_count].label_name, name);
+        labels[label_count].targetNode = targetNode;
+        label_count++;
+    }
+    printf("label count %d\n", label_count);
+}
+
+void add_goto(const char *name, Node* jumpNode, bool isFalse) {
+    if (goto_count < MAX_GOTOS) {
+        strcpy(gotos[goto_count].target_label, name);
+        gotos[goto_count].jumpNode = jumpNode;
+        gotos[goto_count].isFalse = isFalse;
+        goto_count++;
+    }
+    printf("goto count %d\n", goto_count);
+}
+void resolve_gotos(){
+    printf("resolve goto\n");
+    for(int i = 0; i < goto_count; i++){
+        for(int j = 0; j < label_count; j++){
+            if(strcmp(gotos[i].target_label, labels[j].label_name) == 0){
+                if(gotos[i].isFalse){
+                    gotos[i].jumpNode->false_path = labels[j].targetNode;
+                }else{
+                    gotos[i].jumpNode->true_path = labels[j].targetNode;
+                }
+            }
+        }
+    }
 }
