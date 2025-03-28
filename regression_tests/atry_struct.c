@@ -76,7 +76,7 @@ Node n = {10, 0};
 */
 
 int main(void) {
-    anon2 = anon1;
+    anon2 = anon1;  
     struct point2 p3 = p1;
     int i = 0;
     struct point_1 { 
