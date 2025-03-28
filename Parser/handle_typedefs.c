@@ -34,10 +34,10 @@ void print_scope_stack() {
 		return;
 	}
 	while (current_scope != NULL) {
-		printf("Scope %d:\n", current_scope->scope_nb);
+		if (debugMode) printf("Scope %d:\n", current_scope->scope_nb);
 		list_node* current_typedef_node = current_scope->typedef_list;
 		while (current_typedef_node != NULL) {
-			printf("\t%s is a %s\n", current_typedef_node->name, (current_typedef_node->is_typedef_name ? "TYPEDEF_NAME" : "shadow IDENTIFIER"));
+			if (debugMode) printf("\t%s is a %s\n", current_typedef_node->name, (current_typedef_node->is_typedef_name ? "TYPEDEF_NAME" : "shadow IDENTIFIER"));
 			current_typedef_node = current_typedef_node->next;
 		}
 		current_scope = current_scope->below;
