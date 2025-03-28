@@ -592,12 +592,13 @@ declaration_specifiers
 		{in_ordinary_id_declaration = 1;
 		 size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
+		 printf("type_specifier:%s declaration_specifiers: %s\n", $1, $2);
 		 sprintf_safe($$, size, "%s, %s", $1, $2);
 		 free($1);
 		 free($2);
 		}
 	| type_specifier 
-		{in_ordinary_id_declaration = 1;}
+		{in_ordinary_id_declaration = 1; ctx->isInt = false; ctx->isDouble = false;}
 	| type_qualifier declaration_specifiers
 		{in_ordinary_id_declaration = 1;
 		 size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
@@ -1438,6 +1439,8 @@ function_definition
 		 size_t const size = strlen("function([], , [], )") + strlen($1) + strlen($2.full) + strlen($3) + strlen($5) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "function([%s], %s, [%s], %s)", $1, $2.full, $3, $5);
+		 printf("function parser\n");
+		 ctx->isInt = false;
 	     free($1);
 		 free($2.full);
 		 free($2.ptr_declarator);
