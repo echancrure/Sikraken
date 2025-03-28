@@ -73,7 +73,7 @@ int typedef_flag = 0; 			//indicates that we are within a typedef declaration
 int in_tag_declaration = 0;		//indicates to the lexer that we are in the tag namespace (for struct, union and enum tags) and that identifier should not be checked for typedef
 int in_member_namespace = 0;	//indicates to the lexer that we are in the member namespace (for members of structs and unions) and that identifier should not be checked for typedef
 int in_ordinary_id_declaration = 0;
-int in_label_namespace = 0;
+int in_label_namespace = 0;		//used in lexer
 
 int handled_function_paramaters = 0;
 int current_scope = 0;
@@ -545,7 +545,7 @@ constant_expression
 declaration 
 	: declaration_specifiers ';'
 		{in_ordinary_id_declaration = 0;
-		 printf("end of stand alone declaration specifier as a declaration in_ordinary_id_declaration is %d on line %d\n", in_ordinary_id_declaration, yylineno);
+		 if (debugMode) printf("end of stand alone declaration specifier as a declaration in_ordinary_id_declaration is %d on line %d\n", in_ordinary_id_declaration, yylineno);
 		 size_t const size = strlen("\ndeclaration([])") + strlen($1) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "\ndeclaration([%s])", $1);
@@ -555,7 +555,7 @@ declaration
 	  	{in_ordinary_id_declaration = 0;
 		 if (typedef_flag == 1) {	//we were processing typedef declarations
 	    	typedef_flag = 0; 
-			//if (debugMode) printf("Debug: typedef switched to 0\n");
+			if (debugMode) printf("Debug: typedef switched to 0\n");
 	   	 }if(ctx->isInt && !ctx->isDouble){
 			process_declaration_specifiers($1);
 		 }
@@ -592,7 +592,7 @@ declaration_specifiers
 		{in_ordinary_id_declaration = 1;
 		 size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
-		 printf("type_specifier:%s declaration_specifiers: %s\n", $1, $2);
+		 if (debugMode) printf("type_specifier:%s declaration_specifiers: %s\n", $1, $2);
 		 sprintf_safe($$, size, "%s, %s", $1, $2);
 		 free($1);
 		 free($2);
@@ -663,7 +663,7 @@ storage_class_specifier
 	: TYPEDEF	/* the following typedef declarator identifier must be added to the list of typedefs so that it will get identified as TYPEDEF_NAME in lexer and not as an identifier*/
 		{simple_str_lit_copy(&$$, "typedef");
          typedef_flag = 1;
-		 //if (debugMode) printf("Debug: typedef switched to 1\n");
+		 if (debugMode) printf("Debug: typedef switched to 1\n");
 	    }
 	| EXTERN		{ simple_str_lit_copy(&$$, "extern"); }
 	| STATIC		{ simple_str_lit_copy(&$$, "static"); }
@@ -1439,7 +1439,7 @@ function_definition
 		 size_t const size = strlen("function([], , [], )") + strlen($1) + strlen($2.full) + strlen($3) + strlen($5) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "function([%s], %s, [%s], %s)", $1, $2.full, $3, $5);
-		 printf("function parser\n");
+		 if (debugMode) printf("function parser\n");
 		 ctx->isInt = false;
 	     free($1);
 		 free($2.full);
