@@ -5,12 +5,13 @@
 
 void join_nodes();
 void populate_dot_file();
+void init_storage();
 
 typedef struct Node{
     int branch_nb;
-    int inDoWhile;
-    int breakOn;
-    int loopNo;
+    int inDoWhile;//true if node is part of dowhile loop
+    int breakOn;//true if node has nested break statement
+    int loopNo;//no of loop nested.
     struct Node *true_path;
     struct Node *false_path;
     struct Node *next_node;
@@ -19,17 +20,17 @@ typedef struct Node{
 
 Node    *top = NULL; //keeps track of nodes when pushed onto the stack
 Node    *head = NULL; //keeps track of nodes when poped out of stack. 
-Node    *breakPoint = NULL;
-Node    *helperNode = NULL;
-Node    *tempNode = NULL;
-Node    *terminalNode = NULL;
-bool    startNode = true;
-int     stack_count = 0;
+Node    *breakPoint = NULL;//for nodes with break statements
+Node    *tempNode = NULL;//useful with continue statements
+Node    *terminalNode = NULL;//for nodes leading to the end of function
+bool    startNode = true;// for the first node inside a function. 
+int     stack_count = 0;// number of nodes onto the stack.
 
+//initialize a new node
 Node* makeNode() {
     Node *newNode = (Node*)malloc(sizeof(Node));
     if (!newNode) {
-        exit(EXIT_FAILURE);  // Proper exit call
+        exit(EXIT_FAILURE);  
     }
     newNode -> branch_nb = 0;
     newNode -> inDoWhile = 0;
@@ -38,16 +39,17 @@ Node* makeNode() {
     newNode -> inDoWhile = false;
     newNode -> true_path = NULL;
     newNode -> false_path = NULL;
-    newNode->next_node = top;  // Assign the top pointer (if relevant)
+    newNode->next_node = top;  
     return newNode;
 }
 
+//create a new node and push it onto the memory stack.
 void push(bool isFalse, int loopNo) {	
-    Node *temp = makeNode();  // Create a new node
+    Node *temp = makeNode(); 
 
     if (top == NULL) {
         temp->loopNo = loopNo;
-        top = temp;  // Initialize first node
+        top = temp; 
     } else {
         if (isFalse) {
             top->false_path = temp;
@@ -62,7 +64,7 @@ void push(bool isFalse, int loopNo) {
     stack_count++;
 }
 
-
+//pop node off from stack
 void pop(int branch_num){
     Node *temp = makeNode();
     temp = top;
@@ -73,27 +75,32 @@ void pop(int branch_num){
     stack_count--;
 }
 void join_nodes(Node *node) {
-    printf("join nodes called\n");
     if (head == NULL || node == NULL) {
         return;  // Prevent segmentation fault
     }
-    Node *temp = head; // Start traversal from head
+    Node *temp = head;
     
     while (temp != NULL) {
         if (temp->true_path == NULL) {
-            printf("true path becomes true\n");
             temp->true_path = node;
         }
         if (temp->false_path == NULL) {
             temp->false_path = node;
         }
-        temp = temp->next_node; // Move to the next node
+        temp = temp->next_node;
     }
 }
-
+void loopAround(){
+    if(top->true_path == NULL){
+        top->true_path = top;
+     }else{
+        join_nodes(top);// The nested node will go back to iteration node
+     }
+}
+// method to write dot file.
 void populate_dot_file(FILE *dot_file, char* funName) {
     if (head != NULL) {
-        Node *temp = head; // Start traversal from head
+        Node *temp = head; 
         while (temp != NULL) {
             if (temp->true_path != NULL && temp->true_path != terminalNode)
                 fprintf(dot_file, "\"%d\" -> \"%d\" [label = \"T\"];\n", temp->branch_nb, temp->true_path->branch_nb);
@@ -105,7 +112,7 @@ void populate_dot_file(FILE *dot_file, char* funName) {
             else
                 fprintf(dot_file, "\"%d\" -> \"End %s\" [label = \"F\"];\n", temp->branch_nb, funName);
 
-            temp = temp->next_node; // Move to the next node
+            temp = temp->next_node;
         }
         head = NULL;
     } else {
@@ -113,28 +120,26 @@ void populate_dot_file(FILE *dot_file, char* funName) {
     }
 }
 
+//method to attack start node to the first node of a function
 void attach_start(FILE *dot_file, char* funName){
     if(startNode && stack_count == 0){
-        printf("attach start called \n");
         fprintf(dot_file, "\"Start %s\" -> \"%d\"	 \n",funName, head->branch_nb);
         startNode = false;
     }else{
         return;
     }
 }
+//method to connect nodes nested in dowhile loop
 void connectDoWhile(int doWhile){
-    Node *temp = head; // Start traversal from head
+    Node *temp = head; 
     
     while (temp != NULL) {
         if (temp->inDoWhile == doWhile) {
             top->true_path = temp;
             temp->inDoWhile --;
         }
-        temp = temp->next_node; // Move to the next node
+        temp = temp->next_node; 
     }
-
-
-    // Ensure top->true_path is valid before modifying top->inDoWhile
     if(top->inDoWhile>0){
         top->inDoWhile--;
         if(top->true_path == NULL){
@@ -142,14 +147,14 @@ void connectDoWhile(int doWhile){
         }
     } 
 }
-
+//get the break points to attach for the nodes with nested break statements
 Node* getBreakPoint(){
     if(breakPoint == NULL){
         breakPoint = makeNode();
     }
     return breakPoint;
 }
-
+//remove break nodes
 void removeBreaks(int loopNo){
     Node *temp = head;
     while(temp != NULL){
@@ -163,6 +168,7 @@ void removeBreaks(int loopNo){
     }
 }
 
+//return the loop with continue statement
 Node* find_loop(int loopNo){
     Node* temp = top;
     while(temp != NULL){
@@ -173,7 +179,7 @@ Node* find_loop(int loopNo){
     }
     return tempNode;
 }
-
+//attach terminal nodes with the nodes leading to the end of function
 void terminateNode(bool isFalse){
     if(terminalNode == NULL){
         terminalNode = makeNode();
@@ -194,47 +200,90 @@ void terminateNode(bool isFalse){
     }   
 }
 
-#define MAX_LABELS 100
+//Goto statements are a bit complex to deal with due to different cases in which 
+//it is used. The below function keeps track of all the goto statemnents and 
+//their labels and resolve them after the function is fully parsed.
 
+#define INIT_SIZE 5
 typedef struct {
     char    label_name[50];
-    Node*   targetNode;
+    Node*   targetNode;//the node after goto.
 } LabelInfo;
 
-LabelInfo labels[MAX_LABELS];
+LabelInfo* labels = NULL;
 int label_count = 0;
+int label_capacity = INIT_SIZE;
 
 #define MAX_GOTOS 100
 
 typedef struct {
     char    target_label[50];
-    Node*   jumpNode;
+    Node*   jumpNode;//the node immidiatly before goto
     bool    isFalse;
 } GotoInfo;
 
-GotoInfo gotos[MAX_GOTOS];
+GotoInfo* gotos = NULL;
 int goto_count = 0;
+int goto_capacity = INIT_SIZE;
 
-void add_label(const char *name, Node* targetNode) {
-    if (label_count < MAX_LABELS) {
-        strcpy(labels[label_count].label_name, name);
-        labels[label_count].targetNode = targetNode;
-        label_count++;
+void init_storage() {
+    labels = (LabelInfo *)malloc(label_capacity * sizeof(LabelInfo));
+    gotos = (GotoInfo *)malloc(goto_capacity * sizeof(GotoInfo));
+    if (!labels || !gotos) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(1);
     }
-    printf("label count %d\n", label_count);
 }
 
-void add_goto(const char *name, Node* jumpNode, bool isFalse) {
-    if (goto_count < MAX_GOTOS) {
-        strcpy(gotos[goto_count].target_label, name);
-        gotos[goto_count].jumpNode = jumpNode;
-        gotos[goto_count].isFalse = isFalse;
-        goto_count++;
+//adds labels where goto directs.
+void add_label(const char *name, Node *targetNode) {
+    if (!name || !targetNode) {
+        fprintf(stderr, "Invalid label or targetNode\n");
+        return;
     }
-    printf("goto count %d\n", goto_count);
+    if(!labels){
+        init_storage();
+    }
+    if (label_count >= label_capacity) {
+        label_capacity *= 2;
+        labels = (LabelInfo *)realloc(labels, label_capacity * sizeof(LabelInfo));
+        if (!labels) {
+            fprintf(stderr, "Memory reallocation failed\n");
+            exit(1);
+        }
+    }
+    strcpy(labels[label_count].label_name,name);
+    if (!labels[label_count].label_name) {
+        fprintf(stderr, "Memory allocation for label name failed\n");
+        exit(1);
+    }
+    labels[label_count].targetNode = targetNode;
+    label_count++;
 }
+// adds labels with goto keyword
+void add_goto(const char *name, Node *jumpNode, bool isFalse) {
+    if (!name || !jumpNode) {
+        fprintf(stderr, "Invalid goto or jumpNode\n");
+        return;
+    }
+    if(!gotos){
+        init_storage();
+    }
+    if (goto_count >= goto_capacity) {
+        goto_capacity *= 2;
+        gotos = (GotoInfo *)realloc(gotos, goto_capacity * sizeof(GotoInfo));
+        if (!gotos) {
+            fprintf(stderr, "Memory reallocation failed\n");
+            exit(1);
+        }
+    }
+    strcpy(gotos[goto_count].target_label, name);
+    gotos[goto_count].jumpNode = jumpNode;
+    gotos[goto_count].isFalse = isFalse;
+    goto_count++;
+}
+//compare all the labels with goto labels and join the nodes accordingly
 void resolve_gotos(){
-    printf("resolve goto\n");
     for(int i = 0; i < goto_count; i++){
         for(int j = 0; j < label_count; j++){
             if(strcmp(gotos[i].target_label, labels[j].label_name) == 0){
@@ -246,4 +295,10 @@ void resolve_gotos(){
             }
         }
     }
+}
+
+
+void free_storage() {
+    free(labels);
+    free(gotos);
 }

@@ -65,15 +65,12 @@ typedef struct{
 } ParserContext;
 
 extern Node *top;
-extern Node *helperNode;
-extern Node *tempNode;
 extern bool startNode;
 extern void push(bool isFalse, int loopNo); //This will push the nodes onto the stack.
 extern void populate_dot_file(FILE *dot_file, char* funName);
 extern void connectDoWhile(int doWhile);
 extern void pop(int branch_num);
 extern void join_nodes(Node *node);
-extern void connectCases();
 extern void attach_start(FILE *dot_file, char* funName);
 extern void removeBreaks(int loopNo);
 extern Node* getBreakPoint();
@@ -83,7 +80,8 @@ extern Node* find_loop(int loopNo);
 extern void add_goto(const char *name, Node* jumpNode, bool isFalse);
 extern void add_label(const char *name, Node* targetNode);
 extern void resolve_gotos();
-
+extern void free_storage();
+extern void loopAround();//method used for loops to make them connect to themselves.
 extern int yylex();
 extern int yylineno;
 
@@ -1305,7 +1303,6 @@ labeled_statement
 	: IDENTIFIER{ctx->labelParsed = true; strcpy(ctx->label_name, $1);} ':' statement 	//Label Id declaration
 	  {size_t const size = strlen("label_stmt(, )") + strlen($1) + strlen($4) + 1;
 	   $$ = (char*)malloc(size);
-	   printf("label poped\n");
 	   sprintf_safe($$, size, "label_stmt(%s, %s)", $1, $4);
 	   free($1);
 	   free($4);
@@ -1319,7 +1316,6 @@ labeled_statement
 	   free($3);
 	  }
 	| CASE constant_expression {
-		printf("push case\n");
 		push(ctx->isFalse, ctx->loopNo);
 		connectNodes(ctx);
 		join_nodes(top);
@@ -1327,10 +1323,8 @@ labeled_statement
 	} ':' statement
 	  {size_t const size = strlen("case_stmt(, )") + strlen($2) + strlen($5) + 1;
 	   $$ = (char*)malloc(size);
-	   printf("case poped %d\n", branch_nb);
 	   pop(branch_nb++);
 	   attach_start(dot_file, ctx->funName);
-	   printf("start attached\n");
 	   sprintf_safe($$, size, "case_stmt(%s, %s)", $2, $5);
 	   free($2);
 	   free($5);
@@ -1382,13 +1376,11 @@ expression_statement
 
 selection_statement
 	: IF '(' expression ')'{
-		printf("if pushed\n");
 		push(ctx->isFalse, ctx->loopNo);
 		connectNodes(ctx);
 		} statement else_opt 
 		{size_t const size = strlen("\nif_stmt(branch(, ),  )") + MAX_BRANCH_STR + strlen($3) + strlen($6) + strlen($7) + 1;
 		 $$ = (char*)malloc(size);
-		 printf("if poped %d\n", branch_nb);
 		 pop(branch_nb);
 		 attach_start(dot_file, ctx->funName);
 		 sprintf_safe($$, size, "\nif_stmt(branch(%d, %s), %s %s)", branch_nb++, $3, $6, $7);
@@ -1428,11 +1420,7 @@ iteration_statement
 		}statement 
 		{size_t const size = strlen("\nwhile_stmt(branch(, ), )") + MAX_BRANCH_STR + strlen($3) + strlen($6) + 1;
 		 $$ = (char*)malloc(size);
-		 if(top->true_path == NULL){
-			top->true_path = top;
-		 }else{
-			join_nodes(top);// The nested node will go back to iteration node
-		 }
+		 loopAround();
 		 pop(branch_nb);
 		 attach_start(dot_file, ctx->funName);
 		 removeBreaks(ctx->loopNo);
@@ -1461,18 +1449,13 @@ iteration_statement
 		 free($6);
 		} 
 	| FOR '(' for_stmt_type ')' {
-		printf("for pushed \n");
 		push(ctx->isFalse, ctx->loopNo);
 		connectNodes(ctx);
 		ctx->loopNo++;
 		} statement	//replaced by an equivalent, a little ugly, while statement
 		{size_t const size = strlen("\ncmp_stmts([, \nwhile_stmt(branch(, ), \ncmp_stmts([, ]))])") + strlen($3.init) + MAX_BRANCH_STR + strlen($3.cond) + strlen($6) + strlen($3.update) + 1;
 		 $$ = (char*)malloc(size);
-		 if(top->true_path == NULL){
-			top->true_path = top;
-		 }else{
-			join_nodes(top);// The nested node will go back to iteration node
-		 }
+		 loopAround();
 		 pop(branch_nb);
 		 attach_start(dot_file, ctx->funName); 
 		 removeBreaks(ctx->loopNo);
@@ -1500,7 +1483,6 @@ jump_statement
 	: GOTO IDENTIFIER ';'	//in_label_namespace is already switched off within lexer after GOTO
 	  {in_label_namespace = 0;
 	   ctx->gotoParsed = true;
-	   printf("goto label %s\n", $2);
 	   if(top != NULL){
 			add_goto($2, top, ctx->isFalse);
 	   }else if(head != NULL){
@@ -1523,13 +1505,12 @@ jump_statement
 																		join_nodes(find_loop(ctx->loopNo));
 																	}
 																	}
-	| BREAK ';'		{simple_str_lit_copy(&$$, "\nbreak_stmt\n"); printf("break statement\n");
+	| BREAK ';'		{simple_str_lit_copy(&$$, "\nbreak_stmt\n");
 					 if(top != NULL && !ctx->switchOn){
 						if(ctx->isFalse){
 							top->false_path = getBreakPoint();
 						}
 						else if(top->true_path!=NULL){
-								printf("join_nodes called\n");
 								join_nodes(getBreakPoint());
 						}else{
 							top->true_path = getBreakPoint();
@@ -1581,10 +1562,8 @@ external_declaration		//printed out
 function_definition
 	: declaration_specifiers declarator declaration_list_opt {in_ordinary_id_declaration = 0;   ctx->funName = NULL;
 																								ctx->funName = strdup($2.ptr_declarator);
-																								printf("function name %s\n", ctx->funName);
 																								fprintf(dot_file, "subgraph %s{\n", $2.ptr_declarator);
 																								startNode = true;
-																								printf("function definition %s\n", $2.ptr_declarator);
 		} compound_statement
 		{in_ordinary_id_declaration = 0;
 		 size_t const size = strlen("function([], , [], )") + strlen($1) + strlen($2.full) + strlen($3) + strlen($5) + 1;
@@ -1692,6 +1671,7 @@ int main(int argc, char *argv[]) {
 	}	
 	fprintf(pl_file, "\n]).");
 	fclose(pl_file);
+	free_storage();
 	pl_file = NULL;
 	fprintf(dot_file, "}\n");
     fclose(dot_file);
@@ -1752,7 +1732,7 @@ void process_declaration_specifiers(char a[]) {
     free(temp);
 }
 
-
+//method for some validations while parsing each node.
 void connectNodes(ParserContext *ctx){	
 		join_nodes(top);
 		if(ctx->nestedDoWhile){

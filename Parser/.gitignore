@@ -7,4 +7,8 @@ atry_struct.c
 atry_struct.i 
 atry_struct.pl 
 lex.yy.c 
-.gitignore 
+input.dot
+output.png
+input2.i
+input2.dot
+output2.png
