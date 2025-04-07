@@ -130,11 +130,11 @@ void attach_start(FILE *dot_file, char* funName){
     }
 }
 //method to connect nodes nested in dowhile loop
-void connectDoWhile(int doWhile){
+void connectDoWhile(int doWhileNum){
     Node *temp = head; 
     
     while (temp != NULL) {
-        if (temp->inDoWhile == doWhile) {
+        if (temp->inDoWhile == doWhileNum) {
             top->true_path = temp;
             temp->inDoWhile --;
         }
@@ -213,9 +213,6 @@ typedef struct {
 LabelInfo* labels = NULL;
 int label_count = 0;
 int label_capacity = INIT_SIZE;
-
-#define MAX_GOTOS 100
-
 typedef struct {
     char    target_label[50];
     Node*   jumpNode;//the node immidiatly before goto

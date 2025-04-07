@@ -31,7 +31,7 @@
 #include "parser.h"
 #include "utils.c"
 #include "handle_typedefs.c"
-#include "linkedList.c"
+#include "MemoryStack.c"
 
 typedef struct {
     bool isTypeDef;
