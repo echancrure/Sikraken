@@ -45,9 +45,6 @@ se_main(ArgsL) :-
         common_util__error(10, "Calling se_main/? with invalid argument list", "Review calling syntax of se_main/?", [], '10_240824_1', 'se_main', 'se_main', no_localisation, no_extra_info)
     ),
     %frandom(F), %before seed is set in se_globals__set_globals
-    Increase_duration_multiplier is 1.05,
-    printf('output', "Dev Info: Increase_duration_multiplier has been set at %.2f\n", [Increase_duration_multiplier]),
-    setval('increase_duration_multiplier', Increase_duration_multiplier),
     se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode, Data_model),
     (Search_algo = regression(Restarts, Tries) ->   %for more stable results during regression testing and to evaluate changes
         (setval('algo', 'regression'),
@@ -58,26 +55,38 @@ se_main(ArgsL) :-
          ;   
             Budget = 65          %we put a limit for some regression tests which may not complete a full restart
          ),
-         First_single_test_time_out is Budget - 5.0,  %ensure not triggered at the same time as overall timeout
+         First_time_out is Budget - 5.0,  %ensure not triggered at the same time as overall timeout
          printf('output', "Dev Info: Analysing %w with %w restarts and %w tries\n", [Target_source_file_name_no_ext, Restarts, Tries])
         )
-    ;
-     Search_algo = budget(Raw_budget) ->    %for blind, testcomp, testing
+    ; 
+     (Search_algo =.. [budget|Args]) ->
         (setval('algo', 'time_budget'),
          setval('nb_restarts', 1e99),   %infinite restarts and tries allowed
          setval('nb_tries', 1e99),
-         (Raw_budget == 900 ->  %we are in testcomp mode
-            Budget = Raw_budget %1000       %be generous because we can only measure wall time, not CPU time and we are single threaded at the moment %was 890 to allow for initial script, interrupts (system calls, stream)
+         (Args = [Budget] ->
+            (First_time_out = 0.2, %can be much too sort for program involving loops which take longer than this: not a problem itself as the budget will increase (but only slowly if the Increase_duration_multiplier is small)
+             Max_time_out = 100,
+             Multiplier = 1.05,
+             Min_time_out = 0.5,
+             Margin = 10
+            )
          ;
-            Budget = Raw_budget %it's just used as an indication
+          Args = [Budget, First_time_out, Max_time_out, Multiplier, Min_time_out, Margin] ->
+            true
+         ;
+            common_util__error(10, "Calling se_main/? with invalid budget configuration", "Review budget algo argument syntax", [('Search_algo', Search_algo)], '10_240926_1', 'se_main', 'se_main', no_localisation, no_extra_info)
          ),
-         First_single_test_time_out is 0.2, %can be much too sort for program involving loops which take longer than this: not a problem itself as the budget will increase (but only slowly if the Increase_duration_multiplier is small)
-         printf('output', "Dev Info: Analysing %w with a time budget of %w seconds.\n", [Target_source_file_name_no_ext, Budget])
+         se_globals__set_val('First_time_out', First_time_out),
+         se_globals__set_val('Max_time_out', Max_time_out),
+         se_globals__set_val('Multiplier', Multiplier),
+         se_globals__set_val('Min_time_out', Min_time_out),
+         se_globals__set_val('Margin', Margin),
+         printf('output', "Dev Info: Analysing %w with Budget %w seconds, First_time_out is %w seconds, Max_time_out %w seconds, Multiplier %.2f times, Min_time_out %w seconds, Margin %w times.\n", [Target_source_file_name_no_ext, Budget, First_time_out, Max_time_out, Multiplier, Min_time_out, Margin])
         )
     ;
-        common_util__error(10, "Calling se_main/? with invalid search algo configuration", "Review search algo argument syntax", [('Search_algo', Search_algo)], '10_240926_1', 'se_main', 'se_main', no_localisation, no_extra_info)
+        common_util__error(10, "Calling se_main/? with invalid search algo configuration", "Review search algo argument syntax", [('Search_algo', Search_algo)], '10_240926_2', 'se_main', 'se_main', no_localisation, no_extra_info)
     ),         
-    se_globals__set_val('single_test_time_out', First_single_test_time_out),    %i.e. 10 restart minimum is case of no test generated at all
+    se_globals__set_val('single_test_time_out', First_time_out),    
     set_event_handler('overall_generation_time_out', handle_overall_time_out_event/0),
     event_after('overall_generation_time_out', Budget),
     print_test_run_log__preamble(ArgsL),
@@ -170,10 +179,10 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
         Number_of_new_solutions is Post_try_solution_number - Pre_try_solution_number,
         (Number_of_new_solutions == 0 ->    %we tried a path for Current_single_test_time_out amount of time and no tests were generated
             (getval('algo', 'time_budget') ->
-                (Maximum = 100,
-                 getval('increase_duration_multiplier', Increase_duration_multiplier),
+                (se_globals__get_val('Max_time_out', Max_time_out),
+                 se_globals__get_val('Multiplier', Increase_duration_multiplier),
                  %we should retrieve se_globals__get_val('single_test_time_out', Current_single_test_time_out), because it may have changed within try_nb_path_budget
-                 New_single_test_time_out is min(Current_single_test_time_out*Increase_duration_multiplier, Maximum), %but there is a maximum 
+                 New_single_test_time_out is min(Current_single_test_time_out*Increase_duration_multiplier, Max_time_out), %but there is a maximum 
                  se_globals__set_val('single_test_time_out', New_single_test_time_out),   %todo should depend on global budget remaining
                  statistics(event_time, Current_session_time),
                  printf('output', "Dev Info: Restart single test budget changed to: %.2f seconds; overall elapsed time is %.2f seconds\n", [New_single_test_time_out, Current_session_time])
@@ -288,12 +297,13 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
                      getval(start_time, Current_start_time),
                      Last_test_duration is Current_session_time - Current_start_time,
                      printf('output', "Dev Info: Test generated in %.2f seconds; overall elapsed time is %.2f seconds\n", [Last_test_duration, Current_session_time]),
-                     Margin = 10,       %multiplier: one order of magnitude
-                     Minimum = 0.5,     %seconds whatever is close but above the overheads
+
                      (getval('algo', 'time_budget') ->
-                        (se_globals__get_val('single_test_time_out', Current_single_test_time_out),
-                         (Current_single_test_time_out > Minimum, Current_single_test_time_out > Margin * Last_test_duration ->  %last test generation was faster by a wide margin: allocated budget is reduced
-                           (New_single_test_time_out is max(Margin * Last_test_duration, Minimum), %but there is a minimum to reduce overheads
+                        (se_globals__get_val('Min_time_out', Min_time_out), %seconds whatever is close but above the overheads
+                         se_globals__get_val('Margin', Margin),
+                         se_globals__get_val('single_test_time_out', Current_single_test_time_out),
+                         (Current_single_test_time_out > Min_time_out, Current_single_test_time_out > Margin * Last_test_duration ->  %last test generation was faster by a wide margin: allocated budget is reduced
+                           (New_single_test_time_out is max(Margin * Last_test_duration, Min_time_out), %but there is a minimum to reduce overheads
                             se_globals__set_val('single_test_time_out', New_single_test_time_out),
                             printf('output', "Dev Info: Single test budget changed to: %.2f seconds; overall elapsed time is %.2f seconds\n", [New_single_test_time_out, Current_session_time])
                            )

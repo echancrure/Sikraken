@@ -31,7 +31,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Run the parser
-./bin/sikraken_parser.exe -d $gcc_flag -p"$output_directory" "$input_file_no_ext"
+./bin/sikraken_parser.exe $gcc_flag -p"$output_directory" "$input_file_no_ext"
 
 # Check if sikraken_parser was successful
 if [ $? -ne 0 ]; then

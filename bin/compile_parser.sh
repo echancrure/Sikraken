@@ -21,7 +21,7 @@ else
 fi
 
 # Run the bison command
-bison "C_grammar.y"
+bison -d "C_grammar.y"
 
 # Check if the bison command was successful
 if [ $? -ne 0 ]; then

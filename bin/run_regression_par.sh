@@ -163,7 +163,7 @@ call_testcov() {
 
         echo "Tests: $test_nb_value ($expected_test_inputs_number expected), Coverage: $coverage_value% ($expected_coverage% expected)"
 
-        if [ $expected_test_inputs_number != $test_nb_value ]; then
+        if [ "$expected_test_inputs_number" != "$test_nb_value"  ]; then
             echo "Error: Tests generation mismatch! For $regression_test_file in $id configuration, expected: $expected_test_inputs_number, but got: $test_nb_value." >> regression_tests_run.log
         fi
 
