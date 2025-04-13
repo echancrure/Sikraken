@@ -60,7 +60,7 @@ typedef struct{
 	int  doWhile;
 	bool isDouble;
 	bool isInt;
-	char label_name[50];
+	char label_name[100];
 
 } ParserContext;
 
