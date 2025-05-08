@@ -1,42 +1,69 @@
 #!/bin/bash
+#
+# Script: call_parser.sh
+# Author: Chris Meudec
+# Date: May 2025
+# Description: Calls the Sikraken parser, sikraken_parser.exe, on a C source file.
+# This script preprocesses the C source file using gcc (for .c files) and then runs the Sikraken parser on it.
+# It takes one argument:
+#   1. The relative path to the C source file (e.g., ./../SampleCode/atry_bitwise.c or .i)
+#   2. (Optional) The gcc flag for the data model (default is -m32)
+# The target directory for the output is $SIKRAKEN_INSTALL_DIR/sikraken_output/$input_file_no_ext
+# Usage: ./call_parser.sh <relative_dir>/<file_name.c> [gcc_flag]
+# Example: ./call_parser.sh ./../SampleCode atry_bitwise.c -m64
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)" #Get the directory of the script <sikraken_install>/bin
 SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."
-echo "Sikraken call_parser.sh says: SIKRAKEN_INSTALL_DIR is $SIKRAKEN_INSTALL_DIR"
+echo "Sikraken $0 says: SIKRAKEN_INSTALL_DIR is $SIKRAKEN_INSTALL_DIR"
 
-# Ensure we have at least 2 arguments
-if [ $# -lt 2 ]; then
-    echo "call_parser.sh usage: $0 <source_directory> <file_no_ext> [gcc_flag]"
+# Ensure we have at least 1 argument
+if [ $# -lt 1 ]; then
+    echo "Sikraken ERROR from $0: usage is $0 <relative_dir>/<file_name.c> [gcc_flag]"
     exit 1
 fi
 
-input_file_no_ext="$2"
-output_file="$input_file_no_ext.i"
-source_directory="$1"
+rel_path_c_file="$1"                    #e.g. ./../SampleCode/atry_bitwise.c or .i
+full_path_c_file="$SIKRAKEN_INSTALL_DIR/$rel_path_c_file"    #e.g. /home/chris/Sikraken/SampleCode/atry_bitwise.c or .i
+input_file_no_ext="${rel_path_c_file%.*}"
+input_file_no_ext=$(basename "$input_file_no_ext")
 output_directory="$SIKRAKEN_INSTALL_DIR/sikraken_output/$input_file_no_ext"
 
 # Optional third argument for data_model, default to '-m32' if absent
-gcc_flag="${3:--m32}"
+data_model="${2:--m32}"
 
 if [ ! -d "$output_directory" ]; then  # If it doesn't exist, create it
     mkdir -p "$output_directory"
 fi
 
-# Preprocess the file using gcc
-gcc -E -P "$source_directory/$input_file_no_ext.c" $gcc_flag -o "$output_directory/$output_file"
+# Check the file extension
+file_extension="${rel_path_c_file##*.}"
 
-# Check if gcc was successful
-if [ $? -ne 0 ]; then
-    echo "Sikraken call_parser.sh error: gcc failed on gcc -E -P "$source_directory/$input_file_no_ext.c" $gcc_flag -o "$output_directory/$output_file""
-    exit 1
+if [ "$file_extension" == "i" ]; then
+    # If the file is already preprocessed (.i), just copy it to $output_directory
+    cp "$full_path_c_file" "$output_directory/"
+    if [ $? -ne 0 ]; then
+        echo "Sikraken ERROR from $0: Failed to copy $full_path_c_file to $output_directory"
+        exit 1
+    fi
+else
+    # If the file is not preprocessed, preprocess it with gcc
+    gcc_call="gcc -E -P "$full_path_c_file" $data_model -o "$output_directory/$input_file_no_ext.i""
+    #echo $gcc_call
+    $gcc_call
+    # Check if gcc was successful
+    if [ $? -ne 0 ]; then
+        echo "Sikraken ERROR from $0: gcc failed on $gcc_call"
+        exit 1
+    fi
 fi
 
 # Run the parser
-./bin/sikraken_parser.exe $gcc_flag -p"$output_directory" "$input_file_no_ext"
-
+parser_call="./bin/sikraken_parser.exe -d $data_model -p"$output_directory" "$input_file_no_ext""
+$parser_call
 # Check if sikraken_parser was successful
 if [ $? -ne 0 ]; then
-    echo "Error: sikraken_parser failed on ./bin/sikraken_parser.exe -d $gcc_flag -p"$output_directory" "$input_file_no_ext""
+    echo "Sikraken ERROR from $0: sikraken_parser failed on $parser_call"
     exit 1
 fi
 
-echo "Successfully preprocessed $input_file_no_ext and ran sikraken_parser."
+echo "Sikraken from $0: successfully preprocessed $input_file_no_ext and ran sikraken_parser."

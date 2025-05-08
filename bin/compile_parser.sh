@@ -1,6 +1,15 @@
 #!/bin/bash
+#
+# Script: compile_parser.sh
+# Author: Chris Meudec
+# Date: May 2025
+# Description: This script compiles the Sikraken parser from the C grammar files using flex and bison.
+# It then creates the parser $SIKRAKEN_INSTALL_DIR/bin/sikraken_parser.exe using gcc.
+# It does not take any arguments.
+# Usage: ./compile_parser.sh
+# Example: ./compile_parser.sh
+# Dependencies: flex, bison, gcc
 
-# Script name: compile_parser.sh
 # Get the directory of the script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."
@@ -20,7 +29,7 @@ else
     echo "flex successfully processed C_grammar.l"
 fi
 
-# Run the bison command
+# Run the bison command: -d option generates the header file used by flex
 bison -d "C_grammar.y"
 
 # Check if the bison command was successful

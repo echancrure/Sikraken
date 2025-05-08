@@ -1,5 +1,13 @@
 #!/bin/bash
-# Script to create a zip archive with specific files and folder structure
+#
+# Script: create_zenodo_zip.sh
+# Author: Chris Meudec
+# Date: May 2025
+# Description: This script creates a zip archive, sikraken.zip, with specific files and folder structure of the Sikraken project for Zenodo.
+# It is used for TestComp submission to Zenodo.
+# It includes specific files and folders while excluding certain patterns.
+# Usage: ./create_zenodo_zip.sh
+# Dependencies: zip
 
 # Define the name of the output zip file
 OUTPUT_ZIP="sikraken.zip"
@@ -33,7 +41,7 @@ for FILE in "${FILES_TO_INCLUDE[@]}"; do
 done
 
 # Create the zip archive from the temporary root directory
- zip -r "$OUTPUT_ZIP" "$TEMP_ROOT" -x "${EXCLUDE_PATTERNS[@]}"
+zip -r "$OUTPUT_ZIP" "$TEMP_ROOT" -x "${EXCLUDE_PATTERNS[@]}"
 
 # Clean up by removing the temporary root directory
 rm -rf "$TEMP_ROOT"

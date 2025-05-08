@@ -1,11 +1,29 @@
 #!/bin/bash
+#
+# Script: sikraken.sh
+# Author: Chris Meudec
+# Date: May 2025
+# Description: This script is a wrapper for Sikraken symbolic execution tool from C code.
+# It preprocesses a C source file using gcc, runs the Sikraken parser, and then calls the symbolic executor.
+# It takes four arguments:          
+#   1. The debug mode (debug or release)
+#   2. The test data generation algorithm (budget or regression)
+#   3. The data model (-m32 or -m64)
+#   4. The relative path to the C source file (e.g., ./../SampleCode/atry_bitwise.c or .i)
+# The script creates the output directory $SIKRAKEN_INSTALL_DIR/sikraken_output/$file_name_no_ext for the generated test inputs and runs the symbolic executor.
+# Usage: ./sikraken.sh <debug|release> budget[<Seconds>]|regression[<Restarts>, <Tries>] <-m32|-m64> <relative_dir>/<file_name.c>
+# Example: ./sikraken.sh debug budget[10] -m32 ./../SampleCode/atry_bitwise.c
+# Example: ./sikraken.sh release regression[5, 10] -m64 ./../SampleCode/atry_bitwise.c
+# Example: ./sikraken.sh -v     (TestComp requirement: output Sikraken version) 
+# Dependencies: gcc, eclipse, sikraken_parser.exe
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)" #Get the directory of the script <sikraken_install>/bin
 SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."
-VERSION_FILE="$SIKRAKEN_INSTALL_DIR/bin/version.txt"
 
-if [ $1 == "-v" ]; then
+VERSION_FILE="$SIKRAKEN_INSTALL_DIR/bin/version.txt"
+if [ $1 == "-v" ]; then 
     if [[ -f "$VERSION_FILE" ]]; then
-        version=$(head -n 1 "$VERSION_FILE") # Read the first line of version.txt
+        version=$(head -n 1 "$VERSION_FILE") # Outputs the first line of version.txt
         echo "$version"
         exit 0
     else
@@ -15,15 +33,12 @@ if [ $1 == "-v" ]; then
 fi
 version=$(head -n 1 "$VERSION_FILE") # Read the first line of version.txt
 echo "$version"
-# top-level command for testcomp: parses and generate test inputs for one file file foo.c
 
-echo "Sikraken wrapper sikraken.sh says: SIKRAKEN_INSTALL_DIR is $SIKRAKEN_INSTALL_DIR"
-
-# <relative_dir> is relative to <SIKRAKEN_INSTALL_DIR>
+echo "Sikraken from $0 says: SIKRAKEN_INSTALL_DIR is $SIKRAKEN_INSTALL_DIR"
 
 # Ensure we have exactly 4 arguments
 if [ $# -ne 4 ]; then
-    echo "Sikraken wrapper sikraken.sh says usage (respect the order): $0 <debug|release> budget[<Seconds>]|regression[<Restarts>, <Tries>] <-m32|-m64> <relative_dir>/<file_name.c>"
+    echo "Sikraken from $0 says usage (respect the order): $0 <debug|release> budget[<Seconds>]|regression[<Restarts>, <Tries>] <-m32|-m64> <relative_dir>/<file_name.c>"
     exit 1
 fi
 
@@ -38,7 +53,7 @@ if [ "$data_model" == "-m32" ]; then
     elif [ "$data_model" == "-m64" ]; then
         testcov_data_model="-64"
     else
-        echo "Sikraken wrapper ERROR: Unsupported data model: $data_model"
+        echo "Sikraken ERROR from $0: Unsupported data model: $data_model"
         exit 1
 fi
 
@@ -49,43 +64,21 @@ full_path_c_file="$SIKRAKEN_INSTALL_DIR/$rel_path_c_file"    #e.g. /home/chris/S
 file_name_no_ext="${rel_path_c_file%.*}"
 file_name_no_ext=$(basename "$file_name_no_ext")
 
-output_dir="$SIKRAKEN_INSTALL_DIR/sikraken_output/$file_name_no_ext"
-mkdir -p $output_dir
-
-# Check the file extension
-file_extension="${rel_path_c_file##*.}"
-
-if [ "$file_extension" == "i" ]; then
-    # If the file is already preprocessed (.i), just copy it to $output_dir
-    cp "$full_path_c_file" "$output_dir/"
-    if [ $? -ne 0 ]; then
-        echo "Sikraken wrapper Error: Failed to copy $full_path_c_file to $output_dir"
-        exit 1
-    fi
-else
-    # If the file is not preprocessed, preprocess it with gcc
-    gcc -E -P "$full_path_c_file" $data_model -o "$output_dir/$file_name_no_ext.i"
-    if [ $? -ne 0 ]; then
-        echo "Sikraken wrapper Error: gcc failed on gcc -E -P \"$full_path_c_file\" $data_model -o \"$output_dir/$file_name_no_ext.i\""
-        exit 1
-    fi
-fi
-
-# Run the parser
-$SIKRAKEN_INSTALL_DIR/bin/sikraken_parser.exe $data_model -p$output_dir $file_name_no_ext
-
-# Check if sikraken_parser was successful
+call_parser="$SIKRAKEN_INSTALL_DIR/bin/call_parser.sh $rel_path_c_file $data_model"
+echo "Sikraken from $0 says: $call_parser"
+$call_parser
+# Check if the call_parser was successful
 if [ $? -ne 0 ]; then
-    echo "Sikraken wrapper Error: sikraken_parser failed on $SIKRAKEN_INSTALL_DIR/bin/sikraken_parser.exe $data_model -p$output_dir $file_name_no_ext"
+    echo "Sikraken ERROR from $0: call_parser failed on $call_parser"
     exit 1
 fi
 
-echo "Sikraken wrapper Successfully preprocessed $rel_path_c_file and ran sikraken_parser."
+echo "Sikraken from $0 Successfully preprocessed $rel_path_c_file and ran sikraken_parser."
 if [[ $algo =~ ^budget\([0-9]+\)$ ]]; then
   seconds="${algo//[!0-9]/}"
-  echo "Sikraken wrapper says: Please wait $seconds seconds for Sikraken to complete"
+  echo "Sikraken from $0 says: Please wait $seconds seconds for Sikraken to complete"
 else
-  echo "Sikraken wrapper says: Please wait for Sikraken to complete its $algo search strategy" 
+  echo "Sikraken from $0 says: Please wait for Sikraken to complete its $algo search strategy" 
 fi
 
 # Call the symbolic executor via ECLiPSe
@@ -94,9 +87,9 @@ $SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/
 
 # check if test generation was successful
 if [ $? -ne 0 ]; then
-    echo "Sikraken wrapper ERROR: call to ECLiPSe $eclipse_call failed"
+    echo "Sikraken ERROR from $0: call to ECLiPSe $eclipse_call failed"
     exit 1
 else
-    echo "Sikraken wrapper generated test inputs for $file_name_no_ext in $SIKRAKEN_INSTALL_DIR/sikraken_output/$file_name_no_ext/"
-    echo "Sikraken wrapper says, now run: ./bin/run_testcov.sh $rel_path_c_file $testcov_data_model"
+    echo "Sikraken from $0 generated test inputs for $file_name_no_ext in $SIKRAKEN_INSTALL_DIR/sikraken_output/$file_name_no_ext/"
+    echo "Sikraken from $0 says, now run: ./bin/run_testcov.sh $rel_path_c_file $testcov_data_model"
 fi
