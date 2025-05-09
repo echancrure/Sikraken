@@ -16,8 +16,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)" #Get the directory of the script <si
 SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."
 echo "Sikraken $0 says: SIKRAKEN_INSTALL_DIR is $SIKRAKEN_INSTALL_DIR"
 
-# Ensure we have at least 1 argument
-if [ $# -lt 1 ]; then
+# Ensure we have at least 1 argument and a maximum of 2
+if [ $# -lt 1 ] || [ $# -gt 2 ]; then
     echo "Sikraken ERROR from $0: usage is $0 <relative_dir>/<file_name.c> [gcc_flag]"
     exit 1
 fi

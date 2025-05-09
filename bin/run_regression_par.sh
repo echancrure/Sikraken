@@ -1,4 +1,13 @@
 #!/bin/bash
+#
+# Script: run_regression_par.sh
+# Author: Chris Meudec
+# Date: May 2025
+# Description: This script runs Sikraken regression tests in parallel on C files in a specified directory (usually Sikraken/regression_tests).
+# It should bhevae similarly to run_regression.sh but it runs the test generation in parallel.
+# TestCov is run sequentially at the end because it does not support parallel execution.
+# Usage: ./bin/run_regression_par.sh <number_of_cores> <relative_directory_of_regression_c_files>
+# Example: ./bin/run_regression_par.sh 4 regression_tests
 
 clear
 echo "PARALLEL Regression Testing"
@@ -54,7 +63,7 @@ generate_tests() {
 
     # Check if our configuration file exists
     if [ ! -f "$config_file" ]; then
-        echo "Sikraken regression testing ERROR: Configuration file $config_file does not exist"
+        echo "Sikraken ERROR from $0: Configuration file $config_file does not exist"
         return 1
     fi
 
@@ -74,17 +83,18 @@ generate_tests() {
     elif [ "$data_model" == "LP64" ]; then
         gcc_flag="-m64"
     else
-        echo "Sikraken regression testing ERROR: Unsupported data model: $data_model"
+        echo "Sikraken ERROR from $0: Unsupported data model: $data_model"
         return 1
     fi
 
-    # Preprocess the regression test using gcc and parse using Sikraken's parser
-    $SIKRAKEN_INSTALL_DIR/bin/call_parser.sh "$SIKRAKEN_INSTALL_DIR/$rel_path_c_file" "$base_name" "$gcc_flag"
+    #preprocess the regression test using gcc and parse using Sikraken's parser
+    call_parser="$SIKRAKEN_INSTALL_DIR/bin/call_parser.sh $rel_path_c_file/$base_name.c $gcc_flag"
+    $call_parser
     if [ $? -ne 0 ]; then
-        echo "Sikraken regression testing ERROR: Parsing of $regression_test_file failed"
-        return 1
+        echo "Sikraken ERROR from $0: Sikraken parsing of $regression_test_file failed using $call_parser"
+        exit 1
     else
-        echo "Sikraken successfully parsed $regression_test_file"
+        echo "Sikraken $0 log: parsed $regression_test_file"
     fi
 
     # Loop over all configurations in the configuration file (only support one configuration file in parallel mode because the test-suite generated gets overwritten otherwise)
@@ -103,7 +113,7 @@ generate_tests() {
         $SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e "$eclipse_call"
         if [ $? -ne 0 ]; then
             echo "ERROR: Call to ECLiPSe $eclipse_call failed"
-            return 1
+            exit 1
         else
             echo "Test inputs generated for $regression_test_file in $id configuration"
         fi
@@ -152,7 +162,7 @@ call_testcov() {
         local testcov_output=$($testcov_call 2>&1)
         if [ $? -ne 0 ]; then
             echo "ERROR: TestCov validation failed for $regression_test_file"
-            return 1
+            exit 1
         fi
 
         # get the number of test run and coverage achieved from testcov output
@@ -161,14 +171,19 @@ call_testcov() {
         local coverage_line=$(echo "$testcov_output" | grep "Coverage:")
         local coverage_value=$(echo "$coverage_line" | awk '{print $2}' | sed 's/%//')
 
-        echo "Tests: $test_nb_value ($expected_test_inputs_number expected), Coverage: $coverage_value% ($expected_coverage% expected)"
+        echo "Tests log: $test_nb_value ($expected_test_inputs_number expected), Coverage: $coverage_value% ($expected_coverage% expected)"
+
+        if [ $test_nb_value -eq 0 ]; then
+            echo -e "\e[31mERROR: No tests generated for $regression_test_file in $id configuration.\e[0m"
+            exit 1
+        fi
 
         if [ "$expected_test_inputs_number" != "$test_nb_value"  ]; then
-            echo "Error: Tests generation mismatch! For $regression_test_file in $id configuration, expected: $expected_test_inputs_number, but got: $test_nb_value." >> regression_tests_run.log
+            echo "Warning: Tests generation mismatch! For $regression_test_file in $id configuration, expected: $expected_test_inputs_number, but got: $test_nb_value." >> regression_tests_run.log
         fi
 
         if [ "$expected_coverage" != "$coverage_value" ]; then
-            echo "Error: Coverage mismatch! For $regression_test_file in $id configuration, expected: $expected_coverage, but got: $coverage_value." >> regression_tests_run.log
+            echo "Warning: Coverage mismatch! For $regression_test_file in $id configuration, expected: $expected_coverage, but got: $coverage_value." >> regression_tests_run.log
         fi
     done
 }

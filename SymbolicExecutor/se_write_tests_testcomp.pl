@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%create the folder for TestComp format and the metadata file
+%delete previous tests and create the folder for TestComp format and the metadata file
 print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext) :-
     concat_atom([Install_dir, "/sikraken_output/", Target_source_file_name_no_ext], Result_folder),
     concat_atom([Result_folder, '/test-suite'], Test_suite_folder),

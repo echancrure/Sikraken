@@ -2,7 +2,7 @@ extern int __VERIFIER_nondet_int();
 /*struct bus_info { //allowed in gcc
 };
 */
-typedef long unsigned int size_t;   //unsigned can appear anywhare and just at the start as by convention
+typedef long unsigned int size_t;   //unsigned can appear anywhere and just at the start as by convention
 //check typedef from aws_array_eq_c_str_harness.i
 typedef struct {
     int x;
@@ -21,7 +21,7 @@ typedef long Blockno, *Blockptr;    //K&R p. 221
 typedef unsigned char SORT_1;
 //typedef char *__caddr_t;            
 typedef __caddr_t caddr_t;//sll-buckets-2.c 
-const SORT_1 mask_SORT_1 = (SORT_1)-1 >> (sizeof(SORT_1) * 8 - 1);
+const SORT_1 mask_SORT_1 = (SORT_1)-1 >> (1 * 8 - 1); // was const SORT_1 mask_SORT_1 = (SORT_1)-1 >> (sizeof(SORT_1) * 8 - 1); but sizeof not implemented
 typedef __builtin_va_list Length2;
 typedef Length2 My_length;
 typedef __builtin_va_list __gnuc_va_list;

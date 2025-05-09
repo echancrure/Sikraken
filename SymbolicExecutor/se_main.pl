@@ -45,7 +45,8 @@ se_main(ArgsL) :-
         common_util__error(10, "Calling se_main/? with invalid argument list", "Review calling syntax of se_main/?", [], '10_240824_1', 'se_main', 'se_main', no_localisation, no_extra_info)
     ),
     %frandom(F), %before seed is set in se_globals__set_globals
-    se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode, Data_model),
+    se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode, Data_model),    
+    print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext),
     (Search_algo = regression(Restarts, Tries) ->   %for more stable results during regression testing and to evaluate changes
         (setval('algo', 'regression'),
          setval('nb_restarts', Restarts),
@@ -103,7 +104,6 @@ se_main(ArgsL) :-
     ),
     setval('execution_mode', 'local'),    %i.e. C run time (as opposed to compile time), tackling locals when implicit initialisation to 0 does not occur
     %%%
-    print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext),
     statistics(event_time, Session_time),
     setval('start_session_time', Session_time),
     %%% where it all happens

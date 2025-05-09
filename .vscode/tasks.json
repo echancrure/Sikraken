@@ -29,8 +29,7 @@
             "type": "shell",
             "command": "${workspaceFolder}/bin/call_parser.sh",
             "args": [
-                "${fileDirname}",
-                "${fileBasenameNoExtension}"
+                "${relativeFile}"
             ],
             "group": {
                 "kind": "build",
