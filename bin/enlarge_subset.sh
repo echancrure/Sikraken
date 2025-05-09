@@ -1,4 +1,18 @@
 #!/bin/bash
+#
+# Script: enlarge_subset.sh
+# Author: Chris Meudec
+# Date: May 2025
+# Description: Used to call Sikraken on a directory and collect errors: the log can be inspected to drive agile development of Sikraken
+# This script runs Sikraken on a set of .c files in a specified directory.
+# It processes each .c file, generates test inputs using Sikraken's symbolic execution engine, and validates the generated test inputs using TestCov.
+# The script takes two arguments:
+#   1. The directory containing the .c files (e.g., /home/chris/sv-benchmarks/c)
+#   2. The budget for the symbolic execution (e.g., 30)
+# The script also creates a log directory with a timestamp to store the logs for each .c file processed.
+# It generates a runtime graph for each .c file and validates the test inputs using TestCov.
+# Usage: ./enlarge_subset.sh <directory_of_c_files> <budget>
+# Example: ./bin/enlarge_subset.sh /home/chris/sv-benchmarks/c/hardness-nfm22 5 >enlarge.log 2>&1
 
 clear
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)" #Get the directory of the script <sikraken_install>/bin

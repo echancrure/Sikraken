@@ -1,6 +1,19 @@
 #!/bin/bash
+#
+# Script: create_category_table.sh
+# Author: Chris Meudec
+# Date: May 2025
+# Description: This script generates a detailed HTML report for all the benchmarks in a TestComp category.
+# It processes Testcomp benchmark results, including coverage and stack peak data. 
+# The report includes a summary of the test run, including the number of benchmarks,
+# overall score achieved, and a detailed table of results for each benchmark.
+# It also provides links to the Sikraken log, TestCov log, and a plot of the results.
+# The script takes three arguments: the path to the benchmark directory, the budget, and the mode.
+# It generates an HTML file named "category_test_run_results.html" in the specified directory.
+# Usage: ./create_category_table.sh <relative_or_absolute_path_to_timestamp_directory> <budget> <mode>
+# Example: ./create_category_table.sh /home/chris/sv-benchmarks/c/ECA/2024_Dec_01_07_04AM 30 debug
 
-# Ensure script is passed an argument
+# Ensure script is passed 3 arguments
 if [ "$#" -ne 3 ]; then
     echo "Usage: $0 <relative_or_absolute_path_to_timestamp_directory> <budget> <mode>"
     exit 1

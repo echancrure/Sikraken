@@ -1,4 +1,14 @@
 #!/bin/bash
+#
+# Script: get_100_benchmarks.sh
+# Author: Chris Meudec
+# Date: May 2025
+# Description: One time script, not portable due to hardcoded paths, it selects 100 random .c files from the source directory and copies them to the output directory.
+# It uses the directories specified in categories.txt to determine which files to include.
+# The script uses the find command to locate .c files in the specified directories and then shuffles the list to select 100 random files.
+# It also creates the output directory if it doesn't exist.
+# Usage: ./get_100_benchmarks.sh
+# Example: ./get_100_benchmarks.sh
 
 # Set the source directory
 SOURCE_DIR="/home/chris/sv-benchmarks/c"

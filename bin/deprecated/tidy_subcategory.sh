@@ -1,4 +1,12 @@
 #!/bin/bash
+# DEPRECATED?
+# Script: tidy_subcategory.sh
+# Author: Chris Meudec
+# Date: May 2025
+# Description: This script deletes .c files if their corresponding .yml file does not contain a specific string.
+# It is used to clean up the directory by removing unnecessary files.
+# Usage: ./tidy_subcategory.sh <directory>
+# Example: ./tidy_subcategory.sh /home/chris/sv-benchmarks/c/ECA/2024_Dec_01_07_04AM
 
 # Directory to search for files
 DIRECTORY=${1:-.}  # Use the first argument as directory or default to current directory

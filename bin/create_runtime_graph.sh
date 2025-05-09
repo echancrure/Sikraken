@@ -1,6 +1,20 @@
 #!/bin/bash
+#
+# Script: create_runtime_graph.sh
+# Author: Chris Meudec
+# Date: May 2025
+# Description: This script generates a runtime graph from a Sikraken log file for a single test run.
+# It extracts the "Test generated" and "Restart single test budget changed" times from the log file 
+# It creates a PNG file using GNUPLOT, named after the input file, in the same directory as the sikraken.log.
+# Usage: ./create_runtime_graph.sh <input_log_file>
+# Example: ./create_runtime_graph.sh /path/to/sikraken.log
 
-# Input file
+# Ensure script is passed an argument
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 <input_log_file>"
+    exit 1
+fi
+
 INPUT_FILE="$1"
 INPUT_FILENAME=$(basename "$INPUT_FILE" .log)  # Extract the base name (without .log extension)
 INPUT_DIR=$(dirname "$1") 
@@ -48,4 +62,4 @@ gnuplot $GNUPLOT_SCRIPT
 #rm "$TMP_FILE_TEST" "$TMP_FILE_BUDGET"
 rm -f $GNUPLOT_SCRIPT
 
-echo "Graph saved as '$OUTPUT_FILE'."
+echo "Sikraken $0 log: Graph saved as '$OUTPUT_FILE'."

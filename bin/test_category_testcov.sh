@@ -1,4 +1,13 @@
 #!/bin/bash
+#
+# Script: test_category_testcov.sh
+# Author: Chris Meudec
+# Date: May 2025
+# Description: This script runs TestCov on all the benchmarks in a TestComp category.
+# It processes Testcomp benchmark results, including coverage and stack peak data.
+# The script takes two arguments: the path to the benchmark directory and the category.
+# Usage: ./test_category_testcov.sh <path_to_benchmarks> <category>
+# Example: ./test_category_testcov.sh /home/chris/sv-benchmarks/c ECA
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)" #Get the directory of the script <sikraken_install>/bin
 SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."
