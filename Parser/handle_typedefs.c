@@ -3,7 +3,6 @@
 #include <string.h>
 
 extern void* safe_malloc(size_t);
-extern int debugMode;
 
 typedef struct node {
 	int is_typedef_name;	//the id represents a TYPEDEF_NAME (and not an IDENTIFIER shadowing it)
@@ -30,7 +29,7 @@ scope_node* scope_stack = NULL;
 void print_scope_stack() {
 	scope_node* current_scope = scope_stack;
 	if (current_scope == NULL) {
-		printf("Scope stack is empty\n");
+		if (debugMode) printf("Scope stack is empty\n");
 		return;
 	}
 	while (current_scope != NULL) {

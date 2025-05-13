@@ -8,17 +8,18 @@
 # It takes one argument:
 #   1. The relative path to the C source file (e.g., ./../SampleCode/atry_bitwise.c or .i)
 #   2. (Optional) The gcc flag for the data model (default is -m32)
+#   3. (Optional) The -d flag to enable debug mode
 # The target directory for the output is $SIKRAKEN_INSTALL_DIR/sikraken_output/$input_file_no_ext
-# Usage: ./call_parser.sh <relative_dir>/<file_name.c> [gcc_flag]
+# Usage: ./call_parser.sh <relative_dir>/<file_name.c> [gcc_flag] [-d]
 # Example: ./call_parser.sh ./../SampleCode atry_bitwise.c -m64
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)" #Get the directory of the script <sikraken_install>/bin
 SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."
 echo "Sikraken $0 says: SIKRAKEN_INSTALL_DIR is $SIKRAKEN_INSTALL_DIR"
 
-# Ensure we have at least 1 argument and a maximum of 2
+# Ensure we have at least 1 argument and a maximum of 3
 if [ $# -lt 1 ] || [ $# -gt 2 ]; then
-    echo "Sikraken ERROR from $0: usage is $0 <relative_dir>/<file_name.c> [gcc_flag]"
+    echo "Sikraken ERROR from $0: usage is $0 <relative_dir>/<file_name.c> [gcc_flag] [-d]"
     exit 1
 fi
 
@@ -28,8 +29,10 @@ input_file_no_ext="${rel_path_c_file%.*}"
 input_file_no_ext=$(basename "$input_file_no_ext")
 output_directory="$SIKRAKEN_INSTALL_DIR/sikraken_output/$input_file_no_ext"
 
-# Optional third argument for data_model, default to '-m32' if absent
+# Optional second argument for data_model, default to '-m32' if absent
 data_model="${2:--m32}"
+# Optional third argument for debug mode
+debug_mode="$3"
 
 if [ ! -d "$output_directory" ]; then  # If it doesn't exist, create it
     mkdir -p "$output_directory"
@@ -58,7 +61,7 @@ else
 fi
 
 # Run the parser
-parser_call="./bin/sikraken_parser.exe -d $data_model -p"$output_directory" "$input_file_no_ext""
+parser_call="./bin/sikraken_parser.exe $debug_mode $data_model -p"$output_directory" "$input_file_no_ext""
 $parser_call
 # Check if sikraken_parser was successful
 if [ $? -ne 0 ]; then

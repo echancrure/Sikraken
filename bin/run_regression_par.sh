@@ -4,7 +4,7 @@
 # Author: Chris Meudec
 # Date: May 2025
 # Description: This script runs Sikraken regression tests in parallel on C files in a specified directory (usually Sikraken/regression_tests).
-# It should bhevae similarly to run_regression.sh but it runs the test generation in parallel.
+# It should behave similarly to run_regression.sh but it runs the test generation in parallel.
 # TestCov is run sequentially at the end because it does not support parallel execution.
 # Usage: ./bin/run_regression_par.sh <number_of_cores> <relative_directory_of_regression_c_files>
 # Example: ./bin/run_regression_par.sh 4 regression_tests
@@ -14,6 +14,8 @@ echo "PARALLEL Regression Testing"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)" #Get the directory of the script <sikraken_install>/bin
 SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."
 echo "SIKRAKEN_INSTALL_DIR is $SIKRAKEN_INSTALL_DIR"
+
+script_name=$(basename "$0")
 
 # Check if the correct number of arguments is provided
 if [ $# -ne 2 ]; then
@@ -63,14 +65,14 @@ generate_tests() {
 
     # Check if our configuration file exists
     if [ ! -f "$config_file" ]; then
-        echo "Sikraken ERROR from $0: Configuration file $config_file does not exist"
+        echo "Sikraken ERROR from $script_name: Configuration file $config_file does not exist"
         return 1
     fi
 
     # Check if the testcomp yml file exists
     local data_model
     if [ ! -f "$yml_file" ]; then
-        echo "Sikraken regression testing WARNING: .yml file $yml_file does not exist, assuming ILP32"
+        echo "Sikraken $script_name WARNING: .yml file $yml_file does not exist, assuming ILP32"
         data_model="ILP32"
     else
         data_model=$(grep "data_model:" "$yml_file" | awk '{print $2}')
@@ -83,7 +85,7 @@ generate_tests() {
     elif [ "$data_model" == "LP64" ]; then
         gcc_flag="-m64"
     else
-        echo "Sikraken ERROR from $0: Unsupported data model: $data_model"
+        echo "Sikraken ERROR from $script_name: Unsupported data model: $data_model"
         return 1
     fi
 
@@ -91,10 +93,10 @@ generate_tests() {
     call_parser="$SIKRAKEN_INSTALL_DIR/bin/call_parser.sh $rel_path_c_file/$base_name.c $gcc_flag"
     $call_parser
     if [ $? -ne 0 ]; then
-        echo "Sikraken ERROR from $0: Sikraken parsing of $regression_test_file failed using $call_parser"
+        echo "Sikraken ERROR from $script_name: Sikraken parsing of $regression_test_file failed using $call_parser"
         exit 1
     else
-        echo "Sikraken $0 log: parsed $regression_test_file"
+        echo "Sikraken $script_name log: parsed $regression_test_file"
     fi
 
     # Loop over all configurations in the configuration file (only support one configuration file in parallel mode because the test-suite generated gets overwritten otherwise)
@@ -112,10 +114,10 @@ generate_tests() {
         local eclipse_call="se_main(['$SIKRAKEN_INSTALL_DIR', '$SIKRAKEN_INSTALL_DIR/$rel_path_c_file', '$base_name', main, debug, testcomp, '$gcc_flag', $algo])"
         $SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e "$eclipse_call"
         if [ $? -ne 0 ]; then
-            echo "ERROR: Call to ECLiPSe $eclipse_call failed"
+            echo "Sikraken ERROR from $script_name: Call to ECLiPSe $eclipse_call failed"
             exit 1
         else
-            echo "Test inputs generated for $regression_test_file in $id configuration"
+            echo "Sikraken $script_name log: Test inputs generated for $regression_test_file in $id configuration"
         fi
         #call_testcov "$regression_test_file" #cannot do this testcov needs to be run sequentially
     done
@@ -133,7 +135,7 @@ call_testcov() {
     # Check if the testcomp yml file exists
     local data_model
     if [ ! -f "$yml_file" ]; then
-        echo "Sikraken regression testing WARNING: .yml file $yml_file does not exist, assuming ILP32"
+        echo "Sikraken $script_name log: .yml file $yml_file does not exist, assuming ILP32"
         data_model="ILP32"
     else
         data_model=$(grep "data_model:" "$yml_file" | awk '{print $2}')
@@ -161,7 +163,7 @@ call_testcov() {
         echo "CALL TO TESTCOV IS $testcov_call"
         local testcov_output=$($testcov_call 2>&1)
         if [ $? -ne 0 ]; then
-            echo "ERROR: TestCov validation failed for $regression_test_file"
+            echo "Sikraken ERROR from $script_name: TestCov validation failed for $regression_test_file"
             exit 1
         fi
 

@@ -23,6 +23,8 @@
 	#define sprintf_safe(buffer, size, format, ...) snprintf(buffer, size, format, __VA_ARGS__)
 #endif
 
+int debugMode = 0;					//flag to indicate if we are in debug mode set by -d command line switch
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -60,7 +62,7 @@ extern char *yytext;
 #define MAX_PATH 256
 #define MAX_BRANCH_STR 9		//maximum length of the string encoding the number of branches (max is "999999999" i.e. 1 billion - 1)
 
-int debugMode = 0;				//flag to indicate if we are in debug mode set by -d command line switch
+
 int dataModel = 32;				//flag to indicate data model used in the C code under analysis; set by -m32 or -m64 on the command line; default is 32
 long int TARGET_LONG_MAX = 2147483647L; //the default LONG_MAX for the code under test if dataModel = 32
 FILE* pl_file;					//the file of containing the Prolog predicated after parsing the target C file
@@ -1508,7 +1510,7 @@ int main(int argc, char *argv[]) {
 			strcpy_safe(filename_no_ext, MAX_PATH, argv[i]);
 		}
 	}
-	fprintf(stdout, "Sikraken parser: using %i bits data model.\n", dataModel); 
+	fprintf(stdout, "Sikraken %s parser: using %i bits data model.\n", (debugMode) ? "in debug mode" : "", dataModel); 
 
 	sprintf_safe(i_file_uri, 3*MAX_PATH, "%s/%s.i", C_file_path, filename_no_ext);
 	if (fopen_safe(&i_file, i_file_uri, "r") != 0) {

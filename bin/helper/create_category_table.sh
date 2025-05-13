@@ -128,7 +128,7 @@ cat > "$output_file" << EOF
     </style>
 </head>
 <body>
-    <h1>${category} - ${timestamp}</h1>
+    <h1>TestComp Category: ${category} - ${timestamp}</h1>
     <h2>Budget: ${budget} seconds</h2>
     <h2>Mode: ${mode}</h2>
     <h2>Number of Benchmarks: $(wc -l < "$benchmark_file_mapping")</h2>
