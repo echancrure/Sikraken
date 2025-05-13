@@ -1,4 +1,15 @@
 #!/bin/bash
+#
+# Script: generate_chris_set.sh
+# Author: Chris Meudec
+# Date: May 2025
+# Description: This script generates a file named chris.set containing paths to .yml files that match a specific pattern.
+# It searches for .yml files in the specified root folder and its subfolders, filtering for files that contain a specific line.
+# It then randomly selects two matching files from each subfolder and writes their relative paths to chris.set.
+# The script also remove duplicates and sorts the output file.
+# Usage: ./generate_chris_set.sh
+# Example: ./generate_chris_set.sh
+
 
 # Define the root folder and output file
 ROOT_FOLDER="/home/chris/sv-benchmarks/c"

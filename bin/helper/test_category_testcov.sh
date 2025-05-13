@@ -3,7 +3,7 @@
 # Script: test_category_testcov.sh
 # Author: Chris Meudec
 # Date: May 2025
-# Description: This script runs TestCov on all the benchmarks in a TestComp category.
+# Description: This helper script runs TestCov on all the benchmarks in a TestComp category.
 # It processes Testcomp benchmark results, including coverage and stack peak data.
 # The script takes two arguments: the path to the benchmark directory and the category.
 # Usage: ./test_category_testcov.sh <path_to_benchmarks> <category>

@@ -7,8 +7,8 @@
 # Outputs logs files in SikrakenDevSpace/categories/<category>/<timestamp>/
 # Takes into account possible exclude set for ECA
 # For each benchmark: generate tests, then generate a runtime graph using the create_runtime_graph.sh script
-# Then call TestCov on the all benchmarks using the test_category_testcov.sh script
-# Generates a summary table for the entire category using the create_category_table.sh script
+# Then call TestCov on the all benchmarks using the helper test_category_testcov.sh script
+# Generates a summary table for the entire category using the helper create_category_table.sh script
 # Updates the category summary table for all the previous runs
 
 # Plays a sound at the end of the run
@@ -131,7 +131,7 @@ generate_tests() {
     fi
 
     #generate graph
-    ./bin/create_runtime_graph.sh "$log_file" >> $log_file
+    ./bin/helper/create_runtime_graph.sh "$log_file" >> $log_file
 }
 
 ### main starts here
@@ -193,12 +193,11 @@ end_wall_time=$(date +"%Y-%m-%d %H:%M:%S")
 echo "Start Wall Time: $start_wall_time"
 echo "End Wall Time: $end_wall_time"
 echo "Running TestCov sequentially"
-./bin/test_category_testcov.sh $path_to_benchmarks $output_dir
+./bin/helper/test_category_testcov.sh $path_to_benchmarks $output_dir
 after_testcov_wall_time=$(date +"%Y-%m-%d %H:%M:%S")
 echo "After TestCov Wall Time: $after_testcov_wall_time"
 
-budget=$4               #e.g. 900
-generate_table_script="./bin/create_category_table.sh "$output_dir" $budget $mode"
+generate_table_script="./bin/helper/create_category_table.sh "$output_dir" $budget $mode"
 echo "Sikraken $0 log: now calling $generate_table_script"
 $generate_table_script
 

@@ -3,8 +3,8 @@
 # Script: create_category_table.sh
 # Author: Chris Meudec
 # Date: May 2025
-# Description: This script generates a detailed HTML report for all the benchmarks in a TestComp category.
-# It processes Testcomp benchmark results, including coverage and stack peak data. 
+# Description: This helper script generates a detailed HTML report for all the benchmarks in a TestComp category.
+# It processes Testcomp benchmark results previously generated, including coverage and stack peak data. 
 # The report includes a summary of the test run, including the number of benchmarks,
 # overall score achieved, and a detailed table of results for each benchmark.
 # It also provides links to the Sikraken log, TestCov log, and a plot of the results.

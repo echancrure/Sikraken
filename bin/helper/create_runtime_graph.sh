@@ -3,7 +3,7 @@
 # Script: create_runtime_graph.sh
 # Author: Chris Meudec
 # Date: May 2025
-# Description: This script generates a runtime graph from a Sikraken log file for a single test run.
+# Description: This helper script generates a runtime graph from a Sikraken log file for a single test run.
 # It extracts the "Test generated" and "Restart single test budget changed" times from the log file 
 # It creates a PNG file using GNUPLOT, named after the input file, in the same directory as the sikraken.log.
 # Usage: ./create_runtime_graph.sh <input_log_file>
