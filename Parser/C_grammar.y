@@ -1525,7 +1525,8 @@ int main(int argc, char *argv[]) {
 	my_exit(EXIT_SUCCESS);
 }
 
-//
+//Types in declaration specifiers are handled separately to remove duplicates (e.g. long int) and always return them in the same order
+//It makes the subsequent job of Sikraken using Prolog easier, as the intermediate form is more regular
 char *create_declaration_specifiers() {
 	char *result = (char *)malloc(1024);	//don't know the size...
 	strcpy(result, "");

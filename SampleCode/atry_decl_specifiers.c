@@ -1,9 +1,35 @@
 extern int __VERIFIER_nondet_int();
 
-void f(signed int) {
+int f(signed int) {
     return 0;
 }
 
+struct Point {
+    long int x,y;
+    _Bool isLanded;
+};
+
+union U {
+    int i;
+    char c;
+};
+
+enum E {
+    A = 1,
+    B = 2,
+    C = 3
+};
+typedef int long long money;
+typedef struct {
+    int x;
+    int y;
+} Point;
+typedef union {
+    int i;
+    char c;
+} U;
+
+const static _Atomic int i = 0; //static const int
 //signed can always be ignored
 //int is the default
 //short takes precedence on int
@@ -12,24 +38,23 @@ void f(signed int) {
 //float, double and long double cannot be combined
 //gcc issues errors otherwise (remember though, Sikraken only links, so no compilation errors are reported
 int main() {
-    int i0;
-    
+    int i0; //int
     unsigned i1; //unsigned int
     unsigned int i2; //unsigned int
     signed int i3; //int
     signed i4; //int
     signed char c1; //char
-    unsigned char c2; //char
+    unsigned char c2; //unsigned char
     signed short s1; //short
     signed short int s2; //short
-    /*signed int short s3; //short
-    unsigned short s4; //short
-    unsigned short int s5; //short
+    signed int short s3; //short
+    unsigned short s4; //unsigned short
+    unsigned short int s5; //unsigned short
     signed short int s6; //short
     signed long long ll1; //long long
     signed long long int ll2; //long long
-    unsigned long long ll3; //long long
-    unsigned long long int ll4; //long long     
+    unsigned long long ll3; //unsigned long long
+    unsigned long long int ll4; //unsigned long long     
     signed long long int ll5; //long long
     long l1;    //long
     long int l2;    //long
@@ -47,6 +72,6 @@ int main() {
     int y = __VERIFIER_nondet_int();
     int z = __VERIFIER_nondet_int();
     if (z == 42) ;
-    else ;*/
+    else ;
     return 0;
 } 
