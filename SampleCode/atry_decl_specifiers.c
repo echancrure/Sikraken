@@ -1,6 +1,6 @@
 extern int __VERIFIER_nondet_int();
 
-int f(signed int) {
+void f(signed int) {
     return 0;
 }
 
@@ -13,15 +13,16 @@ int f(signed int) {
 //gcc issues errors otherwise (remember though, Sikraken only links, so no compilation errors are reported
 int main() {
     int i0;
-    unsigned i1; //int
-    unsigned int i2; //int
+    
+    unsigned i1; //unsigned int
+    unsigned int i2; //unsigned int
     signed int i3; //int
     signed i4; //int
     signed char c1; //char
     unsigned char c2; //char
     signed short s1; //short
     signed short int s2; //short
-    signed int short s3; //short
+    /*signed int short s3; //short
     unsigned short s4; //short
     unsigned short int s5; //short
     signed short int s6; //short
@@ -46,6 +47,6 @@ int main() {
     int y = __VERIFIER_nondet_int();
     int z = __VERIFIER_nondet_int();
     if (z == 42) ;
-    else ;
+    else ;*/
     return 0;
 } 

@@ -29,10 +29,17 @@ input_file_no_ext="${rel_path_c_file%.*}"
 input_file_no_ext=$(basename "$input_file_no_ext")
 output_directory="$SIKRAKEN_INSTALL_DIR/sikraken_output/$input_file_no_ext"
 
-# Optional second argument for data_model, default to '-m32' if absent
-data_model="${2:--m32}"
-# Optional third argument for debug mode
-debug_mode="$3"
+# Handle optional arguments for data_model and debug mode
+if [ "$2" == "-d" ]; then
+    debug_mode="-d"
+    data_model="-m32" # Default to '-m32' if no data_model is provided
+elif [ -n "$2" ]; then
+    data_model="$2"
+    debug_mode="${3:-""}" # Use $3 for debug mode if provided
+else
+    data_model="-m32" # Default to '-m32' if $2 is not provided
+    debug_mode=""
+fi
 
 if [ ! -d "$output_directory" ]; then  # If it doesn't exist, create it
     mkdir -p "$output_directory"
