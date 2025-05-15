@@ -13,17 +13,17 @@ symbolic_execute([Item|R], Flow) :-
 symbolic_execute(mytrace, 'carry_on') :-
     !,
     mytrace.    %within symbolic_execute/2
-%Declaration_specifiers is a list fo type specifiers e.g. 
+symbolic_execute(declaration(spec([typedef], Type_spec), Declarators), 'carry_on') :-
+    !,
+    extract_type(spec([], Type_spec), Type_name),
+    declare_typedefs(Declarators, Type_name).
 symbolic_execute(declaration(Declaration_specifiers, Declarators), 'carry_on') :-
     !,
     ((Declarators = [Declarator], nonvar(Declarator), 
-      (Declarator = function(Function_name, Parameters) ; 
-       (Declarator = ptr_decl(pointer, Function), nonvar(Function), Function = function(Function_name, Parameters))
-      )
+      (Declarator = function(Function_name, Parameters) ; (Declarator = ptr_decl(pointer, Function), nonvar(Function), Function = function(Function_name, Parameters)))
      ) ->  %a function forward declaration
-        (memberchk('extern', Declaration_specifiers) ->  %(need to use memberchk because 'extern' does not necessarily come first) found an extern function declaration
-            (subtract(Declaration_specifiers, ['extern'], Other_specifiers),
-             extract_type(Other_specifiers, Return_type_name),
+        (Declaration_specifiers = spec([extern], _Type_spec) ->   %found an extern function declaration
+            (extract_type(Declaration_specifiers, Return_type_name),
              se_sub_atts__create(Return_type_name, Parameters, 'no_body_is_extern', Function_name)
             )
         ;
@@ -32,27 +32,7 @@ symbolic_execute(declaration(Declaration_specifiers, Declarators), 'carry_on') :
              se_sub_atts__create(Return_type_name, Parameters, 'no_body_is_extern', Function_name)
             )
         ; 
-            true    %we ignore all other, non-extern, forward function declarations: they will be defined later
-        )
-    ;
-        (Declaration_specifiers = [Declaration_specifier], nonvar(Declaration_specifier), Declaration_specifier = struct(Tag) ->
-            (ptc_solver__is_struct_type(Tag) -> 
-                declare_declarators(Declarators, Tag)   %the struct type has already been declared: all good
-            ;
-                common_util__error(9, "Expected a struct type", "Something is wrong with Sikraken", [('Tag', Tag)], '9_031224_2', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
-            )
-        )
-    ;
-        (Declaration_specifiers = [Declaration_specifier], nonvar(Declaration_specifier), Declaration_specifier = struct(Tag, Struct_declaration_list)  ->  
-            (create_struct_type(struct(Tag, Struct_declaration_list), Struct_type),
-             declare_declarators(Declarators, Struct_type)
-            )
-        )
-    ;
-        (Declaration_specifiers = [Specifier|Rest_declaration_specifiers], Specifier == 'typedef' ->
-            (extract_type(Rest_declaration_specifiers, Type_name),
-             declare_typedefs(Declarators, Type_name)
-            )
+            true    %we ignore all other, non-extern, forward function declarations: they will be defined later [can we not ignore them all?]
         )
     ;
         (%variable declarations

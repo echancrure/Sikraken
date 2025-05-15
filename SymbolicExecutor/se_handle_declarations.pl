@@ -155,92 +155,60 @@ declare_return(Return_seav, Type_name) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %extract_type handles the declaration_specifiers output from the C function create_declaration_specifiers() in the parser grammar
 %it return atomic types (e.g. int, unsigned(long_long)) and create non-atomic types (struct, union, enum)
-%the syntax of the input arg is spec(Storage, Type_qualifier_list (can only be 'const' for now), Type, Alignment)
-extract_type(spec(Storage, Type_qualifier_list, Type, Alignment), Type) :-
+%the syntax of the input arg is spec([typedef, extern], Type_spec)
+extract_type(spec(_Qualifier_list, Type_spec), Type) :-
+    !,
+    extract_type2(Type_spec, Type).
     
-extract_type([Typedef_var], Type) :-
-    se_typedef_atts__is_typedef_atts(Typedef_var),
-    !,
-    se_typedef_atts__get(Typedef_var, 'type', Type).
-extract_type(['unsigned'], int) :-  %unsigned on its own is allowed
-    !.
-extract_type(Declaration_specifiers_list, unsigned(Type)) :-
-    memberchk('unsigned', Declaration_specifiers_list),
-    !,
-    append(Start, ['unsigned'|Rest], Declaration_specifiers_list),
-    append(Start, Rest, Declaration_specifiers_list_rest),
-    !,
-    extract_type(Declaration_specifiers_list_rest, Type).
-extract_type(['signed'|R], Type) :- %signed is the default so we ignore it
-    !,
-    extract_type(R, Type).
-extract_type(['const'|R], Type) :-  %const has no semantic impact for symbolic execution: perhaps could be optimised to mean don't create a SEAV sice it will never be assigned (gain likely to be small)
-    !,
-    extract_type(R, Type).
-extract_type(['restrict'|R], Type) :-
-    !,
-    common_util__error(8, "Type Qualifier: Ignored Semantics", "todo check how semantics is affected", [('type_qualifier', 'restrict')], '8_261024', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info),
-    extract_type(R, Type).
-extract_type(['volatile'|R], Type) :-
-    !,
-    common_util__error(8, "Type Qualifier: Ignored Semantics", "todo check how semantics is affected", [('type_qualifier', 'volatile')], '8_261024', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info),
-    extract_type(R, Type).
-extract_type(['atomic'|R], Type) :-
-    !,
-    common_util__error(8, "Type Qualifier: Ignored Semantics", "todo check how semantics is affected", [('type_qualifier', 'atomic')], '8_261024', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info),
-    extract_type(R, Type).
-extract_type(['int'], int) :-
-    !.
-extract_type(['char'], char) :-
-    !.
-extract_type(['short', 'int'], short) :-
-    !.
-extract_type(['short'], short) :-
-    !.
-extract_type(['long', 'int'], long) :-
-    !.
-extract_type(['long'], long) :-
-    !.
-extract_type(['long', 'long'], long_long) :-
-    !.
-extract_type(['long', 'long', 'int'], long_long) :-
-    !.
-extract_type(['long', 'double'], long_double) :-
-    !.
-extract_type(['float'], float) :-
-    !.
-extract_type(['double'], double) :-
-    !.
-extract_type(['bool'], bool) :-
-    !.
-extract_type(['void'], void) :-
-    !.
-%e.g. handling a typedef of a struct (the Tag can be anonymous): struct type is created
-extract_type([struct(Tag, Struct_decl_list)], Struct_type) :-
-    !,
-    create_struct_type(struct(Tag, Struct_decl_list), Struct_type).
-extract_type([struct(Tag)], Tag) :-
-    (ptc_solver__is_struct_type(Tag) -> %a previously defined struct type (document when this occurs
-        true
-    ;
-        create_struct_type(struct(Tag, []), _Struct_type)   %e.g. a typedef for a forward struct declaration... as in "typedef struct plot plot;"   //typedef of a forward declaration
-    ),
-    !.
-extract_type([union(Tag, Struct_decl_list)], void) :-
-    !,
-    common_util__error(9, "Union types are not handled", "Sikraken needs expanding", [('Union', union(Tag, Struct_decl_list))], '9_071224', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).
-extract_type(Specifiers, _Type_name) :-
-    !,
-    common_util__error(9, "Type not handled or declared", "Sikraken needs expanding", [('Specifiers', Specifiers)], '9_270724', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).
+    extract_type2(Typedefname_var, Type) :-
+        var(Typedefname_var),
+        !,
+        (se_typedef_atts__is_typedef_atts(Typedefname_var) ->
+            se_typedef_atts__get(Typedefname_var, 'type', Type)
+        ;
+            common_util__error(9, "Expected a Typedefname_var", "Sikraken needs expanding", [('Typedefname_var', Typedefname_var)], '9_181124', 'se_handle_all_declarations', 'extract_type2', no_localisation, no_extra_info)
+        ).
+    extract_type2(struct(Tag, Struct_decl_list), Struct_type) :- %e.g. handling a typedef of a struct (the Tag can be anonymous): struct type is created
+        !,
+        create_struct_type(struct(Tag, Struct_decl_list), Struct_type).
+    extract_type2(struct(Tag), Tag) :-
+        (ptc_solver__is_struct_type(Tag) -> %a previously defined struct type (document when this occurs
+            true
+        ;
+            create_struct_type(struct(Tag, []), _Struct_type)   %e.g. a typedef for a forward struct declaration... as in "typedef struct plot plot;"   //typedef of a forward declaration
+        ),
+        !.
+    extract_type2(union(Tag, Union_decl_list), void) :-
+        !,
+        common_util__error(9, "Union types are not handled", "Sikraken needs expanding", [('Union', union(Tag, Union_decl_list))], '9_071224', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).
+    extract_type2(union(Tag), void) :-
+        !,
+        common_util__error(9, "Union forward types are not handled", "Sikraken needs expanding", [('Union', union(Tag))], '9_071224_1', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).
+    extract_type2(enum(Tag, Enum_decl_list), void) :-
+        !,
+        common_util__error(9, "Enum types are not handled", "Sikraken needs expanding", [('Enum', enum(Tag, Enum_decl_list))], '9_150525', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).
+    extract_type2(enum(Tag), void) :-
+        !,
+        common_util__error(9, "Enum forward types are not handled", "Sikraken needs expanding", [('Enum', enum(Tag))], '9_150525_1', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).
+    extract_type2(unsigned(Atomic_type), Atomic_type) :-  %e.g. unsigned(int), unsigned(char), unsigned(short), unsigned(long), unsigned(long_long)
+        !,
+        atomic(Atomic_type).
+    extract_type2(Atomic_type, Atomic_type) :-  %e.g. int128, bool, int, float, double, long_double, char, short, long, long_long
+        atomic(Atomic_type),
+        !.
+    extract_type2(Other, void) :- 
+        !,
+        common_util__error(9, "Unknown type", "Sikraken needs expanding", [('Other', Other)], '9_150525_3', 'se_handle_all_declarations', 'extract_type2', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-match_parameters_arguments([param_no_decl([void], [])], []) :-
-    !.
 match_parameters_arguments([], []) :-
     !.
 match_parameters_arguments([param(Declaration_specifiers, Parameter)|Rest_parameters], [Argument|Rest_arguments]) :-
     !,
     extract_type(Declaration_specifiers, Type_name),
     declare_declarators([initialised(Parameter, Argument)], Type_name), %make a copy?
+    match_parameters_arguments(Rest_parameters, Rest_arguments).
+match_parameters_arguments([unnamed_param(_Declaration_specifiers, [])|Rest_parameters], [_Argument|Rest_arguments]) :-
+    !,
     match_parameters_arguments(Rest_parameters, Rest_arguments).
 match_parameters_arguments(Parameters, Arguments) :-
     !,

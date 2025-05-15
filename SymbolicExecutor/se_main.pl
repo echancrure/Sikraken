@@ -252,7 +252,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
     ;
         (%ignore this alternative for now: not testcomp
          %always symbolically execute void main(void) for now: should be a switch allowing the main to be ignored via a switch if desired
-         se_sub_atts__get(Main, 'parameters', [param_no_decl([void], [])]),  %only handling main with no parameters for now
+         se_sub_atts__get(Main, 'parameters', [unnamed_param([void], [])]),  
          se_sub_atts__get(Main, 'return_type', void),                        %only handling main with void return type for now
          se_sub_atts__get(Main, 'body', Main_compound_statement),
          symbolic_execute(Main_compound_statement, _Flow),         %symbolically execute the target C function: for now only inputs are its arguments (expand to globals that get overwritten with a switch)

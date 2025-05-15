@@ -1078,9 +1078,9 @@ parameter_declaration
 		}
 	| declaration_specifiers
 		{char *decl_specifier = create_declaration_specifiers();
-		 size_t const size = strlen("param_no_decl(, [])") + strlen(decl_specifier) + 1;
+		 size_t const size = strlen("unnamed_param(, [])") + strlen(decl_specifier) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "param_no_decl(%s, [])", decl_specifier);
+	     sprintf_safe($$, size, "unnamed_param(%s, [])", decl_specifier);
 	     free(decl_specifier);
 		}
 	;
@@ -1536,20 +1536,20 @@ char *create_declaration_specifiers() {
 	else if (decl_spec.storage.isStatic) printf("Warning: the 'static' storage specifier is always ignored by the parser because Sikraken does not support it yet\n");
 	else if (decl_spec.storage.isThreadLocal) printf("Warning: the '_Thread_local' storage specifier is always ignored by the parser because Sikraken does not support threads\n");
 	else if (decl_spec.storage.isAuto) printf("Warning: the 'auto' storage specifier is always ignored by the parser because it is never used in 'modern' C\n");
-	else if (decl_spec.storage.isRegister) printf("Warning: the 'register' storage specifier is always ignored by the parser because it has no impact on symbolic execution\n");
+	else if (decl_spec.storage.isRegister) if (debugMode) printf("Warning: the 'register' storage specifier is always ignored by the parser because it has no impact on symbolic execution\n");
 
 	//strcat(result, "func(["); //always ignored, only warnings issued: see below
 	if (decl_spec.function.isInLine || decl_spec.function.isNoReturn) { //only for functions: can be combined
 		if (decl_spec.function.isInLine) printf("Warning: the 'inline' function specifier is always ignored by the parser because Sikraken does not support it and its implications for testing coverage is unclear\n");
-		if (decl_spec.function.isNoReturn) printf("Warning: the 'noreturn' function specifier is always ignored by the parser because it has no impact on symbolic execution\n");
+		if (decl_spec.function.isNoReturn) if (debugMode) printf("Warning: the 'noreturn' function specifier is always ignored by the parser because it has no impact on symbolic execution\n");
 		//size_t len = strlen(result);
 		//if (result[len - 2] == ',') result[len - 2] = '\0';		// Remove trailing comma and space if any
 	}
 	//strcat(result, "]), ");
 
 	if (decl_spec.qualifier.isConst || decl_spec.qualifier.isRestrict || decl_spec.qualifier.isVolatile || decl_spec.qualifier.isAtomic) { //can be combined
-		if (decl_spec.qualifier.isConst) strcat(result, "const");
-		if (decl_spec.qualifier.isRestrict) printf("Warning: the 'restrict' pointer qualifier is always ignored by the parser because it has no impact on symbolic execution\n");
+		if (decl_spec.qualifier.isConst) if (debugMode) printf("Warning: the 'const' qualifier is always ignored by the parser because it has no impact on symbolic execution\n");
+		if (decl_spec.qualifier.isRestrict) if (debugMode) printf("Warning: the 'restrict' pointer qualifier is always ignored by the parser because it has no impact on symbolic execution\n");
 		if (decl_spec.qualifier.isVolatile) printf("Warning: the 'volatile' qualifier is always ignored by the parser because Sikraken does not support it yet\n");
 		if (decl_spec.qualifier.isAtomic) printf("Warning: the 'atomic' qualifier is always ignored by the parser because Sikraken does not support it and its implications for symbolic execution is unclear\n");
 	}
@@ -1579,7 +1579,7 @@ char *create_declaration_specifiers() {
 	  else if (decl_spec.atomic.isUnSigned) strcat(result, "unsigned(int)");
 	  else strcat(result, "int");
 	if (decl_spec.alignAs != NULL) {
-		printf("Warning: the 'alignas' directive is always ignored by the parser because it has no impact on symbolic execution\n");
+		if (debugMode) printf("Warning: the 'alignas' directive is always ignored by the parser because it has no impact on symbolic execution\n");
 		free(decl_spec.alignAs);
 	} //else strcat(result, "noalign"); //no need
 	strcat(result, ")");
