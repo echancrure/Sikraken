@@ -1,13 +1,19 @@
 extern int __VERIFIER_nondet_int();
 
-int f(signed int) {
+inline int f(signed int) {
     return 0;
 }
 
-struct Point {
+struct Point1 {
     long int x,y;
     _Bool isLanded;
 };
+
+struct Point2 {
+    long int x,y;
+    _Bool isLanded;
+} p1, p2;
+struct Point2 p3 = {0, 0, 0}; //struct Point p3 = {0, 0, 0};
 
 union U {
     int i;
@@ -73,5 +79,6 @@ int main() {
     int z = __VERIFIER_nondet_int();
     if (z == 42) ;
     else ;
+    f(8);
     return 0;
 } 

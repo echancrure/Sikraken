@@ -13,6 +13,7 @@ symbolic_execute([Item|R], Flow) :-
 symbolic_execute(mytrace, 'carry_on') :-
     !,
     mytrace.    %within symbolic_execute/2
+%Declaration_specifiers is a list fo type specifiers e.g. 
 symbolic_execute(declaration(Declaration_specifiers, Declarators), 'carry_on') :-
     !,
     ((Declarators = [Declarator], nonvar(Declarator), 
@@ -59,17 +60,11 @@ symbolic_execute(declaration(Declaration_specifiers, Declarators), 'carry_on') :
          declare_declarators(Declarators, Type_name)
         )
     ).
-%e.g. a struct declaration without variables declarations is just a struct type declaration e.g. declaration([struct(point, [struct_decl([int], [X, Y, Z, T]), struct_decl([float], [Weight])])]), 
+%e.g. a declaration without variables declarations can be a struct type declaration e.g. declaration([struct(point, [struct_decl([int], [X, Y, Z, T]), struct_decl([float], [Weight])])])
+% a union or an enum declaration
 symbolic_execute(declaration(Declaration_specifiers), 'carry_on') :-
     !,
-    (Declaration_specifiers = [struct(Tag, Struct_declaration_list)]  ->  
-        create_struct_type(struct(Tag, Struct_declaration_list), _Struct_type)
-    ;
-     Declaration_specifiers = [struct(Tag)]  ->    %forward struct declaration: declared as empty, will be destroyed on definition
-        create_struct_type(struct(Tag, []), _Struct_type)
-    ;
-        common_util__error(9, "Unexpected declaration", "Sikraken needs expanding", [('Declaration', declaration(Declaration_specifiers))], '9_031224_1', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info)
-    ).
+    extract_type(Declaration_specifiers, _Type).
 symbolic_execute(function(Specifiers, function(Function_name, Parameters), [], Compound_statement), 'carry_on') :-
     !,
     extract_type(Specifiers, Return_type_name),

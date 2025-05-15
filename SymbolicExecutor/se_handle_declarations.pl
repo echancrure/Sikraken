@@ -153,8 +153,11 @@ declare_return(Return_seav, Type_name) :-
     ),
     seav__create_var(Type_name_ptr_opt, 'not_needed', Output, Clean_return).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%extract the basic type from the list of declaration_specifiers
-%typedef occurs last in the list
+%extract_type handles the declaration_specifiers output from the C function create_declaration_specifiers() in the parser grammar
+%it return atomic types (e.g. int, unsigned(long_long)) and create non-atomic types (struct, union, enum)
+%the syntax of the input arg is spec(Storage, Type_qualifier_list (can only be 'const' for now), Type, Alignment)
+extract_type(spec(Storage, Type_qualifier_list, Type, Alignment), Type) :-
+    
 extract_type([Typedef_var], Type) :-
     se_typedef_atts__is_typedef_atts(Typedef_var),
     !,
@@ -217,7 +220,7 @@ extract_type([struct(Tag, Struct_decl_list)], Struct_type) :-
     !,
     create_struct_type(struct(Tag, Struct_decl_list), Struct_type).
 extract_type([struct(Tag)], Tag) :-
-    (ptc_solver__is_struct_type(Tag) -> %a previously defined struct type
+    (ptc_solver__is_struct_type(Tag) -> %a previously defined struct type (document when this occurs
         true
     ;
         create_struct_type(struct(Tag, []), _Struct_type)   %e.g. a typedef for a forward struct declaration... as in "typedef struct plot plot;"   //typedef of a forward declaration
