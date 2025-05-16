@@ -5,8 +5,8 @@ inline int f(signed int) {
 }
 
 struct Point1 {
-    long int x,y;
-    _Bool isLanded;
+    long int x,y,z;
+    _Bool isLanded1;
 };
 
 struct Point2 {

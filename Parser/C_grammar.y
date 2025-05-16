@@ -33,6 +33,7 @@ int debugMode = 0;					//flag to indicate if we are in debug mode set by -d comm
 #include "parser.h"
 #include "utils.c"
 #include "handle_typedefs.c"
+#include "handle_decl_specs.c"
 
 extern int yylex();
 extern int yylineno;
@@ -63,44 +64,8 @@ int current_scope = 0;
 
 char *current_function;			//we keep track of the function being parsed so that we can add it to goto statements
 
-struct {
-	char *non_atomic;
-	struct {
-		bool isVoid;
-		bool isSigned;
-		bool isUnSigned;
-		bool isChar;
-		bool isShort;
-		bool isInt;
-		int longCount;
-		bool isFloat;
-		bool isDouble;
-		char *typeName;
-	} atomic;
-	struct {
-		bool isConst;
-		bool isRestrict;
-		bool isVolatile;
-		bool isAtomic;
-	} qualifier;
-	struct {
-		bool isTypeDef;
-		bool isExtern;
-		bool isStatic;
-		bool isThreadLocal;
-		bool isAuto;
-		bool isRegister;
-	} storage;
-	struct {
-		bool isInLine;
-		bool isNoReturn;
-	} function;
-	char *alignAs;
-} decl_spec;
-
 void yyerror(const char*);
 void my_exit(int);				//attempts to close handles and delete generated files prior to caling exit(int);
-char *create_declaration_specifiers();
 
 %}
 
@@ -136,7 +101,7 @@ char *create_declaration_specifiers();
 %token ALIGNAS ALIGNOF ATOMIC_SPECIFIER ATOMIC GENERIC NORETURN STATIC_ASSERT THREAD_LOCAL
 %token INT128 FLOAT128 VA_LIST
 
-%type <id> init_declarator initializer pointer init_declarator_list 
+%type <id> init_declarator initializer pointer pointer_star init_declarator_list 
 %type <id> abstract_declarator_opt
 %type <id> expression constant_expression assignment_expression conditional_expression assignment_operator
 %type <id> logical_or_expression logical_and_expression inclusive_or_expression exclusive_or_expression and_expression equality_expression equality_expression_op relational_expression relational_expression_operator shift_expression shift_expression_op additive_expression additive_expression_op
@@ -588,6 +553,7 @@ declaration
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "\n%s", $1);
 		 free($1);
+		 pop_decl_spec_stack();
 		}
 	;
 //always set in_ordinary_id_declaration = 1 afterwards as declarator are always after it
@@ -650,41 +616,41 @@ init_declarator
 //only one of these per type
 storage_class_specifier
 	: TYPEDEF	/* the following typedef declarator identifier must be added to the list of typedefs so that it will get identified as TYPEDEF_NAME in lexer and not as an identifier*/
-		{decl_spec.storage.isTypeDef = true;
+		{decl_spec_stack->decl_spec.storage.isTypeDef = true;
          typedef_flag = 1;
 		 if (debugMode) printf("Debug: typedef switched to 1\n");
 	    }
-	| EXTERN		{ decl_spec.storage.isExtern = true; }
-	| STATIC		{ decl_spec.storage.isStatic = true; }
-	| THREAD_LOCAL	{ decl_spec.storage.isThreadLocal = true; }
-	| AUTO			{ decl_spec.storage.isAuto = true; }
-	| REGISTER		{ decl_spec.storage.isRegister = true; }
+	| EXTERN		{ decl_spec_stack->decl_spec.storage.isExtern = true; }
+	| STATIC		{ decl_spec_stack->decl_spec.storage.isStatic = true; }
+	| THREAD_LOCAL	{ decl_spec_stack->decl_spec.storage.isThreadLocal = true; }
+	| AUTO			{ decl_spec_stack->decl_spec.storage.isAuto = true; }
+	| REGISTER		{ decl_spec_stack->decl_spec.storage.isRegister = true; }
 	;
 
 type_specifier
-	: VOID					{ in_ordinary_id_declaration = 1; decl_spec.atomic.isVoid = true;}
-	| CHAR					{ in_ordinary_id_declaration = 1; decl_spec.atomic.isChar = true;}
-	| SHORT					{ in_ordinary_id_declaration = 1; decl_spec.atomic.isShort= true;}
-	| INT					{ in_ordinary_id_declaration = 1; decl_spec.atomic.isInt = true;}
-	| LONG					{ in_ordinary_id_declaration = 1; decl_spec.atomic.longCount++;}
-	| FLOAT					{ in_ordinary_id_declaration = 1; decl_spec.atomic.isFloat = true;}
-	| DOUBLE				{ in_ordinary_id_declaration = 1; decl_spec.atomic.isDouble = true;}
-	| SIGNED				{ in_ordinary_id_declaration = 1; decl_spec.atomic.isSigned = true;}
-	| UNSIGNED				{ in_ordinary_id_declaration = 1; decl_spec.atomic.isUnSigned = true;}
-	| BOOL					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&decl_spec.atomic.typeName, "bool");}
-	| COMPLEX				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&decl_spec.atomic.typeName, "complex");}
-	| IMAGINARY				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&decl_spec.atomic.typeName, "imaginary");}	
-	| atomic_type_specifier	{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&decl_spec.atomic.typeName, "atomic_type_specifier");}
-	| struct_or_union_specifier { in_ordinary_id_declaration = 1; decl_spec.non_atomic = $1;}
-	| enum_specifier		{ in_ordinary_id_declaration = 1; decl_spec.non_atomic = $1;}
+	: VOID					{ in_ordinary_id_declaration = 1; decl_spec_stack->decl_spec.atomic.isVoid = true;}
+	| CHAR					{ in_ordinary_id_declaration = 1; decl_spec_stack->decl_spec.atomic.isChar = true;}
+	| SHORT					{ in_ordinary_id_declaration = 1; decl_spec_stack->decl_spec.atomic.isShort= true;}
+	| INT					{ in_ordinary_id_declaration = 1; decl_spec_stack->decl_spec.atomic.isInt = true;}
+	| LONG					{ in_ordinary_id_declaration = 1; decl_spec_stack->decl_spec.atomic.longCount++;}
+	| FLOAT					{ in_ordinary_id_declaration = 1; decl_spec_stack->decl_spec.atomic.isFloat = true;}
+	| DOUBLE				{ in_ordinary_id_declaration = 1; decl_spec_stack->decl_spec.atomic.isDouble = true;}
+	| SIGNED				{ in_ordinary_id_declaration = 1; decl_spec_stack->decl_spec.atomic.isSigned = true;}
+	| UNSIGNED				{ in_ordinary_id_declaration = 1; decl_spec_stack->decl_spec.atomic.isUnSigned = true;}
+	| BOOL					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&(decl_spec_stack->decl_spec.atomic.typeName), "bool");}
+	| COMPLEX				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "complex");}
+	| IMAGINARY				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "imaginary");}	
+	| atomic_type_specifier	{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "atomic_type_specifier");}
+	| struct_or_union_specifier { in_ordinary_id_declaration = 1; decl_spec_stack->decl_spec.non_atomic = $1;}
+	| enum_specifier		{ in_ordinary_id_declaration = 1; decl_spec_stack->decl_spec.non_atomic = $1;}
 	| TYPEDEF_NAME			
 		{in_ordinary_id_declaration = 1; 
-		 decl_spec.non_atomic = to_prolog_var($1);
+		 decl_spec_stack->decl_spec.non_atomic = to_prolog_var($1);
 		 free($1);
 		}
-	| INT128				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&decl_spec.atomic.typeName, "int128");}		//gcc extension: builtin type
-	| FLOAT128				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&decl_spec.atomic.typeName, "float128");}	//gcc extension: builtin type
-	| VA_LIST				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&decl_spec.atomic.typeName, "va_list");}		//gcc extension: builtin type
+	| INT128				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "int128");}		//gcc extension: builtin type
+	| FLOAT128				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "float128");}	//gcc extension: builtin type
+	| VA_LIST				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "va_list");}		//gcc extension: builtin type
 
 struct_or_union_specifier
 	: struct_or_union '{' {in_tag_declaration = 0;} struct_declaration_list '}'		//anonymous struct or union
@@ -728,13 +694,13 @@ struct_or_union
 	;
 
 struct_declaration_list
-	: struct_declaration
-	| struct_declaration_list struct_declaration
-		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
+	: {push_decl_spec_stack();} struct_declaration {$$ = $2;}
+	| struct_declaration_list {push_decl_spec_stack();} struct_declaration
+		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "%s, %s", $1, $2);
+	     sprintf_safe($$, size, "%s, %s", $1, $3);
 	     free($1);
-	     free($2);
+	     free($3);
 	    }
 	;
 
@@ -746,7 +712,6 @@ struct_declaration
          sprintf_safe($$, size, "anonymous_member(%s)", decl_specifier);
 	   	 free(decl_specifier);
         }
-
 	| specifier_qualifier_list {in_member_namespace = 1;} struct_declarator_list ';'
 		{in_member_namespace = 0;
 		 char *decl_specifier = create_declaration_specifiers();
@@ -756,7 +721,10 @@ struct_declaration
 	   	 free(decl_specifier);
 		 free($3);
         }
-	| static_assert_declaration	//default action
+	| static_assert_declaration	
+		{$$ = $1;
+		 pop_decl_spec_stack(); 
+		}
 	;
 
 specifier_qualifier_list
@@ -865,28 +833,28 @@ atomic_type_specifier		// new in C11 for atomic operation: used in concurrency
 	;
 
 type_qualifier
-	: CONST		{decl_spec.qualifier.isConst = true;}
-	| RESTRICT	{decl_spec.qualifier.isRestrict = true;}	//C99, pointer qualifier indicate only reference to object, allows for compiler optimisation
-	| VOLATILE	{decl_spec.qualifier.isVolatile = true;}
-	| ATOMIC	{decl_spec.qualifier.isAtomic= true;}
+	: CONST		{decl_spec_stack->decl_spec.qualifier.isConst = true;}
+	| RESTRICT	{decl_spec_stack->decl_spec.qualifier.isRestrict = true;}	//C99, pointer qualifier indicate only reference to object, allows for compiler optimisation
+	| VOLATILE	{decl_spec_stack->decl_spec.qualifier.isVolatile = true;}
+	| ATOMIC	{decl_spec_stack->decl_spec.qualifier.isAtomic= true;}
 	;
 
 function_specifier
-	: INLINE	{decl_spec.function.isInLine = true;}
-	| NORETURN	{decl_spec.function.isNoReturn = true;}
+	: INLINE	{decl_spec_stack->decl_spec.function.isInLine = true;}
+	| NORETURN	{decl_spec_stack->decl_spec.function.isNoReturn = true;}
 	;
 
 alignment_specifier
 	: ALIGNAS '(' type_name ')'
 		{size_t const size = strlen("alignas()") + strlen($3) + 1;
-	     decl_spec.alignAs = (char*)malloc(size);
-		 sprintf_safe(decl_spec.alignAs, size, "alignas(%s)", $3);
+	     decl_spec_stack->decl_spec.alignAs = (char*)malloc(size);
+		 sprintf_safe(decl_spec_stack->decl_spec.alignAs, size, "alignas(%s)", $3);
 		 free($3);
 		}
 	| ALIGNAS '(' constant_expression ')'
 		{size_t const size = strlen("alignas()") + strlen($3) + 1;
-	     decl_spec.alignAs = (char*)malloc(size);
-		 sprintf_safe(decl_spec.alignAs, size, "alignas(%s)", $3);
+	     decl_spec_stack->decl_spec.alignAs = (char*)malloc(size);
+		 sprintf_safe(decl_spec_stack->decl_spec.alignAs, size, "alignas(%s)", $3);
 		 free($3);
 		}
 	;
@@ -1002,30 +970,27 @@ rest_function_definition
 	;
 
 pointer
-	: '*' type_qualifier_list pointer		//e.g. const int *volatile *const ptr;
-		{char *decl_specifier = create_declaration_specifiers();
-		 size_t const size = strlen("pointer(, )") + strlen(decl_specifier) + strlen($3) + 1;
+	: pointer_star pointer
+		{size_t const size = strlen("pointer(, )") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "pointer(%s, %s)", decl_specifier, $3);
-		 free(decl_specifier);
-		 free($3);
+	     sprintf_safe($$, size, "pointer(%s, %s)", $1, $2);
+		 free($1);
+		 free($2);
 		}
-	| '*' type_qualifier_list
+	| pointer_star {$$ = $1;}
+	;
+
+pointer_star
+	: '*' {push_decl_spec_stack();} type_qualifier_list
 		{char *decl_specifier = create_declaration_specifiers();
 		 size_t const size = strlen("pointer()") + strlen(decl_specifier) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "pointer(%s)", decl_specifier);
 	     free(decl_specifier);
 		}
-	| '*' pointer
-		{size_t const size = strlen("pointer()") + strlen($2) + 1;
-		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "pointer(%s)", $2);
-		 free($2);
-		}
 	| '*'
 		{simple_str_lit_copy(&$$, "pointer");}
-	;
+	;	
 
 type_qualifier_list
 	: type_qualifier
@@ -1048,13 +1013,13 @@ parameter_type_list
 	;
 
 parameter_list
-	: parameter_declaration
-	| parameter_list ',' parameter_declaration
-		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
+	: {push_decl_spec_stack();} parameter_declaration {$$ = $2;}
+	| parameter_list ',' {push_decl_spec_stack();} parameter_declaration
+		{size_t const size = strlen(", ") + strlen($1) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "%s, %s", $1, $3);
+	     sprintf_safe($$, size, "%s, %s", $1, $4);
 	     free($1);
-		 free($3);
+		 free($4);
 		}
 	;
 
@@ -1091,17 +1056,18 @@ old_style_parameter_list	//for old-style function declaration for the parameters
 	;
 
 type_name
-	: specifier_qualifier_list abstract_declarator_opt	
-		{if (!strcmp($2, "")) {
+	: {push_decl_spec_stack();} specifier_qualifier_list abstract_declarator_opt	
+		{if (!strcmp($3, "")) {
 			char *decl_specifier = create_declaration_specifiers();
 			size_t const size = strlen("") + strlen(decl_specifier) + 1;
 	     	$$ = (char*)malloc(size);
 	     	sprintf_safe($$, size, "%s", decl_specifier);
 			free(decl_specifier);
 		 } else {
+			pop_decl_spec_stack();
 		 	simple_str_lit_copy(&$$, "type_abstract_declarator_dummy1");	//document please: when does this occur?
 		 }
-		 free($2);
+		 free($3);
 		}
 	;
 
@@ -1284,19 +1250,20 @@ compound_statement	//aka a 'block'
 	;
 
 block_item_list
-	: block_item {in_ordinary_id_declaration = 0;}
-	| block_item_list block_item {in_ordinary_id_declaration = 0;}
-	  {size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
+	: {push_decl_spec_stack();} block_item {$$ = $2; in_ordinary_id_declaration = 0;}
+	| block_item_list {push_decl_spec_stack();} block_item
+	  {in_ordinary_id_declaration = 0;
+	   size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
 	   $$ = (char*)malloc(size);
-	   sprintf_safe($$, size, "%s, %s", $1, $2);
+	   sprintf_safe($$, size, "%s, %s", $1, $3);
 	   free($1);
-	   free($2);
+	   free($3);
 	  }
 	;
 
 block_item
 	: declaration
-	| statement
+	| statement {pop_decl_spec_stack();}
 	;
 
 expression_statement
@@ -1365,8 +1332,8 @@ iteration_statement
 for_stmt_type
 	: expression_statement expression_opt ';' expression_opt 
 	  {$$ = (struct for_stmt){.init = $1, .cond = $2, .update = $4};}	//a compound literal
-	| declaration expression_opt ';' expression_opt
-	  {$$ = (struct for_stmt){.init = $1, .cond = $2, .update = $4};}	//a compound literal
+	| {push_decl_spec_stack();} declaration expression_opt ';' expression_opt
+	  {$$ = (struct for_stmt){.init = $2, .cond = $3, .update = $5};}	//a compound literal
 	;
 
 expression_opt
@@ -1394,18 +1361,18 @@ jump_statement
 
 //top level rule
 translation_unit 			//printed out
-	: external_declaration
-	| translation_unit {fprintf(pl_file, ", \n");} external_declaration
+	: {push_decl_spec_stack();} external_declaration
+	| translation_unit {fprintf(pl_file, ", \n"); push_decl_spec_stack();} external_declaration
 	;
 
 external_declaration		//printed out
-	: function_definition	
+	: function_definition
 		{handled_function_paramaters = 0;
 		 pop_scope(&current_scope);
 		 fprintf(pl_file, "%s", $1); 
 		 free($1);
 		}
-	| declaration			
+	|  declaration
 		{if (handled_function_paramaters == 666) handled_function_paramaters = 0; 
 		else if(handled_function_paramaters) {
 			handled_function_paramaters = 0;
@@ -1438,25 +1405,18 @@ declaration_list_opt
 	;
 
 old_style_declaration_list
-	: declaration
-	| old_style_declaration_list declaration
-	  	{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
+	: {push_decl_spec_stack();} declaration {$$ = $2;}
+	| old_style_declaration_list {push_decl_spec_stack();} declaration
+	  	{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "%s, %s", $1, $2);
+	     sprintf_safe($$, size, "%s, %s", $1, $3);
 	     free($1);
-		 free($2);
+		 free($3);
 		}
 	;
 
 %%
 #include "lex.yy.c"
-
-void init_declaration_specifiers() { // Initialize all fields to NULL or false
-    memset(&decl_spec, 0, sizeof(decl_spec));	//all bytes to 0
-	decl_spec.atomic.typeName = NULL;	//explicit NULL for strings
-    decl_spec.non_atomic = NULL;	
-    decl_spec.alignAs = NULL;
-}
 
 int main(int argc, char *argv[]) {
 	char C_file_path[MAX_PATH];				//directory where the C and .i files are
@@ -1511,7 +1471,7 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr, ".pl file could not be created for writing at: %s\n", pl_file_uri);
 		my_exit(EXIT_FAILURE);
 	}
-	init_declaration_specifiers();			//initialise global
+
 	fprintf(pl_file, "prolog_c([");			//opening predicate
 	if (yyparse() != 0) {					//the parser is called
 		fprintf(stderr, "Parsing failed.\n");
@@ -1523,69 +1483,6 @@ int main(int argc, char *argv[]) {
 	fclose(i_file);
 	i_file = NULL;
 	my_exit(EXIT_SUCCESS);
-}
-
-//Types in declaration specifiers are handled separately to remove duplicates (e.g. long int) and always return them in the same order
-//It makes the subsequent job of Sikraken using Prolog easier, as the intermediate form is more regular
-char *create_declaration_specifiers() {
-	char *result = (char *)malloc(1024);	//don't know the size...
-	strcpy(result, "spec([");
-	//storage specifier cannot be combined: it must be unique to be valid C
-	if (decl_spec.storage.isTypeDef) strcat(result, "typedef, ");
-	else if (decl_spec.storage.isExtern) strcat(result, "extern, ");
-	else if (decl_spec.storage.isStatic) printf("Warning: the 'static' storage specifier is always ignored by the parser because Sikraken does not support it yet\n");
-	else if (decl_spec.storage.isThreadLocal) printf("Warning: the '_Thread_local' storage specifier is always ignored by the parser because Sikraken does not support threads\n");
-	else if (decl_spec.storage.isAuto) printf("Warning: the 'auto' storage specifier is always ignored by the parser because it is never used in 'modern' C\n");
-	else if (decl_spec.storage.isRegister) if (debugMode) printf("Warning: the 'register' storage specifier is always ignored by the parser because it has no impact on symbolic execution\n");
-
-	//strcat(result, "func(["); //always ignored, only warnings issued: see below
-	if (decl_spec.function.isInLine || decl_spec.function.isNoReturn) { //only for functions: can be combined
-		if (decl_spec.function.isInLine) printf("Warning: the 'inline' function specifier is always ignored by the parser because Sikraken does not support it and its implications for testing coverage is unclear\n");
-		if (decl_spec.function.isNoReturn) if (debugMode) printf("Warning: the 'noreturn' function specifier is always ignored by the parser because it has no impact on symbolic execution\n");
-		//size_t len = strlen(result);
-		//if (result[len - 2] == ',') result[len - 2] = '\0';		// Remove trailing comma and space if any
-	}
-	//strcat(result, "]), ");
-
-	if (decl_spec.qualifier.isConst || decl_spec.qualifier.isRestrict || decl_spec.qualifier.isVolatile || decl_spec.qualifier.isAtomic) { //can be combined
-		if (decl_spec.qualifier.isConst) if (debugMode) printf("Warning: the 'const' qualifier is always ignored by the parser because it has no impact on symbolic execution\n");
-		if (decl_spec.qualifier.isRestrict) if (debugMode) printf("Warning: the 'restrict' pointer qualifier is always ignored by the parser because it has no impact on symbolic execution\n");
-		if (decl_spec.qualifier.isVolatile) printf("Warning: the 'volatile' qualifier is always ignored by the parser because Sikraken does not support it yet\n");
-		if (decl_spec.qualifier.isAtomic) printf("Warning: the 'atomic' qualifier is always ignored by the parser because Sikraken does not support it and its implications for symbolic execution is unclear\n");
-	}
-	size_t len = strlen(result);
-	if (result[len - 2] == ',') result[len - 2] = '\0';		// Remove trailing comma and space if any
-	strcat(result, "], ");
-
-	if (decl_spec.non_atomic != NULL) {	//for struct, union, enum types
-		strcat(result, decl_spec.non_atomic);
-		free(decl_spec.non_atomic);
-	} else if (decl_spec.atomic.typeName != NULL) { //for typedefname and other types not mentionned below
-		strcat(result, decl_spec.atomic.typeName);
-		free(decl_spec.atomic.typeName);
-	}
-	  else if (decl_spec.atomic.isVoid) strcat(result, "void");
-	  else if (decl_spec.atomic.longCount > 0 && decl_spec.atomic.isDouble) strcat(result, "long_double");
-	  else if (decl_spec.atomic.isDouble) strcat(result, "double");
-	  else if (decl_spec.atomic.isFloat) strcat(result, "float");
-	  else if (decl_spec.atomic.longCount > 1 && decl_spec.atomic.isUnSigned) strcat(result, "unsigned(long_long)");
-	  else if (decl_spec.atomic.longCount > 1) strcat(result, "long_long");
-	  else if (decl_spec.atomic.longCount == 1 && decl_spec.atomic.isUnSigned) strcat(result, "unsigned(long)");
-	  else if (decl_spec.atomic.longCount == 1) strcat(result, "long");
-	  else if (decl_spec.atomic.isShort && decl_spec.atomic.isUnSigned) strcat(result, "unsigned(short)");
-	  else if (decl_spec.atomic.isShort) strcat(result, "short");
-	  else if (decl_spec.atomic.isChar && decl_spec.atomic.isUnSigned) strcat(result, "unsigned(char)");
-	  else if (decl_spec.atomic.isChar) strcat(result, "char");
-	  else if (decl_spec.atomic.isUnSigned) strcat(result, "unsigned(int)");
-	  else strcat(result, "int");
-	if (decl_spec.alignAs != NULL) {
-		if (debugMode) printf("Warning: the 'alignas' directive is always ignored by the parser because it has no impact on symbolic execution\n");
-		free(decl_spec.alignAs);
-	} //else strcat(result, "noalign"); //no need
-	strcat(result, ")");
-	init_declaration_specifiers();	//must be done before next use
-	if (debugMode) printf("Debug: create_declaration_specifiers returned: %s\n", result);
-	return result;
 }
 
 //handles parsing errors: since the C input file is the output of a C pre-processor it will only be called if

@@ -102,4 +102,3 @@ int is_typedef_name(char* id) {
 	}
 	return 0;
 }
-

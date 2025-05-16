@@ -71,17 +71,17 @@ create_struct_type(struct(Tag, Struct_declaration_list), Struct_type) :-
     create_field_valuesL([], []).
     create_field_valuesL([anonymous_member(Struct_or_Union)|Rest_i], Field_values_List) :-    %Anonymous Members in Structs have different access rules
         !,
-        single_struct_decl([Struct_or_Union], [_Anonymous_member], Anonymous_struct_or_union_member),
+        single_struct_decl(Struct_or_Union, [_Anonymous_member], Anonymous_struct_or_union_member),
         create_field_valuesL(Rest_i, Rest_o),
         append(Anonymous_struct_or_union_member, Rest_o, Field_values_List).
-    create_field_valuesL([struct_decl(Type_specifiers_L, Declarators_List)|Struct_declarations_Rest], Field_values_List) :-
+    create_field_valuesL([struct_decl(Type_specifier, Declarators_List)|Struct_declarations_Rest], Field_values_List) :-
         !,
-        single_struct_decl(Type_specifiers_L, Declarators_List, Inner_field_values_List),
+        single_struct_decl(Type_specifier, Declarators_List, Inner_field_values_List),
         create_field_valuesL(Struct_declarations_Rest, Field_values_Rest),
         append(Inner_field_values_List, Field_values_Rest, Field_values_List).
         %%%
-        single_struct_decl(Type_specifiers_L, Declarators_List, Inner_field_values_List) :-
-            extract_type(Type_specifiers_L, Member_type),   %will have to deal with pointers and non-atomic
+        single_struct_decl(Type_specifier, Declarators_List, Inner_field_values_List) :-
+            extract_type(Type_specifier, Member_type),   %will have to deal with pointers and non-atomic
             member_list(Declarators_List, Member_type, Inner_field_values_List).
             %%%
             member_list([], _Member_type, []).
@@ -166,7 +166,7 @@ extract_type(spec(_Qualifier_list, Type_spec), Type) :-
         (se_typedef_atts__is_typedef_atts(Typedefname_var) ->
             se_typedef_atts__get(Typedefname_var, 'type', Type)
         ;
-            common_util__error(9, "Expected a Typedefname_var", "Sikraken needs expanding", [('Typedefname_var', Typedefname_var)], '9_181124', 'se_handle_all_declarations', 'extract_type2', no_localisation, no_extra_info)
+            common_util__error(9, "Expected a Typedefname_var", "Sikraken needs expanding", [('Typedefname_var', Typedefname_var)], '9_160525', 'se_handle_all_declarations', 'extract_type2', no_localisation, no_extra_info)
         ).
     extract_type2(struct(Tag, Struct_decl_list), Struct_type) :- %e.g. handling a typedef of a struct (the Tag can be anonymous): struct type is created
         !,
