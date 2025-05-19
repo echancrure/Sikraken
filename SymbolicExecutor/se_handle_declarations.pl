@@ -89,9 +89,11 @@ create_struct_type(struct(Tag, Struct_declaration_list), Struct_type) :-
                 %a Declarator can be x, *x, x[10]
                 member_list(Declarators_List_Rest, Member_type, Inner_field_values_Rest).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%first two arguments are inputs
 %e.g. extract_pointers(ptr_decl(pointer, X), int, pointer(int), X)
 %e.g. extract_pointers(array_decl(A, Size), int, array(int, Size), A)
 %e.g. extract_pointers(function(ptr_decl(pointer, Operation_fn), [unnamed_param(spec([], int), []), unnamed_param(spec([], int), [])]), int, pointer(int), Operation_fn)
+% this a type named operation_fn for a pointer to a function that takes two ints and returns an int 
 extract_pointers(Var, Type_name, Type_name_ptr_opt, Clean_var) :-
     (nonvar(Var) ->
         (Var = ptr_decl(Ptr_exp, Clean_var) ->
