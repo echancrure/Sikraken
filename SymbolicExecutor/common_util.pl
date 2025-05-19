@@ -53,13 +53,14 @@ common_util__error(Error_severity, Error_message, Error_consequences, ArgumentsL
        ).
 
 common_util__error2(10, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode) :-
-    !,
-    (Message_mode == debug ->
-            (printf(output, "###################################%n", []),
-             printf(output, "=>Sikraken: a fatal error has occurred%n", []),
-             printf(output, "        Error Code: %w%n", [Error_code]),
-             printf(output, "        Message: %s%n", [Error_message]),
-             (ArgumentsL == no_arguments ->
+       !,
+       se_globals__get_val('target_source_file_name_no_ext', Target_source_file_name_no_ext),
+       printf(output, "%2n###################################%n", []),
+       printf(output, "=>Sikraken: a fatal error has occurred for %w%n", [Target_source_file_name_no_ext]),
+       printf(output, "        Error Code: %w%n", [Error_code]),
+       printf(output, "        Message: %s%n", [Error_message]),
+       (Message_mode == debug ->
+            ((ArgumentsL == [] ->
                     true
              ;
                     (printf(output, "        Arguments: ", []),
@@ -88,28 +89,23 @@ common_util__error2(10, Error_message, Error_consequences, ArgumentsL, Error_cod
              printf(output, "            Was processing the %w entity when error occurred%n", [Current]),
              printf(output, "            To help debugging, path information prior to error follows ...%n", []),
              se_globals__get_ref('current_path_bran', Current_path_bran),
-             printf(output, "            Branches followed prior to error : %w%n", [Current_path_bran]),
-             printf(output, "###################################%n", [])
+             printf(output, "            Branches followed prior to error : %w%n", [Current_path_bran])
             )
-    ;
-            (printf(output, "%2n###################################%n", []),
-             printf(output, "=>Sikraken: a fatal error has occurred%n", []),
-             printf(output, "        Error Code: %w%n", [Error_code]),
-             printf(output, "        Message: %s%n", [Error_message]),
-             (ArgumentsL = no_arguments ->
+       ;
+            ((ArgumentsL == [] ->
                     true
              ;
                     (printf(output, "        Arguments: ", []),
                      cue_print_error_arguments(ArgumentsL, release)
                     )
              ),
-             printf(output, "=>Report error to echancrure@gmail.com to have it addressed.%n", []),
-             printf(output, "###################################%n", [])
+             printf(output, "=>Report error to echancrure@gmail.com to have it addressed.%n", [])
             )
-    ),
-    log_and_terminate @ eclipse,
-    flush(output),
-    abort.
+       ),
+       printf(output, "###################################%n", []),
+       log_and_terminate @ eclipse,
+       flush(output),
+       abort.
 
 common_util__error2(0, Error_message, Error_consequences, ArgumentsL, _Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode) :-
     !,

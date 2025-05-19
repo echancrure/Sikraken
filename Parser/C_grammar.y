@@ -317,7 +317,7 @@ unary_operator
 
 cast_expression
 	: unary_expression
-	| '('  type_name ')' cast_expression		//DIFFICULTY HERE: could be the start of cast as here if a TYPEDEF_NAME is returned by lexer or a parenthesed expression if it returns an IDENTIFIER
+	| '('  type_name ')' cast_expression
 		{size_t const size = strlen("cast(, )") + strlen($2) + strlen($4) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "cast(%s, %s)", $2, $4);

@@ -36,7 +36,7 @@ struct _IO_FILE{        //at last defines struct _IO_FILE
     int  Id_MCDC_0;
 };
 
-// Typedef for a function pointer that takes two ints and returns an int
+// Typedef named operation_fn for a pointer to a function that takes two ints and returns an int
 typedef int (*operation_fn)(int, int);
 
 // Example function that matches the typedef

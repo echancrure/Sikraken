@@ -3,9 +3,12 @@ extern int __VERIFIER_nondet_int();
 inline int f(signed int) {
     return 0;
 }
-
+typedef struct {
+    int n;
+ }S;
+  
 struct Point1 {
-    long int x,y,z;
+    long int x1,y,z;
     _Bool isLanded1;
 };
 

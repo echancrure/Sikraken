@@ -152,6 +152,19 @@ WS  [ \t\v\n\f]
                              yylval.id[i] = '\0';
                              if (in_member_namespace || in_tag_declaration || in_label_namespace) 
                                 return IDENTIFIER;
+                             if (is_typedef_name(yylval.id)) {
+                                if (in_ordinary_id_declaration) {  //declaring a new IDENTIFIER
+                                    //shadowing of typedef occuring: push the identifier onto the typedef stack with the current scope level
+                                    add_typedef_id(current_scope, yylval.id, 0);   //0 indicates that it is an ordinary id
+                                    if (debugMode) printf("Debug: SHADOWING of a typedef_name found: %s on line %d\n", yylval.id, yylineno);
+                                    return IDENTIFIER;
+                                } else {
+                                    if (debugMode) printf("Debug: returning TYPEDEF_NAME %s from lexer on line %d\n", yylval.id, yylineno);
+                                    return TYPEDEF_NAME;
+                                }
+                             } else return IDENTIFIER;
+
+                             /*   was:
                              if (in_ordinary_id_declaration) {  //declaring a new IDENTIFIER
                                 if (is_typedef_name(yylval.id)) {
                                     //shadowing of typedef occuring: push the identifier onto the typedef stack with the current scope level
@@ -166,6 +179,7 @@ WS  [ \t\v\n\f]
                              } else {
                                 return IDENTIFIER; //not an ordinary declaration but ordinary id
                              }
+                             */
                             }
 
 {HP}{H}+{IS}?				{wrap_integer_constants("16'", &yytext[2], &yylval.id);     //hexadecimal integer

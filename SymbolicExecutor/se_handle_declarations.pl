@@ -49,7 +49,6 @@ declare_single_declarator(Declarator, Type_name, Type_name_ptr_opt, Casted, Clea
         )
     ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 declare_typedefs([], _).
 declare_typedefs([Typedef|R], Type_name) :-
     extract_pointers(Typedef, Type_name, Type_name_ptr_opt, Clean_typedef_var),
@@ -92,6 +91,7 @@ create_struct_type(struct(Tag, Struct_declaration_list), Struct_type) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %e.g. extract_pointers(ptr_decl(pointer, X), int, pointer(int), X)
 %e.g. extract_pointers(array_decl(A, Size), int, array(int, Size), A)
+%e.g. extract_pointers(function(ptr_decl(pointer, Operation_fn), [unnamed_param(spec([], int), []), unnamed_param(spec([], int), [])]), int, pointer(int), Operation_fn)
 extract_pointers(Var, Type_name, Type_name_ptr_opt, Clean_var) :-
     (nonvar(Var) ->
         (Var = ptr_decl(Ptr_exp, Clean_var) ->
@@ -190,7 +190,7 @@ extract_type(spec(_Qualifier_list, Type_spec), Type) :-
     extract_type2(enum(Tag), void) :-
         !,
         common_util__error(9, "Enum forward types are not handled", "Sikraken needs expanding", [('Enum', enum(Tag))], '9_150525_1', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).
-    extract_type2(unsigned(Atomic_type), Atomic_type) :-  %e.g. unsigned(int), unsigned(char), unsigned(short), unsigned(long), unsigned(long_long)
+    extract_type2(unsigned(Atomic_type), unsigned(Atomic_type)) :-  %e.g. unsigned(int), unsigned(char), unsigned(short), unsigned(long), unsigned(long_long)
         !,
         atomic(Atomic_type).
     extract_type2(Atomic_type, Atomic_type) :-  %e.g. int128, bool, int, float, double, long_double, char, short, long, long_long

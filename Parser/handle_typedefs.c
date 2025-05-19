@@ -84,6 +84,7 @@ void add_typedef_id(int scope, char* id, int is_typedef_name) {
 }
 
 //look for the id in the scope of list of typedefs
+//called during lexical analysis: see grammar.l
 int is_typedef_name(char* id) {
 	if (debugMode) {
 		printf("Looking for %s in typedef list\n", id);

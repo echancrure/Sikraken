@@ -86,14 +86,12 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
          Symbolic_expression = symb(int, 0)
         )
     ).
-symbolically_interpret(cast(Raw_typeL, Expression), symb(To_type, Casted)) :-
+symbolically_interpret(cast(Decl_spec, Expression), symb(To_type, Casted)) :-
     !,
-    (is_list(Raw_typeL) ->
-        (%mytrace, 
-         extract_type(Raw_typeL, To_type)    %list of declaration_specifiers
-        )
+    ((nonvar(Decl_spec), Decl_spec = spec(_Qualifier_list, _Type_spec))  ->
+        extract_type(Decl_spec, To_type)
     ;
-        To_type = Raw_typeL     %an internal call, already transformed
+        To_type = Decl_spec     %an internal call, already transformed: e.g. when variables are initialised during declaration, the expression needs to be casted to a type that has already been extracted
     ),
     symbolically_interpret(Expression, symb(From_type, Symbolic)),
     (To_type == 'void' ->    %casting to void: discard the expression, but evaluation above still has to happen
