@@ -52,7 +52,16 @@ declare_single_declarator(Declarator, Type_name, Type_name_ptr_opt, Casted, Clea
 declare_typedefs([], _).
 declare_typedefs([Typedef|R], Type_name) :-
     extract_pointers(Typedef, Type_name, Type_name_ptr_opt, Clean_typedef_var),
-    se_typedef_atts__create(Type_name_ptr_opt, Clean_typedef_var),
+    ((nonvar(Clean_typedef_var), Clean_typedef_var = function(Function_name, Parameters)) -> %handles pointers to functions 20/05/2025
+        (se_sub_atts__create(Type_name_ptr_opt, Parameters, 'no_body_is_typedef', Anonymous_function), %because the typedef could be a pointer to a function see operations operation_gn and operation_fn in check_global_typedefs.c regression test 
+         extract_pointers(Function_name, Anonymous_function, Typedef_ptr_opt, Typedef_name)
+        )
+    ;
+        (Typedef_ptr_opt = Type_name_ptr_opt,
+         Typedef_name = Clean_typedef_var
+        )
+    ), 
+    se_typedef_atts__create(Typedef_ptr_opt, Typedef_name),
     declare_typedefs(R, Type_name).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %should be done in the solver
@@ -95,7 +104,11 @@ create_struct_type(struct(Tag, Struct_declaration_list), Struct_type) :-
 %e.g. extract_pointers(function(ptr_decl(pointer, Operation_fn), [unnamed_param(spec([], int), []), unnamed_param(spec([], int), [])]), int, pointer(int), Operation_fn)
 % this a type named operation_fn for a pointer to a function that takes two ints and returns an int 
 extract_pointers(Var, Type_name, Type_name_ptr_opt, Clean_var) :-
-    (nonvar(Var) ->
+    (var(Var) ->
+        (Type_name_ptr_opt = Type_name,
+         Clean_var = Var
+        )
+    ;
         (Var = ptr_decl(Ptr_exp, Clean_var) ->
             extract_inner_pointers(Ptr_exp, Type_name, Type_name_ptr_opt)
         ;
@@ -108,15 +121,10 @@ extract_pointers(Var, Type_name, Type_name_ptr_opt, Clean_var) :-
                 common_util__error(9, "array declaration not handled", "Sikraken needs expanding", [('Array_var', Array_var)], '9_181124', 'se_handle_all_declarations', 'extract_pointers', no_localisation, no_extra_info)
             )
         ;
-         atomic(Var) -> %a struct member
            (Type_name_ptr_opt = Type_name,
             Clean_var = Var
            )
         )
-    ;
-        (Type_name_ptr_opt = Type_name,
-         Clean_var = Var
-        )    
     ).
     %%%
     extract_inner_pointers(Ptr_exp, Type_name, Type_name_ptr_opt) :-
