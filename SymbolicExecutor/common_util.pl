@@ -7,8 +7,7 @@
 %e.g. common_util__error(7, "Generic package instantiation to be implemented", no_error_consequences, no_arguments, 709, se_symbolic, exec, no_localisation, no_extra_info)
 %TEMPLATE : common_util__error(Error_severity, Error_message, no_error_consequences, no_arguments, Error_code, From_module, From_predicate, no_localisation, no_extra_info)
 
-%Error_severity between 0 to 10 : 10 is the highest error level and denotes a fatal error (cannot proceed any further : abort),
-%                                      the arguments are always printed out at level 10
+%Error_severity between 0 to 10 : 10 is the highest error level and denotes a fatal error (cannot proceed any further : abort)
 %                                    at level 0 is for debug only : e.g. Path info messages that indicate the path that is being followed
 %                                    at level 4 and above soundness may be affected or efficiency impeded
 %                                       from level 1 to 9 the arguments are only printed in release mode if surrounded by 'print'
@@ -55,7 +54,7 @@ common_util__error(Error_severity, Error_message, Error_consequences, ArgumentsL
 common_util__error2(10, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode) :-
        !,
        se_globals__get_val('target_source_file_name_no_ext', Target_source_file_name_no_ext),
-       printf(output, "%2n###################################%n", []),
+       printf(output, "%2n######################################################################%n", []),
        printf(output, "=>Sikraken: a fatal error has occurred for %w%n", [Target_source_file_name_no_ext]),
        printf(output, "        Error Code: %w%n", [Error_code]),
        printf(output, "        Message: %s%n", [Error_message]),
@@ -102,10 +101,10 @@ common_util__error2(10, Error_message, Error_consequences, ArgumentsL, Error_cod
              printf(output, "=>Report error to echancrure@gmail.com to have it addressed.%n", [])
             )
        ),
-       printf(output, "###################################%n", []),
-       log_and_terminate @ eclipse,
+       printf(output, "######################################################################%n", []),
+       print_test_run_log @ eclipse,
        flush(output),
-       abort.
+       abort. %may be caught and ignored later on
 
 common_util__error2(0, Error_message, Error_consequences, ArgumentsL, _Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode) :-
     !,

@@ -65,6 +65,7 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
              se_sub_atts__get(Function, 'parameters', Parameters),
              se_sub_atts__get(Function, 'return_type', Return_type),
              se_globals__push_scope_stack,          %function parameters scope
+             mytrace,
              match_parameters_arguments(Parameters, Arguments),
              symbolic_execute(Body, Flow),
              (Flow = return(symb(From_type, Return_expression)) ->

@@ -1035,9 +1035,9 @@ parameter_declaration
 		}
 	| declaration_specifiers abstract_declarator
 		{char *decl_specifier = create_declaration_specifiers();
-		 size_t const size = strlen("param_no_decl(, dummy_abstract_declarator)") + strlen(decl_specifier) + 1;
+		 size_t const size = strlen("unnamed_param(, dummy_abstract_declarator)") + strlen(decl_specifier) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "param_no_decl(%s, dummy_abstract_declarator)", decl_specifier);
+	     sprintf_safe($$, size, "unnamed_param(%s, dummy_abstract_declarator)", decl_specifier);
 	     free(decl_specifier);
 		 //free($2);
 		}

@@ -210,6 +210,8 @@ extract_type(spec(_Qualifier_list, Type_spec), Type) :-
         !,
         common_util__error(9, "Unknown type", "Sikraken needs expanding", [('Other', Other)], '9_150525_3', 'se_handle_all_declarations', 'extract_type2', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+match_parameters_arguments([unnamed_param(spec([], void), [])], []) :-  %i.e. the function has no parameters
+    !.
 match_parameters_arguments([], []) :-
     !.
 match_parameters_arguments([param(Declaration_specifiers, Parameter)|Rest_parameters], [Argument|Rest_arguments]) :-
@@ -222,5 +224,5 @@ match_parameters_arguments([unnamed_param(_Declaration_specifiers, [])|Rest_para
     match_parameters_arguments(Rest_parameters, Rest_arguments).
 match_parameters_arguments(Parameters, Arguments) :-
     !,
-    common_util__error(10, "mismatch of parameters and arguments", "Cannot call function", [('Parameters', Parameters), ('Arguments', Arguments)], '10160824_1', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
+    common_util__error(10, "mismatch of in number of parameters and arguments in function call", "Cannot call function", [('Parameters', Parameters), ('Arguments', Arguments)], '10160824_1', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

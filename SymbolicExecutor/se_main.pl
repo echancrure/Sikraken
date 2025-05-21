@@ -109,7 +109,7 @@ se_main(ArgsL) :-
     %%% where it all happens
     catch(search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code), Any_exception, search_CFG_exception_handler(Any_exception)),
     %%%
-    log_and_terminate.   %only run once 
+    print_test_run_log.   %only run once 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_overall_time_out_event :-
         cancel_after_event('single_test_time_out_exception', _), %to ensure none are left and be triggered later on especially in development mode
@@ -132,7 +132,7 @@ se_main(ArgsL) :-
                 )
             ;
              Exception == 'abort' ->
-                (log_and_terminate,
+                (print_test_run_log,
                  throw('abort')
                 )
             ; 
@@ -140,12 +140,28 @@ se_main(ArgsL) :-
             )
         ).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    log_and_terminate :-
+    print_test_run_log :-
         %cancel_after_event('single_test_time_out_exception', _), %to ensure none are left and be triggered later on especially in development mode
         %cancel_after_event('overall_generation_time_out', _),    %to ensure none is left and be triggered later on especially in development mode            
         statistics(event_time, Current_session_time),
         printf('output', "Dev Info: Session time is %.2f seconds\n", [Current_session_time]),
-        print_test_run_log__terminate.
+        getval('test_run_filename', Test_run_filename),
+        open(Test_run_filename, 'append', Test_run_stream),
+        printf(Test_run_stream, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
+        printf(Test_run_stream, "Sikraken Session Results:\n", []),
+        statistics('cputime', Cputime),
+        Cputime_seconds is fix(Cputime),
+        se_globals__get_val('path_nb', Test_nb),
+        printf(Test_run_stream, "\tECLiPSe CPU time: \t%w seconds\n", [Cputime_seconds]),
+        printf(Test_run_stream, "\tGenerated: \t\t\t%w tests\n", [Test_nb]),
+        printf(Test_run_stream, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
+        printf(Test_run_stream, "ECLiPSe Statistics Dump:\n", []), 
+        get_stream('log_output', Log_output_stream),
+        set_stream('log_output', Test_run_stream),
+        statistics,     %printing out ECLiPSe internal statistics into redirected stream
+        set_stream('log_output', Log_output_stream),
+        printf(Test_run_stream, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%", []),
+        close(Test_run_stream).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
     set_event_handler('single_test_time_out_event', handle_single_test_time_out_event/0),
@@ -230,13 +246,13 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
         fail. %to make sure the not succeeds...
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     find_one_path_exception_handler(Exception) :-
-        (Exception == 'abort' ->    %covers ECLiPSe exceptions: language/constraints violations?
+        (Exception == 'abort' ->    %covers ECLiPSe exceptions: language/constraints violations and explicit calls to abort in Sikraken error messages
             ((get_stream(error, X), get_stream(null, X)) -> %error stream has already been set to null
                 true
             ;   
-                (common_util__error(9, "ECLiPSe language violation", "", [], '9_281024_1', 'se_main', 'se_main', no_localisation, no_extra_info)
-                 %,set_stream(error, null)   %to avoid thousands additional identical error messages from ECLiPSe
-                 %find_one_path will succeed and count as a try, and hopefully backtrack out of the error and find another subpath, if not it will eventually reach the max number of tries or timeout
+                (common_util__error(9, "Caught ECLiPSe abort", "", [], '9_281024_1', 'se_main', 'se_main', no_localisation, no_extra_info)
+                 %,set_stream(error, null)   %can be set to avoid thousands additional identical error messages from ECLiPSe
+                 %as this handler succeeds, the catch for find_one_path will succeed and count as a try, and hopefully backtrack out of the error and find another subpath, if not it will eventually reach the max number of tries or timeout
                 )
             )
         ;
@@ -508,25 +524,6 @@ print_test_run_log__preamble(ArgsL) :-
     printf('test_run_stream', "\tTarget C file:\t%w (in folder:%w)\n", [Target_source_file_name_no_ext, Source_dir]),
     printf('test_run_stream', "\tTime budget:\t\t%w\n", [Budget]),
     close('test_run_stream').
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-print_test_run_log__terminate :-
-    getval('test_run_filename', Test_run_filename),
-    open(Test_run_filename, 'append', Test_run_stream),
-    printf(Test_run_stream, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
-    printf(Test_run_stream, "Sikraken Session Results:\n", []),
-    statistics('cputime', Cputime),
-    Cputime_seconds is fix(Cputime),
-    se_globals__get_val('path_nb', Test_nb),
-    printf(Test_run_stream, "\tECLiPSe CPU time: \t%w seconds\n", [Cputime_seconds]),
-    printf(Test_run_stream, "\tGenerated: \t\t\t%w tests\n", [Test_nb]),
-    printf(Test_run_stream, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
-    printf(Test_run_stream, "ECLiPSe Statistics Dump:\n", []), 
-    get_stream('log_output', Log_output_stream),
-    set_stream('log_output', Test_run_stream),
-    statistics,     %printing out ECLiPSe internal statistics into redirected stream
-    set_stream('log_output', Log_output_stream),
-    printf(Test_run_stream, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%", []),
-    close(Test_run_stream).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 easter_egg :-
     printf('output', "                                                                                                       .         .                          \n", []),
