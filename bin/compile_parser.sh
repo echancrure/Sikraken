@@ -10,6 +10,7 @@
 # Example: ./compile_parser.sh
 # Dependencies: flex, bison, gcc
 
+clear 
 # Get the directory of the script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."
@@ -41,7 +42,7 @@ else
 fi
 
 # Run the gcc command to compile the generated C code
-gcc -trigraphs "C_grammar.tab.c" -o "$SIKRAKEN_INSTALL_DIR/bin/sikraken_parser.exe"
+gcc -trigraphs "C_grammar.tab.c" -o "$SIKRAKEN_INSTALL_DIR/bin/sikraken_parser.exe" -I/usr/include/x86_64-linux-gnu/igraph -I/usr/include/igraph -I/usr/include/libxml2 -ligraph
 
 # Check if the gcc command was successful
 if [ $? -ne 0 ]; then

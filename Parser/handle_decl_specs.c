@@ -1,3 +1,9 @@
+/*
+ * Simplifying and uniformising declarations specifiers in C
+ * This is used to create a Prolog representation of the declaration specifiers
+ * It is used by the parser to handle declaration specifiers in a uniform way
+ * It is also used to handle declaration specifiers in a more regular way for Sikraken
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

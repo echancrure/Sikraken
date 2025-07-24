@@ -1540,7 +1540,7 @@ YY_RULE_SETUP
                              if (is_typedef_name(yylval.id)) {
                                 if (in_ordinary_id_declaration) {  //declaring a new IDENTIFIER
                                     //shadowing of typedef occuring: push the identifier onto the typedef stack with the current scope level
-                                    add_typedef_id(current_scope, yylval.id, 0);   //0 indicates that it is an ordinary id
+                                    add_typedef_id(typedef_scope_nb, yylval.id, 0);   //0 indicates that it is an ordinary id
                                     if (debugMode) printf("Debug: SHADOWING of a typedef_name found: %s on line %d\n", yylval.id, yylineno);
                                     return IDENTIFIER;
                                 } else {
@@ -1553,7 +1553,7 @@ YY_RULE_SETUP
                              if (in_ordinary_id_declaration) {  //declaring a new IDENTIFIER
                                 if (is_typedef_name(yylval.id)) {
                                     //shadowing of typedef occuring: push the identifier onto the typedef stack with the current scope level
-                                    add_typedef_id(current_scope, yylval.id, 0);   //0 indicates that it is an ordinary id
+                                    add_typedef_id(typedef_scope_nb, yylval.id, 0);   //0 indicates that it is an ordinary id
                                     if (debugMode) printf("Debug: SHADOWING of a typedef_name found: %s on line %d\n", yylval.id, yylineno);
                                 }
                                 return IDENTIFIER;

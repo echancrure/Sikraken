@@ -34,6 +34,7 @@ int debugMode = 0;					//flag to indicate if we are in debug mode set by -d comm
 #include "utils.c"
 #include "handle_typedefs.c"
 #include "handle_decl_specs.c"
+#include "cfg.c"
 
 extern int yylex();
 extern int yylineno;
@@ -47,7 +48,6 @@ extern char *yytext;
 int dataModel = 32;				//flag to indicate data model used in the C code under analysis; set by -m32 or -m64 on the command line; default is 32
 long int TARGET_LONG_MAX = 2147483647L; //the default LONG_MAX for the code under test if dataModel = 32
 FILE* pl_file;					//the file of containing the Prolog predicated after parsing the target C file
-char i_file_uri[MAX_PATH];
 FILE *i_file;
 char pl_file_uri[MAX_PATH];		//the full path to the Prolog file: pl_file
 int branch_nb = 1;				//unique id for branches created
@@ -59,19 +59,20 @@ int in_member_namespace = 0;	//indicates to the lexer that we are in the member 
 int in_ordinary_id_declaration = 0;
 int in_label_namespace = 0;		//used in lexer
 
-int handled_function_paramaters = 0;
-int current_scope = 0;
+int handled_function_paramaters = 0;	//ugly flag
+int typedef_scope_nb = 0;
 
-char *current_function;			//we keep track of the function being parsed so that we can add it to goto statements
+char *current_function_name;			//the name of the current function
+
+int last_node = -1;           	//last node where control flow came from
 
 void yyerror(const char*);
 void my_exit(int);				//attempts to close handles and delete generated files prior to caling exit(int);
-
 %}
 
 %union {
-	char* id;
-	struct for_stmt {
+	char *id;
+	struct for_stmt {			//UGLY
         char *init;				//the first part of a for statement: the initialisations
         char *cond;				//the second part of a for statement: the condition
         char *update;			//the third part of a for statement: the update
@@ -137,8 +138,8 @@ primary_expression
 		}
 	| constant
 	| string
-	| '(' {in_ordinary_id_declaration = 0; current_scope++;} compound_statement ')'	//GCC statement-expression
-		{pop_scope(&current_scope);
+	| '(' {in_ordinary_id_declaration = 0; typedef_scope_nb++;} compound_statement ')'	//GCC statement-expression
+		{pop_scope(&typedef_scope_nb);
 		 size_t const size = strlen("\nstmt_exp()") + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "\nstmt_exp(%s)", $3);
@@ -606,7 +607,7 @@ init_declarator
 	  	}
 	| declarator	// at the global level always add the empty initialiser: initializer([]) to trigger initialisation to 0, otherwise add 'no_initializer'
 		{if (typedef_flag == 1) {	// we are parsing a typedef declaration
-			add_typedef_id(current_scope, $1.ptr_declarator, 1);	//the id as a TYPEDEF_NAME is added to the data structures keeping track of typedef_names and ids shadowing
+			add_typedef_id(typedef_scope_nb, $1.ptr_declarator, 1);	//the id as a TYPEDEF_NAME is added to the data structures keeping track of typedef_names and ids shadowing
 	   	 }
 		 free($1.ptr_declarator);
 		 simple_str_copy(&$$, $1.full);
@@ -950,13 +951,13 @@ direct_declarator
 		 free($3);
 		 $$.ptr_declarator = $1.ptr_declarator;
 		}
-	| direct_declarator {in_ordinary_id_declaration = 0; if (!typedef_flag) current_scope++; } '(' rest_function_definition ')'
+	| direct_declarator {in_ordinary_id_declaration = 0; if (!typedef_flag) typedef_scope_nb++; } '(' rest_function_definition ')'
 		{if (typedef_flag) handled_function_paramaters = 666;
 		 in_ordinary_id_declaration = 0;
 		 size_t const size = strlen("function(, )") + strlen($1.full) + strlen($4) + 1;
 	     $$.full = (char*)malloc(size);
 	     sprintf_safe($$.full, size, "function(%s, %s)", $1.full, $4);
-		 current_function = strdup($1.full);
+		 current_function_name = strdup($1.full);
 	     free($1.full);
 		 $$.ptr_declarator = $1.ptr_declarator;
 		 free($4);
@@ -1198,8 +1199,8 @@ static_assert_declaration
 
 statement
 	: labeled_statement
-	| {in_ordinary_id_declaration = 0; current_scope++;} compound_statement	
-	  	{pop_scope(&current_scope);
+	| {in_ordinary_id_declaration = 0; typedef_scope_nb++;} compound_statement	
+	  	{pop_scope(&typedef_scope_nb);
 		 $$ = $2;
 		}
 	| expression_statement
@@ -1277,13 +1278,21 @@ expression_statement
 	;
 
 selection_statement
-	: IF '(' expression ')' statement else_opt 
-		{size_t const size = strlen("\nif_stmt(branch(, ),  )") + MAX_BRANCH_STR + strlen($3) + strlen($5) + strlen($6) + 1;
+	: IF '(' expression ')'
+	  	{igraph_integer_t new_node = cfg_parse_new_node();
+		 cfg_push_branch_scope(PARTIAL_IF, new_node, 1);	//creating the partial true branch
+	    }
+	  statement 
+	  	{igraph_integer_t node_level = cfg_pop_branch_scope();
+		 cfg_push_branch_scope(PARTIAL_IF, node_level, 0);	//creating the partial false branch
+	    }
+	  else_opt 
+		{size_t const size = strlen("\nif_stmt(branch(, ),  )") + MAX_BRANCH_STR + strlen($3) + strlen($6) + strlen($8) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "\nif_stmt(branch(%d, %s), %s %s)", branch_nb++, $3, $5, $6);
+		 sprintf_safe($$, size, "\nif_stmt(branch(%d, %s), %s %s)", branch_nb++, $3, $6, $8);
 		 free($3);
-		 free($5);
 		 free($6);
+		 free($8);
 		} 
 	| SWITCH '(' expression ')' statement
 		{size_t const size = strlen("\nswitch_stmt(, )") + strlen($3) + strlen($5) + 1;
@@ -1295,7 +1304,9 @@ selection_statement
 	;
 
 else_opt
-	: /* empty */		%prec LOWER_THAN_ELSE 	{simple_str_lit_copy(&$$, "");}
+	: /* empty */		%prec LOWER_THAN_ELSE 	
+		{simple_str_lit_copy(&$$, "");
+		}
 	| ELSE statement
 		{size_t const size = strlen(", ") + strlen($2) + 1;
 		 $$ = (char*)malloc(size);
@@ -1343,9 +1354,9 @@ expression_opt
 jump_statement
 	: GOTO IDENTIFIER ';'	//in_label_namespace is already switched off within lexer after GOTO
 	  {in_label_namespace = 0;
-	   size_t const size = strlen("\ngoto_stmt(, )\n") + strlen($2) + strlen(current_function) + 1;
+	   size_t const size = strlen("\ngoto_stmt(, )\n") + strlen($2) + strlen(current_function_name) + 1;
 	   $$ = (char*)malloc(size);
-	   sprintf_safe($$, size, "\ngoto_stmt(%s, %s)\n", $2, current_function);
+	   sprintf_safe($$, size, "\ngoto_stmt(%s, %s)\n", $2, current_function_name);
 	   free($2);
 	  }
 	| CONTINUE ';'	{simple_str_lit_copy(&$$, "\ncontinue_stmt\n");}
@@ -1368,34 +1379,41 @@ translation_unit 			//printed out
 external_declaration		//printed out
 	: function_definition
 		{handled_function_paramaters = 0;
-		 pop_scope(&current_scope);
+		 pop_scope(&typedef_scope_nb);
 		 fprintf(pl_file, "%s", $1); 
 		 free($1);
 		}
-	|  declaration
+	| declaration
 		{if (handled_function_paramaters == 666) handled_function_paramaters = 0; 
-		else if(handled_function_paramaters) {
+		 else if(handled_function_paramaters) {
 			handled_function_paramaters = 0;
-			pop_scope(&current_scope);
+			pop_scope(&typedef_scope_nb);
 		 }
 		 fprintf(pl_file, "%s", $1); 
 		 free($1);
 		}
 	;
+
+//a new function is defined
 //always in_ordinary_id_declaration = 0; after
 function_definition
-	: declaration_specifiers declarator declaration_list_opt {in_ordinary_id_declaration = 0;} compound_statement
+	: declaration_specifiers declarator declaration_list_opt 
+		{in_ordinary_id_declaration = 0;
+		 cfg_parse_start_function();
+		}
+	  compound_statement
 		{in_ordinary_id_declaration = 0;
 		 char *decl_specifier = create_declaration_specifiers();
 		 size_t const size = strlen("function(, , [], )") + strlen(decl_specifier) + strlen($2.full) + strlen($3) + strlen($5) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "function(%s, %s, [%s], %s)", decl_specifier, $2.full, $3, $5);
-		 if (debugMode) printf("function parser\n");
+		 if (debugMode) printf("function parsed\n");
 	     free(decl_specifier);
 		 free($2.full);
 		 free($2.ptr_declarator);
 		 free($3);
 		 free($5);
+		 cfg_parse_end_function();
 		}
 	;
 
@@ -1421,6 +1439,7 @@ old_style_declaration_list
 int main(int argc, char *argv[]) {
 	char C_file_path[MAX_PATH];				//directory where the C and .i files are
 	char filename_no_ext[MAX_PATH];
+	char i_file_uri[MAX_PATH];
 
 #ifdef _MSC_VER
 	strcpy_safe(C_file_path, 3, ".");		//default path for input file is current directory, overwrite with -p on command line
@@ -1472,6 +1491,8 @@ int main(int argc, char *argv[]) {
 		my_exit(EXIT_FAILURE);
 	}
 
+	cfg_init();			//initialise single CFG
+
 	fprintf(pl_file, "prolog_c([");			//opening predicate
 	if (yyparse() != 0) {					//the parser is called
 		fprintf(stderr, "Parsing failed.\n");
@@ -1482,6 +1503,21 @@ int main(int argc, char *argv[]) {
 	pl_file = NULL;
 	fclose(i_file);
 	i_file = NULL;
+
+	if (debugMode) {	//create the dot file for the graph
+		FILE *dot_file;
+		char dot_file_uri[MAX_PATH];
+		sprintf_safe(dot_file_uri, 3*MAX_PATH, "%s/%s.dot", C_file_path, filename_no_ext);
+		if (fopen_safe(&dot_file, dot_file_uri, "w") != 0) {
+			fprintf(stderr, ".dot file could not be created for writing at: %s\n", dot_file_uri);
+			my_exit(EXIT_FAILURE);
+		}
+		cfg_write_graph_dot_labelled(dot_file);
+		fclose(dot_file);
+		printf("Wrote dot file %s", dot_file_uri);
+	}
+	//calculate successors of igraph_t current_cfg; here
+
 	my_exit(EXIT_SUCCESS);
 }
 
