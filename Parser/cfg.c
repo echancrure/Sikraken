@@ -37,6 +37,39 @@ typedef struct cfg_scope_stack_node {       // Stack node for managing scopes of
 
 cfg_scope_stack_node_t *cfg_scope_stack = NULL; // Stack for managing scopes of partial branches
 
+/* Helper function to display the cfg stack of scopes, useful for debugging */
+const char *partial_type_to_string(partial_type_t type) {
+    switch (type) {
+        case PARTIAL_IF: return "IF";
+        case PARTIAL_ELSE: return "ELSE";
+        case PARTIAL_WHILE: return "WHILE";
+        case PARTIAL_FOR: return "FOR";
+        case PARTIAL_SWITCH: return "SWITCH";
+        case PARTIAL_OTHER: return "OTHER";
+        default: return "UNKNOWN";
+    }
+}
+
+void print_cfg_scope_stack(cfg_scope_stack_node_t *stack) {
+    int scope_index = 0;
+    while (stack != NULL) {
+        printf("Scope #%d (node_level = %ld):\n", scope_index, (long)stack->node_level);
+        partial_branch_node_t *branch_node = stack->branches;
+        int branch_index = 0;
+        while (branch_node != NULL) {
+            partial_branch_t *b = branch_node->branch;
+            printf("  Branch #%d:\n", branch_index);
+            printf("    Type        : %s\n", partial_type_to_string(b->type));
+            printf("    From Node   : %ld\n", (long)b->from_node);
+            printf("    Truth Value : %s\n", b->truth_value ? "true" : "false");
+            branch_node = branch_node->next;
+            branch_index++;
+        }
+        stack = stack->next;
+        scope_index++;
+    }
+} 
+
 /* Functions sub-CFGs data structure */
 typedef struct {
     char *function_name;                // no scoping issue: in C all functions are global
@@ -51,33 +84,31 @@ int function_cfgs_count = 0;
 igraph_integer_t create_new_node() {
     igraph_integer_t new_node_id = igraph_vcount(&current_cfg);  // Get current vertex count as new ID
     igraph_add_vertices(&current_cfg, 1, 0);  // Add one vertex
+    if (debugMode) printf("CFG: Created new node with ID %d\n", (int)new_node_id);
     return new_node_id;  // Return igraph's internal node ID (0, 1, 2, ...)
 }
 
 void add_edge_labeled(igraph_integer_t from, _Bool truth_value, igraph_integer_t to) {
     igraph_add_edge(&current_cfg, from, to);
     igraph_integer_t eid = igraph_ecount(&current_cfg) - 1;  // Last edge index
-    SETEAB(&current_cfg, "label", eid, truth_value);
+    SETEAB(&current_cfg, "label", eid, (igraph_bool_t)truth_value);
 }
 
 void close_all_partial_branches(igraph_integer_t new_node_id) {
     partial_branch_node_t *partial_branches_list = cfg_scope_stack->branches;
     if (!partial_branches_list) {   //should never happen
-        fprintf(stderr, "CFG fatal algorithm error: partial branches when trying to create new node id: %i\n", (int)new_node_id);
+        fprintf(stderr, "CFG: fatal algorithm error: partial branches when trying to create new node id: %i\n", (int)new_node_id);
 		my_exit(EXIT_FAILURE);
     }
-    igraph_integer_t from_node;
-    _Bool truth_value; 
-    partial_branch_node_t *next_node;
     while (partial_branches_list) { // Iterate through all partial branches in the current scope and complete them
-        from_node = partial_branches_list->branch->from_node;
-        truth_value = partial_branches_list->branch->truth_value;
+        igraph_integer_t from_node = partial_branches_list->branch->from_node;
+        _Bool truth_value = partial_branches_list->branch->truth_value;
         add_edge_labeled(from_node, truth_value, new_node_id);
-        if (debugMode) printf("CFG created a new branch [%d, %d, %d]\n", (int)from_node, truth_value, (int)new_node_id);
-        next_node = partial_branches_list->next;
+        if (debugMode) printf("CFG: created a new branch [%d, %d, %d]\n", (int)from_node, (int)truth_value, (int)new_node_id);
+        partial_branch_node_t *next_node = partial_branches_list->next;
         free(partial_branches_list->branch);  
         free(partial_branches_list);  
-        partial_branches_list = next_node;  // Move to the next node in the list
+        partial_branches_list = next_node;  // Move to the next branch in the list
     }
 }
 
@@ -94,7 +125,10 @@ void cfg_push_branch_scope(partial_type_t type, igraph_integer_t from_node, _Boo
     new_scope->branches = new_branch;
     new_scope->next = cfg_scope_stack;
     cfg_scope_stack = new_scope;
-    if (debugMode) printf("CFG Pushed a new scope with the partial branche [%d %s]\n", (int)from_node, truth_value ? "T" : "F");
+    if (debugMode) {
+        printf("CFG: Pushed a new scope with the partial branch [%ld %s]\n", (long)from_node, truth_value ? "T" : "F");
+        print_cfg_scope_stack(cfg_scope_stack);
+    }
 }
 
 // Pop the current scope from the stack and merge its branches into the previous scope
@@ -103,11 +137,11 @@ void cfg_push_branch_scope(partial_type_t type, igraph_integer_t from_node, _Boo
 // It should never be called when there is only one scope left in the stack because that would mean the parser is trying to pop the last scope
 igraph_integer_t cfg_pop_branch_scope() {
     if (!cfg_scope_stack) {
-        fprintf(stderr, "Fatal parsing algorithm error: trying to pop an empty scope stack\n");
+        fprintf(stderr, "CFG: Fatal parsing algorithm error: trying to pop an empty scope stack\n");
         my_exit(EXIT_FAILURE);
     }
     if (!cfg_scope_stack->next) {
-        fprintf(stderr, "Fatal parsing algorithm error: trying to pop the last scope stack\n");
+        fprintf(stderr, "CFG: Fatal parsing algorithm error: trying to pop the last scope stack\n");
         my_exit(EXIT_FAILURE);
     }
     cfg_scope_stack_node_t *old_scope = cfg_scope_stack;
@@ -126,14 +160,14 @@ igraph_integer_t cfg_pop_branch_scope() {
     cfg_scope_stack = cfg_scope_stack->next;  // Move the stack pointer to the next scope
     free(old_scope->branches);  // Free the old branches list
     free(old_scope);  // Free the old scope
-    if (debugMode) printf("CFG popped the scope level %d\n", (int)old_node_level);
+    if (debugMode) printf("CFG: Popped the scope level %d\n", (int)old_node_level);
     return old_node_level;  // Return the node level of the popped scope
 }
 
 // Called when a new function is being parsed
 void cfg_parse_start_function() {
     if (function_cfgs_count >= MAX_FUNCS) {
-        fprintf(stderr, "CFG fatal error: Maximum number of functions exceeded.\n");
+        fprintf(stderr, "CFG: Fatal error: Maximum number of functions exceeded.\n");
         my_exit(EXIT_FAILURE);
     }
     igraph_integer_t start_node = create_new_node();
@@ -154,6 +188,11 @@ void cfg_parse_end_function() {
 
 void cfg_init() {
     igraph_empty(&current_cfg, 0, IGRAPH_DIRECTED);
+    // Initialize the boolean edge attribute "label"
+    igraph_vector_bool_t empty_labels;
+    igraph_vector_bool_init(&empty_labels, 0);
+    SETEABV(&current_cfg, "label", &empty_labels);  // Set empty vector for "label"
+    igraph_vector_bool_destroy(&empty_labels);
 }
 
 // Create a new node in the CFG and return its unique ID
@@ -187,4 +226,5 @@ void cfg_write_graph_dot_labelled(FILE *file) {
         fprintf(file, "  %d -> %d [label=\"%s\"];\n", (int)from, (int)to, truth_value ? "T" : "F");
     }
     fprintf(file, "}\n");
+    if (debugMode) printf("CFG: Created DOT file foo.dot");
 }
