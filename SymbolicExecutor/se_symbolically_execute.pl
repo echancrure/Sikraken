@@ -174,14 +174,14 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
 %     ;%just or
 %        True_statements = cmp_stmts([return_stmt(_)])   %another opportunity to exit early
      ) ->
-        (not se_coverage__bran_newly_covered([]) -> %something new has been covered so far
+        (not cfg_main__bran_newly_covered([]) -> %something new has been covered so far
             (
                 force(Condition, Id, 'true', True_statements, Flow)     %exit early
             ;
                 force(Condition, Id, 'false', False_statements, Flow)    %allow continue as may lead to something new
             )
         %;
-        % se_coverage__bran_is_already_covered(branch(Id, 'true')) ->    %nothing new and true already covered and will exit if taken
+        % cfg_main__bran_is_already_covered(branch(Id, 'true')) ->    %nothing new and true already covered and will exit if taken
         %    force(Condition, Id, 'false', False_statements, Flow)       %only option is to try the false branch
         ;   %nothing new
             (random(2, 0) ->
@@ -239,8 +239,8 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
             se_name_atts__get(Abort, 'name', 'Abort')
         )
      ) ->
-        ((se_coverage__bran_is_already_covered(branch(Id, 'true')),  %costly so left at the end
-          se_coverage__bran_newly_covered([])   %this is probably the most costly check: leave it last [unsound if commented out]
+        ((cfg_main__bran_is_already_covered(branch(Id, 'true')),  %costly so left at the end
+          cfg_main__bran_newly_covered([])   %this is probably the most costly check: leave it last [unsound if commented out]
          ) ->
             traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow) % nothing new covered so far, true branch is already covered and leads to exit or abort so we skip the true branch and only try the false branch
             %if the above fails no point carrying with true branch: it exits with nothing new covered            

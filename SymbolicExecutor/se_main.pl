@@ -30,7 +30,7 @@ mytrace.            %call this to start debugging
 
 :- compile(['common_util', 'se_handle_declarations', 'se_symbolically_execute', 'se_symbolically_interpret', 'se_get_symbolic_lvalue_for_addressing']).
 :- compile(['se_write_tests_testcomp']).
-:- compile(['se_coverage']).
+:- compile(['cfg_main']).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  
 go(Restart, Tries) :- se_main(['/home/chris/Sikraken', '/home/chris/Sikraken/SampleCode','hardness_codestructure_dependencies_file-0', main, release, testcomp, '-m32', regression(Restart, Tries)]).
@@ -94,6 +94,7 @@ se_main(ArgsL) :-
     initialise_ptc_solver,
     capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
     read_parsed_file(Install_dir, Target_source_file_name_no_ext, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors
+    cfg_main__build_cfg(Parsed_prolog_code),
     %%%pre-symbolic execution
     %mytrace,
     setval('execution_mode', 'global'),   %i.e. C compile time (as opposed to runtime), tackling globals when implicit initialisation to 0 occurs 
@@ -297,7 +298,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
         atom_string(Output, Output_string).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     end_of_path_predicate(SEAV_Inputs, Parsed_prolog_code) :-
-        se_coverage__bran_newly_covered(Newly_covered),
+        cfg_main__bran_newly_covered(Newly_covered),
         (Newly_covered == [] -> %no need to label: saves labelling run and test execution time
             true %common_util__error(1, "End of path: no new branches", 'no_error_consequences', [], '0_210824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info)
         ;
