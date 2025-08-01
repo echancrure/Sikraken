@@ -16,23 +16,13 @@ symbolic_execute(mytrace, 'carry_on') :-
 symbolic_execute(declaration(spec([typedef], Type_spec), Declarators), 'carry_on') :-
     !,
     extract_type(spec([], Type_spec), Type_name),
-    declare_typedefs(Declarators, Type_name).
+    declare_typedefs(Declarators, Type_name).   %single use, defined at the bottom
 symbolic_execute(declaration(Declaration_specifiers, Declarators), 'carry_on') :-
     !,
     ((Declarators = [Declarator], nonvar(Declarator), 
-      (Declarator = function(Function_name, Parameters) ; (Declarator = ptr_decl(pointer, Function), nonvar(Function), Function = function(Function_name, Parameters)))
+      (Declarator = function(_Function_name, _Parameters) ; (Declarator = ptr_decl(pointer, Function), nonvar(Function), Function = function(_Function_name, _Parameters)))
      ) ->  %a function forward declaration
-        (Declaration_specifiers = spec([extern], _Type_spec) ->   %found an extern function declaration
-            (extract_type(Declaration_specifiers, Return_type_name),
-             se_sub_atts__create(Return_type_name, Parameters, 'no_body_is_extern', Function_name)
-            )
-        ;
-         (se_name_atts__get(Function_name, 'name', Inner_name), is_verifier_input_function(Inner_name, _)) -> %some testcomp benchmarks do not declare the verifier functions as extern; as a hack we declare them here
-            (extract_type(Declaration_specifiers, Return_type_name),
-             se_sub_atts__create(Return_type_name, Parameters, 'no_body_is_extern', Function_name)
-            )
-        ; 
-            true    %we ignore all other, non-extern, forward function declarations: they will be defined later [can we not ignore them all?]
+        (true   %functions are declared before CFG building and symbolic execution        
         )
     ;
         (%variable declarations
@@ -45,15 +35,12 @@ symbolic_execute(declaration(Declaration_specifiers, Declarators), 'carry_on') :
 symbolic_execute(declaration(Declaration_specifiers), 'carry_on') :-
     !,
     extract_type(Declaration_specifiers, _Type).
-symbolic_execute(function(Specifiers, function(Function_name, Parameters), [], Compound_statement), 'carry_on') :-
+symbolic_execute(function(_Specifiers, function(_Function_name, _Parameters), [], _Compound_statement), 'carry_on') :-
     !,
-    extract_type(Specifiers, Return_type_name),
-    se_sub_atts__create(Return_type_name, Parameters, Compound_statement, Function_name).
-symbolic_execute(function(Specifiers, ptr_decl(pointer, function(Function_name, Parameters)), [], Compound_statement), 'carry_on') :-
+    true. %functions are declared before CFG building and symbolic execution    
+symbolic_execute(function(_Specifiers, ptr_decl(pointer, function(_Function_name, _Parameters)), [], _Compound_statement), 'carry_on') :-
     !,
-    extract_type(Specifiers, Return_type_name),
-    extract_pointers(ptr_decl(pointer, function(Function_name, Parameters)), Return_type_name, Type_name_ptr_opt, _Clean_var),
-    se_sub_atts__create(Type_name_ptr_opt, Parameters, Compound_statement, Function_name).
+    true. %functions are declared before CFG building and symbolic execution  
 symbolic_execute(goto_stmt(Label, Function), Flow) :-
     !,
     %mytrace,
@@ -407,6 +394,21 @@ symbolic_execute(continue_stmt, 'continue') :-
 symbolic_execute(Expression, 'carry_on') :- %assuming that there is no return in there...
     !,
     symbolically_interpret(Expression, _).  %this is a statement: we don't care about its evaluation
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    declare_typedefs([], _).
+    declare_typedefs([Typedef|R], Type_name) :-
+        extract_pointers(Typedef, Type_name, Type_name_ptr_opt, Clean_typedef_var),
+        ((nonvar(Clean_typedef_var), Clean_typedef_var = function(Function_name, Parameters)) -> %handles pointers to functions 20/05/2025
+            (se_sub_atts__create(Type_name_ptr_opt, Parameters, 'no_body_is_typedef', Anonymous_function), %because the typedef could be a pointer to a function see operations operation_gn and operation_fn in check_global_typedefs.c regression test 
+             extract_pointers(Function_name, Anonymous_function, Typedef_ptr_opt, Typedef_name)
+            )
+        ;
+            (Typedef_ptr_opt = Type_name_ptr_opt,
+             Typedef_name = Clean_typedef_var
+            )
+        ), 
+        se_typedef_atts__create(Typedef_ptr_opt, Typedef_name),
+        declare_typedefs(R, Type_name).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 traverse(Condition, Arc, Statements, Flow) :-
     ptc_solver__sdl(Condition),

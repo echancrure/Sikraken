@@ -12,6 +12,52 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 :- compile(['cfg_build']).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%create se_sub_atts variables for all (all global in C) functions 
+cfg_build__declare_functions(Parsed_prolog_code) :-
+    declare_functions(Parsed_prolog_code).
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    declare_functions([]) :-
+        !.
+    declare_functions([Decl|Rest]) :-
+        !,
+        declare_functions(Decl),
+        declare_functions(Rest).
+    declare_functions(declaration(spec([typedef], Type_spec), Declarators)) :-
+        !,
+        symbolic_execute(declaration(spec([typedef], Type_spec), Declarators), 'carry_on').
+    declare_functions(declaration(Declaration_specifiers, Declarators)) :-
+        !,
+        ((Declarators = [Declarator], nonvar(Declarator), 
+         (Declarator = function(Function_name, Parameters) ; (Declarator = ptr_decl(pointer, Function), nonvar(Function), Function = function(Function_name, Parameters)))
+         ) ->  %a function forward declaration
+            (Declaration_specifiers = spec([extern], _Type_spec) ->   %found an extern function declaration
+                (extract_type(Declaration_specifiers, Return_type_name),
+                 se_sub_atts__create(Return_type_name, Parameters, 'no_body_is_extern', Function_name)
+                )
+            ;
+             (se_name_atts__get(Function_name, 'name', Inner_name), is_verifier_input_function(Inner_name, _)) -> %some testcomp benchmarks do not declare the verifier functions as extern; as a hack we declare them here
+                (extract_type(Declaration_specifiers, Return_type_name),
+                 se_sub_atts__create(Return_type_name, Parameters, 'no_body_is_extern', Function_name)
+                )
+            ; 
+                true    %we ignore all other, non-extern, forward function declarations: they will be defined later [can we not ignore them all?]
+            )
+        ;
+            (%variable declarations
+             true
+            )
+        ).
+    declare_functions(function(Specifiers, function(Function_name, Parameters), [], Compound_statement)) :-
+        !,
+        extract_type(Specifiers, Return_type_name),
+        se_sub_atts__create(Return_type_name, Parameters, Compound_statement, Function_name).
+    declare_functions(function(Specifiers, ptr_decl(pointer, function(Function_name, Parameters)), [], Compound_statement)) :-
+        !,
+        extract_type(Specifiers, Return_type_name),
+        extract_pointers(ptr_decl(pointer, function(Function_name, Parameters)), Return_type_name, Type_name_ptr_opt, _Clean_var),
+        se_sub_atts__create(Type_name_ptr_opt, Parameters, Compound_statement, Function_name).
+    declare_functions(_).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 cfg_main__build_cfg(Parsed_prolog_code) :-
     cfg_build__build_cfg(Parsed_prolog_code).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

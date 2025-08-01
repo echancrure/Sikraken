@@ -49,21 +49,6 @@ declare_single_declarator(Declarator, Type_name, Type_name_ptr_opt, Casted, Clea
         )
     ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-declare_typedefs([], _).
-declare_typedefs([Typedef|R], Type_name) :-
-    extract_pointers(Typedef, Type_name, Type_name_ptr_opt, Clean_typedef_var),
-    ((nonvar(Clean_typedef_var), Clean_typedef_var = function(Function_name, Parameters)) -> %handles pointers to functions 20/05/2025
-        (se_sub_atts__create(Type_name_ptr_opt, Parameters, 'no_body_is_typedef', Anonymous_function), %because the typedef could be a pointer to a function see operations operation_gn and operation_fn in check_global_typedefs.c regression test 
-         extract_pointers(Function_name, Anonymous_function, Typedef_ptr_opt, Typedef_name)
-        )
-    ;
-        (Typedef_ptr_opt = Type_name_ptr_opt,
-         Typedef_name = Clean_typedef_var
-        )
-    ), 
-    se_typedef_atts__create(Typedef_ptr_opt, Typedef_name),
-    declare_typedefs(R, Type_name).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %should be done in the solver
 create_struct_type(struct(Tag, Struct_declaration_list), Struct_type) :-
     (Tag == 'anonymous' ->
@@ -182,7 +167,7 @@ extract_type(spec(_Qualifier_list, Type_spec), Type) :-
         !,
         create_struct_type(struct(Tag, Struct_decl_list), Struct_type).
     extract_type2(struct(Tag), Tag) :-
-        (ptc_solver__is_struct_type(Tag) -> %a previously defined struct type (document when this occurs
+        (ptc_solver__is_struct_type(Tag) -> %a previously defined struct type (document when this occurs)
             true
         ;
             create_struct_type(struct(Tag, []), _Struct_type)   %e.g. a typedef for a forward struct declaration... as in "typedef struct plot plot;"   //typedef of a forward declaration
