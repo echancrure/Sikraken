@@ -22,7 +22,7 @@ symbolic_execute(declaration(Declaration_specifiers, Declarators), 'carry_on') :
     ((Declarators = [Declarator], nonvar(Declarator), 
       (Declarator = function(_Function_name, _Parameters) ; (Declarator = ptr_decl(pointer, Function), nonvar(Function), Function = function(_Function_name, _Parameters)))
      ) ->  %a function forward declaration
-        (true   %functions are declared before CFG building and symbolic execution        
+        (true   %all functions are declared before CFG building and symbolic execution        
         )
     ;
         (%variable declarations

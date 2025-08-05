@@ -59,7 +59,8 @@ cfg_build__declare_functions(Parsed_prolog_code) :-
     declare_functions(_).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 cfg_main__build_cfg(Parsed_prolog_code) :-
-    cfg_build__build_cfg(Parsed_prolog_code).
+    cfg_build__init,
+    cfg_build__build_cfg(Parsed_prolog_code, elaboration).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 cfg_main__bran_is_already_covered(Branch) :-
     se_globals__get_val('covered_bran', Already_covered),
