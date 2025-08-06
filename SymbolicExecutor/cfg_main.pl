@@ -51,6 +51,7 @@ cfg_build__declare_functions(Parsed_prolog_code) :-
         !,
         extract_type(Specifiers, Return_type_name),
         se_sub_atts__create(Return_type_name, Parameters, Compound_statement, Function_name).
+    %what kind of function is this? pointer to function cannot have bodies in C...
     declare_functions(function(Specifiers, ptr_decl(pointer, function(Function_name, Parameters)), [], Compound_statement)) :-
         !,
         extract_type(Specifiers, Return_type_name),

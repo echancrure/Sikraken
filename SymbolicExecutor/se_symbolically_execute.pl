@@ -41,15 +41,6 @@ symbolic_execute(function(_Specifiers, function(_Function_name, _Parameters), []
 symbolic_execute(function(_Specifiers, ptr_decl(pointer, function(_Function_name, _Parameters)), [], _Compound_statement), 'carry_on') :-
     !,
     true. %functions are declared before CFG building and symbolic execution  
-symbolic_execute(goto_stmt(Label, Function), Flow) :-
-    !,
-    %mytrace,
-    se_sub_atts__get(Function, 'body', cmp_stmts(Stmts)),
-    search_label_statement(Label, Stmts, Stmt_list),
-    symbolic_execute(Stmt_list, Flow).
-symbolic_execute(label_stmt(_Label, Stmt), Flow) :-
-    !,
-    symbolic_execute(Stmt, Flow).
 symbolic_execute(cmp_stmts(Stmts), Flow) :-
     !,
     se_globals__push_scope_stack,
@@ -91,8 +82,7 @@ symbolic_execute(assign(LValue, Expression), Flow) :-
              ptc_solver__up_record(Struct_value, Field, Expression_value, New_struct),
              seav__update(Struct_exp, 'output', New_struct)
             )
-        ;%could also be a function call (?) returning a record todo
-            
+        ;
          Struct_exp = index(Array_exp, Index_exp) -> % e.g. a[i].n = Expression becomes a[i] = up_rec(a[i], n, Expression)
             (%todo optimise and make sounder unique call to index(Array_exp, Index_exp) ?
              %mytrace,
@@ -329,6 +319,7 @@ symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
         )
     ).
 symbolic_execute(do_while_stmt(Statements, branch(Id, Condition)), Flow) :-
+    !,
     symbolic_execute(Statements, Inner_flow), 
     ((Inner_flow == 'carry_on' ; Inner_flow == 'continue') ->
         (symbolically_interpret(Condition, symb(_, Condition_value)),
@@ -377,6 +368,15 @@ symbolic_execute(do_while_stmt(Statements, branch(Id, Condition)), Flow) :-
     ;
         Flow = Inner_flow   %e.g. a goto, exit etc
     ).
+symbolic_execute(switch_stmt(_Expression, _Statement), 'carry_on') :-
+    !,
+    common_util__error(0, "Warning: todo switch statements", 'no_error_consequences', [], '0_060825_8', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info).
+symbolic_execute(goto_stmt(Label, Function), Flow) :-
+    !,
+    %mytrace,
+    se_sub_atts__get(Function, 'body', cmp_stmts(Stmts)),
+    search_label_statement(Label, Stmts, Stmt_list),
+    symbolic_execute(Stmt_list, Flow).
 symbolic_execute(label_stmt(_Label, Statement), Flow) :- 
     !,
     symbolic_execute(Statement, Flow).

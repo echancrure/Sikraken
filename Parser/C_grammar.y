@@ -1390,7 +1390,7 @@ function_definition
 		 size_t const size = strlen("function(, , [], )") + strlen(decl_specifier) + strlen($2.full) + strlen($3) + strlen($5) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "function(%s, %s, [%s], %s)", decl_specifier, $2.full, $3, $5);
-		 if (debugMode) printf("function parser\n");
+		 if (debugMode) printf("function parsed\n");
 	     free(decl_specifier);
 		 free($2.full);
 		 free($2.ptr_declarator);

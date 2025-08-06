@@ -95,13 +95,13 @@ se_main(ArgsL) :-
     capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
     read_parsed_file(Install_dir, Target_source_file_name_no_ext, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors
     %%%pre-symbolic execution
-    %mytrace,
+    mytrace,
     cfg_build__declare_functions(Parsed_prolog_code),
     setval('execution_mode', 'global'),   %i.e. C compile time (as opposed to runtime), tackling globals when implicit initialisation to 0 occurs 
     (symbolic_execute(Parsed_prolog_code, _) ->   %always symbolically execute all global declarations for now: initialisations could be ignored via a switch if desired
         true
     ;
-        common_util__error(10, "Sikraken failed to execute the declarations: cannot recover from this", "Should never happen: code needs to be traced", [], '10_021224_3', 'se_main', 'search_CFG_inner', no_localisation, no_extra_info)
+        common_util__error(10, "Sikraken failed to execute the global declarations: cannot recover from this", "Should never happen: code needs to be traced", [], '10_021224_3', 'se_main', 'search_CFG_inner', no_localisation, no_extra_info)
     ),
     cfg_main__build_cfg(Parsed_prolog_code),
     setval('execution_mode', 'local'),    %i.e. C run time (as opposed to compile time), tackling locals when implicit initialisation to 0 does not occur
