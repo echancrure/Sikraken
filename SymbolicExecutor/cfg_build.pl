@@ -26,7 +26,7 @@ cfg_build__build_cfg(Parsed_prolog_code, Function_name) :-
         common_util__error(10, "Fatal error in cover/1", "Failed without leaving a choice point: Should never happen", [], '10_010825_1', 'se_main', 'cfg_build__build_cfg', no_localisation, no_extra_info)
     ),
     fail.   %induces bactracking within cover/1
-cfg_build__build_cfg(_, Function_name) :-
+cfg_build__build_cfg(_, _Function_name) :-
     !.   %build successors etc.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
     init(Function_name) :-  
