@@ -10,12 +10,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Contains the predicate to create the CFG by covering the entire code under test
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-:- dynamic cfg_branch/3.                    %dynamic predicate to store the CFG's branches: cfg_branch(From, Truth_value, To)
+:- dynamic edge/3.                    %dynamic predicate to store the CFG's branches: edge(From, To, Truth_value)
 :- local reference(current_node, start).          %the current node id during CFG building
 :- local reference(current_truth_value, true).    %the current truth value during CFG building
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 cfg_build__init :-  %necessary initialisations during development to start from a clean empty CFG
-    retractall(cfg_branch(_, _, _)).
+    retractall(edge(_, _, _)).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Build the CFG of the code under test
 cfg_build__build_cfg(Parsed_prolog_code, Function_name) :-
@@ -23,15 +23,23 @@ cfg_build__build_cfg(Parsed_prolog_code, Function_name) :-
     (cover(Parsed_prolog_code, _Flow) *->      %'soft-cut' to enumerate all choice points in cover
         create_branch(end(Function_name))
     ;
-        common_util__error(10, "Fatal error in cover/1", "Failed without leaving a choice point: Should never happen", [], '10_010825_1', 'se_main', 'cfg_build__build_cfg', no_localisation, no_extra_info)
+        common_util__error(10, "Fatal error in cover/1", "Failed without leaving a choice point: Should never happen", [], '10_010825_1', 'cfg_build', 'cfg_build__build_cfg', no_localisation, no_extra_info)
     ),
     fail.   %induces bactracking within cover/1
 cfg_build__build_cfg(_, _Function_name) :-
-    !.   %build successors etc.
+    !.  %the CFG edges asserted facts have been created
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
     init(Function_name) :-  
         setref(current_node, start(Function_name)),
-        setref(current_truth_value, true).
+        setref(current_truth_value, true).  %true is place holder here, it should be none 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Create the graph from asserted edge/3 facts: the resulting graph of the form graph(Nodes, Edges)
+cfg_build__create_graph(graph(Nodes, Edges)) :-
+        findall(From, edge(From, _, _), FromList),  % Start of collect all unique nodes
+        findall(To, edge(_, To, _), ToList),
+        append(FromList, ToList, AllNodes),
+        sort(AllNodes, Nodes),
+        findall(edge(From, To, Label), edge(From, To, Label), Edges). % Collect all edges as they are
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %cover/2 has the same heads as symbolic_execute/2: it handles the entire C language focusing on building the CFG only
     %the second argument is the Flow: it can have the following values : carry_on|break|continue|exit|return(expression)
@@ -72,7 +80,7 @@ cfg_build__build_cfg(_, _Function_name) :-
              cfg_build__build_cfg(Compound_statement, Function_name)
             ) 
         ;
-            common_util__error(10, "Fatal error in cover/2", "A function has not been declared as a se_sub_atts: Should never happen", [], '10_020825_1', 'se_main', 'cover', no_localisation, no_extra_info)
+            common_util__error(10, "Fatal error in cover/2", "A function declaration has not been declared as a se_sub_atts within cover: Should never happen", [], '10_020825_1', 'cfg_build', 'cover', no_localisation, no_extra_info)
         ).
     %todo check when this occurs (because pointers to functions don't have bodies so we should do nothing here)
     cover(function(_Specifiers, ptr_decl(pointer, function(_Function_name, _Parameters)), [], _Compound_statement), 'carry_on') :-
@@ -132,10 +140,9 @@ cfg_build__build_cfg(_, _Function_name) :-
         !,
         cover_exp(LValue),
         cover_exp(Expression).
-    cover(function_call(_Function, Arguments), 'carry_on') :- %as a statement
+    cover(function_call(Function, Arguments), 'carry_on') :- %as a statement
         !,
-        cover_exp(Arguments),
-        common_util__error(0, "Warning in cover: todo function call graph", 'no_error_consequences', [], '0_060825_5', 'cfg_build', 'cover', no_localisation, no_extra_info).
+        cover_exp(function_call(Function, Arguments)).  %exactly the same as a function call expression
     cover(if_stmt(branch(Id, Condition), True_statements, False_statements), Flow) :-
         !,
         cover_exp(Condition),
@@ -192,10 +199,18 @@ cfg_build__build_cfg(_, _Function_name) :-
     cover_exp(A) :-
         atomic(A),
         !.  %a number, a field name, a string, a character constant, a boolean etc.: nothing to do
-    cover_exp(function_call(_Function, Arguments)) :- 
+    cover_exp(function_call(Function, Arguments)) :- 
         !,
-        cover_exp(Arguments),
-        common_util__error(0, "Warning in cover_exp: todo function call graph", 'no_error_consequences', [], '0_060825_10', 'cfg_build', 'cover_exp', no_localisation, no_extra_info).
+        (se_sub_atts__is_sub_atts(Function) ->
+            (se_name_atts__get(Function, 'name', Function_name),
+             cover_exp(Arguments),
+             create_call_branch(start(Function_name))   %this is a special branch: a function call
+             %setref(current_truth_value, true), %true is a placeholder here, it could be none (but for analysis it is simpler to use true)
+             %setref(current_node, end(Function_name))
+            ) 
+        ;
+            common_util__error(10, "Fatal error in cover/2", "A function call has not been declared as a se_sub_atts in cover: Should never happen", [], '10_120825_1', 'cfg_build', 'cover', no_localisation, no_extra_info)
+        ).    
     cover_exp(cond_exp(branch(Id, Condition), True_expression, False_expression)) :-
         !,
         cover_exp(Condition),
@@ -240,11 +255,22 @@ cfg_build__build_cfg(_, _Function_name) :-
     create_branch(To) :-
         getref(current_node, From),
 		getref(current_truth_value, Truth),
-		(cfg_branch(From, Truth, To) ->
-            fail	%already exist: backtrack
+		(edge(From, To, Truth) ->
+            fail	%already exist: don't create a new edge and backtrack: this part of the code has already been covered
 		;
-			(assert(cfg_branch(From, Truth, To)),
+			(assert(edge(From, To, Truth)),
              setref(current_node, To)
             )
+        ).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Create a branch for a function call: this is a special branch
+    % but we still use the same notation as for other branches in hope that analysis will be simpler
+    create_call_branch(start(Function_name)) :-
+        getref(current_node, From),
+        getref(current_truth_value, Truth),
+        (edge(From, start(Function_name), Truth) ->
+            true	%already exist: e.g. multiple calls to the same function
+        ;
+            assert(edge(From, start(Function_name), Truth)) %but we do not change the current node
         ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

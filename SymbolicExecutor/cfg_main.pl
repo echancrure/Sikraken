@@ -10,7 +10,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This is the top level file for the creation and querying of the CFG of the C code under test.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-:- compile(['cfg_build']).
+:- lib(graph_algorithms).
+:- lib(graphviz).
+:- compile([cfg_build, cfg_analyse]).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %create se_sub_atts variables for all (all global in C) functions 
 cfg_build__declare_functions(Parsed_prolog_code) :-
@@ -61,7 +63,30 @@ cfg_build__declare_functions(Parsed_prolog_code) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 cfg_main__build_cfg(Parsed_prolog_code) :-
     cfg_build__init,
-    cfg_build__build_cfg(Parsed_prolog_code, elaboration).
+    cfg_build__build_cfg(Parsed_prolog_code, elaboration),
+    cfg_build__create_graph(graph(Nodes, Edges)),
+    (se_globals__get_val(debug_mode, debug) ->   %some overheads but only in debugging mode (implement your own if that is an issue)
+        mytrace,
+        writeln('CFG Nodes:'),
+        writeln(Nodes),
+        writeln('CFG Edges:'),
+        writeln(Edges),
+        writeln('CFG Graph:'),
+        ArrayNodes =.. ['[]'|Nodes],    %trick to transform a list into a Prolog array
+        make_graph_symbolic(ArrayNodes, Edges, Graph),
+        view_graph(Graph, [edge_attrs_generator : edge_label_attrs])    %trying to add labels to individual edges but does not work
+    ;
+        true
+    ),
+    all_successor_edges_with_labels(graph(Nodes, Edges), Reachable_edges_mapping),
+    se_globals__set_val('reachable_edges_mapping', Reachable_edges_mapping).
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Edge attribute generator — adds label to edge
+        edge_label_attrs(_Graph, e(_From, _To, Label), [label=Label, color=Color]) :-   %note: must use e/3 to match the internal edge format
+            ( Label == true  -> Color = green
+            ; Label == false -> Color = red
+            ;                   Color = black
+            ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 cfg_main__bran_is_already_covered(Branch) :-
     se_globals__get_val('covered_bran', Already_covered),
