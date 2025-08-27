@@ -5,7 +5,7 @@
 # Date: May 2025
 # Description: Calls the Sikraken parser, sikraken_parser.exe, on a C source file.
 # This script preprocesses the C source file using gcc (for .c files) and then runs the Sikraken parser on it.
-# It takes one argument:
+# It takes one compulsory argument and up to 2 optional arguments:
 #   1. The relative path to the C source file (e.g., ./../SampleCode/atry_bitwise.c or .i)
 #   2. (Optional) The gcc flag for the data model (default is -m32)
 #   3. (Optional) The -d flag to enable debug mode
@@ -18,7 +18,7 @@ SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."
 echo "Sikraken $0 says: SIKRAKEN_INSTALL_DIR is $SIKRAKEN_INSTALL_DIR"
 
 # Ensure we have at least 1 argument and a maximum of 3
-if [ $# -lt 1 ] || [ $# -gt 2 ]; then
+if [ $# -lt 1 ] || [ $# -gt 3 ]; then
     echo "Sikraken ERROR from $0: usage is $0 <relative_dir>/<file_name.c> [gcc_flag] [-d]"
     exit 1
 fi

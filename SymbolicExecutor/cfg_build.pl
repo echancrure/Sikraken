@@ -11,13 +11,15 @@
 % Contains the predicate to create the CFG by covering the entire code under test
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 :- dynamic edge/3.                    %dynamic predicate to store the CFG's branches: edge(From, To, Truth_value)
+:- dynamic function_call/3.          %dynamic predicate to store the function calls in the CFG: function_call(From, To, Truth_value)
 :- local reference(current_node, start).          %the current node id during CFG building
 :- local reference(current_truth_value, true).    %the current truth value during CFG building
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-cfg_build__init :-  %necessary initialisations during development to start from a clean empty CFG
+%necessary initialisations during development to start from a clean empty CFG
+cfg_build__init :-  
     retractall(edge(_, _, _)).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Build the CFG of the code under test
+%Build the CFG of the code under test by asserting edge/3 facts
 cfg_build__build_cfg(Parsed_prolog_code, Function_name) :-
     init(Function_name),
     (cover(Parsed_prolog_code, _Flow) *->      %'soft-cut' to enumerate all choice points in cover
@@ -268,9 +270,9 @@ cfg_build__create_graph(graph(Nodes, Edges)) :-
     create_call_branch(start(Function_name)) :-
         getref(current_node, From),
         getref(current_truth_value, Truth),
-        (edge(From, start(Function_name), Truth) ->
+        (function_call(From, start(Function_name), Truth) ->
             true	%already exist: e.g. multiple calls to the same function
         ;
-            assert(edge(From, start(Function_name), Truth)) %but we do not change the current node
+            assert(function_call(From, start(Function_name), Truth)) %but we do not change the current node
         ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

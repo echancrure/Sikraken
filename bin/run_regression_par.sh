@@ -6,7 +6,7 @@
 # Description: This script runs Sikraken regression tests in parallel on C files in a specified directory (usually Sikraken/regression_tests).
 # It should behave similarly to run_regression.sh but it runs the test generation in parallel.
 # TestCov is run sequentially at the end because it does not support parallel execution.
-# Usage: ./bin/run_regression_par.sh <number_of_cores> <relative_directory_of_regression_c_files>
+# Usage: ./bin/run_regression_par.sh <number_of_cores> <relative_directory_of_regression_c_files> [-d]
 # Example: ./bin/run_regression_par.sh 4 regression_tests
 
 clear
@@ -28,6 +28,12 @@ max_jobs=$1
 # Set the directory containing the .c files from the argument
 rel_path_c_file="$2"
 c_files_directory="$SIKRAKEN_INSTALL_DIR/$rel_path_c_file"    #e.g. /home/chris/Sikraken/regression_tests
+
+if [ "$3" == "-d" ]; then
+    debug_mode="debug"
+else
+    debug_mode="release"
+fi
 
 # Check if the provided directory exists
 if [ ! -d "$c_files_directory" ]; then
@@ -111,7 +117,7 @@ generate_tests() {
         echo -e "\e[34mGenerating tests for $regression_test_file using also: $algo\e[0m"
 
         # Generate test inputs
-        local eclipse_call="se_main(['$SIKRAKEN_INSTALL_DIR', '$SIKRAKEN_INSTALL_DIR/$rel_path_c_file', '$base_name', main, debug, testcomp, '$gcc_flag', $algo])"
+        local eclipse_call="se_main(['$SIKRAKEN_INSTALL_DIR', '$SIKRAKEN_INSTALL_DIR/$rel_path_c_file', '$base_name', main, $debug_mode, testcomp, '$gcc_flag', $algo])"
         $SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e "$eclipse_call"
         if [ $? -ne 0 ]; then
             echo "Sikraken ERROR from $script_name: Call to ECLiPSe $eclipse_call failed"

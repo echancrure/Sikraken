@@ -8,11 +8,11 @@
 # For each file C file foo.c it reads from the corresponding configuration file foo.json describing the test generation configuration.
 # If it exists, foo.yml is also read to determine the data model (ILP32 or LP64).
 # foo.c is then preprocessed using gcc and the Sikraken parser is called.
-# Eclipse is then called to generate test inputs.
+# ECLiPse is then called to generate test inputs.
 # Then TestCov is called to measure the coverage achieved.
 # Finally, the script compares the expected behaviour of the test generation process (described in foo.json) with the actual behaviour.
 # A log file is created to store the results of the regerssion test
-# Usage: ./bin/run_regression.sh <relative_directory_of_regression_c_files>
+# Usage: ./bin/run_regression.sh <relative_directory_of_regression_c_files> [-d]
 # Example: ./bin/run_regression.sh regression_tests
 
 clear
@@ -22,8 +22,14 @@ echo "Sikraken $0 log: SIKRAKEN_INSTALL_DIR is $SIKRAKEN_INSTALL_DIR"
 
 # Check if the directory argument is provided
 if [ -z "$1" ]; then
-    echo "Sikraken ERROR from $0: script usage is $0 <relative_directory_of_regression_c_files> e.g. regression_tests"
+    echo "Sikraken ERROR from $0: script usage is $0 <relative_directory_of_regression_c_files> [-d] e.g. regression_tests"
     exit 1
+fi
+
+if [ "$2" == "-d" ]; then
+    debug_mode="debug"
+else
+    debug_mode="release"
 fi
 
 # Set the directory containing the .c files from the argument
@@ -113,7 +119,7 @@ for regression_test_file in "$c_files_directory"/*.c; do
         echo -e "\e[34mSikraken $0 log: now generating tests for $regression_test_file in $id configuration.\e[0m"
 
         #generate test inputs
-        eclipse_call="se_main(['$SIKRAKEN_INSTALL_DIR', '$SIKRAKEN_INSTALL_DIR/$rel_path_c_file', '$base_name', main, debug, testcomp, '$gcc_flag', $algo])"
+        eclipse_call="se_main(['$SIKRAKEN_INSTALL_DIR', '$SIKRAKEN_INSTALL_DIR/$rel_path_c_file', '$base_name', main, $debug_mode, testcomp, '$gcc_flag', $algo])"
         $SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e "$eclipse_call"
         if [ $? -ne 0 ]; then
             echo "Sikraken ERROR from $0: call to ECLiPSe $eclipse_call failed"

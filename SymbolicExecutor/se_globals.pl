@@ -14,7 +14,7 @@ mytrace.            %call this to start debugging
 :- local reference('scope_stack', [scope(0, dummy)]).          %[scope(level_nb|Var)|Older] with Var only used for delaying and awakening, see SEAV module
 :- local reference('verifier_inputs', []).      %for testcomp: the chronogical list of verifier variables created in the form [verif(Type, Input)|...] 
 
-:- setval('debug_mode', 'debug').   %needed in case we need to write out an error message before gloabls are initiatilised... 
+:- setval('debug_mode', 'debug').   %needed in case we need to write out an error message before globals are initiatilised... 
 :- dynamic covered_bran/1, path_nb/1.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 super_util__quick_dev_info(Message, Arguments) :-
@@ -46,6 +46,11 @@ se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode,
     setval('target_source_file_name_no_ext', Target_source_file_name_no_ext),   %the name of target source file without extension
     setval('testcomp_test_suite_folder', ""),
     setval('debug_mode', Debug_mode),           %'debug' or 'release'
+    (Debug_mode == 'debug' -> 
+        printf('output', "Sikraken is running in Debug mode\n", [])
+    ;
+        printf('output', "Sikraken is running in Release mode\n", [])
+    ),
     setval('output_mode', Output_mode),         %'testcomp' or something else 
     setval('data_model', Data_model),           %'-m32'|'m64'
     setval('message_mode', Debug_mode),         %debug or release todo: remove, just use debug_mode

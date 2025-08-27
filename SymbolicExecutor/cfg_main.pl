@@ -63,7 +63,8 @@ cfg_build__declare_functions(Parsed_prolog_code) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 cfg_main__build_cfg(Parsed_prolog_code) :-
     cfg_build__init,
-    cfg_build__build_cfg(Parsed_prolog_code, elaboration),
+    mytrace,
+    cfg_build__build_cfg(Parsed_prolog_code, elaboration), 
     cfg_build__create_graph(graph(Nodes, Edges)),
     (se_globals__get_val(debug_mode, debug) ->   %some overheads but only in debugging mode (implement your own if that is an issue)
         mytrace,
@@ -74,14 +75,14 @@ cfg_main__build_cfg(Parsed_prolog_code) :-
         writeln('CFG Graph:'),
         ArrayNodes =.. ['[]'|Nodes],    %trick to transform a list into a Prolog array
         make_graph_symbolic(ArrayNodes, Edges, Graph),
-        view_graph(Graph, [edge_attrs_generator : edge_label_attrs])    %trying to add labels to individual edges but does not work
+        view_graph(Graph, [edge_attrs_generator : edge_label_attrs])
     ;
         true
     ),
     all_successor_edges_with_labels(graph(Nodes, Edges), Reachable_edges_mapping),
     se_globals__set_val('reachable_edges_mapping', Reachable_edges_mapping).
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % Edge attribute generator — adds label to edge
+        % Edge attribute generator — adds label and color to edge
         edge_label_attrs(_Graph, e(_From, _To, Label), [label=Label, color=Color]) :-   %note: must use e/3 to match the internal edge format
             ( Label == true  -> Color = green
             ; Label == false -> Color = red

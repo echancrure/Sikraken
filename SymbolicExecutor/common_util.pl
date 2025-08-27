@@ -38,11 +38,12 @@ common_util__error(Error_severity, Error_message, Error_consequences, ArgumentsL
                se_globals__set_val('already_printed', [error(Error_code, Occurences)|Already_printed])
               )
        ),
-       (Occurences == 9 -> %only print the same warning message a fixed number of times to avoid overwhelming the logs
+       (Occurences == 9 -> %only print the same warning message with the same code a fixed number of times to avoid overwhelming the logs
               true
        ;
               (se_globals__get_val('errorMessageNb', ErrorNb),
                ErrorNb1 is ErrorNb + 1,
+               mytrace,
                %(ErrorNb1 == 34 -> mytrace ; true),
                printf(output, "Error Nb: %w: ", [ErrorNb1]),
                se_globals__set_val('errorMessageNb', ErrorNb1),
@@ -133,7 +134,7 @@ common_util__error2(0, Error_message, Error_consequences, ArgumentsL, _Error_cod
              )
             )
     ;
-            true
+            printf(output, "%s%n", [Error_message])
     ),
     flush(output).
 
