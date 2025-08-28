@@ -63,7 +63,7 @@ cfg_build__declare_functions(Parsed_prolog_code) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 cfg_main__build_cfg(Parsed_prolog_code) :-
     cfg_build__init,
-    mytrace,
+    %mytrace,
     cfg_build__build_cfg(Parsed_prolog_code, elaboration), 
     cfg_build__create_graph(graph(Nodes, Edges)),
     (se_globals__get_val(debug_mode, debug) ->   %some overheads but only in debugging mode (implement your own if that is an issue)
@@ -72,14 +72,19 @@ cfg_main__build_cfg(Parsed_prolog_code) :-
         writeln(Nodes),
         writeln('CFG Edges:'),
         writeln(Edges),
-        writeln('CFG Graph:'),
-        ArrayNodes =.. ['[]'|Nodes],    %trick to transform a list into a Prolog array
-        make_graph_symbolic(ArrayNodes, Edges, Graph),
-        view_graph(Graph, [edge_attrs_generator : edge_label_attrs])
+        writeln('CFG Graph:')
+        %ArrayNodes =.. ['[]'|Nodes],    %trick to transform a list into a Prolog array
+        %make_graph_symbolic(ArrayNodes, Edges, Graph),
+        %view_graph(Graph, [edge_attrs_generator : edge_label_attrs])
     ;
         true
     ),
+    statistics(runtime, [Start|_]),
     all_successor_edges_with_labels(graph(Nodes, Edges), Reachable_edges_mapping),
+    statistics(runtime, [End|_]),
+    Time is End - Start,
+    printf(output, "Successor Edges Mapping Execution time: %d ms\n", [Time]),
+    flush(output),
     se_globals__set_val('reachable_edges_mapping', Reachable_edges_mapping).
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Edge attribute generator — adds label and color to edge

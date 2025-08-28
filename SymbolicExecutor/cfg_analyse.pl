@@ -1,7 +1,7 @@
 :- lib(assoc).
 :- lib(random).  % Eclipse Prolog's random library
 
-%%% BFS successor edges with labels code (your BFS version)
+%%% BFS successor edges with labels code
 all_successor_edges_with_labels(graph(Nodes, Edges), Reachable_edges_mapping) :-
     build_adj_list_with_labels(Edges, Adjacency_map),
     findall(
@@ -11,7 +11,8 @@ all_successor_edges_with_labels(graph(Nodes, Edges), Reachable_edges_mapping) :-
             member(edge(Node, To, Label), Edges),
             bfs_reachable_edges(To, Adjacency_map, ReachEdges)
         ),
-        Reachable_edges_mapping).
+        Reachable_edges_mapping)
+    .
 
 bfs_reachable_edges(Start, Adjacency_map, ReachEdges) :-
     bfs_queue([Start], Adjacency_map, [], [], ReachEdges).
@@ -43,7 +44,6 @@ build_adj_list_with_labels_([edge(F,T,L)|Rest], Acc, Map) :-
         put_assoc(F, Acc, [(T,L)], Acc1)
     ),
     build_adj_list_with_labels_(Rest, Acc1, Map).
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Example usage
 

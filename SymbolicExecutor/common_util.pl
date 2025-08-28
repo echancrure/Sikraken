@@ -43,7 +43,6 @@ common_util__error(Error_severity, Error_message, Error_consequences, ArgumentsL
        ;
               (se_globals__get_val('errorMessageNb', ErrorNb),
                ErrorNb1 is ErrorNb + 1,
-               mytrace,
                %(ErrorNb1 == 34 -> mytrace ; true),
                printf(output, "Error Nb: %w: ", [ErrorNb1]),
                se_globals__set_val('errorMessageNb', ErrorNb1),
@@ -131,12 +130,12 @@ common_util__error2(0, Error_message, Error_consequences, ArgumentsL, _Error_cod
                     printf(output, "%n", [])
              ;
                     printf(output, ", %s%n", [Extra_info])
-             )
+             ),
+             flush(output)     %only in debug mode as costly
             )
     ;
             printf(output, "%s%n", [Error_message])
-    ),
-    flush(output).
+    ).
 
 common_util__error2(Error_severity, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode) :-
     (Message_mode == debug ->
