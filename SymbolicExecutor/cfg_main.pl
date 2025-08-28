@@ -80,11 +80,26 @@ cfg_main__build_cfg(Parsed_prolog_code) :-
         true
     ),
     statistics(runtime, [Start|_]),
+    mytrace,
     all_successor_edges_with_labels(graph(Nodes, Edges), Reachable_edges_mapping),
     statistics(runtime, [End|_]),
     Time is End - Start,
-    printf(output, "Successor Edges Mapping Execution time: %d ms\n", [Time]),
+    printf(output, "Original Successor Edges Mapping Execution time: %d ms\n", [Time]),
     flush(output),
+    %print_reachable_edges_mapping(Reachable_edges_mapping),
+    /*
+    statistics(runtime, [Start2|_]),
+    all_successor_edges_with_labels2(graph(Nodes, Edges), Reachable_edges_mapping2),
+    statistics(runtime, [End2|_]),
+    Time2 is End2 - Start2,
+    printf(output, "Improved Successor Edges Mapping Execution time: %d ms\n", [Time2]),
+    flush(output),
+    (Reachable_edges_mapping == Reachable_edges_mapping2 ->
+        printf(output, "Successor Edges Mappings are identical\n", [])
+    ;
+        printf(output, "Warning: Successor Edges Mappings differ!\n", [])   
+    ),
+    flush(output),*/
     se_globals__set_val('reachable_edges_mapping', Reachable_edges_mapping).
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Edge attribute generator — adds label and color to edge
@@ -93,6 +108,19 @@ cfg_main__build_cfg(Parsed_prolog_code) :-
             ; Label == false -> Color = red
             ;                   Color = black
             ).
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        print_reachable_edges_mapping([]).
+        print_reachable_edges_mapping([(Node,Label)-Edges | Rest]) :-
+            printf("From node %w with label %w:\n", [Node, Label]),
+            print_edges_list(Edges),
+            printf("\n", []),
+            print_reachable_edges_mapping(Rest).
+
+        print_edges_list([]).
+        print_edges_list([(N,L)|Rest]) :-
+            printf("   -> (%w,%w)\n", [N, L]),
+            print_edges_list(Rest).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 cfg_main__bran_is_already_covered(Branch) :-
     se_globals__get_val('covered_bran', Already_covered),
