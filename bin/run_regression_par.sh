@@ -18,10 +18,11 @@ echo "SIKRAKEN_INSTALL_DIR is $SIKRAKEN_INSTALL_DIR"
 script_name=$(basename "$0")
 
 # Check if the correct number of arguments is provided
-if [ $# -ne 2 ]; then
-    echo "Sikraken PARALLEL regression testing ERROR: script usage is $0 <number_of_cores> <relative_directory_of_regression_c_files> e.g. 4 regression_tests"
+if [ $# -lt 2 ] || [ $# -gt 3 ]; then
+    echo "Sikraken PARALLEL regression testing ERROR: script usage is $0 <number_of_cores> <relative_directory_of_regression_c_files> [-d] e.g. 8 regression_tests -d"
     exit 1
 fi
+
 # Maximum number of concurrent jobs
 max_jobs=$1
 
