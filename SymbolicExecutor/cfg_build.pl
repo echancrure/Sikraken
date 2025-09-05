@@ -17,7 +17,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %necessary initialisations during development to start from a clean empty CFG
 cfg_build__init :-  
-    retractall(edge(_, _, _)).
+    retractall(edge(_, _, _)),
+    retractall(function_call(_, _, _)).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Build the CFG of the code under test by asserting edge/3 facts
 cfg_build__build_cfg(Parsed_prolog_code, Function_name) :-
@@ -42,6 +43,8 @@ cfg_build__create_graph(graph(Nodes, Edges)) :-
         append(FromList, ToList, AllNodes),
         sort(AllNodes, Nodes),
         findall(edge(From, To, Label), edge(From, To, Label), Edges). % Collect all edges as they are
+        %findall(function_call(From, To, Label), function_call(From, To, Label), FunctionCalls),
+        %append(Edges, FunctionCalls, EdgesWithFunctionCalls).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %cover/2 has the same heads as symbolic_execute/2: it handles the entire C language focusing on building the CFG only
     %the second argument is the Flow: it can have the following values : carry_on|break|continue|exit|return(expression)
@@ -209,9 +212,9 @@ cfg_build__create_graph(graph(Nodes, Edges)) :-
              create_call_branch(start(Function_name))   %this is a special branch: a function call
              %setref(current_truth_value, true), %true is a placeholder here, it could be none (but for analysis it is simpler to use true)
              %setref(current_node, end(Function_name))
-            ) 
+            )
         ;
-            common_util__error(10, "Fatal error in cover/2", "A function call has not been declared as a se_sub_atts in cover: Should never happen", [], '10_120825_1', 'cfg_build', 'cover', no_localisation, no_extra_info)
+            common_util__error(10, "Fatal error in cover_exp/1", "A function call has not been declared as a se_sub_atts in cover_exp: Should never happen", [], '10_120825_1', 'cfg_build', 'cover', no_localisation, no_extra_info)
         ).    
     cover_exp(cond_exp(branch(Id, Condition), True_expression, False_expression)) :-
         !,

@@ -67,15 +67,14 @@ cfg_main__build_cfg(Parsed_prolog_code) :-
     cfg_build__build_cfg(Parsed_prolog_code, elaboration), 
     cfg_build__create_graph(graph(Nodes, Edges)),
     (se_globals__get_val(debug_mode, debug) ->   %some overheads but only in debugging mode (implement your own if that is an issue)
-        mytrace,
+        %mytrace,
         writeln('CFG Nodes:'),
         writeln(Nodes),
         writeln('CFG Edges:'),
         writeln(Edges),
-        writeln('CFG Graph:')
-        %ArrayNodes =.. ['[]'|Nodes],    %trick to transform a list into a Prolog array
-        %make_graph_symbolic(ArrayNodes, Edges, Graph),
-        %view_graph(Graph, [edge_attrs_generator : edge_label_attrs])
+        ArrayNodes =.. ['[]'|Nodes],    %trick to transform a list into a Prolog array
+        make_graph_symbolic(ArrayNodes, Edges, Graph),
+        view_graph(Graph, [edge_attrs_generator : edge_label_attrs])
     ;
         true
     ),
@@ -86,20 +85,7 @@ cfg_main__build_cfg(Parsed_prolog_code) :-
     Time is End - Start,
     printf(output, "Original Successor Edges Mapping Execution time: %d ms\n", [Time]),
     flush(output),
-    %print_reachable_edges_mapping(Reachable_edges_mapping),
-    /*
-    statistics(runtime, [Start2|_]),
-    all_successor_edges_with_labels2(graph(Nodes, Edges), Reachable_edges_mapping2),
-    statistics(runtime, [End2|_]),
-    Time2 is End2 - Start2,
-    printf(output, "Improved Successor Edges Mapping Execution time: %d ms\n", [Time2]),
-    flush(output),
-    (Reachable_edges_mapping == Reachable_edges_mapping2 ->
-        printf(output, "Successor Edges Mappings are identical\n", [])
-    ;
-        printf(output, "Warning: Successor Edges Mappings differ!\n", [])   
-    ),
-    flush(output),*/
+    (se_globals__get_val(debug_mode, debug) -> print_reachable_edges_mapping(Reachable_edges_mapping) ; true),
     se_globals__set_val('reachable_edges_mapping', Reachable_edges_mapping).
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Edge attribute generator — adds label and color to edge
@@ -108,8 +94,10 @@ cfg_main__build_cfg(Parsed_prolog_code) :-
             ; Label == false -> Color = red
             ;                   Color = black
             ).
+
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        print_reachable_edges_mapping([]).
+        print_reachable_edges_mapping([]) :-
+            flush(output).
         print_reachable_edges_mapping([(Node,Label)-Edges | Rest]) :-
             printf("From node %w with label %w:\n", [Node, Label]),
             print_edges_list(Edges),
