@@ -37,14 +37,13 @@ cfg_build__build_cfg(_, _Function_name) :-
         setref(current_truth_value, true).  %true is place holder here, it should be none 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Create the graph from asserted edge/3 facts: the resulting graph of the form graph(Nodes, Edges)
-cfg_build__create_graph(graph(Nodes, Edges)) :-
+cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls) :-
         findall(From, edge(From, _, _), FromList),  % Start of collect all unique nodes
         findall(To, edge(_, To, _), ToList),
         append(FromList, ToList, AllNodes),
         sort(AllNodes, Nodes),
-        findall(edge(From, To, Label), edge(From, To, Label), Edges). % Collect all edges as they are
-        %findall(function_call(From, To, Label), function_call(From, To, Label), FunctionCalls),
-        %append(Edges, FunctionCalls, EdgesWithFunctionCalls).
+        findall(edge(From, To, Label), edge(From, To, Label), Edges), % Collect all edges as they are
+        findall(function_call(From, To, Label), function_call(From, To, Label), FunctionCalls).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %cover/2 has the same heads as symbolic_execute/2: it handles the entire C language focusing on building the CFG only
     %the second argument is the Flow: it can have the following values : carry_on|break|continue|exit|return(expression)

@@ -65,16 +65,18 @@ cfg_main__build_cfg(Parsed_prolog_code) :-
     cfg_build__init,
     %mytrace,
     cfg_build__build_cfg(Parsed_prolog_code, elaboration), 
-    cfg_build__create_graph(graph(Nodes, Edges)),
+    cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls),
     (se_globals__get_val(debug_mode, debug) ->   %some overheads but only in debugging mode (implement your own if that is an issue)
         %mytrace,
-        writeln('CFG Nodes:'),
-        writeln(Nodes),
-        writeln('CFG Edges:'),
-        writeln(Edges),
-        ArrayNodes =.. ['[]'|Nodes],    %trick to transform a list into a Prolog array
+        printf(output, "CFG Nodes: %w\n", [Nodes]),
+        printf(output, "CFG Edges: %w\n", [Edges]),
+        printf(output, "CFG function calls: %w\n", [FunctionCalls])
+        /*,ArrayNodes =.. ['[]'|Nodes],    %trick to transform a list into a Prolog array
         make_graph_symbolic(ArrayNodes, Edges, Graph),
+        printf(output, "Displaying graph on separate window, press Quit to continue\n", []),
+        flush(output),
         view_graph(Graph, [edge_attrs_generator : edge_label_attrs])
+        */
     ;
         true
     ),
@@ -83,9 +85,16 @@ cfg_main__build_cfg(Parsed_prolog_code) :-
     all_successor_edges_with_labels(graph(Nodes, Edges), Reachable_edges_mapping),
     statistics(runtime, [End|_]),
     Time is End - Start,
-    printf(output, "Original Successor Edges Mapping Execution time: %d ms\n", [Time]),
+    printf(output, "Original Successor Edges Mapping building time: %d ms\n", [Time]),
     flush(output),
     (se_globals__get_val(debug_mode, debug) -> print_reachable_edges_mapping(Reachable_edges_mapping) ; true),
+    statistics(runtime, [Start2|_]),
+    extend_mapping_with_function_calls_fast(Reachable_edges_mapping, FunctionCalls, Augmented_mapping),
+    statistics(runtime, [End2|_]),
+    Time2 is End2 - Start2,
+    printf(output, "Augmented mapping building time: %d ms\n", [Time2]),
+    flush(output),
+    (se_globals__get_val(debug_mode, debug) -> print_reachable_edges_mapping(Augmented_mapping) ; true),
     se_globals__set_val('reachable_edges_mapping', Reachable_edges_mapping).
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Edge attribute generator — adds label and color to edge
@@ -99,15 +108,19 @@ cfg_main__build_cfg(Parsed_prolog_code) :-
         print_reachable_edges_mapping([]) :-
             flush(output).
         print_reachable_edges_mapping([(Node,Label)-Edges | Rest]) :-
-            printf("From node %w with label %w:\n", [Node, Label]),
-            print_edges_list(Edges),
-            printf("\n", []),
+            printf("From node %w with label %w: %w\n", [Node, Label, Edges]),
+            %print_edges_list(Edges),
+            %printf("\n", []),
             print_reachable_edges_mapping(Rest).
-
-        print_edges_list([]).
-        print_edges_list([(N,L)|Rest]) :-
-            printf("   -> (%w,%w)\n", [N, L]),
-            print_edges_list(Rest).
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            print_edges_list([]) :-
+                printf("   -> none", []).
+            print_edges_list([(N,L)]) :-
+                printf("   -> (%w,%w).", [N, L]).
+            print_edges_list([(N,L)|Rest]) :-
+                printf("   -> (%w,%w)\n", [N, L]),
+                print_edges_list(Rest).
+        
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 cfg_main__bran_is_already_covered(Branch) :-
