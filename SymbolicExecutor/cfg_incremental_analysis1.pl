@@ -102,8 +102,7 @@ edge_of_id(Id, Edge) :-
 % RevList = [Id-edge(...) , ...] (Id integers from 0..Count-1)
 index_edges(Edges, IdMap, RevList, Count) :-
     empty_assoc(A0),
-    index_edges_loop(Edges, 0, A0, IdMap, [], RevRev),
-    reverse(RevRev, RevList),
+    index_edges_loop(Edges, 0, A0, IdMap, [], RevList),
     length(RevList, Count).
 
 index_edges_loop([], _I, AM, AM, R, R).

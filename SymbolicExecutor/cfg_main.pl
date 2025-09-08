@@ -12,7 +12,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 :- lib(graph_algorithms).
 :- lib(graphviz).
-:- compile([cfg_build, cfg_analyse, cfg_incremental_analysis]).
+:- compile([cfg_build, cfg_analyse, cfg_incremental_analysis2]).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %create se_sub_atts variables for all (all global in C) functions 
 cfg_build__declare_functions(Parsed_prolog_code) :-
