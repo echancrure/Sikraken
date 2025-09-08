@@ -12,7 +12,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 :- lib(graph_algorithms).
 :- lib(graphviz).
-:- compile([cfg_build, cfg_analyse]).
+:- compile([cfg_build, cfg_analyse, cfg_incremental_analysis]).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %create se_sub_atts variables for all (all global in C) functions 
 cfg_build__declare_functions(Parsed_prolog_code) :-
@@ -81,8 +81,8 @@ cfg_main__build_cfg(Parsed_prolog_code) :-
         true
     ),
     statistics(runtime, [Start|_]),
-    mytrace,
-    all_successor_edges_with_labels(graph(Nodes, Edges), Reachable_edges_mapping),
+    mytrace, build_graph,    %Sep 08 incremental solution with memoization
+    %all_successor_edges_with_labels(graph(Nodes, Edges), Reachable_edges_mapping),
     statistics(runtime, [End|_]),
     Time is End - Start,
     printf(output, "Original Successor Edges Mapping building time: %d ms\n", [Time]),
