@@ -4,12 +4,28 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Run Sikraken (Debug)",
+            "type": "shell",
+            "command": "./bin/sikraken.sh",
+            "args": [
+                "debug",
+                "regression[1,10]",
+                "-m32",
+                "${relativeFile}"
+            ],
+            "group": "build",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
             "label": "Compile Parser",
             "type": "shell",
             "command": "${workspaceFolder}/bin/compile_parser.sh",
             "group": {
-                "kind": "build",
-                "isDefault": true
+                "kind": "build"
             },
             "problemMatcher": [],
             "presentation": {
@@ -32,8 +48,7 @@
                 "${relativeFile}"
             ],
             "group": {
-                "kind": "build",
-                "isDefault": true
+                "kind": "build"
             },
             "problemMatcher": [],
             "detail": "Preprocesses the current C file and then runs sikraken_parser on it."
@@ -61,8 +76,7 @@
                 "se_main(['${workspaceFolder}', '${fileDirname}', '${fileBasenameNoExtension}', main, debug, testcomp, '-m32', regression(1, 10)])"
             ],
             "group": {
-                "kind": "build",
-                "isDefault": true
+                "kind": "build"
             },
             "presentation": {
                 "echo": true,
@@ -83,8 +97,7 @@
                 "regression_tests"
             ],
             "group": {
-                "kind": "build",
-                "isDefault": true
+                "kind": "build"
             },
             "problemMatcher": [],
             "presentation": {
