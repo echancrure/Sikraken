@@ -4,7 +4,7 @@ mytrace.            %call this to start debugging
 :- spy mytrace/0.
 
 :- export super_util__quick_dev_info/2.
-:- export se_globals__set_globals/5, se_globals__get_val/2, se_globals__set_val/2, se_globals__get_ref/2, se_globals__set_ref/2.
+:- export se_globals__set_globals/6, se_globals__get_val/2, se_globals__set_val/2, se_globals__get_ref/2, se_globals__set_ref/2.
 :- export se_globals__update_ref/2.
 :- export se_globals__push_scope_stack/0, se_globals__pop_scope_stack/0.
 
@@ -30,7 +30,7 @@ super_util__quick_dev_info(Message, Arguments) :-
     ).     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %declaring global non-logical variables: not undone on backtracking
-se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode, Data_model) :-    
+se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode, Data_model, Options) :-    
     setval('errorMessageNb', 0),	            %number of error messages generated: used to set trace_points in debug mode only
     setval('debug_info', 'pre_symbolic_execution'),    %used in debug mode only to hold the current processing position of the symbolic executor: a phase, file, or function being handled
     setval('phase', 'elaboration'),             %initially we are in the elaboration phase: used during cfg building and elaboration control
@@ -55,7 +55,30 @@ se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode,
     setval('data_model', Data_model),           %'-m32'|'m64'
     setval('message_mode', Debug_mode),         %debug or release todo: remove, just use debug_mode
     setval('already_printed', []),              %list of already printed error messages : used in release mode only
+    set_options(Options),                       %process the list of options
     !.
+    %%%
+    set_options(Options) :-
+        set_default_options,
+        init_options(Options).
+        %%%
+        set_default_options :-
+            setval('shortcut_gen', false),
+            setval('advanced_cfg', false).
+        %%%
+        init_options([]).
+        init_options([Option|Rest]) :-
+            (Option == 'shortcut_gen' ->
+                setval('shortcut_gen', true),   %incomplete test inputs are generated: this is a testcomp which uses testcov quirk see diary 16/09/25
+                super_util__quick_dev_info("Shortcut generation mode ON\n", [])
+            ; 
+             Option == 'advanced_cfg' ->
+                setval('advanced_cfg', true),   %builds the full CFG and prepare it for analysis
+                super_util__quick_dev_info("Advanced CFG mode ON\n", [])
+            ;
+                printf('output', "Unknown option on the command line\n", [Option])
+            ),
+            init_options(Rest).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 se_globals__get_val(Global, Value) :-
     getval(Global, Value).

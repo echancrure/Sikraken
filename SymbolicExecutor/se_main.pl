@@ -33,19 +33,14 @@ mytrace.            %call this to start debugging
 :- compile(['cfg_main']).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  
-go(Restart, Tries) :- se_main(['/home/chris/Sikraken', '/home/chris/Sikraken/SampleCode','hardness_codestructure_dependencies_file-0', main, release, testcomp, '-m32', regression(Restart, Tries)]).
-%go1 :- se_main(['/home/chris/Sikraken', '/home/chris/Sikraken/regression_tests','Problem03_label00', main, debug, testcomp, '-m32', budget(50)]).
-go_dev :- se_main(['/home/chris/Sikraken', '/home/chris/Sikraken/SampleCode','atry_bitwise', main, debug, testcomp, '-m32', regression(1, 10)]).
-
 se_main(ArgsL) :-
     %set_flag('gc_policy', 'fixed'),
-    (ArgsL = [Install_dir, Source_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Search_algo] ->
+    (ArgsL = [Install_dir, Source_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Search_algo|Options] ->
         true
     ;
         common_util__error(10, "Calling se_main/? with invalid argument list", "Review calling syntax of se_main/?", [], '10_240824_1', 'se_main', 'se_main', no_localisation, no_extra_info)
     ),
-    %frandom(F), %before seed is set in se_globals__set_globals
-    se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode, Data_model),    
+    se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode, Data_model, Options),    
     print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext),
     (Search_algo = regression(Restarts, Tries) ->   %for more stable results during regression testing and to evaluate changes
         (setval('algo', 'regression'),
@@ -103,7 +98,7 @@ se_main(ArgsL) :-
         common_util__error(10, "Sikraken failed to execute the global declarations: cannot recover from this", "Should never happen: code needs to be traced", [], '10_021224_3', 'se_main', 'search_CFG_inner', no_localisation, no_extra_info)
     ),
     %mytrace,
-    cfg_main__build_cfg(Parsed_prolog_code),
+    (se_globals__get_val('advanced_cfg', true) -> cfg_main__build_cfg(Parsed_prolog_code) ; true),
     setval('execution_mode', 'local'),    %i.e. C run time (as opposed to compile time), tackling locals when implicit initialisation to 0 does not occur
     %%%
     statistics(event_time, Session_time),

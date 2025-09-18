@@ -62,8 +62,7 @@
                 "-32"
             ],
             "group": {
-                "kind": "build",
-                "isDefault": true
+                "kind": "build"
             },
             "problemMatcher": [],
             "detail": "Zip test input vectors and call TestCov"

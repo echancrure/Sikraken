@@ -135,128 +135,24 @@ symbolic_execute(function_call(Function, Arguments), 'carry_on') :- %as a statem
 
 symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statements), Flow) :-
     !,
-/*    
-    %(Id == 155 -> mytrace ; true),
-    mytrace,
-    ((  %until we have a CFG: this is quick hack easy to check that should be generalised based on what covered to date and potential successors
-        (True_statements = cmp_stmts([label_stmt(_, stmt(function_call(Exit, [int(_)])))]),
-         se_name_atts__get(Exit, 'name', 'Exit')
-        )
-     ;%just or
-        (True_statements = cmp_stmts([stmt(function_call(Abort, []))]),
-         se_name_atts__get(Abort, 'name', 'Abort')
-        )
-%     ;%just or
-%        True_statements = return_stmt(_)    %another opportunity to exit early
-%     ;%just or
-%        True_statements = cmp_stmts([return_stmt(_)])   %another opportunity to exit early
-     ) ->
-        (not cfg_main__bran_newly_covered([]) -> %something new has been covered so far
-            (
-                force(Condition, Id, 'true', True_statements, Flow)     %exit early
-            ;
-                force(Condition, Id, 'false', False_statements, Flow)    %allow continue as may lead to something new
-            )
-        %;
-        % cfg_main__bran_is_already_covered(branch(Id, 'true')) ->    %nothing new and true already covered and will exit if taken
-        %    force(Condition, Id, 'false', False_statements, Flow)       %only option is to try the false branch
-        ;   %nothing new
-            (random(2, 0) ->
-                (
-                    force(Condition, Id, 'true', True_statements, Flow)
-                ;%deliberate choice point
-                    force(Condition, Id, 'false', False_statements, Flow)
-                )
-            ;
-                (
-                    force(Condition, Id, 'false', False_statements, Flow)
-                ;%deliberate choice point
-                    force(Condition, Id, 'true', True_statements, Flow)
-                )
-            )
-        )
-     ;
-     */
-        (random(2, 0) ->    %repeated code is unfortunate
-            (
-                force(Condition, Id, 'true', True_statements, Flow)
-            ;%deliberate choice point
-                force(Condition, Id, 'false', False_statements, Flow)
-            )
-        ;
-            (
-                force(Condition, Id, 'false', False_statements, Flow)
-            ;%deliberate choice point
-                force(Condition, Id, 'true', True_statements, Flow)
-            )
-        ).
-    %).
-/*
-symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statements), Flow) :-
-    !,
-    %(Id == 155 -> mytrace ; true),
-    mytrace,
-    symbolically_interpret(Condition, symb(_, Condition_value)),
-    (Condition_value == 1   ->
-        (se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-            symbolic_execute(True_statements, Flow)
+    (random(2, 0) ->    %repeated code is unfortunate
+        (
+            force(Condition, Id, 'true', True_statements, Flow)
+        ;%deliberate choice point
+            force(Condition, Id, 'false', False_statements, Flow)
         )
     ;
-     Condition_value == 0   ->
-        (se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-            symbolic_execute(False_statements, Flow)
+        (
+            force(Condition, Id, 'false', False_statements, Flow)
+        ;%deliberate choice point
+            force(Condition, Id, 'true', True_statements, Flow)
         )
-    ;   
-     (  %until we have a CFG: this is quick hack easy to check that should be generalised based on what covered to date and potential successors
-        (True_statements = cmp_stmts([label_stmt(_, stmt(function_call(Exit, [int(_)])))]),
-            se_name_atts__get(Exit, 'name', 'Exit')
-        )
-     ;%just or
-        (True_statements = cmp_stmts([stmt(function_call(Abort, []))]),
-            se_name_atts__get(Abort, 'name', 'Abort')
-        )
-     ) ->
-        ((cfg_main__bran_is_already_covered(branch(Id, 'true')),  %costly so left at the end
-          cfg_main__bran_newly_covered([])   %this is probably the most costly check: leave it last [unsound if commented out]
-         ) ->
-            traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow) % nothing new covered so far, true branch is already covered and leads to exit or abort so we skip the true branch and only try the false branch
-            %if the above fails no point carrying with true branch: it exits with nothing new covered            
-        ;
-            (%mytrace,
-             %either labeling succeeded and a testinput was generated, and everything that was to be covered has now been covered
-             (traverse(Condition_value, branch(Id, 'true'), True_statements, Flow) %something new has been covered and we can exit right now
-                   %we could return to the top-level (using Flow) as the logic implies but bit of a waste of a path: let's try to go back up and discovered something new
-                %but it would be waste of time trying the false branch here directly (it may be tried anyway on subsequent execution now that this arc has been covered and exits
-             ;
-                (%labeling failed, exit was not taken
-                 traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow)
-                )
-             )
-            )
-        )
-    ;     
-     (random(2, R2),
-        (R2 == 0 ->
-            (
-                traverse(Condition_value, branch(Id, 'true'), True_statements, Flow)
-            ;%if statement deliberate choice point
-                traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow)
-            )
-        ;
-            (
-                traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow)
-            ;%if statement deliberate choice point
-                traverse(Condition_value, branch(Id, 'true'), True_statements, Flow)
-            )
-        )
-     )
     ).
-*/
 
 symbolic_execute(if_stmt(Branch, True_statements), Flow) :-
     !,
     symbolic_execute(if_stmt(Branch, True_statements, []), Flow).
-%todo there is too much duplicated code in while loop handling: but I am afraid to break before Testcomp deadline
+%todo there is too much duplicated code in while loop handling
 symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
     !,
     symbolically_interpret(Condition, symb(_, Condition_value)),
