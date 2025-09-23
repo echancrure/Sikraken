@@ -135,134 +135,51 @@ symbolic_execute(function_call(Function, Arguments), 'carry_on') :- %as a statem
 
 symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statements), Flow) :-
     !,
-    (random(2, 0) ->    %repeated code is unfortunate
-        (
-            force(Condition, Id, 'true', True_statements, Flow)
-        ;%deliberate choice point
-            force(Condition, Id, 'false', False_statements, Flow)
-        )
+    make_decision(Condition, Id, Outcome),
+    (Outcome == 'true' ->
+        symbolic_execute(True_statements, Flow)
     ;
-        (
-            force(Condition, Id, 'false', False_statements, Flow)
-        ;%deliberate choice point
-            force(Condition, Id, 'true', True_statements, Flow)
-        )
+        symbolic_execute(False_statements, Flow)
     ).
 
 symbolic_execute(if_stmt(Branch, True_statements), Flow) :-
     !,
     symbolic_execute(if_stmt(Branch, True_statements, []), Flow).
-%todo there is too much duplicated code in while loop handling
+
 symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
     !,
-    symbolically_interpret(Condition, symb(_, Condition_value)),
-    (Condition_value == 1   ->
-        (se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-         symbolic_execute(Statements, Inner_flow), 
+    make_decision(Condition, Id, Outcome),
+    (Outcome == 'true' ->
+        (symbolic_execute(Statements, Inner_flow), 
          ((Inner_flow == 'carry_on' ; Inner_flow == 'continue') ->
             symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow)
          ;
-          Inner_flow == 'break' ->  %terminates this while statement
+          Inner_flow == 'break' ->  %exits from this while loop
             Flow = 'carry_on'
          ;
-            Flow = Inner_flow
+            Flow = Inner_flow       %i.e. exit|return(expression)
          )
         )
     ;
-     Condition_value == 0   ->
-        (se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-         Flow = 'carry_on'  %loop exits
-        )
-    ;    
-        (random(2, R2), %i.e. between 0 and 2-1, so only 2 values allowed 0 or 1
-         (R2 == 0 -> %randomness to ensure true and false branches are given equal chances
-            (
-                (traverse(Condition_value, branch(Id, 'true'), Statements, Inner_flow),
-                 ((Inner_flow == 'carry_on' ; Inner_flow == 'continue') ->
-                    symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow)
-                 ;
-                  Inner_flow == 'break' ->  %terminates this while statement
-                    Flow = 'carry_on'
-                 ; 
-                    Flow = Inner_flow
-                 )
-                )
-            ;%while loop deliberate choice point
-                (ptc_solver__sdl(not(Condition_value)),
-                 se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-                 Flow = 'carry_on'  %loop exits
-                )
-            )
-        ;
-            (
-                (ptc_solver__sdl(not(Condition_value)),
-                 se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-                 Flow = 'carry_on'  %loop exits
-                )
-            ;%while loop deliberate choice point
-                (traverse(Condition_value, branch(Id, 'true'), Statements, Inner_flow),
-                 ((Inner_flow == 'carry_on' ; Inner_flow == 'continue') ->
-                    symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow)
-                 ;
-                  Inner_flow == 'break' ->  %terminates this while statement
-                    Flow = 'carry_on'
-                 ; 
-                    Flow = Inner_flow
-                 )
-                )
-            )
-         )
-        )
+        Flow = 'carry_on'           %exits from this while loop
     ).
+    
 symbolic_execute(do_while_stmt(Statements, branch(Id, Condition)), Flow) :-
     !,
     symbolic_execute(Statements, Inner_flow), 
     ((Inner_flow == 'carry_on' ; Inner_flow == 'continue') ->
-        (symbolically_interpret(Condition, symb(_, Condition_value)),
-            (Condition_value == 1   ->
-                (se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-                 symbolic_execute(do_while_stmt(Statements, branch(Id, Condition)), Flow)
-                )
-            ;
-             Condition_value == 0   ->
-                (se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-                 Flow = 'carry_on'  %loop exits
-                )
-            ;
-             (random(2, R2), %i.e. between 0 and 2-1, so only 2 values allowed 0 or 1
-              (R2 == 0 -> %randomness to ensure true and false branches are given equal chances
-                (
-                   (ptc_solver__sdl(Condition),
-                    se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-                    symbolic_execute(do_while_stmt(Statements, branch(Id, Condition)), Flow)
-                   )
-                ;%do while loop deliberate choice point
-                   (ptc_solver__sdl(not(Condition_value)),
-                    se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-                    Flow = 'carry_on'  %loop exits
-                   )
-                )
-              ;
-                (
-                    (ptc_solver__sdl(not(Condition_value)),
-                     se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-                     Flow = 'carry_on'  %loop exits
-                    )
-                ;%do while loop deliberate choice point
-                    (ptc_solver__sdl(Condition),
-                     se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-                     symbolic_execute(do_while_stmt(Statements, branch(Id, Condition)), Flow)
-                    )
-                )
-              )
-             )
-            )
+        (make_decision(Condition, Id, Outcome),
+         (Outcome == 'true' ->
+            symbolic_execute(do_while_stmt(Statements, branch(Id, Condition)), Flow)
+         ;
+            Flow = 'carry_on'   %exits this do while loop
+         )
         )
     ;
-        Inner_flow == 'break' ->  %exit this loop
-            Flow = 'carry_on'
+     Inner_flow == 'break' ->   %exit this do while loop
+        Flow = 'carry_on'
     ;
-        Flow = Inner_flow   %e.g. a goto, exit etc
+        Flow = Inner_flow       %i.e. exit|return(expression)
     ).
 symbolic_execute(switch_stmt(_Expression, _Statement), 'carry_on') :-
     !,
@@ -272,7 +189,7 @@ symbolic_execute(goto_stmt(Label, Function), Flow) :-
     %mytrace,
     se_sub_atts__get(Function, 'body', cmp_stmts(Stmts)),
     search_label_statement(Label, Stmts, Stmt_list),
-    symbolic_execute(Stmt_list, Flow).
+    symbolic_execute(Stmt_list, Flow).  %todo are you sure? what if within a loop? more testing needed
 symbolic_execute(label_stmt(_Label, Statement), Flow) :- 
     !,
     symbolic_execute(Statement, Flow).
@@ -319,6 +236,45 @@ force(Condition, Id, Truth, Statements, Flow) :-
     ),
     se_globals__update_ref('current_path_bran', branch(Id, Truth)),
     symbolic_execute(Statements, Flow).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+make_decision(Condition, Id, Outcome) :-
+    mytrace,
+    %different approach possible here: forcing or not see diary 23/09/25
+    symbolically_interpret(Condition, symb(_, Cond_Symbolic)),  %leaves choice points behind becuase decisions are made there too (not pure delay)
+    (Cond_Symbolic == 1 ->  %always true: no choice
+        se_globals__update_ref('current_path_bran', branch(Id, 'true')),
+        Outcome = 'true'
+    ;
+     Cond_Symbolic == 0 ->  %always false: no choice
+        se_globals__update_ref('current_path_bran', branch(Id, 'false')),
+        Outcome = 'false'
+    ;
+        (random(2, 0) -> %i.e. between 0 and 2-1, so only 2 values allowed 0 or 1
+            (
+                (ptc_solver__sdl(Cond_Symbolic),
+                 se_globals__update_ref('current_path_bran', branch(Id, 'true')),
+                 Outcome = 'true'
+                )
+            ;%deliberate choice point
+                (ptc_solver__sdl(not(Cond_Symbolic)),
+                 se_globals__update_ref('current_path_bran', branch(Id, 'false')),
+                 Outcome = 'false'
+                )
+            )
+         ;
+            (
+                (ptc_solver__sdl(not(Cond_Symbolic)),
+                 se_globals__update_ref('current_path_bran', branch(Id, 'false')),
+                 Outcome = 'false'
+                )
+            ;%deliberate choice point
+                (ptc_solver__sdl(Cond_Symbolic),
+                 se_globals__update_ref('current_path_bran', branch(Id, 'true')),
+                 Outcome = 'true'
+                )
+            )
+        )
+    ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 search_label_statement(Label, Stmts, Stmt_list) :-
     (append(_, [label_stmt(Label, Stmt)|Rest_smt], Stmts) ->    %quick check to catch most labeled statements tha tare in the top scope in a function body

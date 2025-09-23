@@ -65,7 +65,7 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
              se_sub_atts__get(Function, 'parameters', Parameters),
              se_sub_atts__get(Function, 'return_type', Return_type),
              se_globals__push_scope_stack,          %function parameters scope
-             mytrace,
+             %mytrace,
              match_parameters_arguments(Parameters, Arguments),
              symbolic_execute(Body, Flow),
              (Flow = return(symb(From_type, Return_expression)) ->
@@ -425,46 +425,11 @@ symbolically_interpret(cond_exp(branch(Id, Condition), True_exp, False_exp), sym
     %resulting Common_type is not sound: according to C standard type of the overall conditional expression is the common type of the True and False expressions, 
     %but because we do not extract types statitically extracting both types would mean symbolically executing both expressions which due to side effects, would be even more unsound
     %todo revisit when type extraction can be performed statically: e.g. in parser or during CFG building   
-    symbolically_interpret(Condition, symb(_, Cond_Symbolic)),
-    (Cond_Symbolic == 1 ->    %to avoid creating unnecessary choice point 
-        (se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-         symbolically_interpret(True_exp, symb(Common_type, Symbolic))
-        )
+    make_decision(Condition, Id, Outcome),
+    (Outcome == 'true' ->   
+        symbolically_interpret(True_exp, symb(Common_type, Symbolic))
     ;
-     Cond_Symbolic == 0 ->    %to avoid creating unnecessary choice point 
-        (se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-         symbolically_interpret(False_exp, symb(Common_type, Symbolic))
-        )
-    ;
-        (random(2, R2), %i.e. between 0 and 2-1, so only 2 values allowed 0 or 1
-         %R2 = 0, 
-         %mytrace,
-         (R2 == 0 -> %randomness to ensure true and false expressions are given equal chances
-            (
-                (ptc_solver__sdl(Cond_Symbolic),
-                 se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-                 symbolically_interpret(True_exp, symb(Common_type, Symbolic))
-                )
-            ;%deliberate choice point
-                (ptc_solver__sdl(not(Cond_Symbolic)),
-                 se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-                 symbolically_interpret(False_exp, symb(Common_type, Symbolic))
-                )
-            )
-         ;
-            (
-                (ptc_solver__sdl(not(Cond_Symbolic)),
-                 se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-                 symbolically_interpret(False_exp, symb(Common_type, Symbolic))
-                )
-            ;%deliberate choice point
-                (ptc_solver__sdl(Cond_Symbolic),
-                 se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-                 symbolically_interpret(True_exp, symb(Common_type, Symbolic))
-                )
-            )
-         )
-        )
+        symbolically_interpret(False_exp, symb(Common_type, Symbolic))  
     ).
 %%% bitwise operators %%%
     %we use the equivalence of ~x == -(x+1) which holds for signed an unsigned in c
