@@ -93,7 +93,8 @@
                 "-v",
                 "${workspaceFolder}/bin/run_regression_par.sh",
                 "8",
-                "regression_tests"
+                "regression_tests",
+                "${input:shortcutGen}"
             ],
             "group": {
                 "kind": "build"
@@ -110,6 +111,18 @@
             "runOptions": {
                 "runOn": "default"
             }
+        }
+    ],
+    "inputs": [
+        {
+            "id": "shortcutGen",
+            "type": "pickString",
+            "description": "Select shortcut_gen (optional)",
+            "options": [
+                "",        // blank = skip argument
+                "-scg"
+            ],
+            "default": ""
         }
     ]
 }

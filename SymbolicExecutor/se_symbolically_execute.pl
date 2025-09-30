@@ -243,39 +243,58 @@ make_decision(Condition, Id, Outcome) :-
     symbolically_interpret(Condition, symb(_, Cond_Symbolic)),  %leaves choice points behind because decisions are made there too (not pure delay)
 %will need redone if we want to guide the search (Cf. Mika? with combinations generated?)
     (Cond_Symbolic == 1 ->  %always true: no choice
-        se_globals__update_ref('current_path_bran', branch(Id, 'true')),
         Outcome = 'true'
     ;
      Cond_Symbolic == 0 ->  %always false: no choice
-        se_globals__update_ref('current_path_bran', branch(Id, 'false')),
         Outcome = 'false'
     ;
         (random(2, 0) -> %i.e. between 0 and 2-1, so only 2 values allowed 0 or 1
             (
                 (ptc_solver__sdl(Cond_Symbolic),
-                 se_globals__update_ref('current_path_bran', branch(Id, 'true')),
                  Outcome = 'true'
                 )
             ;%deliberate choice point
                 (ptc_solver__sdl(not(Cond_Symbolic)),
-                 se_globals__update_ref('current_path_bran', branch(Id, 'false')),
                  Outcome = 'false'
                 )
             )
          ;
             (
                 (ptc_solver__sdl(not(Cond_Symbolic)),
-                 se_globals__update_ref('current_path_bran', branch(Id, 'false')),
                  Outcome = 'false'
                 )
             ;%deliberate choice point
                 (ptc_solver__sdl(Cond_Symbolic),
-                 se_globals__update_ref('current_path_bran', branch(Id, 'true')),
                  Outcome = 'true'
                 )
             )
         )
+    ),
+    Branch = branch(Id, Outcome),
+    se_globals__update_ref('current_path_bran', Branch),
+    (se_globals__get_val('shortcut_gen', true) ->
+        (cfg_main__bran_is_already_covered(Branch) ->
+            true    %already covered, we carry on
+        ;
+            (se_globals__get_ref('verifier_inputs', Verifier_inputs),
+             (
+                (call(label_testcomp(Verifier_inputs, Labeled_inputs)) @ eclipse ->  % "bank": we try to label what we have so far
+                    (super_util__quick_dev_info("Following new branch: %w", [Branch]),
+                     setval(shortcut_gen_triggered, 'true'), %and we continue until end of path or next __VERIFIER_input call to continue recording new branches covered
+                     print_test_inputs_testcomp(Labeled_inputs)
+                    )
+                ;
+                    fail  %labeling failed...no test input vector was generated, we abandon this path
+                )
+             ;   
+                true  %we generated a test input vector but we also continue exploring this path
+             )
+            )
+        )
+    ;
+        true    %continue exploring this path
     ).
+        
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 search_label_statement(Label, Stmts, Stmt_list) :-
     (append(_, [label_stmt(Label, Stmt)|Rest_smt], Stmts) ->    %quick check to catch most labeled statements tha tare in the top scope in a function body

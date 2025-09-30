@@ -76,7 +76,7 @@ se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode,
                 setval('advanced_cfg', true),   %builds the full CFG and prepare it for analysis
                 super_util__quick_dev_info("Advanced CFG mode ON\n", [])
             ;
-                printf('output', "Unknown option on the command line\n", [Option])
+                printf('output', "Unknown option %w on the command line\n", [Option])
             ),
             init_options(Rest).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

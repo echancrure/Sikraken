@@ -32,25 +32,29 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
          (Body == 'no_body_is_extern' -> %calling an extern function with no body
             (se_name_atts__get(Function, 'name', Function_name),
                 (is_verifier_input_function(Function_name, Type) ->
-                    (%mytrace,
-                     ptc_solver__create_variable(Type, Input_var),
-                     se_globals__get_ref('verifier_inputs', Verifier_inputs),
-                     append(Verifier_inputs, [verif(Type, Input_var)], New_verifier_inputs),
-                     se_globals__set_ref('verifier_inputs', New_verifier_inputs),
-                     Symbolic_expression = symb(Type, Input_var)
+                    (getval('shortcut_gen_triggered', 'true') ->  %we are in shortcut generation mode, so we do not create new verifier inputs
+                        end_of_path_predicate(_, _),
+                        fail    %to trigger backtracking
+                    ;
+                        (ptc_solver__create_variable(Type, Input_var),
+                         se_globals__get_ref('verifier_inputs', Verifier_inputs),
+                         append(Verifier_inputs, [verif(Type, Input_var)], New_verifier_inputs),
+                         se_globals__set_ref('verifier_inputs', New_verifier_inputs),
+                         Symbolic_expression = symb(Type, Input_var)
+                        )
                     )
                 ;
-                (Function_name == 'Exit' ; Function_name == 'Abort' ; Function_name == 'UC___assert_fail') ->
+                 (Function_name == 'Exit' ; Function_name == 'Abort' ; Function_name == 'UC___assert_fail') ->
                     (%Arguments = [Exit_code],
                      %common_util__error(0, "Exit Called:", 'no_error_consequences', [('Exit_code', Exit_code)], '0_170824_1', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info),
                      %mytrace,
                      Symbolic_expression = symb(void, Function_name),  %unused, just for symmetry
-                     (end_of_path_predicate(_, _) ->  % we try to label and generate a test input vector
+                     (end_of_path_predicate(_, _) ->  % label and generate a test input vector
                         (%labeling suceeded, a test vector was generated, and new arcs added to covered
                          fail
                         )
                      ;   
-                        %labeling failed...no test input vector was generated, the exit did not occur
+                        %should never occur
                         fail
                      )
                     )

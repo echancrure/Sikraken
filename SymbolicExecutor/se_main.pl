@@ -175,6 +175,7 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
         printf('output', "Dev Info: Time budget for a single test is %.2f seconds\n", [Current_single_test_time_out]),
         se_globals__get_val('path_nb', Initial_try_solution_number),
         setval(nb_try_solution, Initial_try_solution_number),
+        setval(shortcut_gen_triggered, 'false'),
         not(
             (catch(try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)), 'single_test_time_out_exception', handle_single_test_time_out_exception) -> 
                 (%should logically never happen
@@ -293,76 +294,88 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
         string_chars(Output_string, [UpperFirstChar|RestChars]),
         atom_string(Output, Output_string).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %always succeeds (even when laveling fails)
     end_of_path_predicate(SEAV_Inputs, Parsed_prolog_code) :-
-        cfg_main__bran_newly_covered(Newly_covered),
-        (Newly_covered == [] -> %no need to label: saves labelling run and test execution time
-            true %common_util__error(1, "End of path: no new branches", 'no_error_consequences', [], '0_210824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info)
+        (getval(shortcut_gen_triggered, 'true') ->  %we are in shortcut generation mode, so we do not create new verifier inputs
+            (setval(shortcut_gen_triggered, 'false'),  %reset for next time
+             reset_timer,
+             record_path_coverage
+            )
         ;
-            (se_globals__get_val('output_mode', Output_mode),
-             (Output_mode = 'testcomp' ->
-                (se_globals__get_ref('verifier_inputs', Verifier_inputs),
-                 %mytrace,
-                 (label_testcomp(Verifier_inputs, Labeled_inputs) ->
-                  %label_all ->
-                    (%%%
-                     cancel_after_event('single_test_time_out_event', _CancelledEvents), 
-                     statistics(event_time, Current_session_time),
-                     getval(start_time, Current_start_time),
-                     Last_test_duration is Current_session_time - Current_start_time,
-                     mytrace,
-                     printf('output', "Dev Info: Test generated in %.2f seconds; overall elapsed time is %.2f seconds\n", [Last_test_duration, Current_session_time]),
-
-                     (getval('algo', 'time_budget') ->
-                        (se_globals__get_val('Min_time_out', Min_time_out), %seconds whatever is close but above the overheads
-                         se_globals__get_val('Margin', Margin),
-                         se_globals__get_val('single_test_time_out', Current_single_test_time_out),
-                         (Current_single_test_time_out > Min_time_out, Current_single_test_time_out > Margin * Last_test_duration ->  %last test generation was faster by a wide margin: allocated budget is reduced
-                           (New_single_test_time_out is max(Margin * Last_test_duration, Min_time_out), %but there is a minimum to reduce overheads
-                            se_globals__set_val('single_test_time_out', New_single_test_time_out),
-                            printf('output', "Dev Info: Single test budget changed to: %.2f seconds; overall elapsed time is %.2f seconds\n", [New_single_test_time_out, Current_session_time])
-                           )
+            (cfg_main__bran_newly_covered(Newly_covered),
+             (Newly_covered == [] -> %no need to label: saves labelling run and test execution time
+                true %common_util__error(1, "End of path: no new branches", 'no_error_consequences', [], '0_210824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info)
+            ;
+                (se_globals__get_val('output_mode', Output_mode),
+                 (Output_mode = 'testcomp' ->
+                    (se_globals__get_ref('verifier_inputs', Verifier_inputs),
+                     %mytrace,
+                     (label_testcomp(Verifier_inputs, Labeled_inputs) ->
+                        (reset_timer,
+                         record_path_coverage,
+                        %%%
+                        %common_util__error(1, "End of path", 'no_error_consequences', [('Path Nb', Inc_test_nb), ('Newly_covered', Newly_covered), ('Current_path', Current_path)], '0_190824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info),
+                         (Output_mode == 'testcomp' ->
+                            print_test_inputs_testcomp(Labeled_inputs)   %but don't print expected outputs
                          ;
-                           New_single_test_time_out = Current_single_test_time_out
-                         ),    
-                         event_after('single_test_time_out_event', New_single_test_time_out)
+                            (print_test_inputs(SEAV_Inputs),
+                             se_globals__pop_scope_stack,    %only after labeling and printed to preserve parameters
+                             term_variables(Parsed_prolog_code, All_Ids),
+                             get_all_outputs(All_Ids, All_seavs),
+                             print_test_outputs(All_seavs),    
+                             flush(user_output)
+                            )
+                         )
                         )
                      ;
-                        true
-                     ),
-                     statistics(event_time, New_start_time),
-                     setval(start_time, New_start_time),
-                     %%% %%%
-                     se_globals__get_val('path_nb', Test_nb),
-                     Inc_test_nb is Test_nb + 1,
-                     %(Inc_test_nb == 9 -> mytrace ; true),
-                     se_globals__set_val('path_nb', Inc_test_nb),
-                     se_globals__get_ref('current_path_bran', Current_path),
-                     prune_instances(Current_path, Current_path_no_duplicates),
-                     se_globals__get_val('covered_bran', Already_covered),
-                     union(Already_covered, Current_path_no_duplicates, Covered),
-                     se_globals__set_val('covered_bran', Covered),
-                     %common_util__error(1, "End of path", 'no_error_consequences', [('Path Nb', Inc_test_nb), ('Newly_covered', Newly_covered), ('Current_path', Current_path)], '0_190824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info),
-                     (Output_mode == 'testcomp' ->
-                        print_test_inputs_testcomp(Labeled_inputs)   %but don't print expected outputs
-                     ;
-                        (print_test_inputs(SEAV_Inputs),
-                         se_globals__pop_scope_stack,    %only after labeling and printed to preserve parameters
-                         term_variables(Parsed_prolog_code, All_Ids),
-                         get_all_outputs(All_Ids, All_seavs),
-                         print_test_outputs(All_seavs),    
-                         flush(user_output)
-                        )
+                        true    %labeling failed (perhaps floating points could not be labeled or there was no solution to integer non-linear constraints, who knows), we succeed to count it as a valid attempt
                      )
                     )
                  ;
-                    true    %labeling failed (perhaps floating points could not be labeled or there was no solution to integer non-linear constraints, who knows), we succeed to count it as a valid attempt
+                    common_util__error(10, "Unexpected output mode", "Only testcomp format is supported for now", [('Output_mode', Output_mode)], '10_100924_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info)
                  )
                 )
-             ;
-                common_util__error(10, "Unexpected output mode", "Only testcomp format is supported for now", [('Output_mode', Output_mode)], '10_100924_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info)
              )
             )
         ).
+        %%%
+        reset_timer :-
+            cancel_after_event('single_test_time_out_event', _CancelledEvents), 
+            statistics(event_time, Current_session_time),
+            getval(start_time, Current_start_time),
+            Last_test_duration is Current_session_time - Current_start_time,
+            %mytrace,
+            printf('output', "Dev Info: Test generated in %.2f seconds; overall elapsed time is %.2f seconds\n", [Last_test_duration, Current_session_time]),
+            (getval('algo', 'time_budget') ->
+                (se_globals__get_val('Min_time_out', Min_time_out), %seconds whatever is close but above the overheads
+                 se_globals__get_val('Margin', Margin),
+                 se_globals__get_val('single_test_time_out', Current_single_test_time_out),
+                 (Current_single_test_time_out > Min_time_out, Current_single_test_time_out > Margin * Last_test_duration ->  %last test generation was faster by a wide margin: allocated budget is reduced
+                    (New_single_test_time_out is max(Margin * Last_test_duration, Min_time_out), %but there is a minimum to reduce overheads
+                     se_globals__set_val('single_test_time_out', New_single_test_time_out),
+                     printf('output', "Dev Info: Single test budget changed to: %.2f seconds; overall elapsed time is %.2f seconds\n", [New_single_test_time_out, Current_session_time])
+                    )
+                 ;
+                    New_single_test_time_out = Current_single_test_time_out
+                 ),    
+                 event_after('single_test_time_out_event', New_single_test_time_out)
+                )
+            ;
+                true
+            ),
+            statistics(event_time, New_start_time),
+            setval(start_time, New_start_time).
+        %%%
+        record_path_coverage :-
+            se_globals__get_val('path_nb', Test_nb),
+            Inc_test_nb is Test_nb + 1,
+            %(Inc_test_nb == 9 -> mytrace ; true),
+            se_globals__set_val('path_nb', Inc_test_nb),
+            se_globals__get_ref('current_path_bran', Current_path),
+            prune_instances(Current_path, Current_path_no_duplicates),
+            se_globals__get_val('covered_bran', Already_covered),
+            union(Already_covered, Current_path_no_duplicates, Covered),
+            se_globals__set_val('covered_bran', Covered).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 initialise_ptc_solver :-
     ptc_solver__clean_up,
@@ -491,7 +504,7 @@ print_test_outputs([SEAV|R]) :-
     print_test_outputs(R).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 print_test_run_log__preamble(ArgsL) :-
-    ArgsL = [Install_dir, Source_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Budget],
+    ArgsL = [Install_dir, Source_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Budget|Options],
     get_flag('unix_time', Time), 
     local_time_string(Time, "%Y_%m_%d_%H_%M_%S", Timestamp),
     concat_string([Install_dir, '/sikraken_output/', Target_source_file_name_no_ext, "/test_run_", Target_source_file_name_no_ext, ".log"], Test_run_filename),
@@ -520,9 +533,15 @@ print_test_run_log__preamble(ArgsL) :-
     printf('test_run_stream', "\tTests inputs target format:\t%w\n", [Output_mode]),
     printf('test_run_stream', "\tTarget data model:\t%w\n", [Data_model]),
     printf('test_run_stream', "\tTarget function:\t%w\n", [Target_raw_subprogram_name]),   
-    printf('test_run_stream', "\tTarget C file:\t%w (in folder:%w)\n", [Target_source_file_name_no_ext, Source_dir]),
+    printf('test_run_stream', "\tTarget C file:\t\t%w (in folder:%w)\n", [Target_source_file_name_no_ext, Source_dir]),
     printf('test_run_stream', "\tTime budget:\t\t%w\n", [Budget]),
+    print_options(Options),
     close('test_run_stream').
+    %%%
+    print_options([]).
+    print_options([Option|R]) :-
+        printf('test_run_stream', "\tOption:\t\t\t%w\n", [Option]),
+        print_options(R).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 easter_egg :-
     printf('output', "                                                                                                       .         .                          \n", []),
