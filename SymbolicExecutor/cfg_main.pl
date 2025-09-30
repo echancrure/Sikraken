@@ -127,6 +127,10 @@ cfg_main__bran_is_already_covered(Branch) :-
     se_globals__get_val('covered_bran', Already_covered),
     memberchk(Branch, Already_covered).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+cfg_main__bran_is_current_path(Branch) :-
+    se_globals__get_ref('current_path_bran', Current_path),
+    memberchk(Branch, Current_path).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 cfg_main__bran_newly_covered(Newly_covered) :-
     se_globals__get_ref('current_path_bran', Current_path),
     prune_instances(Current_path, Current_path_no_duplicates),

@@ -309,6 +309,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
                      statistics(event_time, Current_session_time),
                      getval(start_time, Current_start_time),
                      Last_test_duration is Current_session_time - Current_start_time,
+                     mytrace,
                      printf('output', "Dev Info: Test generated in %.2f seconds; overall elapsed time is %.2f seconds\n", [Last_test_duration, Current_session_time]),
 
                      (getval('algo', 'time_budget') ->
