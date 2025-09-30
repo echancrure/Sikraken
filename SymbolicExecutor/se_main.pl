@@ -238,10 +238,24 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
     handle_single_test_time_out_event :-
         %mytrace,
         printf('output', "Dev Info: Time out triggered.\n", []),
+        (cfg_main__bran_newly_covered([]) ->
+            printf('output', "Dev Info: Nothing new in the current subpath.\n", [])    
+        ;
+            (se_globals__get_ref('verifier_inputs', Verifier_inputs),
+             (label_testcomp(Verifier_inputs, Labeled_inputs) ->    
+                record_path_coverage,
+                print_test_inputs_testcomp(Labeled_inputs),     %banking a partial answer as allowed by testcomp
+                printf('output', "Dev Info: Partial test vector generated.\n", []),
+                display_successful_test_stats(Last_test_duration, Current_session_time)
+             ;
+                printf('output', "Dev Info: Labelling failed.\n", [])    %labeling failed...no test input vector could be generated
+             )
+            )
+        ),
         throw('single_test_time_out_exception').
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_single_test_time_out_exception :-
-        fail. %to make sure the not succeeds...
+        fail. %to make sure the not in search_CFG_inner succeeds and a restart from the top is triggerred 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     find_one_path_exception_handler(Exception) :-
         (Exception == 'abort' ->    %covers ECLiPSe exceptions: language/constraints violations and explicit calls to abort in Sikraken error messages
@@ -341,11 +355,8 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
         %%%
         reset_timer :-
             cancel_after_event('single_test_time_out_event', _CancelledEvents), 
-            statistics(event_time, Current_session_time),
-            getval(start_time, Current_start_time),
-            Last_test_duration is Current_session_time - Current_start_time,
+            display_successful_test_stats(Last_test_duration, Current_session_time),
             %mytrace,
-            printf('output', "Dev Info: Test generated in %.2f seconds; overall elapsed time is %.2f seconds\n", [Last_test_duration, Current_session_time]),
             (getval('algo', 'time_budget') ->
                 (se_globals__get_val('Min_time_out', Min_time_out), %seconds whatever is close but above the overheads
                  se_globals__get_val('Margin', Margin),
@@ -365,6 +376,12 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
             ),
             statistics(event_time, New_start_time),
             setval(start_time, New_start_time).
+        %%%
+        display_successful_test_stats(Last_test_duration, Current_session_time) :-
+            statistics(event_time, Current_session_time),
+            getval(start_time, Current_start_time),
+            Last_test_duration is Current_session_time - Current_start_time,
+            printf('output', "Dev Info: Test generated in %.2f seconds; overall elapsed time is %.2f seconds\n", [Last_test_duration, Current_session_time]).
         %%%
         record_path_coverage :-
             se_globals__get_val('path_nb', Test_nb),
