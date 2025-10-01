@@ -301,7 +301,7 @@ symbolically_interpret(and_op(Le_exp, Ri_exp), symb(int, R)) :-
         )  
     ;
         (R #:: 0..1,    %not forcing anything
-         mytrace, 
+         %mytrace, 
          symbolically_interpret(Le_exp, symb(_, Le_symbolic)), %only performed once as it should
          (Le_symbolic == 1 ->        
             symbolically_interpret(Ri_exp, symb(_, R))

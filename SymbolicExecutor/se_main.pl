@@ -29,7 +29,7 @@ mytrace.            %call this to start debugging
 :- use_module(['se_globals', 'se_name_atts', 'se_seav_atts', 'se_sub_atts', 'se_typedef_atts']).
 
 :- compile(['common_util', 'se_handle_declarations', 'se_symbolically_execute', 'se_symbolically_interpret', 'se_get_symbolic_lvalue_for_addressing']).
-:- compile(['se_write_tests_testcomp']).
+:- compile([se_print, 'se_write_tests_testcomp']).
 :- compile(['cfg_main']).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  
@@ -136,29 +136,6 @@ se_main(ArgsL) :-
                 common_util__error(10, "Unknown exception caught", "Review, investigate and catch it better next time", [('Exception', Exception)], '10_260924_2', 'se_main', 'se_main', no_localisation, no_extra_info)
             )
         ).
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    print_test_run_log :-
-        %cancel_after_event('single_test_time_out_exception', _), %to ensure none are left and be triggered later on especially in development mode
-        %cancel_after_event('overall_generation_time_out', _),    %to ensure none is left and be triggered later on especially in development mode            
-        statistics(event_time, Current_session_time),
-        printf('output', "Dev Info: Session time is %.2f seconds\n", [Current_session_time]),
-        getval('test_run_filename', Test_run_filename),
-        open(Test_run_filename, 'append', Test_run_stream),
-        printf(Test_run_stream, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
-        printf(Test_run_stream, "Sikraken Session Results:\n", []),
-        statistics('cputime', Cputime),
-        Cputime_seconds is fix(Cputime),
-        se_globals__get_val('path_nb', Test_nb),
-        printf(Test_run_stream, "\tECLiPSe CPU time: \t%w seconds\n", [Cputime_seconds]),
-        printf(Test_run_stream, "\tGenerated: \t\t\t%w tests\n", [Test_nb]),
-        printf(Test_run_stream, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
-        printf(Test_run_stream, "ECLiPSe Statistics Dump:\n", []), 
-        get_stream('log_output', Log_output_stream),
-        set_stream('log_output', Test_run_stream),
-        statistics,     %printing out ECLiPSe internal statistics into redirected stream
-        set_stream('log_output', Log_output_stream),
-        printf(Test_run_stream, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%", []),
-        close(Test_run_stream).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
     set_event_handler('single_test_time_out_event', handle_single_test_time_out_event/0),
@@ -236,7 +213,7 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
     fail.       %I know this is ugly: but this will only be reached during regression testing when the number of tries has been reached
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_single_test_time_out_event :-
-        %mytrace,
+        mytrace,
         printf('output', "Dev Info: Time out triggered.\n", []),
         (cfg_main__bran_newly_covered([]) ->
             printf('output', "Dev Info: Nothing new in the current subpath.\n", [])    
@@ -505,71 +482,4 @@ get_all_outputs([Id|R_ids], All_outputs) :-
         All_outputs = R_outputs
     ),
     get_all_outputs(R_ids, R_outputs).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-print_test_inputs([]).
-print_test_inputs([SEAV|R]) :-
-    se_name_atts__get(SEAV, 'name', Name),
-    seav__get(SEAV, 'input', Input_value),
-    printf(user_output, "\nInput %w = %w", [Name, Input_value]),
-    print_test_inputs(R).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-print_test_outputs([]).
-print_test_outputs([SEAV|R]) :-
-    se_name_atts__get(SEAV, 'name', Name),
-    seav__get(SEAV, 'output', Output_value),
-    printf(user_output, "\nOutput %w = %w", [Name, Output_value]),
-    print_test_outputs(R).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-print_test_run_log__preamble(ArgsL) :-
-    ArgsL = [Install_dir, Source_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Budget|Options],
-    get_flag('unix_time', Time), 
-    local_time_string(Time, "%Y_%m_%d_%H_%M_%S", Timestamp),
-    concat_string([Install_dir, '/sikraken_output/', Target_source_file_name_no_ext, "/test_run_", Target_source_file_name_no_ext, ".log"], Test_run_filename),
-    setval('test_run_filename', Test_run_filename), 
-    open(Test_run_filename, 'write', 'test_run_stream'),    %the directory must exist otherwise open/3 aborts
-    printf('test_run_stream', "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
-    printf('test_run_stream', "Sikraken Test Inputs Generation Run Log\n", []),
-    printf('test_run_stream', "Raw Arguments:\t%w\n", [ArgsL]),
-    printf('test_run_stream', "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
-    printf('test_run_stream', "Relevant ECLiPSe Configurations:\n", []),
-    get_flag('debug_compile', Debug_compile),
-    get_flag('debugging', Debugging),
-    get_flag('max_local_control', Max_local_control), 
-    Max_local_control_in_MB is (Max_local_control div 1024) div 1024,
-    get_flag('max_global_trail', Max_global_trail), 
-    Max_global_trail_in_MB is (Max_global_trail div 1024) div 1024,
-    get_flag('version', Version), 
-    printf('test_run_stream', "\tECLiPSe version:\t%w\n", [Version]),
-    printf('test_run_stream', "\tdebug_compile:\t\t%w\n", [Debug_compile]),
-    printf('test_run_stream', "\tdebugging:\t\t\t%w\n", [Debugging]),
-    printf('test_run_stream', "\tMaximum allowed local/control user stack (-l option):\t%wMB\n", [Max_local_control_in_MB]),
-    printf('test_run_stream', "\tMaximum allowed global/trail user stack (-g option):\t%wMB\n", [Max_global_trail_in_MB]),
-    printf('test_run_stream', "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
-    printf('test_run_stream', "Sikraken Session Configurations at: %w\n", [Timestamp]),
-    printf('test_run_stream', "\tRun mode:\t%w\n", [Debug_mode]),
-    printf('test_run_stream', "\tTests inputs target format:\t%w\n", [Output_mode]),
-    printf('test_run_stream', "\tTarget data model:\t%w\n", [Data_model]),
-    printf('test_run_stream', "\tTarget function:\t%w\n", [Target_raw_subprogram_name]),   
-    printf('test_run_stream', "\tTarget C file:\t\t%w (in folder:%w)\n", [Target_source_file_name_no_ext, Source_dir]),
-    printf('test_run_stream', "\tTime budget:\t\t%w\n", [Budget]),
-    print_options(Options),
-    close('test_run_stream').
-    %%%
-    print_options([]).
-    print_options([Option|R]) :-
-        printf('test_run_stream', "\tOption:\t\t\t%w\n", [Option]),
-        print_options(R).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-easter_egg :-
-    printf('output', "                                                                                                       .         .                          \n", []),
-    printf('output', "        ,o888888o.     8 8888      88 8888888 8888888888   .8.    8888888 8888888888  8 8888          ,8.       ,8.          8 8888888888   \n", []),
-    printf('output', "     . 8888     `88.   8 8888      88       8 8888        .888.         8 8888        8 8888         ,888.     ,888.         8 8888         \n", []),
-    printf('output', "    ,8 8888       `8b  8 8888      88       8 8888       :88888.        8 8888        8 8888        .`8888.   .`8888.        8 8888         \n", []),
-    printf('output', "    88 8888        `8b 8 8888      88       8 8888      . `88888.       8 8888        8 8888       ,8.`8888. ,8.`8888.       8 8888         \n", []),
-    printf('output', "    88 8888         88 8 8888      88       8 8888     .8. `88888.      8 8888        8 8888      ,8'8.`8888,8^8.`8888.      8 888888888888 \n", []),
-    printf('output', "    88 8888         88 8 8888      88       8 8888    .8`8. `88888.     8 8888        8 8888     ,8' `8.`8888' `8.`8888.     8 8888         \n", []),
-    printf('output', "    88 8888        ,8P 8 8888      88       8 8888   .8' `8. `88888.    8 8888        8 8888    ,8'   `8.`88'   `8.`8888.    8 8888         \n", []),
-    printf('output', "    `8 8888       ,8P  ` 8888     ,8P       8 8888  .8'   `8. `88888.   8 8888        8 8888   ,8'     `8.`'     `8.`8888.   8 8888         \n", []),
-    printf('output', "     ` 8888     ,88'     8888   ,d8P        8 8888 .888888888. `88888.  8 8888        8 8888  ,8'       `8        `8.`8888.  8 8888         \n", []),
-    printf('output', "        `8888888P'        `Y88888P'         8 8888.8'       `8. `88888. 8 8888        8 8888 ,8'         `         `8.`8888. 8 888888888888 \n\n", []).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
