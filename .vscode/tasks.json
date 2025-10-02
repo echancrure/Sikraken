@@ -126,13 +126,9 @@
         },
         {
             "id": "algo",
-            "type": "pickString",
-            "description": "Select algorithm",
-            "options": [
-                "budget[10]",
-                "budget[30]",
-                "regression[1,10]"
-            ]
+            "type": "promptString",
+            "description": "Enter algorithm (e.g. budget[10], budget[30], regression[1,10])",
+            "default": "budget[10]"
         }
     ]
 }

@@ -271,8 +271,7 @@ make_decision(Condition, Id, Outcome) :-
         )
     ),
     Branch = branch(Id, Outcome),
-    se_globals__update_ref('current_path_bran', Branch).
-    /*,
+    se_globals__update_ref('current_path_bran', Branch),
     (se_globals__get_val('shortcut_gen', true) ->
         (cfg_main__bran_is_already_covered(Branch) ->
             true    %already covered, we carry on
@@ -294,7 +293,7 @@ make_decision(Condition, Id, Outcome) :-
         )
     ;
         true    %continue exploring this path
-    ).*/
+    ).
         
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 search_label_statement(Label, Stmts, Stmt_list) :-
