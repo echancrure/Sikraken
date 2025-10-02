@@ -219,7 +219,8 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
             printf('output', "Dev Info: Nothing new in the current subpath.\n", [])    
         ;
             (se_globals__get_ref('verifier_inputs', Verifier_inputs),
-             (label_testcomp(Verifier_inputs, Labeled_inputs) ->    
+             se_globals__get_val('single_test_time_out', Current_single_test_time_out),
+             (timeout(label_testcomp(Verifier_inputs, Labeled_inputs), Current_single_test_time_out, fail) ->    %timout added to avoid very long / impossible labelling
                 record_path_coverage,
                 print_test_inputs_testcomp(Labeled_inputs),     %banking a partial answer as allowed by testcomp
                 printf('output', "Dev Info: Partial test vector generated.\n", []),

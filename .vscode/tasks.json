@@ -9,7 +9,7 @@
             "command": "./bin/sikraken.sh",
             "args": [
                 "debug",
-                "regression[1,10]",
+                "${input:algo}",
                 "-m32",
                 "${relativeFile}"
             ],
@@ -123,6 +123,16 @@
                 "-scg"
             ],
             "default": ""
+        },
+        {
+            "id": "algo",
+            "type": "pickString",
+            "description": "Select algorithm",
+            "options": [
+                "budget[10]",
+                "budget[30]",
+                "regression[1,10]"
+            ]
         }
     ]
 }
