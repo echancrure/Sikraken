@@ -23,6 +23,7 @@ mytrace.            %call this to start debugging
 :- use_module(library('ic')).
 :- use_module(library('lists')).
 :- use_module(library('timeout')).
+:- lib('ordset').   %for ordered list with no duplicates
 
 :- use_module("./../PTC-Solver/source/ptc_solver").
 
@@ -41,7 +42,6 @@ se_main(ArgsL) :-
         common_util__error(10, "Calling se_main/? with invalid argument list", "Review calling syntax of se_main/?", [], '10_240824_1', 'se_main', 'se_main', no_localisation, no_extra_info)
     ),
     se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode, Data_model, Options),    
-    print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext),
     (Search_algo = regression(Restarts, Tries) ->   %for more stable results during regression testing and to evaluate changes
         (setval('algo', 'regression'),
          setval('nb_restarts', Restarts),
@@ -51,8 +51,7 @@ se_main(ArgsL) :-
          ;   
             Budget = 65          %we put a limit for some regression tests which may not complete a full restart
          ),
-         First_time_out is Budget - 5.0,  %ensure not triggered at the same time as overall timeout
-         printf('output', "Dev Info: Analysing %w with %w restarts and %w tries\n", [Target_source_file_name_no_ext, Restarts, Tries])
+         First_time_out is Budget - 5.0  %ensure not triggered at the same time as overall timeout
         )
     ; 
      (Search_algo =.. [budget|Args]) ->
@@ -76,8 +75,7 @@ se_main(ArgsL) :-
          se_globals__set_val('Max_time_out', Max_time_out),
          se_globals__set_val('Multiplier', Multiplier),
          se_globals__set_val('Min_time_out', Min_time_out),
-         se_globals__set_val('Margin', Margin),
-         printf('output', "Dev Info: Analysing %w with Budget %w seconds, First_time_out is %w seconds, Max_time_out %w seconds, Multiplier %.2f times, Min_time_out %w seconds, Margin %w times.\n", [Target_source_file_name_no_ext, Budget, First_time_out, Max_time_out, Multiplier, Min_time_out, Margin])
+         se_globals__set_val('Margin', Margin)        
         )
     ;
         common_util__error(10, "Calling se_main/? with invalid search algo configuration", "Review search algo argument syntax", [('Search_algo', Search_algo)], '10_240926_2', 'se_main', 'se_main', no_localisation, no_extra_info)
@@ -90,7 +88,7 @@ se_main(ArgsL) :-
     capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
     read_parsed_file(Install_dir, Target_source_file_name_no_ext, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors
     %%%pre-symbolic execution
-    cfg_build__declare_functions(Parsed_prolog_code),
+    cfg_main__declare_functions(Parsed_prolog_code),
     setval('execution_mode', 'global'),   %i.e. C compile time (as opposed to runtime), tackling globals when implicit initialisation to 0 occurs 
     (symbolic_execute(Parsed_prolog_code, _) ->   %always symbolically execute all global declarations for now: initialisations could be ignored via a switch if desired
         true
@@ -98,18 +96,22 @@ se_main(ArgsL) :-
         common_util__error(10, "Sikraken failed to execute the global declarations: cannot recover from this", "Should never happen: code needs to be traced", [], '10_021224_3', 'se_main', 'search_CFG_inner', no_localisation, no_extra_info)
     ),
     %mytrace,
-    (se_globals__get_val('advanced_cfg', true) -> cfg_main__build_cfg(Parsed_prolog_code) ; true),
+    cfg_main__build_cfg(Parsed_prolog_code),
     setval('execution_mode', 'local'),    %i.e. C run time (as opposed to compile time), tackling locals when implicit initialisation to 0 does not occur
     %%%
     statistics(event_time, Session_time),
     setval('start_session_time', Session_time),
-    %%% where it all happens
-    catch(search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code), Any_exception, search_CFG_exception_handler(Any_exception)),
-    %%%
+    print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext),
+    (se_globals__get_val('EdgeCount', 0) -> 
+        print_test_inputs_testcomp([])      %silly edge case: no branches at all; we still print an empty test input vector to keep Testcov happy
+    ;
+        %%% where it all happens
+        catch(search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code), Any_exception, search_CFG_exception_handler(Any_exception))
+    ),
     print_test_run_log.   %only run once 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_overall_time_out_event :-
-        cancel_after_event('single_test_time_out_exception', _), %to ensure none are left and be triggered later on especially in development mode
+        cancel_after_event('single_test_time_out_event', _), %to ensure none are left and triggered later on especially in development mode
         throw('outatime').
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     search_CFG_exception_handler(Exception) :-
@@ -213,18 +215,18 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
     fail.       %I know this is ugly: but this will only be reached during regression testing when the number of tries has been reached
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_single_test_time_out_event :-
-        mytrace,
+        %mytrace,
         printf('output', "Dev Info: Time out triggered.\n", []),
-        (cfg_main__bran_newly_covered([]) ->
+        (cfg_main__bran_newly_covered(_Overall_covered, []) ->
             printf('output', "Dev Info: Nothing new in the current subpath.\n", [])    
         ;
             (se_globals__get_ref('verifier_inputs', Verifier_inputs),
              se_globals__get_val('single_test_time_out', Current_single_test_time_out),
              (timeout(label_testcomp(Verifier_inputs, Labeled_inputs), Current_single_test_time_out, fail) ->    %timout added to avoid very long / impossible labelling
+                display_successful_test_stats(_Last_test_duration, _Current_session_time),
+                printf('output', "Dev Info: Incomplete test vector\n", []),
                 record_path_coverage,
-                print_test_inputs_testcomp(Labeled_inputs),     %banking a partial answer as allowed by testcomp
-                printf('output', "Dev Info: Partial test vector generated.\n", []),
-                display_successful_test_stats(Last_test_duration, Current_session_time)
+                print_test_inputs_testcomp(Labeled_inputs)     %banking a partial answer as allowed by testcomp                
              ;
                 printf('output', "Dev Info: Labelling failed.\n", [])    %labeling failed...no test input vector could be generated
              )
@@ -252,7 +254,7 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
 find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
     (Output_mode == 'testcomp' ->   %in the spirit of C we do not check Main: we accept any version (including argc/argv) 
         (se_sub_atts__get(Main, 'body', Main_compound_statement),   
-         se_globals__update_ref('current_path_bran', start('Target_raw_subprogram_name', true)),
+         se_globals__update_ref('current_path_bran', start('Main', true)),
          symbolic_execute(Main_compound_statement, _Flow)
         )
     ;
@@ -286,7 +288,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
         string_chars(Output_string, [UpperFirstChar|RestChars]),
         atom_string(Output, Output_string).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %always succeeds (even when laveling fails)
+    %always succeeds (even when labeling fails)
     end_of_path_predicate(SEAV_Inputs, Parsed_prolog_code) :-
         (getval(shortcut_gen_triggered, 'true') ->  %we are in shortcut generation mode, so we do not create new verifier inputs
             (setval(shortcut_gen_triggered, 'false'),  %reset for next time
@@ -294,7 +296,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
              record_path_coverage
             )
         ;
-            (cfg_main__bran_newly_covered(Newly_covered),
+            (cfg_main__bran_newly_covered(_Overall_covered, Newly_covered),
              (Newly_covered == [] -> %no need to label: saves labelling run and test execution time
                 true %common_util__error(1, "End of path: no new branches", 'no_error_consequences', [], '0_210824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info)
             ;
@@ -359,18 +361,21 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
             statistics(event_time, Current_session_time),
             getval(start_time, Current_start_time),
             Last_test_duration is Current_session_time - Current_start_time,
-            printf('output', "Dev Info: Test generated in %.2f seconds; overall elapsed time is %.2f seconds\n", [Last_test_duration, Current_session_time]).
+            printf('output', "\nDev Info: Test generated in %.2f seconds; overall elapsed time is %.2f seconds\n", [Last_test_duration, Current_session_time]).
         %%%
         record_path_coverage :-
+            %mytrace,
             se_globals__get_val('path_nb', Test_nb),
             Inc_test_nb is Test_nb + 1,
             %(Inc_test_nb == 9 -> mytrace ; true),
             se_globals__set_val('path_nb', Inc_test_nb),
-            se_globals__get_ref('current_path_bran', Current_path),
-            prune_instances(Current_path, Current_path_no_duplicates),
-            se_globals__get_val('covered_bran', Already_covered),
-            union(Already_covered, Current_path_no_duplicates, Covered),
-            se_globals__set_val('covered_bran', Covered).
+            cfg_main__bran_newly_covered(Overall_covered, Newly_covered),
+            length(Newly_covered, Nb_new),
+            se_globals__set_val('covered_bran', Overall_covered),
+            se_globals__get_val('EdgeCount', EdgeCount),
+            (EdgeCount == 0 -> Coverage = 100.0 ; Coverage is (Nb_new / EdgeCount) * 100),
+            printf('output', "Dev Info: Covered  %d new branches increasing coverage by %.2f%%\n", [Nb_new, Coverage]),
+            flush('output').
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 initialise_ptc_solver :-
     ptc_solver__clean_up,

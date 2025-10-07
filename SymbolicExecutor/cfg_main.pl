@@ -12,10 +12,11 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 :- lib(graph_algorithms).
 :- lib(graphviz).
-:- compile([cfg_build, cfg_analyse, cfg_incremental_analysis2]).
+:- compile([se_globals]).
+:- compile([cfg_build, cfg_incremental_analysis2]).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %create se_sub_atts variables for all (all global in C) functions 
-cfg_build__declare_functions(Parsed_prolog_code) :-
+cfg_main__declare_functions(Parsed_prolog_code) :-
     declare_functions(Parsed_prolog_code).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     declare_functions([]) :-
@@ -64,22 +65,28 @@ cfg_build__declare_functions(Parsed_prolog_code) :-
 cfg_main__build_cfg(Parsed_prolog_code) :-
     cfg_build__init,
     %mytrace,
-    cfg_build__build_cfg(Parsed_prolog_code, elaboration), 
-    cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls),
+    cfg_build__build_cfg(Parsed_prolog_code, elaboration), %parses the Prolog C code 
+    cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls), %collects all edges and nodes
+    se_globals__get_val('EdgeCount', EdgeCount),
+    printf('output', "Dev Info: CFG Number of Edges %d\n", [EdgeCount]),
     (se_globals__get_val(debug_mode, debug) ->   %some overheads but only in debugging mode (implement your own if that is an issue)
-        %mytrace,
-        printf(output, "CFG Nodes: %w\n", [Nodes]),
-        printf(output, "CFG Edges: %w\n", [Edges]),
-        printf(output, "CFG function calls: %w\n", [FunctionCalls])
-        /*,ArrayNodes =.. ['[]'|Nodes],    %trick to transform a list into a Prolog array
-        make_graph_symbolic(ArrayNodes, Edges, Graph),
-        printf(output, "Displaying graph on separate window, press Quit to continue\n", []),
+        printf(output, "CFG list of Nodes: %w\n", [Nodes]),
+        printf(output, "CFG list of Edges: %w\n", [Edges]),
+        printf(output, "CFG list of function calls: %w\n", [FunctionCalls]),
         flush(output),
-        view_graph(Graph, [edge_attrs_generator : edge_label_attrs])
-        */
+        ArrayNodes =.. ['[]'|Nodes],    %trick to transform a list into a Prolog array
+        append(Edges, FunctionCalls, AllEdges),
+        make_graph_symbolic(ArrayNodes, AllEdges, Graph),   %including function calls as edges
+        se_globals__get_val('install_dir', Install_dir),
+        se_globals__get_val('target_source_file_name_no_ext', Target_source_file_name_no_ext),
+        concat_atom([Install_dir, "/sikraken_output/", Target_source_file_name_no_ext], Result_folder),
+        cd(Result_folder),
+        write_graph(Graph, "cfg.png", png, [edge_attrs_generator : edge_label_attrs, layout:neato])
     ;
         true
-    ),
+    ).
+/*,
+
     statistics(runtime, [Start|_]),
     mytrace, build_graph,    %Sep 08 incremental solution with memoization
     %all_successor_edges_with_labels(graph(Nodes, Edges), Reachable_edges_mapping),
@@ -96,12 +103,13 @@ cfg_main__build_cfg(Parsed_prolog_code) :-
     flush(output),
     (se_globals__get_val(debug_mode, debug) -> print_reachable_edges_mapping(Augmented_mapping) ; true),
     se_globals__set_val('reachable_edges_mapping', Reachable_edges_mapping).
+*/
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Edge attribute generator — adds label and color to edge
         edge_label_attrs(_Graph, e(_From, _To, Label), [label=Label, color=Color]) :-   %note: must use e/3 to match the internal edge format
             ( Label == true  -> Color = green
             ; Label == false -> Color = red
-            ;                   Color = black
+            ; Label == none -> Color = black    %for function calls
             ).
 
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -109,17 +117,17 @@ cfg_main__build_cfg(Parsed_prolog_code) :-
             flush(output).
         print_reachable_edges_mapping([(Node,Label)-Edges | Rest]) :-
             printf("From node %w with label %w: %w\n", [Node, Label, Edges]),
-            %print_edges_list(Edges),
+            %print_edges_mapping(Edges),
             %printf("\n", []),
             print_reachable_edges_mapping(Rest).
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            print_edges_list([]) :-
+            print_edges_mapping([]) :-
                 printf("   -> none", []).
-            print_edges_list([(N,L)]) :-
+            print_edges_mapping([(N,L)]) :-
                 printf("   -> (%w,%w).", [N, L]).
-            print_edges_list([(N,L)|Rest]) :-
+            print_edges_mapping([(N,L)|Rest]) :-
                 printf("   -> (%w,%w)\n", [N, L]),
-                print_edges_list(Rest).
+                print_edges_mapping(Rest).
         
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -131,11 +139,12 @@ cfg_main__bran_is_current_path(Branch) :-
     se_globals__get_ref('current_path_bran', Current_path),
     memberchk(Branch, Current_path).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-cfg_main__bran_newly_covered(Newly_covered) :-
-    se_globals__get_ref('current_path_bran', Current_path),
-    prune_instances(Current_path, Current_path_no_duplicates),
-    se_globals__get_val('covered_bran', Already_covered),
-    subtract(Current_path_no_duplicates, Already_covered, Newly_covered).
+cfg_main__bran_newly_covered(Overall_covered, Newly_covered) :-
+    se_globals__get_ref('current_path_bran', Current_path_with_calls),
+    findall(E, (member(E, Current_path_with_calls), E \= start(_, true)), Current_path_filtered),
+    sort(Current_path_filtered, Current_path_sorted),    % remove duplicates & sort
+    se_globals__get_val('covered_bran', Already_covered),   %always sorted
+    ordset:ord_union(Already_covered, Current_path_sorted, Overall_covered, Newly_covered).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 cfg_main__arcs_remaining :-
     %get overall arcs: cannot do this until we build CFG

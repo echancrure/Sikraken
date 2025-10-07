@@ -23,10 +23,11 @@ cfg_build__init :-
 %Build the CFG of the code under test by asserting edge/3 facts
 cfg_build__build_cfg(Parsed_prolog_code, Function_name) :-
     init(Function_name),
+    mytrace,
     (cover(Parsed_prolog_code, _Flow) *->      %'soft-cut' to enumerate all choice points in cover
         create_branch(end(Function_name))
     ;
-        common_util__error(10, "Fatal error in cover/1", "Failed without leaving a choice point: Should never happen", [], '10_010825_1', 'cfg_build', 'cfg_build__build_cfg', no_localisation, no_extra_info)
+        fail %common_util__error(10, "Fatal error in cover/1", "Failed without leaving a choice point: Should never happen", [], '10_010825_1', 'cfg_build', 'cfg_build__build_cfg', no_localisation, no_extra_info)
     ),
     fail.   %induces bactracking within cover/1
 cfg_build__build_cfg(_, _Function_name) :-
@@ -38,15 +39,24 @@ cfg_build__build_cfg(_, _Function_name) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Create the graph from asserted edge/3 facts: the resulting graph of the form graph(Nodes, Edges)
 cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls) :-
-        findall(From, edge(From, _, _), FromList),  % Start of collect all unique nodes
-        findall(To, edge(_, To, _), ToList),
-        append(FromList, ToList, AllNodes),
-        sort(AllNodes, Nodes),
-        findall(edge(From, To, Label), edge(From, To, Label), Edges), % Collect all edges as they are
-        findall(function_call(From, To, Label), function_call(From, To, Label), FunctionCalls).
+    findall(edge(From, To, Label), edge(From, To, Label), Edges),
+    %mytrace,
+    findall(bran(From, Label), (member(edge(From, To, Label), Edges), integer(From)), All_pure_edges),  %removes all the edges starting by start(_)
+    sort(All_pure_edges, All_pure_edges_sorted),
+    length(All_pure_edges_sorted, EdgeCount),
+    se_globals__set_val('EdgeCount', EdgeCount),
+    se_globals__set_val('AllEdges', All_pure_edges_sorted),
+    extract_nodes(Edges, AllNodes),
+    sort(AllNodes, Nodes),      %removes duplicates
+    findall(edge(From, To, none), function_call(From, To, _), FunctionCalls).
+    %%%
+    extract_nodes([], []).
+    extract_nodes([edge(From, To, _)|Rest], [From, To|Nodes]) :-
+        extract_nodes(Rest, Nodes).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %cover/2 has the same heads as symbolic_execute/2: it handles the entire C language focusing on building the CFG only
-    %the second argument is the Flow: it can have the following values : carry_on|break|continue|exit|return(expression)
+    %the second argument is the Flow: it can have the following values : carry_on|break|continue|return
+    % all exits (exit, abort, assert_fail) are handled by creating an arc to end('Main'): we then backtracks (so we never have to handle exits explicitly as a Flow) 
     cover([], 'carry_on') :-
         !.
     cover([Item|R], Flow) :-
@@ -163,17 +173,40 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls) :-
     cover(if_stmt(Branch, True_statements), Flow) :-
         !,
         cover(if_stmt(Branch, True_statements, []), Flow).
-    cover(while_stmt(branch(_Id, _Condition), _Statements), _Flow) :-
+    cover(while_stmt(branch(Id, Condition), Statements), Flow) :-
         !,
-        common_util__error(0, "Warning in cover: todo while statement", 'no_error_consequences', [], '0_060825_6', 'cfg_build', 'cover', no_localisation, no_extra_info).
-    cover(do_while_stmt(_Statements, branch(_Id, _Condition)), _Flow) :-
+        cover_exp(Condition),
+        create_branch(Id),
+        (
+            (setref(current_truth_value, true),
+             cover(Statements, Intermediate_flow),
+             (( Intermediate_flow == 'carry_on' ; Intermediate_flow == 'continue' )->
+                (create_branch(Id),         %creates the back edge to the while loop condition
+                 fail   %odd but needed to force backtracking to explore the false branch of the while loop condition
+                )
+             ;
+              Intermediate_flow == 'break' ->
+                Flow = 'carry_on'          %the break is consumed here and the loop is exited
+             ;
+              Intermediate_flow == return ->
+                Flow = 'return'            %the return is propagated upwards
+             ;
+                common_util__error(10, "Unhandled intermediate flow in while statement", "Cannot build CFG", [('Intermediate_flow', Intermediate_flow)], '10_071025', 'cfg_build', 'cover', no_localisation, no_extra_info)
+             )
+            )
+        ;%deliberate choice point
+            (setref(current_truth_value, false),
+             Flow = 'carry_on'
+            )
+        ).
+    cover(do_while_stmt(_Statements, branch(_Id, _Condition)), 'carry_on') :-
         !,
         common_util__error(0, "Warning in cover: todo do while statement", 'no_error_consequences', [], '0_060825_7', 'cfg_build', 'cover', no_localisation, no_extra_info).
     cover(switch_stmt(_Expression, _Statement), 'carry_on') :-
         !,
         common_util__error(0, "Warning in cover: todo switch statements", 'no_error_consequences', [], '0_060825_8', 'cfg_build', 'cover', no_localisation, no_extra_info).
 
-    cover(goto_stmt(_Label, _Function), _Flow) :-
+    cover(goto_stmt(_Label, _Function), 'carry_on') :-
         !,
         common_util__error(0, "Warning in cover: todo goto_stmt", 'no_error_consequences', [], '0_060825_2', 'cfg_build', 'cover', no_localisation, no_extra_info).
     %mytrace,
@@ -206,15 +239,26 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls) :-
     cover_exp(function_call(Function, Arguments)) :- 
         !,
         (se_sub_atts__is_sub_atts(Function) ->
-            (se_name_atts__get(Function, 'name', Function_name),
-             cover_exp(Arguments),
-             create_call_branch(start(Function_name))   %this is a special branch: a function call
-             %setref(current_truth_value, true), %true is a placeholder here, it could be none (but for analysis it is simpler to use true)
-             %setref(current_node, end(Function_name))
+            se_name_atts__get(Function, 'name', Function_name),
+            se_sub_atts__get(Function, 'body', Body),
+            (Body == 'no_body_is_extern' -> %calling an extern function with no body
+                (is_verifier_input_function(Function_name, _Type) ->
+                    true    %ignored: verifier input function
+                ;
+                 (Function_name == 'Exit' ; Function_name == 'Abort' ; Function_name == 'UC___assert_fail') ->
+                    create_branch(end('Main')),      %this is the end...
+                    fail    %force backtrackting to explore other paths
+                ;
+                    common_util__error(9, "Function call to unknown external function", "Cannot perform CFG build", [('Function_name', Function_name)], '09_071025_2', 'cfg_build', 'cover_exp', no_localisation, no_extra_info)
+                )
+            ;
+                (cover_exp(Arguments),
+                 create_call_branch(start(Function_name))
+                )
             )
         ;
-            common_util__error(10, "Fatal error in cover_exp/1", "A function call has not been declared as a se_sub_atts in cover_exp: Should never happen", [], '10_120825_1', 'cfg_build', 'cover', no_localisation, no_extra_info)
-        ).    
+            common_util__error(10, "Fatal error in cover_exp/1", "A function call has not been declared as a se_sub_atts in cover_exp: Should never happen", [], '10_071025_3', 'cfg_build', 'cover_exp', no_localisation, no_extra_info)
+        ).
     cover_exp(cond_exp(branch(Id, Condition), True_expression, False_expression)) :-
         !,
         cover_exp(Condition),
@@ -257,6 +301,7 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls) :-
         cover_decl(Rest).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     create_branch(To) :-
+        %mytrace,
         getref(current_node, From),
 		getref(current_truth_value, Truth),
 		(edge(From, To, Truth) ->

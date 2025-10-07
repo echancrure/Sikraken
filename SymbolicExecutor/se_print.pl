@@ -1,42 +1,24 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 print_test_run_log__preamble(ArgsL) :-
-    ArgsL = [_Install_dir, Source_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Budget|Options],
     get_flag('unix_time', Time), 
-    local_time_string(Time, "%Y_%m_%d_%H_%M_%S", Timestamp),
-    %concat_string([Install_dir, '/sikraken_output/', Target_source_file_name_no_ext, "/test_run_", Target_source_file_name_no_ext, ".log"], Test_run_filename),
-    %setval('test_run_filename', Test_run_filename), 
-    %open(Test_run_filename, 'write', 'test_run_stream'),    %the directory must exist otherwise open/3 aborts
+    local_time_string(Time, "%c", Timestamp),
     printf(output, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
-    printf(output, "Sikraken Test Inputs Generation Run Log\n", []),
-    printf(output, "Raw Arguments:\t%w\n", [ArgsL]),
-    printf(output, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
-    printf(output, "Relevant ECLiPSe Configurations:\n", []),
-    get_flag('debug_compile', Debug_compile),
-    get_flag('debugging', Debugging),
+    printf(output, "Sikraken Raw Arguments:\t%w\n", [ArgsL]),
+    printf(output, "Time Stamp: %w\n", [Timestamp]),
     get_flag('max_local_control', Max_local_control), 
     Max_local_control_in_MB is (Max_local_control div 1024) div 1024,
     get_flag('max_global_trail', Max_global_trail), 
     Max_global_trail_in_MB is (Max_global_trail div 1024) div 1024,
     get_flag('version', Version), 
-    printf(output, "\tECLiPSe version:\t%w\n", [Version]),
-    printf(output, "\tdebug_compile:\t\t%w\n", [Debug_compile]),
-    printf(output, "\tdebugging:\t\t\t%w\n", [Debugging]),
-    printf(output, "\tMaximum allowed local/control user stack (-l option):\t%wMB\n", [Max_local_control_in_MB]),
-    printf(output, "\tMaximum allowed global/trail user stack (-g option):\t%wMB\n", [Max_global_trail_in_MB]),
+    printf(output, "ECLiPSe version:\t%w\n", [Version]),
+    printf(output, "ECLiPSe Maximum allowed local/control user stack (-l option):\t%wMB\n", [Max_local_control_in_MB]),
+    printf(output, "ECLiPSe Maximum allowed global/trail user stack (-g option):\t%wMB\n", [Max_global_trail_in_MB]),
     printf(output, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
-    printf(output, "Sikraken Session Configurations at: %w\n", [Timestamp]),
-    printf(output, "\tRun mode:\t%w\n", [Debug_mode]),
-    printf(output, "\tTests inputs target format:\t%w\n", [Output_mode]),
-    printf(output, "\tTarget data model:\t%w\n", [Data_model]),
-    printf(output, "\tTarget function:\t%w\n", [Target_raw_subprogram_name]),   
-    printf(output, "\tTarget C file:\t\t%w (in folder:%w)\n", [Target_source_file_name_no_ext, Source_dir]),
-    printf(output, "\tTime budget:\t\t%w\n", [Budget]),
-    print_options(Options),
     close(output).
     %%%
     print_options([]).
     print_options([Option|R]) :-
-        printf(output, "\tOption:\t\t\t%w\n", [Option]),
+        printf(output, "\tOption:\t\t%w\n", [Option]),
         print_options(R).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 print_test_run_log :-
@@ -50,15 +32,35 @@ print_test_run_log :-
     Cputime_seconds is fix(Cputime),
     se_globals__get_val('path_nb', Test_nb),
     printf(output, "\tECLiPSe CPU time: \t%w seconds\n", [Cputime_seconds]),
-    printf(output, "\tGenerated: \t\t\t%w tests\n", [Test_nb]),
+    printf(output, "\tGenerated: \t\t%w tests\n", [Test_nb]),
+    mytrace,
+    se_globals__get_val('covered_bran', Overall_covered),
+    length(Overall_covered, Covered_nb),
+    se_globals__get_val('EdgeCount', EdgeCount),
+    (EdgeCount == 0 -> Coverage = 100.0 ; Coverage is (Covered_nb / EdgeCount) * 100),
+    printf(output, "\tCFG: \t\t%w edges\n", [EdgeCount]),
+    printf(output, "\tCoverage: \t\t%.2f%%\n", [Coverage]),
+    se_globals__get_val('AllEdges', All_pure_edges_sorted),
+    printf(output, "\tAll: \t\t", []),
+    print_branches_list(All_pure_edges_sorted),
+    printf(output, "\tCovered: \t\t", []),
+    print_branches_list(Overall_covered),
+    ord_subtract(All_pure_edges_sorted, Overall_covered, Uncovered_edges),
+    printf(output, "\tMissing: \t\t", []),
+    print_branches_list(Uncovered_edges),
     printf(output, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
-    printf(output, "ECLiPSe Statistics Dump:\n", []), 
+    printf(output, "ECLiPSe Statistics Dump:", []), 
     get_stream('log_output', Log_output_stream),
     set_stream('log_output', output),
     statistics,     %printing out ECLiPSe internal statistics into redirected stream
     set_stream('log_output', Log_output_stream),
-    printf(output, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%", []).
-    %close(Test_run_stream).
+    printf(output, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []). 
+    %%%
+    print_branches_list([]) :-
+        printf(output, "\n", []).
+    print_branches_list([Branch|R]) :-
+        printf(output, "%w,", [Branch]),
+        print_branches_list(R).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 print_test_inputs([]).
 print_test_inputs([SEAV|R]) :-

@@ -1,5 +1,6 @@
 %The second argument of symbolic_execute/2 is an indication of the control flow.
-%  it can have the following values : 'carry_on'|break|continue|exit|return(expression)
+%  it can have the following values : 'carry_on'|break|continue|return(expression)|return
+%  All exits (exit, abort, assert_fail) are handled by labeling and test input generation in symbolically_interpret/2: symbolic execution backtracks (so we never have to handle exits as a Flow explicitly here) 
 symbolic_execute([], 'carry_on') :-
     !.
 symbolic_execute([Item|R], Flow) :-
@@ -129,9 +130,9 @@ symbolic_execute(or_assign(LValue, Expression), Flow) :-
     !,
     symbolic_execute(assign(LValue, bitwise(bw_or, LValue, Expression)), Flow).
 %%%
-symbolic_execute(function_call(Function, Arguments), 'carry_on') :- %as a statement
+symbolic_execute(function_call(Function, Arguments), 'carry_on') :-     %as a statement
     !,
-    symbolically_interpret(function_call(Function, Arguments), _Symbolic_expression).   %todo ok for exit and abort but not is it has a non-void return
+    symbolically_interpret(function_call(Function, Arguments), _Symbolic_expression).   %todo ok for exit and abort but not if it has a non-void return
 
 symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statements), Flow) :-
     !,
@@ -157,7 +158,7 @@ symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
           Inner_flow == 'break' ->  %exits from this while loop
             Flow = 'carry_on'
          ;
-            Flow = Inner_flow       %i.e. exit|return(expression)
+            Flow = Inner_flow       %i.e. return(expression)|return
          )
         )
     ;
@@ -179,7 +180,7 @@ symbolic_execute(do_while_stmt(Statements, branch(Id, Condition)), Flow) :-
      Inner_flow == 'break' ->   %exit this do while loop
         Flow = 'carry_on'
     ;
-        Flow = Inner_flow       %i.e. exit|return(expression)
+        Flow = Inner_flow       %i.e. return|return(expression)
     ).
 symbolic_execute(switch_stmt(_Expression, _Statement), 'carry_on') :-
     !,
@@ -234,7 +235,7 @@ force(Condition, Id, Truth, Statements, Flow) :-
     ;
         symbolically_interpret(Condition, symb(_, 0))
     ),
-    se_globals__update_ref('current_path_bran', branch(Id, Truth)),
+    se_globals__update_ref('current_path_bran', bran(Id, Truth)),
     symbolic_execute(Statements, Flow).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 make_decision(Condition, Id, Outcome) :-
@@ -270,7 +271,7 @@ make_decision(Condition, Id, Outcome) :-
             )
         )
     ),
-    Branch = branch(Id, Outcome),
+    Branch = bran(Id, Outcome),
     se_globals__update_ref('current_path_bran', Branch),
     (se_globals__get_val('shortcut_gen', true) ->
         (cfg_main__bran_is_already_covered(Branch) ->

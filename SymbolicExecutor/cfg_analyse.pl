@@ -123,7 +123,7 @@ create_function_call_lookup(FunctionCalls, Lookup) :-
     build_function_call_lookup(FunctionCalls, Empty, Lookup).
 
 build_function_call_lookup([], Lookup, Lookup).
-build_function_call_lookup([function_call(From, To, Label) | Rest], AccLookup, Lookup) :-
+build_function_call_lookup([edge(From, To, Label) | Rest], AccLookup, Lookup) :-
     (   get_assoc(From, AccLookup, ExistingCalls) ->
         put_assoc(From, AccLookup, [(To, Label) | ExistingCalls], NewAccLookup)
     ;   put_assoc(From, AccLookup, [(To, Label)], NewAccLookup)

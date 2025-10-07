@@ -46,11 +46,6 @@ se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode,
     setval('target_source_file_name_no_ext', Target_source_file_name_no_ext),   %the name of target source file without extension
     setval('testcomp_test_suite_folder', ""),
     setval('debug_mode', Debug_mode),           %'debug' or 'release'
-    (Debug_mode == 'debug' -> 
-        printf('output', "Sikraken is running in Debug mode\n", [])
-    ;
-        printf('output', "Sikraken is running in Release mode\n", [])
-    ),
     setval('output_mode', Output_mode),         %'testcomp' or something else 
     setval('data_model', Data_model),           %'-m32'|'m64'
     setval('message_mode', Debug_mode),         %debug or release todo: remove, just use debug_mode
@@ -69,12 +64,10 @@ se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode,
         init_options([]).
         init_options([Option|Rest]) :-
             (Option == 'shortcut_gen' ->
-                setval('shortcut_gen', true),   %incomplete test inputs are generated: this is a testcomp which uses testcov quirk see diary 16/09/25
-                super_util__quick_dev_info("Shortcut generation mode ON\n", [])
+                setval('shortcut_gen', true)   %incomplete test inputs are generated: this is a testcomp which uses testcov quirk see diary 16/09/25
             ; 
              Option == 'advanced_cfg' ->
-                setval('advanced_cfg', true),   %builds the full CFG and prepare it for analysis
-                super_util__quick_dev_info("Advanced CFG mode ON\n", [])
+                setval('advanced_cfg', true)   %builds the full CFG and prepare it for analysis
             ;
                 printf('output', "Unknown option %w on the command line\n", [Option])
             ),
