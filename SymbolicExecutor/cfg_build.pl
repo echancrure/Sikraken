@@ -248,7 +248,7 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls) :-
     cover(continue_stmt, 'continue') :-
         !. 
     %we have anything here: comma_op, postfix_inc_op, postfix_dec_op or any expression!
-    cover(Expression, 'carry_on') :- %assuming that there is no return in there...
+    cover(Expression, 'carry_on') :-
         !,
         cover_exp(Expression).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

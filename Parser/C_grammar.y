@@ -1225,9 +1225,9 @@ labeled_statement
 	   free($3);
 	  }
 	| CASE constant_expression ':' statement
-	  {size_t const size = strlen("case_stmt(, )") + strlen($2) + strlen($4) + 1;
+	  {size_t const size = strlen("case_stmt(branch(, ), )") + MAX_BRANCH_STR + strlen($2) + strlen($4) + 1;
 	   $$ = (char*)malloc(size);
-	   sprintf_safe($$, size, "case_stmt(%s, %s)", $2, $4);
+	   sprintf_safe($$, size, "case_stmt(branch(%d, %s), %s)", branch_nb++, $2, $4);
 	   free($2);
 	   free($4);
 	  }

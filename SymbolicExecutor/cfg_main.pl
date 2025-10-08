@@ -81,8 +81,12 @@ cfg_main__build_cfg(Parsed_prolog_code) :-
         se_globals__get_val('target_source_file_name_no_ext', Target_source_file_name_no_ext),
         concat_atom([Install_dir, "/sikraken_output/", Target_source_file_name_no_ext], Result_folder),
         cd(Result_folder),
-        (EdgeCount < 20 -> Format = dot ; Format = neato),  %use slow but better looking dot for small graphs only
-        write_graph(Graph, "cfg.png", png, [edge_attrs_generator : edge_label_attrs, layout:Format])
+        (EdgeCount > 200 -> 
+            true    %too big to visualize
+        ;
+            (EdgeCount < 20 -> Format = dot ; Format = neato),  %use slow but better looking dot for small graphs only
+             write_graph(Graph, "cfg.png", png, [edge_attrs_generator : edge_label_attrs, layout:Format])
+        )
     ;
         true
     ).
