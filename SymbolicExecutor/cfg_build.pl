@@ -199,9 +199,31 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls) :-
              Flow = 'carry_on'
             )
         ).
-    cover(do_while_stmt(_Statements, branch(_Id, _Condition)), 'carry_on') :-
+    cover(do_while_stmt(Statements, branch(Id, Condition)), Flow) :-
         !,
-        common_util__error(0, "Warning in cover: todo do while statement", 'no_error_consequences', [], '0_060825_7', 'cfg_build', 'cover', no_localisation, no_extra_info).
+        cover(Statements, Intermediate_flow),
+        (Intermediate_flow == 'break' ->
+            Flow = 'carry_on'          %the break is consumed here and the loop is exited
+        ;
+         Intermediate_flow == return ->
+            Flow = 'return'            %the return is propagated upwards and the loop is exited
+        ;
+         (Intermediate_flow == 'carry_on' ; Intermediate_flow == 'continue') ->
+            (cover_exp(Condition),
+             create_branch(Id),         %creates the edge to the condition
+             (
+                (setref(current_truth_value, true),
+                 cover(do_while_stmt(Statements, branch(Id, Condition)), Flow) %odd but needed to force back edges when the condition is true: no infinite loop as create_branch fails on duplicates
+                )
+             ;%deliberate choice point
+                (setref(current_truth_value, false),
+                 Flow = 'carry_on'
+                )
+             )
+            )
+        ;
+            common_util__error(10, "Unhandled intermediate flow in do_while statement", "Cannot build CFG", [('Intermediate_flow', Intermediate_flow)], '10_081025', 'cfg_build', 'cover', no_localisation, no_extra_info)
+        ).
     cover(switch_stmt(_Expression, _Statement), 'carry_on') :-
         !,
         common_util__error(0, "Warning in cover: todo switch statements", 'no_error_consequences', [], '0_060825_8', 'cfg_build', 'cover', no_localisation, no_extra_info).

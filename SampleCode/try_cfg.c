@@ -4,7 +4,7 @@ extern void exit(int);
 void demo_loop_exits(int target) {
     for (int i = 0; i < 10; i++) {  //id 6
         if (i == 2) {               //id 1
-            continue;                 // skip rest of this iteration
+            continue;                 // skip rest of this iteration: i can never be higher than 2 in the loop...
         }
         if (i == 4) {               //id 2
             break;                    // exit loop only

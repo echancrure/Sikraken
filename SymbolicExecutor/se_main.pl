@@ -370,11 +370,12 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
             %(Inc_test_nb == 9 -> mytrace ; true),
             se_globals__set_val('path_nb', Inc_test_nb),
             cfg_main__bran_newly_covered(Overall_covered, Newly_covered),
+            (se_globals__get_val('debug_mode', 'debug') -> print_branches_list(Newly_covered) ; true),
             length(Newly_covered, Nb_new),
             se_globals__set_val('covered_bran', Overall_covered),
             se_globals__get_val('EdgeCount', EdgeCount),
-            (EdgeCount == 0 -> Coverage = 100.0 ; Coverage is (Nb_new / EdgeCount) * 100),
-            printf('output', "Dev Info: Covered  %d new branches increasing coverage by %.2f%%\n", [Nb_new, Coverage]),
+            (EdgeCount == 0 -> Coverage_delta = 100.0 ; Coverage_delta is (Nb_new / EdgeCount) * 100),
+            printf('output', "Dev Info: Covered  %d new branches increasing coverage by %.2f%%\n", [Nb_new, Coverage_delta]),
             flush('output').
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 initialise_ptc_solver :-

@@ -38,10 +38,10 @@ print_test_run_log :-
     length(Overall_covered, Covered_nb),
     se_globals__get_val('EdgeCount', EdgeCount),
     (EdgeCount == 0 -> Coverage = 100.0 ; Coverage is (Covered_nb / EdgeCount) * 100),
-    printf(output, "\tCFG: \t\t%w edges\n", [EdgeCount]),
+    printf(output, "\tCFG: \t\t\t%w edges\n", [EdgeCount]),
     printf(output, "\tCoverage: \t\t%.2f%%\n", [Coverage]),
     se_globals__get_val('AllEdges', All_pure_edges_sorted),
-    printf(output, "\tAll: \t\t", []),
+    printf(output, "\tAll: \t\t\t", []),
     print_branches_list(All_pure_edges_sorted),
     printf(output, "\tCovered: \t\t", []),
     print_branches_list(Overall_covered),
@@ -58,6 +58,8 @@ print_test_run_log :-
     %%%
     print_branches_list([]) :-
         printf(output, "\n", []).
+    print_branches_list([Branch]) :-
+        printf(output, "%w\n", [Branch]).
     print_branches_list([Branch|R]) :-
         printf(output, "%w,", [Branch]),
         print_branches_list(R).
