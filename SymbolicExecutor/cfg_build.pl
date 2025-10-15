@@ -12,20 +12,25 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 :- dynamic edge/3.                    %dynamic predicate to store the CFG's branches: edge(From, To, Truth_value)
 :- dynamic function_call/3.          %dynamic predicate to store the function calls in the CFG: function_call(From, To, Truth_value)
+:- dynamic ghost/2.                  %dynamic predicate to store the jump branches in the CFG: ghost(From, To)
+:- local reference(branch_nb, 1).    %the branch number counter
 :- local reference(current_node, start).          %the current node id during CFG building
+:- local reference(jump_node, -1).    %the current jump node, invalid value initially
 :- local reference(current_truth_value, true).    %the current truth value during CFG building
+:- local reference(has_default, false).    %used to track presence of default statement in switch statements 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %necessary initialisations during development to start from a clean empty CFG
 cfg_build__init :-  
     retractall(edge(_, _, _)),
-    retractall(function_call(_, _, _)).
+    retractall(function_call(_, _, _)),
+    retractall(ghost(_, _)).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Build the CFG of the code under test by asserting edge/3 facts
 cfg_build__build_cfg(Parsed_prolog_code, Function_name) :-
     init(Function_name),
-    mytrace,
+    %mytrace,
     (cover(Parsed_prolog_code, _Flow) *->      %'soft-cut' to enumerate all choice points in cover
-        create_branch(end(Function_name))
+        create_branch_to(end(Function_name), not_a_jump)
     ;
         fail %common_util__error(10, "Fatal error in cover/1", "Failed without leaving a choice point: Should never happen", [], '10_010825_1', 'cfg_build', 'cfg_build__build_cfg', no_localisation, no_extra_info)
     ),
@@ -38,7 +43,7 @@ cfg_build__build_cfg(_, _Function_name) :-
         setref(current_truth_value, true).  %true is place holder here, it should be none 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Create the graph from asserted edge/3 facts: the resulting graph of the form graph(Nodes, Edges)
-cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls) :-
+cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls, Jumps) :-
     findall(edge(From, To, Label), edge(From, To, Label), Edges),
     %mytrace,
     findall(bran(From, Label), (member(edge(From, To, Label), Edges), integer(From)), All_pure_edges),  %removes all the edges starting by start(_)
@@ -48,7 +53,8 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls) :-
     se_globals__set_val('AllEdges', All_pure_edges_sorted),
     extract_nodes(Edges, AllNodes),
     sort(AllNodes, Nodes),      %removes duplicates
-    findall(edge(From, To, none), function_call(From, To, _), FunctionCalls).
+    findall(edge(From, To, none), function_call(From, To, _), FunctionCalls),
+    findall(jump(From, To), ghost(From, To), Jumps).
     %%%
     extract_nodes([], []).
     extract_nodes([edge(From, To, _)|Rest], [From, To|Nodes]) :-
@@ -65,7 +71,7 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls) :-
         (Inner_flow == 'carry_on' ->
             cover(R, Flow)
         ;
-            Flow = Inner_flow
+            Flow = Inner_flow   % break, continue and return are propagated upwards
         ).
     cover(mytrace, 'carry_on') :-
         !.
@@ -160,7 +166,7 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls) :-
     cover(if_stmt(branch(Id, Condition), True_statements, False_statements), Flow) :-
         !,
         cover_exp(Condition),
-        create_branch(Id),
+        create_branch_to(Id, not_a_jump),
         (
             (setref(current_truth_value, true),
              cover(True_statements, Flow)
@@ -176,12 +182,12 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls) :-
     cover(while_stmt(branch(Id, Condition), Statements), Flow) :-
         !,
         cover_exp(Condition),
-        create_branch(Id),
+        create_branch_to(Id, not_a_jump),
         (
             (setref(current_truth_value, true),
              cover(Statements, Intermediate_flow),
              (( Intermediate_flow == 'carry_on' ; Intermediate_flow == 'continue' )->
-                (create_branch(Id),         %creates the back edge to the while loop condition
+                (create_branch_to(Id, not_a_jump),         %creates the back edge to the while loop condition
                  fail   %odd but needed to force backtracking to explore the false branch of the while loop condition
                 )
              ;
@@ -201,7 +207,7 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls) :-
         ).
     cover(do_while_stmt(Statements, branch(Id, Condition)), Flow) :-
         !,
-        cover(Statements, Intermediate_flow),
+        cover(Statements, Intermediate_flow), 
         (Intermediate_flow == 'break' ->
             Flow = 'carry_on'          %the break is consumed here and the loop is exited
         ;
@@ -210,7 +216,7 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls) :-
         ;
          (Intermediate_flow == 'carry_on' ; Intermediate_flow == 'continue') ->
             (cover_exp(Condition),
-             create_branch(Id),         %creates the edge to the condition
+             create_branch_to(Id, not_a_jump),         %creates the edge to the condition
              (
                 (setref(current_truth_value, true),
                  cover(do_while_stmt(Statements, branch(Id, Condition)), Flow) %odd but needed to force back edges when the condition is true: no infinite loop as create_branch fails on duplicates
@@ -224,10 +230,27 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls) :-
         ;
             common_util__error(10, "Unhandled intermediate flow in do_while statement", "Cannot build CFG", [('Intermediate_flow', Intermediate_flow)], '10_081025', 'cfg_build', 'cover', no_localisation, no_extra_info)
         ).
-    cover(switch_stmt(_Expression, _Statement), 'carry_on') :-
+    cover(switch_stmt(branch(Switch_id, Expression), Statements), Flow) :-
         !,
-        common_util__error(0, "Warning in cover: todo switch statements", 'no_error_consequences', [], '0_060825_8', 'cfg_build', 'cover', no_localisation, no_extra_info).
+        mytrace,
+        cover_exp(Expression),
+        create_branch_to(Switch_id, is_a_jump),                 %yes a switch creates a node Cf. diary 11 Oct 2025, it is a jump node
+        (Statements = cmp_stmts(Case_statements) -> 
+            cover_outer_cases(Case_statements, Flow)       %Flow can only be carry_on, break or return [continue is not valid within a switch, and exit are dealt with separately]
+        ;
+            cover_outer_cases(Statements, Flow)       %single statement within the switch
+        ).
 
+    %covering a non-outer case statement, i.e a fallthrough from the previous case/default statement
+    cover(case_stmt(branch(Id, _Expression), Statement), Flow) :-
+        !,      %Expression can only be a constant expression: no need to cover it
+        create_ghost_branch(Id),   %the jump from the switch to the case statement
+        create_branch_to(Id, not_a_jump),
+        setref(current_truth_value, true),
+        cover(Statement, Flow).
+    cover(default_stmt(branch(Id), Statement), Flow) :- %within switch statements only
+        !,
+        cover(case_stmt(branch(Id, _Expression), Statement), Flow). %same handling as for case statements
     cover(goto_stmt(_Label, _Function), 'carry_on') :-
         !,
         common_util__error(0, "Warning in cover: todo goto_stmt", 'no_error_consequences', [], '0_060825_2', 'cfg_build', 'cover', no_localisation, no_extra_info).
@@ -247,10 +270,42 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls) :-
         !.
     cover(continue_stmt, 'continue') :-
         !. 
-    %we have anything here: comma_op, postfix_inc_op, postfix_dec_op or any expression!
-    cover(Expression, 'carry_on') :-
+    cover(Expression, 'carry_on') :-    %we have anything here: comma_op, postfix_inc_op, postfix_dec_op or any expression!
         !,
         cover_exp(Expression).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    /*cover_outer_cases([], 'carry_on') :-  %end of the switch statement
+        !.
+        %only allow is no there is no default
+    */
+    cover_outer_cases([default_stmt(branch(Id), Statement)|Rest], Flow) :-  %does not have to be the last statement
+        !,
+        cover_outer_cases([case_stmt(branch(Id, _), Statement)|Rest], Flow).    %same handling as for case statements
+    cover_outer_cases([case_stmt(branch(Id, _Expression), Statement)|Rest], Flow) :-
+        !,
+        (
+            (create_ghost_branch(Id),   %the jump from the switch to the case statement
+             setref(current_node, Id),
+             setref(current_truth_value, true),
+             cover([Statement|Rest], Intermediate_flow),  %Flow can only be carry_on, break or return [continue is not valid within a switch, and exit are dealt with separately]
+             %here the full case statement and all its fallthroughs have been covered 
+             (Intermediate_flow == 'break' ->       %Flow can only be carry_on or return [continue is not valid within a switch, and exit are dealt with separately]
+                Flow = 'carry_on'                   %the break is consumed here and the switch is exited
+             ;
+              Intermediate_flow == return ->
+                Flow = 'return'            %the return is propagated upwards and the switch is exited
+             ;
+              Intermediate_flow == 'carry_on' ->
+                Flow = 'carry_on'          %normal exit from the switch statement
+             )
+            )
+        ;%deliberate choice point
+            (cover_outer_cases(Rest, Flow)   %cover the other outer cases
+            )
+        ).
+    cover_outer_cases([_|Rest], Flow) :-
+        !,
+        cover_outer_cases(Rest, Flow).  %ignore any other statements within the switch statement 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     cover_exp(V) :-
         var(V),
@@ -268,7 +323,7 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls) :-
                     true    %ignored: verifier input function
                 ;
                  (Function_name == 'Exit' ; Function_name == 'Abort' ; Function_name == 'UC___assert_fail') ->
-                    create_branch(end('Main')),      %this is the end...
+                    create_branch(end('Main'), false),      %this is the end...
                     fail    %force backtrackting to explore other paths
                 ;
                     common_util__error(9, "Function call to unknown external function", "Cannot perform CFG build", [('Function_name', Function_name)], '09_071025_2', 'cfg_build', 'cover_exp', no_localisation, no_extra_info)
@@ -284,7 +339,7 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls) :-
     cover_exp(cond_exp(branch(Id, Condition), True_expression, False_expression)) :-
         !,
         cover_exp(Condition),
-        create_branch(Id),
+        create_branch_to(Id, not_a_jump),
         (
             (setref(current_truth_value, true),
              cover_exp(True_expression)
@@ -322,7 +377,7 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls) :-
         ),
         cover_decl(Rest).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    create_branch(To) :-
+    create_branch_to(To, Is_jump) :-
         %mytrace,
         getref(current_node, From),
 		getref(current_truth_value, Truth),
@@ -330,10 +385,18 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls) :-
             fail	%already exist: don't create a new edge and backtrack: this part of the code has already been covered
 		;
 			(assert(edge(From, To, Truth)),
-             setref(current_node, To)
+             (Is_jump == 'is_a_jump' -> setref(jump_node, To) ; setref(current_node, To))
             )
         ).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    create_ghost_branch(To) :-  %creates a branch that is not taken into account for coverage purposes
+        getref(jump_node, From),
+        (ghost(From, To) ->
+            true	%already exist: don't create a new ghost edge
+        ;
+            assert(ghost(From, To))
+        ).
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Create a branch for a function call: this is a special branch
     % but we still use the same notation as for other branches in hope that analysis will be simpler
     create_call_branch(start(Function_name)) :-

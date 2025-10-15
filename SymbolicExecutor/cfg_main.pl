@@ -66,13 +66,14 @@ cfg_main__build_cfg(Parsed_prolog_code) :-
     cfg_build__init,
     %mytrace,
     cfg_build__build_cfg(Parsed_prolog_code, elaboration), %parses the Prolog C code 
-    cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls), %collects all edges and nodes
+    cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls, Jumps), %collects all edges and nodes
     se_globals__get_val('EdgeCount', EdgeCount),
     printf('output', "Dev Info: CFG Number of Edges %d\n", [EdgeCount]),
     (se_globals__get_val(debug_mode, debug) ->   %some overheads but only in debugging mode (implement your own if that is an issue)
         printf(output, "CFG list of Nodes: %w\n", [Nodes]),
         printf(output, "CFG list of Edges: %w\n", [Edges]),
         printf(output, "CFG list of function calls: %w\n", [FunctionCalls]),
+        printf(output, "CFG list of jumps: %w\n", [Jumps]),
         flush(output),
         ArrayNodes =.. ['[]'|Nodes],    %trick to transform a list into a Prolog array
         append(Edges, FunctionCalls, AllEdges),
@@ -133,8 +134,6 @@ cfg_main__build_cfg(Parsed_prolog_code) :-
             print_edges_mapping([(N,L)|Rest]) :-
                 printf("   -> (%w,%w)\n", [N, L]),
                 print_edges_mapping(Rest).
-        
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 cfg_main__bran_is_already_covered(Branch) :-
     se_globals__get_val('covered_bran', Already_covered),
