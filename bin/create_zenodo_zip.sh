@@ -9,6 +9,8 @@
 # Usage: ./create_zenodo_zip.sh
 # Dependencies: zip
 
+rm ./sikraken.zip
+
 # Define the name of the output zip file
 OUTPUT_ZIP="sikraken.zip"
 
