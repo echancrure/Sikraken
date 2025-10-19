@@ -26,6 +26,7 @@ FILES_TO_INCLUDE=(
     "./SymbolicExecutor"
     "./LICENSE"
     "./README.md"
+    "./smoketest.sh"
 )
 
 # Define the list of patterns to exclude (e.g., .git, .vscode, etc.)

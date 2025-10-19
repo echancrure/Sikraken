@@ -1287,9 +1287,9 @@ selection_statement
 		 free($6);
 		} 
 	| SWITCH '(' expression ')' statement
-		{size_t const size = strlen("\nswitch_stmt(, )") + strlen($3) + strlen($5) + 1;
+		{size_t const size = strlen("\nswitch_stmt(branch(, ), )") + MAX_BRANCH_STR + strlen($3) + strlen($5) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "\nswitch_stmt(%s, %s)", $3, $5); 
+		 sprintf_safe($$, size, "\nswitch_stmt(branch(%d, %s), %s)", branch_nb++, $3, $5); 
 		 free($3);
 		 free($5);
 		} 

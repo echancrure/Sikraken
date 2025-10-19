@@ -229,11 +229,11 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls, Jumps) :-
         ;
             common_util__error(10, "Unhandled intermediate flow in do_while statement", "Cannot build CFG", [('Intermediate_flow', Intermediate_flow)], '10_081025', 'cfg_build', 'cover', no_localisation, no_extra_info)
         ).
-    cover(switch_stmt(Expression, Statements), Flow) :-
+    cover(switch_stmt(branch(Id, Expression), Statements), Flow) :-
         !,
         mytrace,
         cover_exp(Expression),
-
+        create_branch_to(Id),
         (Statements = cmp_stmts(Case_statements) -> 
             cover_outer_cases(Case_statements, Flow)       %Flow can only be carry_on, break or return [continue is not valid within a switch, and exit are dealt with separately]
         ;
@@ -243,8 +243,8 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls, Jumps) :-
     %covering a non-outer case statement, i.e a fallthrough from the previous case/default statement
     cover(case_stmt(branch(Id, _Expression), Statement), Flow) :-
         !,      %Expression can only be a constant expression: no need to cover it
-        create_branch_to(Id),
         create_ghost_branch(Id),   %the jump from the switch to the case statement
+        create_branch_to(Id),
         setref(current_truth_value, true),
         cover(Statement, Flow).
     cover(default_stmt(branch(Id), Statement), Flow) :- %within switch statements only
