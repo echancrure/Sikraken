@@ -23,30 +23,25 @@ mytrace.            %call this to start debugging
 :- use_module(library('ic')).
 :- use_module(library('lists')).
 :- use_module(library('timeout')).
+:- lib('ordset').   %for ordered list with no duplicates
 
 :- use_module("./../PTC-Solver/source/ptc_solver").
 
 :- use_module(['se_globals', 'se_name_atts', 'se_seav_atts', 'se_sub_atts', 'se_typedef_atts']).
 
 :- compile(['common_util', 'se_handle_declarations', 'se_symbolically_execute', 'se_symbolically_interpret', 'se_get_symbolic_lvalue_for_addressing']).
-:- compile(['se_write_tests_testcomp']).
-:- compile(['se_coverage']).
+:- compile([se_print, 'se_write_tests_testcomp']).
+:- compile(['cfg_main']).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  
-go(Restart, Tries) :- se_main(['/home/chris/Sikraken', '/home/chris/Sikraken/SampleCode','hardness_codestructure_dependencies_file-0', main, release, testcomp, '-m32', regression(Restart, Tries)]).
-%go1 :- se_main(['/home/chris/Sikraken', '/home/chris/Sikraken/regression_tests','Problem03_label00', main, debug, testcomp, '-m32', budget(50)]).
-go_dev :- se_main(['/home/chris/Sikraken', '/home/chris/Sikraken/SampleCode','atry_bitwise', main, debug, testcomp, '-m32', regression(1, 10)]).
-
 se_main(ArgsL) :-
     %set_flag('gc_policy', 'fixed'),
-    (ArgsL = [Install_dir, Source_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Search_algo] ->
+    (ArgsL = [Install_dir, Source_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Search_algo|Options] ->
         true
     ;
         common_util__error(10, "Calling se_main/? with invalid argument list", "Review calling syntax of se_main/?", [], '10_240824_1', 'se_main', 'se_main', no_localisation, no_extra_info)
     ),
-    %frandom(F), %before seed is set in se_globals__set_globals
-    se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode, Data_model),    
-    print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext),
+    se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode, Data_model, Options),    
     (Search_algo = regression(Restarts, Tries) ->   %for more stable results during regression testing and to evaluate changes
         (setval('algo', 'regression'),
          setval('nb_restarts', Restarts),
@@ -56,8 +51,7 @@ se_main(ArgsL) :-
          ;   
             Budget = 65          %we put a limit for some regression tests which may not complete a full restart
          ),
-         First_time_out is Budget - 5.0,  %ensure not triggered at the same time as overall timeout
-         printf('output', "Dev Info: Analysing %w with %w restarts and %w tries\n", [Target_source_file_name_no_ext, Restarts, Tries])
+         First_time_out is Budget - 5.0  %ensure not triggered at the same time as overall timeout
         )
     ; 
      (Search_algo =.. [budget|Args]) ->
@@ -73,7 +67,7 @@ se_main(ArgsL) :-
             )
          ;
           Args = [Budget, First_time_out, Max_time_out, Multiplier, Min_time_out, Margin] ->
-            true
+            true    %todo
          ;
             common_util__error(10, "Calling se_main/? with invalid budget configuration", "Review budget algo argument syntax", [('Search_algo', Search_algo)], '10_240926_1', 'se_main', 'se_main', no_localisation, no_extra_info)
          ),
@@ -81,8 +75,7 @@ se_main(ArgsL) :-
          se_globals__set_val('Max_time_out', Max_time_out),
          se_globals__set_val('Multiplier', Multiplier),
          se_globals__set_val('Min_time_out', Min_time_out),
-         se_globals__set_val('Margin', Margin),
-         printf('output', "Dev Info: Analysing %w with Budget %w seconds, First_time_out is %w seconds, Max_time_out %w seconds, Multiplier %.2f times, Min_time_out %w seconds, Margin %w times.\n", [Target_source_file_name_no_ext, Budget, First_time_out, Max_time_out, Multiplier, Min_time_out, Margin])
+         se_globals__set_val('Margin', Margin)        
         )
     ;
         common_util__error(10, "Calling se_main/? with invalid search algo configuration", "Review search algo argument syntax", [('Search_algo', Search_algo)], '10_240926_2', 'se_main', 'se_main', no_localisation, no_extra_info)
@@ -90,32 +83,44 @@ se_main(ArgsL) :-
     se_globals__set_val('single_test_time_out', First_time_out),    
     set_event_handler('overall_generation_time_out', handle_overall_time_out_event/0),
     event_after('overall_generation_time_out', Budget),
-    print_test_run_log__preamble(ArgsL),
-    initialise_ptc_solver,
-    capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
-    read_parsed_file(Install_dir, Target_source_file_name_no_ext, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors
-    %%%pre-symbolic execution
-    %mytrace,
-    setval('execution_mode', 'global'),   %i.e. C compile time (as opposed to runtime), tackling globals when implicit initialisation to 0 occurs 
-    (symbolic_execute(Parsed_prolog_code, _) ->   %always symbolically execute all global declarations for now: initialisations could be ignored via a switch if desired
-        true
-    ;
-        common_util__error(10, "Sikraken failed to execute the declarations: cannot recover from this", "Should never happen: code needs to be traced", [], '10_021224_3', 'se_main', 'search_CFG_inner', no_localisation, no_extra_info)
-    ),
-    setval('execution_mode', 'local'),    %i.e. C run time (as opposed to compile time), tackling locals when implicit initialisation to 0 does not occur
-    %%%
-    statistics(event_time, Session_time),
-    setval('start_session_time', Session_time),
-    %%% where it all happens
-    catch(search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code), Any_exception, search_CFG_exception_handler(Any_exception)),
-    %%%
-    print_test_run_log.   %only run once 
+    catch(
+        (
+            print_test_run_log__preamble(ArgsL),
+            initialise_ptc_solver,
+            capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
+            read_parsed_file(Install_dir, Target_source_file_name_no_ext, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors
+            %%%pre-symbolic execution
+            cfg_main__declare_functions(Parsed_prolog_code),
+            setval('execution_mode', 'global'),   %i.e. C compile time (as opposed to runtime), tackling globals when implicit initialisation to 0 occurs 
+            (symbolic_execute(Parsed_prolog_code, _) ->   %always symbolically execute all global declarations for now: initialisations could be ignored via a switch if desired
+                true
+            ;
+                common_util__error(10, "Sikraken failed to execute the global declarations: cannot recover from this", "Should never happen: code needs to be traced", [], '10_021224_3', 'se_main', 'search_CFG_inner', no_localisation, no_extra_info)
+            ),
+            %mytrace,
+            cfg_main__build_cfg(Parsed_prolog_code),
+            setval('execution_mode', 'local'),    %i.e. C run time (as opposed to compile time), tackling locals when implicit initialisation to 0 does not occur
+            %%%
+            statistics(event_time, Session_time),
+            setval('start_session_time', Session_time),
+            print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext),
+            (se_globals__get_val('EdgeCount', 0) -> 
+                print_test_inputs_testcomp([])      %silly edge case: no branches at all; we still print an empty test input vector to keep Testcov happy
+            ;
+                %%% where it all happens
+                search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)
+            ),
+            print_test_run_log   %only run once
+        ),
+        Any_exception,
+        handle_exception(Any_exception)
+    ).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_overall_time_out_event :-
-        cancel_after_event('single_test_time_out_exception', _), %to ensure none are left and be triggered later on especially in development mode
+        cancel_after_event('single_test_time_out_event', _), %to ensure none are left and triggered later on especially in development mode
         throw('outatime').
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    search_CFG_exception_handler(Exception) :-
+    handle_exception(Exception) :-
         (Exception == 'outatime' ->
             easter_egg
         ;
@@ -139,29 +144,6 @@ se_main(ArgsL) :-
                 common_util__error(10, "Unknown exception caught", "Review, investigate and catch it better next time", [('Exception', Exception)], '10_260924_2', 'se_main', 'se_main', no_localisation, no_extra_info)
             )
         ).
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    print_test_run_log :-
-        %cancel_after_event('single_test_time_out_exception', _), %to ensure none are left and be triggered later on especially in development mode
-        %cancel_after_event('overall_generation_time_out', _),    %to ensure none is left and be triggered later on especially in development mode            
-        statistics(event_time, Current_session_time),
-        printf('output', "Dev Info: Session time is %.2f seconds\n", [Current_session_time]),
-        getval('test_run_filename', Test_run_filename),
-        open(Test_run_filename, 'append', Test_run_stream),
-        printf(Test_run_stream, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
-        printf(Test_run_stream, "Sikraken Session Results:\n", []),
-        statistics('cputime', Cputime),
-        Cputime_seconds is fix(Cputime),
-        se_globals__get_val('path_nb', Test_nb),
-        printf(Test_run_stream, "\tECLiPSe CPU time: \t%w seconds\n", [Cputime_seconds]),
-        printf(Test_run_stream, "\tGenerated: \t\t\t%w tests\n", [Test_nb]),
-        printf(Test_run_stream, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
-        printf(Test_run_stream, "ECLiPSe Statistics Dump:\n", []), 
-        get_stream('log_output', Log_output_stream),
-        set_stream('log_output', Test_run_stream),
-        statistics,     %printing out ECLiPSe internal statistics into redirected stream
-        set_stream('log_output', Log_output_stream),
-        printf(Test_run_stream, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%", []),
-        close(Test_run_stream).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
     set_event_handler('single_test_time_out_event', handle_single_test_time_out_event/0),
@@ -178,6 +160,7 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
         printf('output', "Dev Info: Time budget for a single test is %.2f seconds\n", [Current_single_test_time_out]),
         se_globals__get_val('path_nb', Initial_try_solution_number),
         setval(nb_try_solution, Initial_try_solution_number),
+        setval(shortcut_gen_triggered, 'false'),
         not(
             (catch(try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)), 'single_test_time_out_exception', handle_single_test_time_out_exception) -> 
                 (%should logically never happen
@@ -240,10 +223,25 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
     handle_single_test_time_out_event :-
         %mytrace,
         printf('output', "Dev Info: Time out triggered.\n", []),
+        (cfg_main__bran_newly_covered(_Overall_covered, []) ->
+            printf('output', "Dev Info: Nothing new in the current subpath.\n", [])    
+        ;
+            (se_globals__get_ref('verifier_inputs', Verifier_inputs),
+             se_globals__get_val('single_test_time_out', Current_single_test_time_out),
+             (timeout(label_testcomp(Verifier_inputs, Labeled_inputs), Current_single_test_time_out, fail) ->    %timout added to avoid very long / impossible labelling
+                display_successful_test_stats(_Last_test_duration, _Current_session_time),
+                printf('output', "Dev Info: Incomplete test vector\n", []),
+                record_path_coverage,
+                print_test_inputs_testcomp(Labeled_inputs)     %banking a partial answer as allowed by testcomp                
+             ;
+                printf('output', "Dev Info: Labelling failed.\n", [])    %labeling failed...no test input vector could be generated
+             )
+            )
+        ),
         throw('single_test_time_out_exception').
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_single_test_time_out_exception :-
-        fail. %to make sure the not succeeds...
+        fail. %to make sure the not in search_CFG_inner succeeds and a restart from the top is triggerred 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     find_one_path_exception_handler(Exception) :-
         (Exception == 'abort' ->    %covers ECLiPSe exceptions: language/constraints violations and explicit calls to abort in Sikraken error messages
@@ -262,7 +260,7 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
 find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
     (Output_mode == 'testcomp' ->   %in the spirit of C we do not check Main: we accept any version (including argc/argv) 
         (se_sub_atts__get(Main, 'body', Main_compound_statement),   
-         se_globals__update_ref('current_path_bran', start('Target_raw_subprogram_name', true)),
+         se_globals__update_ref('current_path_bran', start('Main', true)),
          symbolic_execute(Main_compound_statement, _Flow)
         )
     ;
@@ -296,81 +294,102 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
         string_chars(Output_string, [UpperFirstChar|RestChars]),
         atom_string(Output, Output_string).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %always succeeds (even when labeling fails)
     end_of_path_predicate(SEAV_Inputs, Parsed_prolog_code) :-
-        se_coverage__bran_newly_covered(Newly_covered),
-        (Newly_covered == [] -> %no need to label: saves labelling run and test execution time
-            true %common_util__error(1, "End of path: no new branches", 'no_error_consequences', [], '0_210824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info)
+        (getval(shortcut_gen_triggered, 'true') ->  %we are in shortcut generation mode, so we do not create new verifier inputs
+            (setval(shortcut_gen_triggered, 'false'),  %reset for next time
+             reset_timer,
+             record_path_coverage
+            )
         ;
-            (se_globals__get_val('output_mode', Output_mode),
-             (Output_mode = 'testcomp' ->
-                (se_globals__get_ref('verifier_inputs', Verifier_inputs),
-                 %mytrace,
-                 (label_testcomp(Verifier_inputs, Labeled_inputs) ->
-                  %label_all ->
-                    (%%%
-                     cancel_after_event('single_test_time_out_event', _CancelledEvents), 
-                     statistics(event_time, Current_session_time),
-                     getval(start_time, Current_start_time),
-                     Last_test_duration is Current_session_time - Current_start_time,
-                     printf('output', "Dev Info: Test generated in %.2f seconds; overall elapsed time is %.2f seconds\n", [Last_test_duration, Current_session_time]),
-
-                     (getval('algo', 'time_budget') ->
-                        (se_globals__get_val('Min_time_out', Min_time_out), %seconds whatever is close but above the overheads
-                         se_globals__get_val('Margin', Margin),
-                         se_globals__get_val('single_test_time_out', Current_single_test_time_out),
-                         (Current_single_test_time_out > Min_time_out, Current_single_test_time_out > Margin * Last_test_duration ->  %last test generation was faster by a wide margin: allocated budget is reduced
-                           (New_single_test_time_out is max(Margin * Last_test_duration, Min_time_out), %but there is a minimum to reduce overheads
-                            se_globals__set_val('single_test_time_out', New_single_test_time_out),
-                            printf('output', "Dev Info: Single test budget changed to: %.2f seconds; overall elapsed time is %.2f seconds\n", [New_single_test_time_out, Current_session_time])
-                           )
+            (cfg_main__bran_newly_covered(_Overall_covered, Newly_covered),
+             (Newly_covered == [] -> %no need to label: saves labelling run and test execution time
+                true %common_util__error(1, "End of path: no new branches", 'no_error_consequences', [], '0_210824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info)
+            ;
+                (se_globals__get_val('output_mode', Output_mode),
+                 (Output_mode = 'testcomp' ->
+                    (se_globals__get_ref('verifier_inputs', Verifier_inputs),
+                     mytrace,
+                     (label_testcomp(Verifier_inputs, Labeled_inputs) ->
+                        (reset_timer,
+                         record_path_coverage,
+                        %%%
+                        %common_util__error(1, "End of path", 'no_error_consequences', [('Path Nb', Inc_test_nb), ('Newly_covered', Newly_covered), ('Current_path', Current_path)], '0_190824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info),
+                         (Output_mode == 'testcomp' ->
+                            print_test_inputs_testcomp(Labeled_inputs)   %but don't print expected outputs
                          ;
-                           New_single_test_time_out = Current_single_test_time_out
-                         ),    
-                         event_after('single_test_time_out_event', New_single_test_time_out)
+                            (print_test_inputs(SEAV_Inputs),
+                             se_globals__pop_scope_stack,    %only after labeling and printed to preserve parameters
+                             term_variables(Parsed_prolog_code, All_Ids),
+                             get_all_outputs(All_Ids, All_seavs),
+                             print_test_outputs(All_seavs),    
+                             flush(user_output)
+                            )
+                         )
                         )
                      ;
-                        true
-                     ),
-                     statistics(event_time, New_start_time),
-                     setval(start_time, New_start_time),
-                     %%% %%%
-                     se_globals__get_val('path_nb', Test_nb),
-                     Inc_test_nb is Test_nb + 1,
-                     %(Inc_test_nb == 9 -> mytrace ; true),
-                     se_globals__set_val('path_nb', Inc_test_nb),
-                     se_globals__get_ref('current_path_bran', Current_path),
-                     prune_instances(Current_path, Current_path_no_duplicates),
-                     se_globals__get_val('covered_bran', Already_covered),
-                     union(Already_covered, Current_path_no_duplicates, Covered),
-                     se_globals__set_val('covered_bran', Covered),
-                     %common_util__error(1, "End of path", 'no_error_consequences', [('Path Nb', Inc_test_nb), ('Newly_covered', Newly_covered), ('Current_path', Current_path)], '0_190824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info),
-                     (Output_mode == 'testcomp' ->
-                        print_test_inputs_testcomp(Labeled_inputs)   %but don't print expected outputs
-                     ;
-                        (print_test_inputs(SEAV_Inputs),
-                         se_globals__pop_scope_stack,    %only after labeling and printed to preserve parameters
-                         term_variables(Parsed_prolog_code, All_Ids),
-                         get_all_outputs(All_Ids, All_seavs),
-                         print_test_outputs(All_seavs),    
-                         flush(user_output)
-                        )
+                        true    %labeling failed (perhaps floating points could not be labeled or there was no solution to integer non-linear constraints, who knows), we succeed to count it as a valid attempt
                      )
                     )
                  ;
-                    true    %labeling failed (perhaps floating points could not be labeled or there was no solution to integer non-linear constraints, who knows), we succeed to count it as a valid attempt
+                    common_util__error(10, "Unexpected output mode", "Only testcomp format is supported for now", [('Output_mode', Output_mode)], '10_100924_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info)
                  )
                 )
-             ;
-                common_util__error(10, "Unexpected output mode", "Only testcomp format is supported for now", [('Output_mode', Output_mode)], '10_100924_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info)
              )
             )
         ).
+        %%%
+        reset_timer :-
+            cancel_after_event('single_test_time_out_event', _CancelledEvents), 
+            display_successful_test_stats(Last_test_duration, Current_session_time),
+            %mytrace,
+            (getval('algo', 'time_budget') ->
+                (se_globals__get_val('Min_time_out', Min_time_out), %seconds whatever is close but above the overheads
+                 se_globals__get_val('Margin', Margin),
+                 se_globals__get_val('single_test_time_out', Current_single_test_time_out),
+                 (Current_single_test_time_out > Min_time_out, Current_single_test_time_out > Margin * Last_test_duration ->  %last test generation was faster by a wide margin: allocated budget is reduced
+                    (New_single_test_time_out is max(Margin * Last_test_duration, Min_time_out), %but there is a minimum to reduce overheads
+                     se_globals__set_val('single_test_time_out', New_single_test_time_out),
+                     printf('output', "Dev Info: Single test budget changed to: %.2f seconds; overall elapsed time is %.2f seconds\n", [New_single_test_time_out, Current_session_time])
+                    )
+                 ;
+                    New_single_test_time_out = Current_single_test_time_out
+                 ),    
+                 event_after('single_test_time_out_event', New_single_test_time_out)
+                )
+            ;
+                true
+            ),
+            statistics(event_time, New_start_time),
+            setval(start_time, New_start_time).
+        %%%
+        display_successful_test_stats(Last_test_duration, Current_session_time) :-
+            statistics(event_time, Current_session_time),
+            getval(start_time, Current_start_time),
+            Last_test_duration is Current_session_time - Current_start_time,
+            printf('output', "\nDev Info: Test generated in %.2f seconds; overall elapsed time is %.2f seconds\n", [Last_test_duration, Current_session_time]).
+        %%%
+        record_path_coverage :-
+            %mytrace,
+            se_globals__get_val('path_nb', Test_nb),
+            Inc_test_nb is Test_nb + 1,
+            %(Inc_test_nb == 9 -> mytrace ; true),
+            se_globals__set_val('path_nb', Inc_test_nb),
+            cfg_main__bran_newly_covered(Overall_covered, Newly_covered),
+            (se_globals__get_val('debug_mode', 'debug') -> print_branches_list(Newly_covered) ; true),
+            length(Newly_covered, Nb_new),
+            se_globals__set_val('covered_bran', Overall_covered),
+            se_globals__get_val('EdgeCount', EdgeCount),
+            (EdgeCount == 0 -> Coverage_delta = 100.0 ; Coverage_delta is (Nb_new / EdgeCount) * 100),
+            printf('output', "Dev Info: Covered  %d new branches increasing coverage by %.2f%%\n", [Nb_new, Coverage_delta]),
+            flush('output').
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 initialise_ptc_solver :-
     ptc_solver__clean_up,
     se_globals__get_val('data_model', Data_model),
     ptc_solver__default_declarations(Data_model, 'ignore').
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%returns CProlog the C code in Prolog format, Main the var of the main function, and Target_subprogram_var the var of the target function 
 read_parsed_file(Install_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, CProlog, Main, Target_subprogram_var) :-
     concat_atom([Install_dir, '/sikraken_output/', Target_source_file_name_no_ext, '/', Target_source_file_name_no_ext, '.pl'], Parsed_filename),
     (exists(Parsed_filename) ->
@@ -476,65 +495,4 @@ get_all_outputs([Id|R_ids], All_outputs) :-
         All_outputs = R_outputs
     ),
     get_all_outputs(R_ids, R_outputs).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-print_test_inputs([]).
-print_test_inputs([SEAV|R]) :-
-    se_name_atts__get(SEAV, 'name', Name),
-    seav__get(SEAV, 'input', Input_value),
-    printf(user_output, "\nInput %w = %w", [Name, Input_value]),
-    print_test_inputs(R).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-print_test_outputs([]).
-print_test_outputs([SEAV|R]) :-
-    se_name_atts__get(SEAV, 'name', Name),
-    seav__get(SEAV, 'output', Output_value),
-    printf(user_output, "\nOutput %w = %w", [Name, Output_value]),
-    print_test_outputs(R).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-print_test_run_log__preamble(ArgsL) :-
-    ArgsL = [Install_dir, Source_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Budget],
-    get_flag('unix_time', Time), 
-    local_time_string(Time, "%Y_%m_%d_%H_%M_%S", Timestamp),
-    concat_string([Install_dir, '/sikraken_output/', Target_source_file_name_no_ext, "/test_run_", Target_source_file_name_no_ext, ".log"], Test_run_filename),
-    setval('test_run_filename', Test_run_filename), 
-    open(Test_run_filename, 'write', 'test_run_stream'),    %the directory must exist otherwise open/3 aborts
-    printf('test_run_stream', "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
-    printf('test_run_stream', "Sikraken Test Inputs Generation Run Log\n", []),
-    printf('test_run_stream', "Raw Arguments:\t%w\n", [ArgsL]),
-    printf('test_run_stream', "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
-    printf('test_run_stream', "Relevant ECLiPSe Configurations:\n", []),
-    get_flag('debug_compile', Debug_compile),
-    get_flag('debugging', Debugging),
-    get_flag('max_local_control', Max_local_control), 
-    Max_local_control_in_MB is (Max_local_control div 1024) div 1024,
-    get_flag('max_global_trail', Max_global_trail), 
-    Max_global_trail_in_MB is (Max_global_trail div 1024) div 1024,
-    get_flag('version', Version), 
-    printf('test_run_stream', "\tECLiPSe version:\t%w\n", [Version]),
-    printf('test_run_stream', "\tdebug_compile:\t\t%w\n", [Debug_compile]),
-    printf('test_run_stream', "\tdebugging:\t\t\t%w\n", [Debugging]),
-    printf('test_run_stream', "\tMaximum allowed local/control user stack (-l option):\t%wMB\n", [Max_local_control_in_MB]),
-    printf('test_run_stream', "\tMaximum allowed global/trail user stack (-g option):\t%wMB\n", [Max_global_trail_in_MB]),
-    printf('test_run_stream', "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
-    printf('test_run_stream', "Sikraken Session Configurations at: %w\n", [Timestamp]),
-    printf('test_run_stream', "\tRun mode:\t%w\n", [Debug_mode]),
-    printf('test_run_stream', "\tTests inputs target format:\t%w\n", [Output_mode]),
-    printf('test_run_stream', "\tTarget data model:\t%w\n", [Data_model]),
-    printf('test_run_stream', "\tTarget function:\t%w\n", [Target_raw_subprogram_name]),   
-    printf('test_run_stream', "\tTarget C file:\t%w (in folder:%w)\n", [Target_source_file_name_no_ext, Source_dir]),
-    printf('test_run_stream', "\tTime budget:\t\t%w\n", [Budget]),
-    close('test_run_stream').
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-easter_egg :-
-    printf('output', "                                                                                                       .         .                          \n", []),
-    printf('output', "        ,o888888o.     8 8888      88 8888888 8888888888   .8.    8888888 8888888888  8 8888          ,8.       ,8.          8 8888888888   \n", []),
-    printf('output', "     . 8888     `88.   8 8888      88       8 8888        .888.         8 8888        8 8888         ,888.     ,888.         8 8888         \n", []),
-    printf('output', "    ,8 8888       `8b  8 8888      88       8 8888       :88888.        8 8888        8 8888        .`8888.   .`8888.        8 8888         \n", []),
-    printf('output', "    88 8888        `8b 8 8888      88       8 8888      . `88888.       8 8888        8 8888       ,8.`8888. ,8.`8888.       8 8888         \n", []),
-    printf('output', "    88 8888         88 8 8888      88       8 8888     .8. `88888.      8 8888        8 8888      ,8'8.`8888,8^8.`8888.      8 888888888888 \n", []),
-    printf('output', "    88 8888         88 8 8888      88       8 8888    .8`8. `88888.     8 8888        8 8888     ,8' `8.`8888' `8.`8888.     8 8888         \n", []),
-    printf('output', "    88 8888        ,8P 8 8888      88       8 8888   .8' `8. `88888.    8 8888        8 8888    ,8'   `8.`88'   `8.`8888.    8 8888         \n", []),
-    printf('output', "    `8 8888       ,8P  ` 8888     ,8P       8 8888  .8'   `8. `88888.   8 8888        8 8888   ,8'     `8.`'     `8.`8888.   8 8888         \n", []),
-    printf('output', "     ` 8888     ,88'     8888   ,d8P        8 8888 .888888888. `88888.  8 8888        8 8888  ,8'       `8        `8.`8888.  8 8888         \n", []),
-    printf('output', "        `8888888P'        `Y88888P'         8 8888.8'       `8. `88888. 8 8888        8 8888 ,8'         `         `8.`8888. 8 888888888888 \n\n", []).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

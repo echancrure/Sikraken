@@ -1,5 +1,6 @@
 %The second argument of symbolic_execute/2 is an indication of the control flow.
-%  it can have the following values : 'carry_on'|break|continue|exit|return(expression)
+%  it can have the following values : 'carry_on'|break|continue|return(expression)|return
+%  All exits (exit, abort, assert_fail) are handled by labeling and test input generation in symbolically_interpret/2: symbolic execution backtracks (so we never have to handle exits as a Flow explicitly here) 
 symbolic_execute([], 'carry_on') :-
     !.
 symbolic_execute([Item|R], Flow) :-
@@ -16,23 +17,13 @@ symbolic_execute(mytrace, 'carry_on') :-
 symbolic_execute(declaration(spec([typedef], Type_spec), Declarators), 'carry_on') :-
     !,
     extract_type(spec([], Type_spec), Type_name),
-    declare_typedefs(Declarators, Type_name).
+    declare_typedefs(Declarators, Type_name).   %single use, defined at the bottom
 symbolic_execute(declaration(Declaration_specifiers, Declarators), 'carry_on') :-
     !,
     ((Declarators = [Declarator], nonvar(Declarator), 
-      (Declarator = function(Function_name, Parameters) ; (Declarator = ptr_decl(pointer, Function), nonvar(Function), Function = function(Function_name, Parameters)))
+      (Declarator = function(_Function_name, _Parameters) ; (Declarator = ptr_decl(pointer, Function), nonvar(Function), Function = function(_Function_name, _Parameters)))
      ) ->  %a function forward declaration
-        (Declaration_specifiers = spec([extern], _Type_spec) ->   %found an extern function declaration
-            (extract_type(Declaration_specifiers, Return_type_name),
-             se_sub_atts__create(Return_type_name, Parameters, 'no_body_is_extern', Function_name)
-            )
-        ;
-         (se_name_atts__get(Function_name, 'name', Inner_name), is_verifier_input_function(Inner_name, _)) -> %some testcomp benchmarks do not declare the verifier functions as extern; as a hack we declare them here
-            (extract_type(Declaration_specifiers, Return_type_name),
-             se_sub_atts__create(Return_type_name, Parameters, 'no_body_is_extern', Function_name)
-            )
-        ; 
-            true    %we ignore all other, non-extern, forward function declarations: they will be defined later [can we not ignore them all?]
+        (true   %all functions are declared before CFG building and symbolic execution        
         )
     ;
         (%variable declarations
@@ -45,24 +36,12 @@ symbolic_execute(declaration(Declaration_specifiers, Declarators), 'carry_on') :
 symbolic_execute(declaration(Declaration_specifiers), 'carry_on') :-
     !,
     extract_type(Declaration_specifiers, _Type).
-symbolic_execute(function(Specifiers, function(Function_name, Parameters), [], Compound_statement), 'carry_on') :-
+symbolic_execute(function(_Specifiers, function(_Function_name, _Parameters), [], _Compound_statement), 'carry_on') :-
     !,
-    extract_type(Specifiers, Return_type_name),
-    se_sub_atts__create(Return_type_name, Parameters, Compound_statement, Function_name).
-symbolic_execute(function(Specifiers, ptr_decl(pointer, function(Function_name, Parameters)), [], Compound_statement), 'carry_on') :-
+    true. %functions are declared before CFG building and symbolic execution    
+symbolic_execute(function(_Specifiers, ptr_decl(pointer, function(_Function_name, _Parameters)), [], _Compound_statement), 'carry_on') :-
     !,
-    extract_type(Specifiers, Return_type_name),
-    extract_pointers(ptr_decl(pointer, function(Function_name, Parameters)), Return_type_name, Type_name_ptr_opt, _Clean_var),
-    se_sub_atts__create(Type_name_ptr_opt, Parameters, Compound_statement, Function_name).
-symbolic_execute(goto_stmt(Label, Function), Flow) :-
-    !,
-    %mytrace,
-    se_sub_atts__get(Function, 'body', cmp_stmts(Stmts)),
-    search_label_statement(Label, Stmts, Stmt_list),
-    symbolic_execute(Stmt_list, Flow).
-symbolic_execute(label_stmt(_Label, Stmt), Flow) :-
-    !,
-    symbolic_execute(Stmt, Flow).
+    true. %functions are declared before CFG building and symbolic execution  
 symbolic_execute(cmp_stmts(Stmts), Flow) :-
     !,
     se_globals__push_scope_stack,
@@ -104,8 +83,7 @@ symbolic_execute(assign(LValue, Expression), Flow) :-
              ptc_solver__up_record(Struct_value, Field, Expression_value, New_struct),
              seav__update(Struct_exp, 'output', New_struct)
             )
-        ;%could also be a function call (?) returning a record todo
-            
+        ;
          Struct_exp = index(Array_exp, Index_exp) -> % e.g. a[i].n = Expression becomes a[i] = up_rec(a[i], n, Expression)
             (%todo optimise and make sounder unique call to index(Array_exp, Index_exp) ?
              %mytrace,
@@ -152,244 +130,67 @@ symbolic_execute(or_assign(LValue, Expression), Flow) :-
     !,
     symbolic_execute(assign(LValue, bitwise(bw_or, LValue, Expression)), Flow).
 %%%
-symbolic_execute(function_call(Function, Arguments), 'carry_on') :- %as a statement
+symbolic_execute(function_call(Function, Arguments), 'carry_on') :-     %as a statement
     !,
-    symbolically_interpret(function_call(Function, Arguments), _Symbolic_expression).   %todo ok for exit and abort but not is it has a non-void return
+    symbolically_interpret(function_call(Function, Arguments), _Symbolic_expression).   %todo ok for exit and abort but not if it has a non-void return
 
 symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statements), Flow) :-
     !,
-/*    
-    %(Id == 155 -> mytrace ; true),
-    mytrace,
-    ((  %until we have a CFG: this is quick hack easy to check that should be generalised based on what covered to date and potential successors
-        (True_statements = cmp_stmts([label_stmt(_, stmt(function_call(Exit, [int(_)])))]),
-         se_name_atts__get(Exit, 'name', 'Exit')
-        )
-     ;%just or
-        (True_statements = cmp_stmts([stmt(function_call(Abort, []))]),
-         se_name_atts__get(Abort, 'name', 'Abort')
-        )
-%     ;%just or
-%        True_statements = return_stmt(_)    %another opportunity to exit early
-%     ;%just or
-%        True_statements = cmp_stmts([return_stmt(_)])   %another opportunity to exit early
-     ) ->
-        (not se_coverage__bran_newly_covered([]) -> %something new has been covered so far
-            (
-                force(Condition, Id, 'true', True_statements, Flow)     %exit early
-            ;
-                force(Condition, Id, 'false', False_statements, Flow)    %allow continue as may lead to something new
-            )
-        %;
-        % se_coverage__bran_is_already_covered(branch(Id, 'true')) ->    %nothing new and true already covered and will exit if taken
-        %    force(Condition, Id, 'false', False_statements, Flow)       %only option is to try the false branch
-        ;   %nothing new
-            (random(2, 0) ->
-                (
-                    force(Condition, Id, 'true', True_statements, Flow)
-                ;%deliberate choice point
-                    force(Condition, Id, 'false', False_statements, Flow)
-                )
-            ;
-                (
-                    force(Condition, Id, 'false', False_statements, Flow)
-                ;%deliberate choice point
-                    force(Condition, Id, 'true', True_statements, Flow)
-                )
-            )
-        )
-     ;
-     */
-        (random(2, 0) ->    %repeated code is unfortunate
-            (
-                force(Condition, Id, 'true', True_statements, Flow)
-            ;%deliberate choice point
-                force(Condition, Id, 'false', False_statements, Flow)
-            )
-        ;
-            (
-                force(Condition, Id, 'false', False_statements, Flow)
-            ;%deliberate choice point
-                force(Condition, Id, 'true', True_statements, Flow)
-            )
-        ).
-    %).
-/*
-symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statements), Flow) :-
-    !,
-    %(Id == 155 -> mytrace ; true),
-    mytrace,
-    symbolically_interpret(Condition, symb(_, Condition_value)),
-    (Condition_value == 1   ->
-        (se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-            symbolic_execute(True_statements, Flow)
-        )
+    make_decision(Condition, Id, Outcome),
+    (Outcome == 'true' ->
+        symbolic_execute(True_statements, Flow)
     ;
-     Condition_value == 0   ->
-        (se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-            symbolic_execute(False_statements, Flow)
-        )
-    ;   
-     (  %until we have a CFG: this is quick hack easy to check that should be generalised based on what covered to date and potential successors
-        (True_statements = cmp_stmts([label_stmt(_, stmt(function_call(Exit, [int(_)])))]),
-            se_name_atts__get(Exit, 'name', 'Exit')
-        )
-     ;%just or
-        (True_statements = cmp_stmts([stmt(function_call(Abort, []))]),
-            se_name_atts__get(Abort, 'name', 'Abort')
-        )
-     ) ->
-        ((se_coverage__bran_is_already_covered(branch(Id, 'true')),  %costly so left at the end
-          se_coverage__bran_newly_covered([])   %this is probably the most costly check: leave it last [unsound if commented out]
-         ) ->
-            traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow) % nothing new covered so far, true branch is already covered and leads to exit or abort so we skip the true branch and only try the false branch
-            %if the above fails no point carrying with true branch: it exits with nothing new covered            
-        ;
-            (%mytrace,
-             %either labeling succeeded and a testinput was generated, and everything that was to be covered has now been covered
-             (traverse(Condition_value, branch(Id, 'true'), True_statements, Flow) %something new has been covered and we can exit right now
-                   %we could return to the top-level (using Flow) as the logic implies but bit of a waste of a path: let's try to go back up and discovered something new
-                %but it would be waste of time trying the false branch here directly (it may be tried anyway on subsequent execution now that this arc has been covered and exits
-             ;
-                (%labeling failed, exit was not taken
-                 traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow)
-                )
-             )
-            )
-        )
-    ;     
-     (random(2, R2),
-        (R2 == 0 ->
-            (
-                traverse(Condition_value, branch(Id, 'true'), True_statements, Flow)
-            ;%if statement deliberate choice point
-                traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow)
-            )
-        ;
-            (
-                traverse(not(Condition_value), branch(Id, 'false'), False_statements, Flow)
-            ;%if statement deliberate choice point
-                traverse(Condition_value, branch(Id, 'true'), True_statements, Flow)
-            )
-        )
-     )
+        symbolic_execute(False_statements, Flow)
     ).
-*/
 
 symbolic_execute(if_stmt(Branch, True_statements), Flow) :-
     !,
     symbolic_execute(if_stmt(Branch, True_statements, []), Flow).
-%todo there is too much duplicated code in while loop handling: but I am afraid to break before Testcomp deadline
+
 symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
     !,
-    symbolically_interpret(Condition, symb(_, Condition_value)),
-    (Condition_value == 1   ->
-        (se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-         symbolic_execute(Statements, Inner_flow), 
+    make_decision(Condition, Id, Outcome),
+    (Outcome == 'true' ->
+        (symbolic_execute(Statements, Inner_flow), 
          ((Inner_flow == 'carry_on' ; Inner_flow == 'continue') ->
             symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow)
          ;
-          Inner_flow == 'break' ->  %terminates this while statement
+          Inner_flow == 'break' ->  %exits from this while loop
             Flow = 'carry_on'
          ;
-            Flow = Inner_flow
+            Flow = Inner_flow       %i.e. return(expression)|return
          )
         )
     ;
-     Condition_value == 0   ->
-        (se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-         Flow = 'carry_on'  %loop exits
-        )
-    ;    
-        (random(2, R2), %i.e. between 0 and 2-1, so only 2 values allowed 0 or 1
-         (R2 == 0 -> %randomness to ensure true and false branches are given equal chances
-            (
-                (traverse(Condition_value, branch(Id, 'true'), Statements, Inner_flow),
-                 ((Inner_flow == 'carry_on' ; Inner_flow == 'continue') ->
-                    symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow)
-                 ;
-                  Inner_flow == 'break' ->  %terminates this while statement
-                    Flow = 'carry_on'
-                 ; 
-                    Flow = Inner_flow
-                 )
-                )
-            ;%while loop deliberate choice point
-                (ptc_solver__sdl(not(Condition_value)),
-                 se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-                 Flow = 'carry_on'  %loop exits
-                )
-            )
-        ;
-            (
-                (ptc_solver__sdl(not(Condition_value)),
-                 se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-                 Flow = 'carry_on'  %loop exits
-                )
-            ;%while loop deliberate choice point
-                (traverse(Condition_value, branch(Id, 'true'), Statements, Inner_flow),
-                 ((Inner_flow == 'carry_on' ; Inner_flow == 'continue') ->
-                    symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow)
-                 ;
-                  Inner_flow == 'break' ->  %terminates this while statement
-                    Flow = 'carry_on'
-                 ; 
-                    Flow = Inner_flow
-                 )
-                )
-            )
-         )
-        )
+        Flow = 'carry_on'           %exits from this while loop
     ).
+    
 symbolic_execute(do_while_stmt(Statements, branch(Id, Condition)), Flow) :-
+    !,
     symbolic_execute(Statements, Inner_flow), 
     ((Inner_flow == 'carry_on' ; Inner_flow == 'continue') ->
-        (symbolically_interpret(Condition, symb(_, Condition_value)),
-            (Condition_value == 1   ->
-                (se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-                 symbolic_execute(do_while_stmt(Statements, branch(Id, Condition)), Flow)
-                )
-            ;
-             Condition_value == 0   ->
-                (se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-                 Flow = 'carry_on'  %loop exits
-                )
-            ;
-             (random(2, R2), %i.e. between 0 and 2-1, so only 2 values allowed 0 or 1
-              (R2 == 0 -> %randomness to ensure true and false branches are given equal chances
-                (
-                   (ptc_solver__sdl(Condition),
-                    se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-                    symbolic_execute(do_while_stmt(Statements, branch(Id, Condition)), Flow)
-                   )
-                ;%do while loop deliberate choice point
-                   (ptc_solver__sdl(not(Condition_value)),
-                    se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-                    Flow = 'carry_on'  %loop exits
-                   )
-                )
-              ;
-                (
-                    (ptc_solver__sdl(not(Condition_value)),
-                     se_globals__update_ref('current_path_bran', branch(Id, 'false')),
-                     Flow = 'carry_on'  %loop exits
-                    )
-                ;%do while loop deliberate choice point
-                    (ptc_solver__sdl(Condition),
-                     se_globals__update_ref('current_path_bran', branch(Id, 'true')),
-                     symbolic_execute(do_while_stmt(Statements, branch(Id, Condition)), Flow)
-                    )
-                )
-              )
-             )
-            )
+        (make_decision(Condition, Id, Outcome),
+         (Outcome == 'true' ->
+            symbolic_execute(do_while_stmt(Statements, branch(Id, Condition)), Flow)
+         ;
+            Flow = 'carry_on'   %exits this do while loop
+         )
         )
     ;
-        Inner_flow == 'break' ->  %exit this loop
-            Flow = 'carry_on'
+     Inner_flow == 'break' ->   %exit this do while loop
+        Flow = 'carry_on'
     ;
-        Flow = Inner_flow   %e.g. a goto, exit etc
+        Flow = Inner_flow       %i.e. return|return(expression)
     ).
+symbolic_execute(switch_stmt(_Expression, _Statement), 'carry_on') :-
+    !,
+    common_util__error(0, "Warning: todo switch statements", 'no_error_consequences', [], '0_060825_8', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info).
+symbolic_execute(goto_stmt(Label, Function), Flow) :-
+    !,
+    %mytrace,
+    se_sub_atts__get(Function, 'body', cmp_stmts(Stmts)),
+    search_label_statement(Label, Stmts, Stmt_list),
+    symbolic_execute(Stmt_list, Flow).  %todo are you sure? what if within a loop? more testing needed
 symbolic_execute(label_stmt(_Label, Statement), Flow) :- 
     !,
     symbolic_execute(Statement, Flow).
@@ -408,6 +209,21 @@ symbolic_execute(Expression, 'carry_on') :- %assuming that there is no return in
     !,
     symbolically_interpret(Expression, _).  %this is a statement: we don't care about its evaluation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    declare_typedefs([], _).
+    declare_typedefs([Typedef|R], Type_name) :-
+        extract_pointers(Typedef, Type_name, Type_name_ptr_opt, Clean_typedef_var),
+        ((nonvar(Clean_typedef_var), Clean_typedef_var = function(Function_name, Parameters)) -> %handles pointers to functions 20/05/2025
+            (se_sub_atts__create(Type_name_ptr_opt, Parameters, 'no_body_is_typedef', Anonymous_function), %because the typedef could be a pointer to a function see operations operation_gn and operation_fn in check_global_typedefs.c regression test 
+             extract_pointers(Function_name, Anonymous_function, Typedef_ptr_opt, Typedef_name)
+            )
+        ;
+            (Typedef_ptr_opt = Type_name_ptr_opt,
+             Typedef_name = Clean_typedef_var
+            )
+        ), 
+        se_typedef_atts__create(Typedef_ptr_opt, Typedef_name),
+        declare_typedefs(R, Type_name).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 traverse(Condition, Arc, Statements, Flow) :-
     ptc_solver__sdl(Condition),
     se_globals__update_ref('current_path_bran', Arc),
@@ -419,8 +235,67 @@ force(Condition, Id, Truth, Statements, Flow) :-
     ;
         symbolically_interpret(Condition, symb(_, 0))
     ),
-    se_globals__update_ref('current_path_bran', branch(Id, Truth)),
+    se_globals__update_ref('current_path_bran', bran(Id, Truth)),
     symbolic_execute(Statements, Flow).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+make_decision(Condition, Id, Outcome) :-
+    %mytrace,
+    %different approach possible here: forcing or not see diary 23/09/25
+    symbolically_interpret(Condition, symb(_, Cond_Symbolic)),  %leaves choice points behind because decisions are made there too (not pure delay)
+%will need redone if we want to guide the search (Cf. Mika? with combinations generated?)
+    (Cond_Symbolic == 1 ->  %always true: no choice
+        Outcome = 'true'
+    ;
+     Cond_Symbolic == 0 ->  %always false: no choice
+        Outcome = 'false'
+    ;
+        (random(2, 0) -> %i.e. between 0 and 2-1, so only 2 values allowed 0 or 1
+            (
+                (ptc_solver__sdl(Cond_Symbolic),
+                 Outcome = 'true'
+                )
+            ;%deliberate choice point
+                (ptc_solver__sdl(not(Cond_Symbolic)),
+                 Outcome = 'false'
+                )
+            )
+         ;
+            (
+                (ptc_solver__sdl(not(Cond_Symbolic)),
+                 Outcome = 'false'
+                )
+            ;%deliberate choice point
+                (ptc_solver__sdl(Cond_Symbolic),
+                 Outcome = 'true'
+                )
+            )
+        )
+    ),
+    Branch = bran(Id, Outcome),
+    se_globals__update_ref('current_path_bran', Branch),
+    (se_globals__get_val('shortcut_gen', true) ->
+        (cfg_main__bran_is_already_covered(Branch) ->
+            true    %already covered, we carry on
+        ;
+            (se_globals__get_ref('verifier_inputs', Verifier_inputs),
+             (
+                (call(label_testcomp(Verifier_inputs, Labeled_inputs)) @ eclipse ->  % "bank": we try to label what we have so far
+                    (super_util__quick_dev_info("Following new branch: %w", [Branch]),
+                     setval(shortcut_gen_triggered, 'true'), %and we continue until end of path or next __VERIFIER_input call to continue recording new branches covered
+                     print_test_inputs_testcomp(Labeled_inputs)
+                    )
+                ;
+                    fail  %labeling failed...no test input vector was generated, we abandon this path
+                )
+             ;   
+                true  %we generated a test input vector but we also continue exploring this path
+             )
+            )
+        )
+    ;
+        true    %continue exploring this path
+    ).
+        
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 search_label_statement(Label, Stmts, Stmt_list) :-
     (append(_, [label_stmt(Label, Stmt)|Rest_smt], Stmts) ->    %quick check to catch most labeled statements tha tare in the top scope in a function body

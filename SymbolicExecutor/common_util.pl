@@ -38,7 +38,7 @@ common_util__error(Error_severity, Error_message, Error_consequences, ArgumentsL
                se_globals__set_val('already_printed', [error(Error_code, Occurences)|Already_printed])
               )
        ),
-       (Occurences == 9 -> %only print the same warning message a fixed number of times to avoid overwhelming the logs
+       (Occurences == 9 -> %only print the same warning message with the same code a fixed number of times to avoid overwhelming the logs
               true
        ;
               (se_globals__get_val('errorMessageNb', ErrorNb),
@@ -130,12 +130,12 @@ common_util__error2(0, Error_message, Error_consequences, ArgumentsL, _Error_cod
                     printf(output, "%n", [])
              ;
                     printf(output, ", %s%n", [Extra_info])
-             )
+             ),
+             flush(output)     %only in debug mode as costly
             )
     ;
-            true
-    ),
-    flush(output).
+            printf(output, "%s%n", [Error_message])
+    ).
 
 common_util__error2(Error_severity, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode) :-
     (Message_mode == debug ->

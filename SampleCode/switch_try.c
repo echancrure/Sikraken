@@ -1,6 +1,31 @@
 extern int __VERIFIER_nondet_int(void);
 
 int main() {
+    for(int i = 0; i < 5; i++) {
+        i = 1;
+        switch (i) {
+            //if (i == 2) {           //unreachable
+            //        i = 100;
+            //    }        
+            case 0: 
+            case 42: 
+                i++;
+               // if (i == 2) {
+               //     i = 100;
+               // } 
+            case 100: return 1;     //case 42 and case 100 fall through
+            case 1: return 10;
+            case 2: return 100;
+            case 3: return 1000; 
+            default: break;
+        }
+    }
+    int j = 8;
+    goto end;
+    j--;
+    end: j++;
+
+/*
     int i, luck = 0;
     do {
         i = __VERIFIER_nondet_int();
@@ -24,4 +49,6 @@ int main() {
         }
     } while (i != 1111111);
     return luck;
+*/
+    return 0;
 }

@@ -1198,10 +1198,11 @@ static_assert_declaration
 
 statement
 	: labeled_statement
-	| {in_ordinary_id_declaration = 0; current_scope++;} compound_statement	
-	  	{pop_scope(&current_scope);
-		 $$ = $2;
-		}
+	| {in_ordinary_id_declaration = 0; current_scope++;} 
+	  compound_statement	
+	  {pop_scope(&current_scope);
+	   $$ = $2;
+	  }
 	| expression_statement
 	| selection_statement
 	| iteration_statement
@@ -1225,16 +1226,16 @@ labeled_statement
 	   free($3);
 	  }
 	| CASE constant_expression ':' statement
-	  {size_t const size = strlen("case_stmt(, )") + strlen($2) + strlen($4) + 1;
+	  {size_t const size = strlen("case_stmt(branch(, ), )") + MAX_BRANCH_STR + strlen($2) + strlen($4) + 1;
 	   $$ = (char*)malloc(size);
-	   sprintf_safe($$, size, "case_stmt(%s, %s)", $2, $4);
+	   sprintf_safe($$, size, "case_stmt(branch(%d, %s), %s)", branch_nb++, $2, $4);
 	   free($2);
 	   free($4);
 	  }
 	| DEFAULT ':' statement
-	  {size_t const size = strlen("default_stmt(, )") + strlen($3) + 1;
+	  {size_t const size = strlen("default_stmt(branch(), )") + MAX_BRANCH_STR + strlen($3) + 1;
 	   $$ = (char*)malloc(size);
-	   sprintf_safe($$, size, "default_stmt(%s)", $3);
+	   sprintf_safe($$, size, "default_stmt(branch(%d), %s)", branch_nb++, $3);
 	   free($3);
 	  }
 	;
@@ -1288,7 +1289,7 @@ selection_statement
 	| SWITCH '(' expression ')' statement
 		{size_t const size = strlen("\nswitch_stmt(, )") + strlen($3) + strlen($5) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "\nswitch_stmt(%s, %s)", $3, $5);
+		 sprintf_safe($$, size, "\nswitch_stmt(%s, %s)", $3, $5); 
 		 free($3);
 		 free($5);
 		} 
@@ -1390,7 +1391,7 @@ function_definition
 		 size_t const size = strlen("function(, , [], )") + strlen(decl_specifier) + strlen($2.full) + strlen($3) + strlen($5) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "function(%s, %s, [%s], %s)", decl_specifier, $2.full, $3, $5);
-		 if (debugMode) printf("function parser\n");
+		 if (debugMode) printf("function parsed\n");
 	     free(decl_specifier);
 		 free($2.full);
 		 free($2.ptr_declarator);

@@ -2,7 +2,7 @@
 #
 # Script: run_regression_par.sh
 # Author: Chris Meudec
-# Date: May 2025 (Updated Oct 2025 for parallel error handling)
+# Date: May 2025
 # Description: This script runs Sikraken regression tests in parallel on C files in a specified directory (usually Sikraken/regression_tests).
 # It should behave similarly to run_regression.sh but it runs the test generation in parallel.
 # TestCov is run sequentially at the end because it does not support parallel execution.
@@ -16,9 +16,6 @@ SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."
 echo "SIKRAKEN_INSTALL_DIR is $SIKRAKEN_INSTALL_DIR"
 
 script_name=$(basename "$0")
-
-# --- GLOBAL ERROR FLAG FOR PARALLEL EXECUTION ---
-PARALLEL_FAIL_FLAG="$SIKRAKEN_INSTALL_DIR/parallel_fail.log"
 
 # --- Usage check ---
 if [ $# -lt 2 ] || [ $# -gt 4 ]; then
@@ -68,7 +65,7 @@ if [ ! -d "$c_files_directory" ]; then
     exit 1
 fi
 
-# Re-compile the parser in case it changed during development
+# re-compile the parser in case it changed during development
 ./bin/compile_parser.sh
 if [ $? -ne 0 ]; then
     echo "Sikraken regression testing ERROR: Sikraken parser recompilation failed"
@@ -80,10 +77,6 @@ fi
 if [ -f regression_tests_run.log ]; then
     rm -f regression_tests_run.log
 fi
-# --- CLEANUP GLOBAL FAILURE FLAG ---
-if [ -f "$PARALLEL_FAIL_FLAG" ]; then
-    rm -f "$PARALLEL_FAIL_FLAG"
-fi
 
 # Job pool to limit the number of background processes
 job_pool() {
@@ -92,8 +85,6 @@ job_pool() {
     done
 }
 
-# NOTE: The return code from this function is the exit status of the subshell (background process)
-# It does NOT terminate the main script, so errors are written to PARALLEL_FAIL_FLAG instead.
 generate_tests() {
     local regression_test_file="$1"
     
@@ -104,7 +95,7 @@ generate_tests() {
 
     # Check if our configuration file exists
     if [ ! -f "$config_file" ]; then
-        echo "Sikraken ERROR from $script_name: Configuration file $config_file does not exist" >> "$PARALLEL_FAIL_FLAG"
+        echo "Sikraken ERROR from $script_name: Configuration file $config_file does not exist"
         return 1
     fi
 
@@ -124,21 +115,21 @@ generate_tests() {
     elif [ "$data_model" == "LP64" ]; then
         gcc_flag="-m64"
     else
-        echo "Sikraken ERROR from $script_name: Unsupported data model: $data_model" >> "$PARALLEL_FAIL_FLAG"
+        echo "Sikraken ERROR from $script_name: Unsupported data model: $data_model"
         return 1
     fi
 
-    # Preprocess the regression test using gcc and parse using Sikraken's parser
+    #preprocess the regression test using gcc and parse using Sikraken's parser
     call_parser="$SIKRAKEN_INSTALL_DIR/bin/call_parser.sh $rel_path_c_file/$base_name.c $gcc_flag"
     $call_parser
     if [ $? -ne 0 ]; then
-        echo "Sikraken ERROR from $script_name: Sikraken parsing of $regression_test_file failed using $call_parser" >> "$PARALLEL_FAIL_FLAG"
-        return 1
+        echo "Sikraken ERROR from $script_name: Sikraken parsing of $regression_test_file failed using $call_parser"
+        exit 1
     else
         echo "Sikraken $script_name log: parsed $regression_test_file"
     fi
 
-    # Loop over all configurations in the configuration file
+    # Loop over all configurations in the configuration file (only support one configuration file in parallel mode because the test-suite generated gets overwritten otherwise)
     local config_count=$(jq '.configurations | length' "$config_file")
 
     for i in $(seq 0 $((config_count - 1))); do
@@ -147,17 +138,16 @@ generate_tests() {
 
         local algo=$(echo "$config" | jq -r '.algo')
 
-        echo -e "\e[34mGenerating tests for $regression_test_file using algo: $algo\e[0m"
+        echo -e "\e[34mGenerating tests for $regression_test_file using also: $algo\e[0m"
 
         # Generate test inputs
         local eclipse_call="se_main(['$SIKRAKEN_INSTALL_DIR', '$SIKRAKEN_INSTALL_DIR/$rel_path_c_file', '$base_name', main, $debug_mode, testcomp, '$gcc_flag', $algo $shortcutgen])"
         $SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e "$eclipse_call"
         if [ $? -ne 0 ]; then
-            # THIS IS THE CRITICAL CHANGE: Log the error to a file and return 
-            echo "Sikraken ERROR from $script_name: Call to ECLiPSe $eclipse_call failed for $regression_test_file" >> "$PARALLEL_FAIL_FLAG"
-            return 1
+            echo "Sikraken ERROR from $script_name: Call to ECLiPSe $eclipse_call failed"
+            exit 1
         else
-            echo "Sikraken $script_name log: Test inputs generated for $regression_test_file in configuration $i"
+            echo "Sikraken $script_name log: Test inputs generated for $regression_test_file in $id configuration"
         fi
         #call_testcov "$regression_test_file" #cannot do this testcov needs to be run sequentially
     done
@@ -204,7 +194,7 @@ call_testcov() {
         local testcov_output=$($testcov_call 2>&1)
         if [ $? -ne 0 ]; then
             echo "Sikraken ERROR from $script_name: TestCov validation failed for $regression_test_file"
-            exit 1 # This is safe because this function is run sequentially, not in the background
+            exit 1
         fi
 
         # get the number of test run and coverage achieved from testcov output
@@ -215,17 +205,17 @@ call_testcov() {
 
         echo "Tests log: $test_nb_value ($expected_test_inputs_number expected), Coverage: $coverage_value% ($expected_coverage% expected)"
 
-        if [ "$test_nb_value" -eq 0 ]; then
-            echo -e "\e[31mERROR: No tests generated for $regression_test_file in configuration $i.\e[0m"
+        if [ $test_nb_value -eq 0 ]; then
+            echo -e "\e[31mERROR: No tests generated for $regression_test_file in $id configuration.\e[0m"
             exit 1
         fi
 
         if [ "$expected_test_inputs_number" != "$test_nb_value"  ]; then
-            echo "Warning: Tests generation mismatch! For $regression_test_file in configuration $i, expected: $expected_test_inputs_number, but got: $test_nb_value." >> regression_tests_run.log
+            echo "Warning: Tests generation mismatch! For $regression_test_file in $id configuration, expected: $expected_test_inputs_number, but got: $test_nb_value." >> regression_tests_run.log
         fi
 
         if [ "$expected_coverage" != "$coverage_value" ]; then
-            echo "Warning: Coverage mismatch! For $regression_test_file in configuration $i, expected: $expected_coverage, but got: $coverage_value." >> regression_tests_run.log
+            echo "Warning: Coverage mismatch! For $regression_test_file in $id configuration, expected: $expected_coverage, but got: $coverage_value." >> regression_tests_run.log
         fi
     done
 }
@@ -238,18 +228,9 @@ for regression_test_file in "$c_files_directory"/*.c; do
     generate_tests "$regression_test_file" &  # Run in the background
 done
 
-wait    # Wait for all background jobs to finish
+wait    # Wait for all background jobs to finish before running TestCov sequentially
 
-# --- CHECK FOR PARALLEL ERRORS HERE ---
-if [ -f "$PARALLEL_FAIL_FLAG" ]; then
-    echo -e "\n\e[31m--- PARALLEL GENERATION FAILED ---\e[0m"
-    echo "One or more parallel jobs failed. Errors captured in $PARALLEL_FAIL_FLAG:"
-    cat "$PARALLEL_FAIL_FLAG"
-    rm -f "$PARALLEL_FAIL_FLAG" # Clean up the flag file
-    exit 1 # Terminate the main script here
-fi
-
-# Run testcov sequentially (only if parallel generation succeeded)
+# Run testcov sequentially [because I can't find a way to make it run in parallel even in so-called isolation mode and/or runexec]
 for regression_test_file in "$c_files_directory"/*.c; do
     call_testcov "$regression_test_file"
 done

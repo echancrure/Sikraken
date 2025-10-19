@@ -3,10 +3,10 @@
       {
         "id": "run1",
         "description": "Hard, slow testcov execution",
-        "algo": "budget(1)",
-        "expected_run_time": 1,
-        "expected_test_inputs_number": 20,
-        "expected_coverage": 22.51
+        "algo": "budget(2)",
+        "expected_run_time": 2,
+        "expected_test_inputs_number": 23,
+        "expected_coverage": 23.53
       }
     ]
   }
