@@ -303,7 +303,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
                 (se_globals__get_val('output_mode', Output_mode),
                  (Output_mode = 'testcomp' ->
                     (se_globals__get_ref('verifier_inputs', Verifier_inputs),
-                     %mytrace,
+                     mytrace,
                      (label_testcomp(Verifier_inputs, Labeled_inputs) ->
                         (reset_timer,
                          record_path_coverage,
