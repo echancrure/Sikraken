@@ -68,7 +68,7 @@ else
 fi
 
 # Run the parser
-parser_call="./bin/sikraken_parser.exe $debug_mode $data_model -p"$output_directory" "$input_file_no_ext""
+parser_call="$SIKRAKEN_INSTALL_DIR/bin/sikraken_parser.exe $debug_mode $data_model -p"$output_directory" "$input_file_no_ext""
 $parser_call
 # Check if sikraken_parser was successful
 if [ $? -ne 0 ]; then

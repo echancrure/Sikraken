@@ -83,38 +83,44 @@ se_main(ArgsL) :-
     se_globals__set_val('single_test_time_out', First_time_out),    
     set_event_handler('overall_generation_time_out', handle_overall_time_out_event/0),
     event_after('overall_generation_time_out', Budget),
-    print_test_run_log__preamble(ArgsL),
-    initialise_ptc_solver,
-    capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
-    read_parsed_file(Install_dir, Target_source_file_name_no_ext, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors
-    %%%pre-symbolic execution
-    cfg_main__declare_functions(Parsed_prolog_code),
-    setval('execution_mode', 'global'),   %i.e. C compile time (as opposed to runtime), tackling globals when implicit initialisation to 0 occurs 
-    (symbolic_execute(Parsed_prolog_code, _) ->   %always symbolically execute all global declarations for now: initialisations could be ignored via a switch if desired
-        true
-    ;
-        common_util__error(10, "Sikraken failed to execute the global declarations: cannot recover from this", "Should never happen: code needs to be traced", [], '10_021224_3', 'se_main', 'search_CFG_inner', no_localisation, no_extra_info)
-    ),
-    %mytrace,
-    cfg_main__build_cfg(Parsed_prolog_code),
-    setval('execution_mode', 'local'),    %i.e. C run time (as opposed to compile time), tackling locals when implicit initialisation to 0 does not occur
-    %%%
-    statistics(event_time, Session_time),
-    setval('start_session_time', Session_time),
-    print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext),
-    (se_globals__get_val('EdgeCount', 0) -> 
-        print_test_inputs_testcomp([])      %silly edge case: no branches at all; we still print an empty test input vector to keep Testcov happy
-    ;
-        %%% where it all happens
-        catch(search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code), Any_exception, search_CFG_exception_handler(Any_exception))
-    ),
-    print_test_run_log.   %only run once 
+    catch(
+        (
+            print_test_run_log__preamble(ArgsL),
+            initialise_ptc_solver,
+            capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
+            read_parsed_file(Install_dir, Target_source_file_name_no_ext, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors
+            %%%pre-symbolic execution
+            cfg_main__declare_functions(Parsed_prolog_code),
+            setval('execution_mode', 'global'),   %i.e. C compile time (as opposed to runtime), tackling globals when implicit initialisation to 0 occurs 
+            (symbolic_execute(Parsed_prolog_code, _) ->   %always symbolically execute all global declarations for now: initialisations could be ignored via a switch if desired
+                true
+            ;
+                common_util__error(10, "Sikraken failed to execute the global declarations: cannot recover from this", "Should never happen: code needs to be traced", [], '10_021224_3', 'se_main', 'search_CFG_inner', no_localisation, no_extra_info)
+            ),
+            %mytrace,
+            cfg_main__build_cfg(Parsed_prolog_code),
+            setval('execution_mode', 'local'),    %i.e. C run time (as opposed to compile time), tackling locals when implicit initialisation to 0 does not occur
+            %%%
+            statistics(event_time, Session_time),
+            setval('start_session_time', Session_time),
+            print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext),
+            (se_globals__get_val('EdgeCount', 0) -> 
+                print_test_inputs_testcomp([])      %silly edge case: no branches at all; we still print an empty test input vector to keep Testcov happy
+            ;
+                %%% where it all happens
+                search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)
+            ),
+            print_test_run_log   %only run once
+        ),
+        Any_exception,
+        handle_exception(Any_exception)
+    ).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_overall_time_out_event :-
         cancel_after_event('single_test_time_out_event', _), %to ensure none are left and triggered later on especially in development mode
         throw('outatime').
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    search_CFG_exception_handler(Exception) :-
+    handle_exception(Exception) :-
         (Exception == 'outatime' ->
             easter_egg
         ;
