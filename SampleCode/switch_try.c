@@ -2,8 +2,8 @@ extern int __VERIFIER_nondet_int(void);
 
 int main() {
     for(int i = 0; i < 5; i++) {
-        i = 1;
-        switch (i) {
+        int j = __VERIFIER_nondet_int();
+        switch (j) {
             //if (i == 2) {           //unreachable
             //        i = 100;
             //    }        
@@ -20,10 +20,10 @@ int main() {
             default: break;
         }
     }
-    int j = 8;
+    int k = 8;
     goto end;
-    j--;
-    end: j++;
+    k--;    //unreachable
+    end: k++;
 
 /*
     int i, luck = 0;

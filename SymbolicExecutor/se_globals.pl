@@ -90,27 +90,6 @@ se_globals__update_ref(Global, Branch) :-
     (Global == 'current_path_bran' ->
         (se_globals__get_ref('current_path_bran', Current_path),
          se_globals__set_ref('current_path_bran', [Branch|Current_path])
-         /*
-         %start heuristic: if a new branch is being covered, we try to label without generating a test vector
-         ,se_globals__get_val('covered_bran', Already_covered),
-         (memberchk(Branch, Already_covered) -> 
-            true    %not a new branch, so we carry on
-         ;     
-            (mytrace,
-             se_globals__get_ref('verifier_inputs', Verifier_inputs),
-             (call(label_testcomp(Verifier_inputs, _Labeled_inputs)) @ eclipse ->  % we try to label what we have so far
-                (%labeling suceeded, but no test vector was generated
-                 %super_util__quick_dev_info("Following new branch: %w", [Branch])
-                 true
-                )
-             ;   
-                %labeling failed...no test input vector was generated, we abandon this path
-                fail
-             )
-            )
-
-         )
-         */
         )
     ;        
         setref(Global, Branch)

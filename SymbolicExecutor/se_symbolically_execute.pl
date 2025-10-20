@@ -142,10 +142,21 @@ symbolic_execute(if_stmt(branch(Id, Condition), True_statements, False_statement
     ;
         symbolic_execute(False_statements, Flow)
     ).
+symbolic_execute(else_if_stmt(branch(Id, Condition), True_statements, False_statements), Flow) :-
+    !,
+    make_decision(Condition, Id, Outcome),
+    (Outcome == 'true' ->
+        symbolic_execute(True_statements, Flow)
+    ;
+        symbolic_execute(False_statements, Flow)
+    ).
 
 symbolic_execute(if_stmt(Branch, True_statements), Flow) :-
     !,
     symbolic_execute(if_stmt(Branch, True_statements, []), Flow).
+symbolic_execute(else_if_stmt(Branch, True_statements), Flow) :-
+    !,
+    symbolic_execute(else_if_stmt(Branch, True_statements, []), Flow).
 
 symbolic_execute(while_stmt(branch(Id, Condition), Statements), Flow) :-
     !,
@@ -182,9 +193,27 @@ symbolic_execute(do_while_stmt(Statements, branch(Id, Condition)), Flow) :-
     ;
         Flow = Inner_flow       %i.e. return|return(expression)
     ).
-symbolic_execute(switch_stmt(_Expression, _Statement), 'carry_on') :-
+symbolic_execute(switch_stmt(branch(Id, Expression), Statements), Flow) :-
     !,
-    common_util__error(0, "Warning: todo switch statements", 'no_error_consequences', [], '0_060825_8', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info).
+    mytrace,
+    make_decision(int(1), Id, _Outcome), %we do not care about the outcome: set to true for reaching the switch node
+    symbolically_interpret(Expression, Symbolic_expression),
+    symbolic_execute(Statements, Flow), %this will have to change to handles case statements: the symbolic expression needs to be passsed on
+    (Flow == 'break' ->
+        Flow = 'carry_on'   %exit from switch statement
+    ;
+        true    %i.e. 'carry_on'|return(expression)|return
+    ),
+    common_util__error(0, "Warning: switch statements are under development", 'no_error_consequences', [], '0_060825_8', 'se_symbolically_execute', 'symbolic_execute', no_localisation, no_extra_info).
+symbolic_execute(case_stmt(branch(_Id, Case_expression), Statements), Flow) :-
+    !,
+    symbolically_interpret(Case_expression, Case_symbolic_expression),
+    %mytrace,
+    %we should compare Case_symbolic_expression with the switch expression symbolic value
+    symbolic_execute(Statements, Flow).
+symbolic_execute(default_stmt(branch(_Id), Statements), Flow) :-
+    !,
+    symbolic_execute(Statements, Flow).
 symbolic_execute(goto_stmt(Label, Function), Flow) :-
     !,
     %mytrace,
@@ -197,7 +226,6 @@ symbolic_execute(label_stmt(_Label, Statement), Flow) :-
 symbolic_execute(return_stmt(Expression), return(Symbolic_expression)) :-    %will be handled in post function call by checking Flow
     !,
     symbolically_interpret(Expression, Symbolic_expression).
-      %todo it would make more sense to symbolically execute expression here rather than outside: more logical
 symbolic_execute(return_stmt, return) :-    %a return with no expression
     !.
 symbolic_execute(break_stmt, 'break') :-    %within iteration and switch statements: basically bubble up to the innermost construct
@@ -272,30 +300,32 @@ make_decision(Condition, Id, Outcome) :-
         )
     ),
     Branch = bran(Id, Outcome),
+    mytrace,
+    (ghost(Id, _, Outcome) ->   %performance hit
+        true    %ignored, not added to subpath
+    ;
+        (    
     se_globals__update_ref('current_path_bran', Branch),
     (se_globals__get_val('shortcut_gen', true) ->
         (cfg_main__bran_is_already_covered(Branch) ->
             true    %already covered, we carry on
         ;
             (se_globals__get_ref('verifier_inputs', Verifier_inputs),
-             (
-                (call(label_testcomp(Verifier_inputs, Labeled_inputs)) @ eclipse ->  % "bank": we try to label what we have so far
-                    (super_util__quick_dev_info("Following new branch: %w", [Branch]),
-                     setval(shortcut_gen_triggered, 'true'), %and we continue until end of path or next __VERIFIER_input call to continue recording new branches covered
-                     print_test_inputs_testcomp(Labeled_inputs)
-                    )
-                ;
-                    fail  %labeling failed...no test input vector was generated, we abandon this path
+             (call(label_testcomp(Verifier_inputs, Labeled_inputs)) @ eclipse ->  % "bank": we try to label what we have so far
+                (super_util__quick_dev_info("Following new branch: %w", [Branch]),
+                 setval(shortcut_gen_triggered, 'true'), %and we continue until end of path or next __VERIFIER_input call to continue recording new branches covered
+                 print_test_inputs_testcomp(Labeled_inputs)
                 )
-             ;   
-                true  %we generated a test input vector but we also continue exploring this path
+             ;
+                fail  %labeling failed...no test input vector was generated, we abandon this path
              )
             )
         )
-    ;
+     ;
         true    %continue exploring this path
+    )
+    )
     ).
-        
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 search_label_statement(Label, Stmts, Stmt_list) :-
     (append(_, [label_stmt(Label, Stmt)|Rest_smt], Stmts) ->    %quick check to catch most labeled statements tha tare in the top scope in a function body
