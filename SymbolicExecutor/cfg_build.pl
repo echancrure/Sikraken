@@ -16,7 +16,7 @@
 :- local reference(branch_nb, 1).    %the branch number counter
 :- local reference(current_node, start).          %the current node id during CFG building
 :- local reference(current_truth_value, true).    %the current truth value during CFG building
-:- local reference(has_default, false).    %used to track presence of default statement in switch statements 
+:- local reference(next_is_ghost_jump, false).    %used to create ghost jumps when needed: UGLY
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %necessary initialisations during development to start from a clean empty CFG
 cfg_build__init :-  
@@ -196,7 +196,7 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls, Jumps) :-
         !,
         cover(else_if_stmt(Branch, True_statements, []), Flow).
     cover(while_stmt(branch(Id, Condition), Statements), Flow) :-
-        !,
+        !, 
         cover_exp(Condition),
         create_branch_to(Id),
         (
@@ -222,7 +222,7 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls, Jumps) :-
             )
         ).
     cover(do_while_stmt(Statements, branch(Id, Condition)), Flow) :-
-        !,
+        !, mytrace,
         cover(Statements, Intermediate_flow), 
         (Intermediate_flow == 'break' ->
             Flow = 'carry_on'          %the break is consumed here and the loop is exited
@@ -234,7 +234,9 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls, Jumps) :-
             (cover_exp(Condition),
              create_branch_to(Id),         %creates the edge to the condition
              (
-                (setref(current_truth_value, true),
+                (%in Testcov do_while statements do not have a goal associated when the condition is true, so we need to create a ghost branch
+                 setref(current_truth_value, true),
+                 setref(next_is_ghost_jump, true),  %to create a ghost branch in create_branch_to/1
                  cover(do_while_stmt(Statements, branch(Id, Condition)), Flow) %odd but needed to force back edges when the condition is true: no infinite loop as create_branch_to fails on duplicates
                 )
              ;%deliberate choice point
@@ -400,6 +402,14 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls, Jumps) :-
 		(edge(From, To, Truth) ->
             fail	%already exist: don't create a new edge and backtrack: this part of the code has already been covered
 		;
+         ghost(From, To, Truth) ->
+            fail	%already exist as a ghost edge: don't create a new edge and backtrack: this part of the code has already been covered
+        ;
+         getref(next_is_ghost_jump, true) ->
+            (assert(ghost(From, To, Truth)),
+             setref(next_is_ghost_jump, false)  %reset the flag
+            )
+        ;      
 			assert(edge(From, To, Truth))
         ),
         setref(current_node, To).
