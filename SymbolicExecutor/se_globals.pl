@@ -50,6 +50,8 @@ se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode,
     setval('data_model', Data_model),           %'-m32'|'m64'
     setval('message_mode', Debug_mode),         %debug or release todo: remove, just use debug_mode
     setval('already_printed', []),              %list of already printed error messages : used in release mode only
+    setval('EdgeCount', 0),
+    setval('AllEdges', []),
     set_options(Options),                       %process the list of options
     !.
     %%%
