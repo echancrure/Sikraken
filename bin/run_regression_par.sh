@@ -145,6 +145,64 @@ generate_tests() {
     done
 }
 
+# ANSI color codes
+RED='\033[0;31m'
+BOLD='\033[1m'
+RED_BG='\033[41m'
+WHITE='\033[97m'
+NC='\033[0m' # No Color
+
+# Function to check if difference is more than 10%
+check_diff() {
+    local val1=$1
+    local val2=$2
+    local show_warning=$3
+    
+    # Handle empty or non-numeric values
+    if [[ -z "$val1" || -z "$val2" ]]; then
+        echo "$val1"
+        return
+    fi
+    
+    # If expected value is 0, avoid division by zero
+    if (( $(echo "$val2 == 0" | bc -l 2>/dev/null || echo "0") )); then
+        # If both are 0, no highlighting; if only expected is 0 and actual isn't, highlight
+        if (( $(echo "$val1 == 0" | bc -l 2>/dev/null || echo "0") )); then
+            echo "$val1"
+        else
+            if [[ "$show_warning" == "true" ]]; then
+                echo -e "${RED_BG}${WHITE}${BOLD}${val1}${NC} ⚠️"
+            else
+                echo -e "${RED}${BOLD}${val1}${NC}"
+            fi
+        fi
+        return
+    fi
+    
+    # Calculate absolute difference percentage
+    local diff=$(echo "scale=2; if ($val2 != 0) (($val1 - $val2) / $val2) * 100 else 0" | bc -l 2>/dev/null)
+    
+    # Get absolute value
+    if (( $(echo "$diff < 0" | bc -l 2>/dev/null) )); then
+        local abs_diff=$(echo "$diff * -1" | bc -l)
+    else
+        local abs_diff=$diff
+    fi
+    
+    # Check if absolute difference is greater than 10%
+    if (( $(echo "$abs_diff > 10" | bc -l 2>/dev/null) )); then
+        if [[ "$show_warning" == "true" ]]; then
+            # With warning icon and background
+            echo -e "${RED_BG}${WHITE}${BOLD}${val1}${NC} ⚠️"
+        else
+            # Just bold red
+            echo -e "${RED}${BOLD}${val1}${NC}"
+        fi
+    else
+        echo "$val1"
+    fi
+}
+
 # --- MAIN EXECUTION ---
 
 # Run Sikraken in parallel
@@ -161,11 +219,6 @@ if [ -f "$PARALLEL_FAIL_FLAG" ]; then
     rm -f "$PARALLEL_FAIL_FLAG"
     exit 1
 fi
-
-# Run TestCov sequentially
-# for regression_test_file in "$c_files_directory"/*.c; do
-#     call_testcov "$regression_test_file"
-# done
 
 # --- FINAL SUMMARY WITH EXPECTED VS ACTUAL ---
 echo -e "\n================ FINAL SUMMARY ================\n"
@@ -196,35 +249,19 @@ for regression_test_file in "$c_files_directory"/*.c; do
 
     # Get expected tests and coverage from JSON (first configuration)
     if [ -f "$config_file" ]; then
-        expected_test_inputs_number=$(jq -r '.configurations[0].expected_test_inputs_number' "$config_file")
-        expected_coverage=$(jq -r '.configurations[0].expected_coverage' "$config_file")
+        expected_tests_number=$(jq -r '.configurations[0].expected_tests_number' "$config_file")
+        expected_testcov_coverage=$(jq -r '.configurations[0].expected_testcov_coverage' "$config_file")
+        expected_sikraken_edges=$(jq -r '.configurations[0].expected_sikraken_edges' "$config_file")
     else
-        expected_test_inputs_number="NA"
-        expected_coverage="NA"
+        expected_tests_number="NA"
+        expected_testcov_coverage="NA"
+        expected_sikraken_edges="NA"
     fi
+    # Check each metric (set third parameter to "true" to show warning icons)
+    sik_edges_display=$(check_diff "$sik_edges" "$expected_sikraken_edges" "true")
+    sik_tests_display=$(check_diff "$sik_tests" "$expected_tests_number" "true")
+    sik_cov_display=$(check_diff "$sik_cov" "$expected_testcov_coverage" "true")
 
-    # Print summary line
-    echo "$base_name.c → Sikraken: $sik_edges edges / $sik_cov% ($sik_tests tests), expected: $expected_test_inputs_number / $expected_coverage%  |  TestCov: $tc_goals goals / $tc_cov% ($tc_tests tests)"
-
-    # Log warnings if mismatch
-    if [ "$sik_tests" != "$expected_test_inputs_number" ]; then
-        echo "Warning: Sikraken tests mismatch for $base_name.c: expected $expected_test_inputs_number, got $sik_tests" >> regression_tests_run.log
-    fi
-    # Convert coverage strings to numbers (strip trailing %)
-    sik_cov_num=$(echo "$sik_cov" | sed 's/%//')
-    expected_cov_num=$(echo "$expected_coverage" | sed 's/%//')
-
-    # Numeric comparison
-    awk -v a="$sik_cov_num" -v b="$expected_cov_num" 'BEGIN{if(a!=b) exit 1; else exit 0}'
-    if [ $? -ne 0 ]; then
-        echo "Warning: Sikraken coverage mismatch for $base_name.c: expected $expected_coverage%, got $sik_cov%" >> regression_tests_run.log
-    fi
+    # Print summary line with highlighting
+    echo -e "$base_name.c → Branches: $sik_edges_display sik / $expected_sikraken_edges exp / $tc_goals tcv - Tests: $sik_tests_display sik / $expected_tests_number exp / $tc_tests tcv - Coverage: $sik_cov_display sik / $expected_testcov_coverage exp / $tc_cov tcv"
 done
-
-# --- End message ---
-if [ -f regression_tests_run.log ]; then
-    echo -e "\n\e[31mSikraken regression testing script run_regression_par.sh terminated with warnings.\e[0m"
-    cat regression_tests_run.log
-else
-    echo -e "\n\e[32mSikraken regression testing script run_regression_par.sh terminated successfully.\e[0m"
-fi

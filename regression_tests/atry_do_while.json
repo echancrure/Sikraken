@@ -4,9 +4,9 @@
         "id": "run1",
         "description": "do while",
         "algo": "budget(5)",
-        "expected_run_time": 1,
-        "expected_test_inputs_number": 2,
-        "expected_coverage": 66.67
+        "expected_tests_number": 2,
+        "expected_testcov_coverage": 66.67,
+        "expected_sikraken_edges": 9
       }
     ]
   }

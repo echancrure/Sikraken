@@ -30,7 +30,7 @@ zipfile="$output_dir/test-suite.zip"
 rm -f "$zipfile"
 zip -r "$zipfile" "$output_dir/test-suite"
 
-# --- TestCov call, 100% safe anywhere ---
+
 testcov_call="testcov --fast $testcov_data_model \
   --test-suite \"$zipfile\" \
   \"$full_c_file\" \

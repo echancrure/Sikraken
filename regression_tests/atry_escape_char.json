@@ -4,9 +4,9 @@
         "id": "run1",
         "description": "Single chars literals",
         "algo": "regression(1, 1)",
-        "expected_run_time": 1,
-        "expected_test_inputs_number": 1,
-        "expected_coverage": 100
+        "expected_tests_number": 0,
+        "expected_testcov_coverage": 100.0,
+        "expected_sikraken_edges": 0
       }
     ]
   }
