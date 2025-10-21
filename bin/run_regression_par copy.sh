@@ -123,26 +123,30 @@ generate_tests() {
         local eclipse_call="se_main(['$SIKRAKEN_INSTALL_DIR', '$SIKRAKEN_INSTALL_DIR/$rel_path_c_file', '$base_name', main, $debug_mode, testcomp, '$gcc_flag', $algo $shortcutgen])"
         $SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e "$eclipse_call" >> $log_file 2>&1
         [ $? -ne 0 ] && echo "Sikraken ERROR: ECLiPSe call failed for $regression_test_file" >> "$PARALLEL_FAIL_FLAG" && return 1
-
-        ###call Testcov with  
-        local testcov_dir="$SIKRAKEN_INSTALL_DIR/sikraken_output/$base_name/testcov"
-        mkdir -p "$testcov_dir"
-        local testcov_log="$testcov_dir/testcov_call.log"
-        TMPDIR="$testcov_dir/tmp"
-        mkdir -p "$TMPDIR"
-        #extract data model in testcov format
-        local testcov_data_model
-        case "$data_model" in
-            ILP32) testcov_data_model="-32";;
-            LP64) testcov_data_model="-64";;
-        esac
-        local testcov_call=(./bin/run_testcov.sh "$regression_test_file" "$testcov_data_model")
-        echo -e "\e[34mCalling Testcov for $regression_test_file\e[0m"
-        # run it
-        "${testcov_call[@]}" >"$testcov_log" 2>&1
-        echo -e "\e[32mEnded Testcov for $regression_test_file\e[0m"
-
     done
+}
+
+# --- Call TestCov sequentially and log output ---
+call_testcov() {
+    local regression_test_file="$1"
+    local base_name=$(basename "$regression_test_file" .c)
+    local yml_file="$c_files_directory/$base_name.yml"
+    local data_model="ILP32"
+    [ -f "$yml_file" ] && data_model=$(grep "data_model:" "$yml_file" | awk '{print $2}')
+    local testcov_data_model
+    case "$data_model" in
+        ILP32) testcov_data_model="-32";;
+        LP64) testcov_data_model="-64";;
+    esac
+
+    # Ensure testcov folder exists
+    local testcov_dir="$SIKRAKEN_INSTALL_DIR/sikraken_output/$base_name/testcov"
+    mkdir -p "$testcov_dir"
+    local testcov_log="$testcov_dir/testcov_call.log"
+
+    local testcov_call="./bin/run_testcov.sh $regression_test_file $testcov_data_model"
+    $testcov_call > "$testcov_log" 2>&1
+    [ $? -ne 0 ] && echo "Sikraken ERROR: TestCov failed for $regression_test_file" && exit 1
 }
 
 # --- MAIN EXECUTION ---
@@ -163,9 +167,9 @@ if [ -f "$PARALLEL_FAIL_FLAG" ]; then
 fi
 
 # Run TestCov sequentially
-# for regression_test_file in "$c_files_directory"/*.c; do
-#     call_testcov "$regression_test_file"
-# done
+for regression_test_file in "$c_files_directory"/*.c; do
+    call_testcov "$regression_test_file"
+done
 
 # --- FINAL SUMMARY WITH EXPECTED VS ACTUAL ---
 echo -e "\n================ FINAL SUMMARY ================\n"
