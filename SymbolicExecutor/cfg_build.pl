@@ -12,17 +12,17 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 :- dynamic edge/3.                    %dynamic predicate to store the CFG's branches: edge(From, To, Truth_value)
 :- dynamic function_call/3.          %dynamic predicate to store the function calls in the CFG: function_call(From, To, Truth_value)
-:- dynamic ghost/2.                  %dynamic predicate to store the jump branches in the CFG: ghost(From, To)
+:- dynamic ghost/3.                  %dynamic predicate to store the jump branches in the CFG: ghost(From, To, Truth_value)
 :- local reference(branch_nb, 1).    %the branch number counter
 :- local reference(current_node, start).          %the current node id during CFG building
 :- local reference(current_truth_value, true).    %the current truth value during CFG building
-:- local reference(has_default, false).    %used to track presence of default statement in switch statements 
+:- local reference(next_is_ghost_jump, false).    %used to create ghost jumps when needed: UGLY
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %necessary initialisations during development to start from a clean empty CFG
 cfg_build__init :-  
     retractall(edge(_, _, _)),
     retractall(function_call(_, _, _)),
-    retractall(ghost(_, _)).
+    retractall(ghost(_, _, _)).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Build the CFG of the code under test by asserting edge/3 facts
 cfg_build__build_cfg(Parsed_prolog_code, Function_name) :-
@@ -53,7 +53,7 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls, Jumps) :-
     extract_nodes(Edges, AllNodes),
     sort(AllNodes, Nodes),      %removes duplicates
     findall(edge(From, To, none), function_call(From, To, _), FunctionCalls),
-    findall(jump(From, To), ghost(From, To), Jumps).
+    findall(jump(From, To, Truth_value), ghost(From, To, Truth_value), Jumps).
     %%%
     extract_nodes([], []).
     extract_nodes([edge(From, To, _)|Rest], [From, To|Nodes]) :-
@@ -170,7 +170,21 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls, Jumps) :-
             (setref(current_truth_value, true),
              cover(True_statements, Flow)
             )
-        ;
+        ;%deliberate choice point
+            (setref(current_truth_value, false),
+             cover(False_statements, Flow)
+            )
+        ).
+    cover(else_if_stmt(branch(Id, Condition), True_statements, False_statements), Flow) :-
+        !,mytrace,
+        cover_exp(Condition),
+        create_ghost_branch(Id),    %dealing with fallthrough else if statements in TestCov by creating a ghost branch instead of a cfg edge
+        setref(current_node, Id),
+        (
+            (setref(current_truth_value, true),
+             cover(True_statements, Flow)
+            )
+        ;%deliberate choice point
             (setref(current_truth_value, false),
              cover(False_statements, Flow)
             )
@@ -178,8 +192,11 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls, Jumps) :-
     cover(if_stmt(Branch, True_statements), Flow) :-
         !,
         cover(if_stmt(Branch, True_statements, []), Flow).
-    cover(while_stmt(branch(Id, Condition), Statements), Flow) :-
+    cover(else_if_stmt(Branch, True_statements), Flow) :-
         !,
+        cover(else_if_stmt(Branch, True_statements, []), Flow).
+    cover(while_stmt(branch(Id, Condition), Statements), Flow) :-
+        !, 
         cover_exp(Condition),
         create_branch_to(Id),
         (
@@ -205,7 +222,7 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls, Jumps) :-
             )
         ).
     cover(do_while_stmt(Statements, branch(Id, Condition)), Flow) :-
-        !,
+        !, mytrace,
         cover(Statements, Intermediate_flow), 
         (Intermediate_flow == 'break' ->
             Flow = 'carry_on'          %the break is consumed here and the loop is exited
@@ -217,7 +234,9 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls, Jumps) :-
             (cover_exp(Condition),
              create_branch_to(Id),         %creates the edge to the condition
              (
-                (setref(current_truth_value, true),
+                (%in Testcov do_while statements do not have a goal associated when the condition is true, so we need to create a ghost branch
+                 setref(current_truth_value, true),
+                 setref(next_is_ghost_jump, true),  %to create a ghost branch in create_branch_to/1
                  cover(do_while_stmt(Statements, branch(Id, Condition)), Flow) %odd but needed to force back edges when the condition is true: no infinite loop as create_branch_to fails on duplicates
                 )
              ;%deliberate choice point
@@ -383,17 +402,25 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls, Jumps) :-
 		(edge(From, To, Truth) ->
             fail	%already exist: don't create a new edge and backtrack: this part of the code has already been covered
 		;
-			(assert(edge(From, To, Truth)),
-             setref(current_node, To)
+         ghost(From, To, Truth) ->
+            fail	%already exist as a ghost edge: don't create a new edge and backtrack: this part of the code has already been covered
+        ;
+         getref(next_is_ghost_jump, true) ->
+            (assert(ghost(From, To, Truth)),
+             setref(next_is_ghost_jump, false)  %reset the flag
             )
-        ).
+        ;      
+			assert(edge(From, To, Truth))
+        ),
+        setref(current_node, To).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     create_ghost_branch(To) :-  %creates a branch that is not taken into account for coverage purposes
         getref(current_node, From),
-        (ghost(From, To) ->
+        getref(current_truth_value, Truth),
+        (ghost(From, To, Truth) ->
             true	%already exist: don't create a new ghost edge
         ;
-            assert(ghost(From, To))
+            assert(ghost(From, To, Truth))
         ).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Create a branch for a function call: this is a special branch

@@ -2,22 +2,19 @@
 #
 # Script: run_regression_par.sh
 # Author: Chris Meudec
-# Date: May 2025 (Updated Oct 2025 for parallel error handling)
-# Description: This script runs Sikraken regression tests in parallel on C files in a specified directory (usually Sikraken/regression_tests).
-# It should behave similarly to run_regression.sh but it runs the test generation in parallel.
-# TestCov is run sequentially at the end because it does not support parallel execution.
+# Date: May 2025 (Updated Oct 2025 for parallel error handling and final summary)
+# Description: Runs Sikraken regression tests in parallel, then sequential TestCov validation.
 # Usage: ./bin/run_regression_par.sh <number_of_cores> <relative_directory_of_regression_c_files> [-scg] [-d]
-# Example: ./bin/run_regression_par.sh 4 regression_tests
 
 clear
 echo "PARALLEL Regression Testing"
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)" #Get the directory of the script <sikraken_install>/bin
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)" # Script directory
 SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."
 echo "SIKRAKEN_INSTALL_DIR is $SIKRAKEN_INSTALL_DIR"
 
 script_name=$(basename "$0")
 
-# --- GLOBAL ERROR FLAG FOR PARALLEL EXECUTION ---
+# --- GLOBAL ERROR FLAG ---
 PARALLEL_FAIL_FLAG="$SIKRAKEN_INSTALL_DIR/parallel_fail.log"
 
 # --- Usage check ---
@@ -62,13 +59,13 @@ echo "c_files_dir  = $c_files_directory"
 echo "shortcutgen  = $shortcutgen"
 echo "mode         = $debug_mode"
 
-# Check if the provided directory exists
+# Check directory existence
 if [ ! -d "$c_files_directory" ]; then
     echo "Sikraken regression testing ERROR: the passed directory of regression files $c_files_directory does not exist."
     exit 1
 fi
 
-# Re-compile the parser in case it changed during development
+# Recompile parser
 ./bin/compile_parser.sh
 if [ $? -ne 0 ]; then
     echo "Sikraken regression testing ERROR: Sikraken parser recompilation failed"
@@ -77,186 +74,200 @@ else
     echo "Sikraken parser successfully recompiled"
 fi
 
-if [ -f regression_tests_run.log ]; then
-    rm -f regression_tests_run.log
-fi
-# --- CLEANUP GLOBAL FAILURE FLAG ---
-if [ -f "$PARALLEL_FAIL_FLAG" ]; then
-    rm -f "$PARALLEL_FAIL_FLAG"
-fi
+[ -f regression_tests_run.log ] && rm -f regression_tests_run.log
+[ -f "$PARALLEL_FAIL_FLAG" ] && rm -f "$PARALLEL_FAIL_FLAG"
 
-# Job pool to limit the number of background processes
+# --- Job pool ---
 job_pool() {
     while [ "$(jobs -r | wc -l)" -ge "$max_jobs" ]; do
-        sleep 1  # Wait for an available slot
+        sleep 1
     done
 }
 
-# NOTE: The return code from this function is the exit status of the subshell (background process)
-# It does NOT terminate the main script, so errors are written to PARALLEL_FAIL_FLAG instead.
+# --- Generate tests in parallel ---
 generate_tests() {
     local regression_test_file="$1"
-    
-    # Extract the base name of the file (without the path nor extension)
     local base_name=$(basename "$regression_test_file" .c)
-    local config_file="$c_files_directory"/"$base_name".json
-    local yml_file="$c_files_directory"/"$base_name".yml
+    local config_file="$c_files_directory/$base_name.json"
+    local yml_file="$c_files_directory/$base_name.yml"
 
-    # Check if our configuration file exists
-    if [ ! -f "$config_file" ]; then
-        echo "Sikraken ERROR from $script_name: Configuration file $config_file does not exist" >> "$PARALLEL_FAIL_FLAG"
-        return 1
-    fi
+    [ ! -f "$config_file" ] && echo "Sikraken ERROR: Configuration $config_file missing" >> "$PARALLEL_FAIL_FLAG" && return 1
 
-    # Check if the testcomp yml file exists
-    local data_model
-    if [ ! -f "$yml_file" ]; then
-        echo "Sikraken $script_name WARNING: .yml file $yml_file does not exist, assuming ILP32"
-        data_model="ILP32"
-    else
-        data_model=$(grep "data_model:" "$yml_file" | awk '{print $2}')
-    fi
+    # Determine data model
+    local data_model="ILP32"
+    [ -f "$yml_file" ] && data_model=$(grep "data_model:" "$yml_file" | awk '{print $2}')
 
-    # Generate GCC flag based on the value of data_model
     local gcc_flag
-    if [ "$data_model" == "ILP32" ]; then
-        gcc_flag="-m32"
-    elif [ "$data_model" == "LP64" ]; then
-        gcc_flag="-m64"
-    else
-        echo "Sikraken ERROR from $script_name: Unsupported data model: $data_model" >> "$PARALLEL_FAIL_FLAG"
-        return 1
-    fi
+    case "$data_model" in
+        ILP32) gcc_flag="-m32";;
+        LP64) gcc_flag="-m64";;
+        *) echo "Sikraken ERROR: Unsupported data model $data_model" >> "$PARALLEL_FAIL_FLAG"; return 1;;
+    esac
 
-    # Preprocess the regression test using gcc and parse using Sikraken's parser
+    # Call parser
     call_parser="$SIKRAKEN_INSTALL_DIR/bin/call_parser.sh $rel_path_c_file/$base_name.c $gcc_flag"
     $call_parser
     if [ $? -ne 0 ]; then
-        echo "Sikraken ERROR from $script_name: Sikraken parsing of $regression_test_file failed using $call_parser" >> "$PARALLEL_FAIL_FLAG"
+        echo "Sikraken ERROR: Parsing $regression_test_file failed" >> "$PARALLEL_FAIL_FLAG"
         return 1
-    else
-        echo "Sikraken $script_name log: parsed $regression_test_file"
     fi
 
-    # Loop over all configurations in the configuration file
+    # Loop over configurations
     local config_count=$(jq '.configurations | length' "$config_file")
-
     for i in $(seq 0 $((config_count - 1))); do
-        # Extract configuration data
         local config=$(jq ".configurations[$i]" "$config_file")
-
         local algo=$(echo "$config" | jq -r '.algo')
 
         echo -e "\e[34mGenerating tests for $regression_test_file using algo: $algo\e[0m"
-
-        # Generate test inputs
+        local log_file="$SIKRAKEN_INSTALL_DIR/sikraken_output/$base_name/sikraken.log"
         local eclipse_call="se_main(['$SIKRAKEN_INSTALL_DIR', '$SIKRAKEN_INSTALL_DIR/$rel_path_c_file', '$base_name', main, $debug_mode, testcomp, '$gcc_flag', $algo $shortcutgen])"
-        $SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e "$eclipse_call"
-        if [ $? -ne 0 ]; then
-            # THIS IS THE CRITICAL CHANGE: Log the error to a file and return 
-            echo "Sikraken ERROR from $script_name: Call to ECLiPSe $eclipse_call failed for $regression_test_file" >> "$PARALLEL_FAIL_FLAG"
-            return 1
+        $SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e "$eclipse_call" >> $log_file 2>&1
+        [ $? -ne 0 ] && echo "Sikraken ERROR: ECLiPSe call failed for $regression_test_file" >> "$PARALLEL_FAIL_FLAG" && return 1
+
+        ###call Testcov with  
+        local testcov_dir="$SIKRAKEN_INSTALL_DIR/sikraken_output/$base_name/testcov"
+        mkdir -p "$testcov_dir"
+        local testcov_log="$testcov_dir/testcov_call.log"
+        TMPDIR="$testcov_dir/tmp"
+        mkdir -p "$TMPDIR"
+        #extract data model in testcov format
+        local testcov_data_model
+        case "$data_model" in
+            ILP32) testcov_data_model="-32";;
+            LP64) testcov_data_model="-64";;
+        esac
+        local testcov_call=(./bin/run_testcov.sh "$regression_test_file" "$testcov_data_model")
+        echo -e "\e[34mCalling Testcov for $regression_test_file\e[0m"
+        # run it
+        "${testcov_call[@]}" >"$testcov_log" 2>&1
+        echo -e "\e[32mEnded Testcov for $regression_test_file\e[0m"
+
+    done
+}
+
+# ANSI color codes
+RED='\033[0;31m'
+BOLD='\033[1m'
+RED_BG='\033[41m'
+WHITE='\033[97m'
+NC='\033[0m' # No Color
+
+# Function to check if difference is more than 10%
+check_diff() {
+    local val1=$1
+    local val2=$2
+    local show_warning=$3
+    
+    # Handle empty or non-numeric values
+    if [[ -z "$val1" || -z "$val2" ]]; then
+        echo "$val1"
+        return
+    fi
+    
+    # If expected value is 0, avoid division by zero
+    if (( $(echo "$val2 == 0" | bc -l 2>/dev/null || echo "0") )); then
+        # If both are 0, no highlighting; if only expected is 0 and actual isn't, highlight
+        if (( $(echo "$val1 == 0" | bc -l 2>/dev/null || echo "0") )); then
+            echo "$val1"
         else
-            echo "Sikraken $script_name log: Test inputs generated for $regression_test_file in configuration $i"
+            if [[ "$show_warning" == "true" ]]; then
+                echo -e "${RED_BG}${WHITE}${BOLD}${val1}${NC} ⚠️"
+            else
+                echo -e "${RED}${BOLD}${val1}${NC}"
+            fi
         fi
-        #call_testcov "$regression_test_file" #cannot do this testcov needs to be run sequentially
-    done
-}
-
-call_testcov() {
-    local regression_test_file="$1"
-    echo "calling test cov for $regression_test_file"
-        
-    # Extract the base name of the file (without the path nor extension)
-    local base_name=$(basename "$regression_test_file" .c)
-    local config_file="$c_files_directory"/"$base_name".json
-    local yml_file="$c_files_directory"/"$base_name".yml
-
-    # Check if the testcomp yml file exists
-    local data_model
-    if [ ! -f "$yml_file" ]; then
-        echo "Sikraken $script_name log: .yml file $yml_file does not exist, assuming ILP32"
-        data_model="ILP32"
+        return
+    fi
+    
+    # Calculate absolute difference percentage
+    local diff=$(echo "scale=2; if ($val2 != 0) (($val1 - $val2) / $val2) * 100 else 0" | bc -l 2>/dev/null)
+    
+    # Get absolute value
+    if (( $(echo "$diff < 0" | bc -l 2>/dev/null) )); then
+        local abs_diff=$(echo "$diff * -1" | bc -l)
     else
-        data_model=$(grep "data_model:" "$yml_file" | awk '{print $2}')
+        local abs_diff=$diff
     fi
-
-    # Generate GCC flag based on the value of data_model
-    local testcov_data_model
-    if [ "$data_model" == "ILP32" ]; then
-        testcov_data_model="-32"
-    elif [ "$data_model" == "LP64" ]; then
-        testcov_data_model="-64"
+    
+    # Check if absolute difference is greater than 10%
+    if (( $(echo "$abs_diff > 10" | bc -l 2>/dev/null) )); then
+        if [[ "$show_warning" == "true" ]]; then
+            # With warning icon and background
+            echo -e "${RED_BG}${WHITE}${BOLD}${val1}${NC} ⚠️"
+        else
+            # Just bold red
+            echo -e "${RED}${BOLD}${val1}${NC}"
+        fi
+    else
+        echo "$val1"
     fi
-
-    # Loop over all configurations in the configuration file
-    local config_count=$(jq '.configurations | length' "$config_file")
-
-    for i in $(seq 0 $((config_count - 1))); do
-        # Extract configuration data
-        local config=$(jq ".configurations[$i]" "$config_file")
-
-        local expected_test_inputs_number=$(echo "$config" | jq -r '.expected_test_inputs_number')
-        local expected_coverage=$(echo "$config" | jq -r '.expected_coverage')
-
-        testcov_call="./bin/run_testcov.sh $regression_test_file $testcov_data_model"
-        echo "CALL TO TESTCOV IS $testcov_call"
-        local testcov_output=$($testcov_call 2>&1)
-        if [ $? -ne 0 ]; then
-            echo "Sikraken ERROR from $script_name: TestCov validation failed for $regression_test_file"
-            exit 1 # This is safe because this function is run sequentially, not in the background
-        fi
-
-        # get the number of test run and coverage achieved from testcov output
-        local tests_nb_line=$(echo "$testcov_output" | grep "Tests run:")
-        local test_nb_value=$(echo "$tests_nb_line" | awk '{print $3}')
-        local coverage_line=$(echo "$testcov_output" | grep "Coverage:")
-        local coverage_value=$(echo "$coverage_line" | awk '{print $2}' | sed 's/%//')
-
-        echo "Tests log: $test_nb_value ($expected_test_inputs_number expected), Coverage: $coverage_value% ($expected_coverage% expected)"
-
-        if [ "$test_nb_value" -eq 0 ]; then
-            echo -e "\e[31mERROR: No tests generated for $regression_test_file in configuration $i.\e[0m"
-            exit 1
-        fi
-
-        if [ "$expected_test_inputs_number" != "$test_nb_value"  ]; then
-            echo "Warning: Tests generation mismatch! For $regression_test_file in configuration $i, expected: $expected_test_inputs_number, but got: $test_nb_value." >> regression_tests_run.log
-        fi
-
-        if [ "$expected_coverage" != "$coverage_value" ]; then
-            echo "Warning: Coverage mismatch! For $regression_test_file in configuration $i, expected: $expected_coverage, but got: $coverage_value." >> regression_tests_run.log
-        fi
-    done
 }
 
-### main starts here
+# --- MAIN EXECUTION ---
+# Sort files by size (largest first) and process them
+while IFS= read -r regression_test_file; do
+    job_pool
+    generate_tests "$regression_test_file" &
+done < <(find "$c_files_directory" -maxdepth 1 -name "*.c" -type f -printf '%s %p\n' | sort -rn | cut -d' ' -f2-)
 
-# Loop over all .c files and process them in parallel
-for regression_test_file in "$c_files_directory"/*.c; do
-    job_pool  # Wait for an available slot
-    generate_tests "$regression_test_file" &  # Run in the background
-done
+# Run Sikraken in parallel
+#for regression_test_file in "$c_files_directory"/*.c; do
+#    job_pool
+#    generate_tests "$regression_test_file" &
+#done
 
-wait    # Wait for all background jobs to finish
+wait
 
-# --- CHECK FOR PARALLEL ERRORS HERE ---
+# Check for parallel errors
 if [ -f "$PARALLEL_FAIL_FLAG" ]; then
     echo -e "\n\e[31m--- PARALLEL GENERATION FAILED ---\e[0m"
-    echo "One or more parallel jobs failed. Errors captured in $PARALLEL_FAIL_FLAG:"
     cat "$PARALLEL_FAIL_FLAG"
-    rm -f "$PARALLEL_FAIL_FLAG" # Clean up the flag file
-    exit 1 # Terminate the main script here
+    rm -f "$PARALLEL_FAIL_FLAG"
+    exit 1
 fi
 
-# Run testcov sequentially (only if parallel generation succeeded)
+# --- FINAL SUMMARY WITH EXPECTED VS ACTUAL ---
+echo -e "\n================ FINAL SUMMARY ================\n"
+
 for regression_test_file in "$c_files_directory"/*.c; do
-    call_testcov "$regression_test_file"
-done
+    base_name=$(basename "$regression_test_file" .c)
+    sikraken_log="$SIKRAKEN_INSTALL_DIR/sikraken_output/$base_name/sikraken.log"
+    testcov_log="$SIKRAKEN_INSTALL_DIR/sikraken_output/$base_name/testcov/testcov_call.log"
+    config_file="$c_files_directory/$base_name.json"
 
-if [ -f regression_tests_run.log ]; then
-    echo -e "\e[31mSikraken regression testing script run_regression.sh has terminated with warnings.\e[0m"
-    cat regression_tests_run.log
-else
-    echo -e "\e[32mSikraken regression testing script run_regression.sh has terminated successfully.\e[0m"
-fi
+    # Parse Sikraken log
+    if [ -f "$sikraken_log" ]; then
+        sik_tests=$(grep "Generated:" "$sikraken_log" | awk '{print $2}' | tail -1)
+        sik_edges=$(grep "CFG:" "$sikraken_log" | awk '{print $2}' | tail -1)
+        sik_cov=$(grep "Coverage:" "$sikraken_log" | awk '{print $2}' | sed 's/%//' | tail -1)
+    else
+        sik_tests="NA"; sik_edges="NA"; sik_cov="NA"
+    fi
+
+    # Parse TestCov log
+    if [ -f "$testcov_log" ]; then
+        tc_tests=$(grep "Tests run:" "$testcov_log" | awk '{print $3}' | tail -1)
+        tc_goals=$(grep "Number of goals:" "$testcov_log" | awk '{print $4}' | tail -1)
+        tc_cov=$(grep "Coverage:" "$testcov_log" | awk '{print $2}' | sed 's/%//' | tail -1)
+    else
+        tc_tests="NA"; tc_goals="NA"; tc_cov="NA"
+    fi
+
+    # Get expected tests and coverage from JSON (first configuration)
+    if [ -f "$config_file" ]; then
+        expected_tests_number=$(jq -r '.configurations[0].expected_tests_number' "$config_file")
+        expected_testcov_coverage=$(jq -r '.configurations[0].expected_testcov_coverage' "$config_file")
+        expected_sikraken_edges=$(jq -r '.configurations[0].expected_sikraken_edges' "$config_file")
+    else
+        expected_tests_number="NA"
+        expected_testcov_coverage="NA"
+        expected_sikraken_edges="NA"
+    fi
+    # Check each metric (set third parameter to "true" to show warning icons)
+    sik_edges_display=$(check_diff "$sik_edges" "$expected_sikraken_edges" "true")
+    sik_tests_display=$(check_diff "$sik_tests" "$expected_tests_number" "true")
+    tc_cov_display=$(check_diff "$tc_cov" "$expected_testcov_coverage" "true")
+
+    # Print summary line with highlighting
+    echo -e "$base_name.c → Branches: $sik_edges_display sik / $expected_sikraken_edges exp / $tc_goals tcv - Tests: $sik_tests_display sik / $expected_tests_number exp / $tc_tests tcv - Coverage: $sik_cov sik / $expected_testcov_coverage exp / $tc_cov_display tcv"
+done

@@ -4,9 +4,9 @@
         "id": "run1",
         "description": "arrays in loops with unknown index",
         "algo": "regression(10, 10)",
-        "expected_run_time": 3,
-        "expected_test_inputs_number": 3,
-        "expected_coverage": 100.0
+        "expected_tests_number": 4,
+        "expected_testcov_coverage": 100.0,
+        "expected_sikraken_edges": 8
       }
     ]
 }

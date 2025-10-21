@@ -122,7 +122,9 @@ se_main(ArgsL) :-
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_exception(Exception) :-
         (Exception == 'outatime' ->
-            easter_egg
+            (easter_egg,
+             print_test_run_log
+            )
         ;
             (Exception == 'global_trail_overflow' ->
                 (get_flag('max_global_trail', Max),

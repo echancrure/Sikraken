@@ -28,3 +28,4 @@ SymbolicExecutor/try.pl
 instrumented*
 *.info
 log_file
+output_*/

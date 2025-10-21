@@ -20,7 +20,13 @@
 	#define access_safe(path, mode) access(path, mode)
 	#define strcpy_safe(dest, destsz, src) strncpy(dest, src, destsz)
 	#define strcat_safe(dest, destsz, src) strncat(dest, src, destsz)
+	/* allow calling sprintf_safe(buffer,size, "fmt") or with extra args */
+	#if defined(__GNUC__) || defined(__clang__)
+	#define sprintf_safe(buffer, size, format, ...) snprintf(buffer, size, format, ##__VA_ARGS__)
+	#else
+	/* conservative fallback for other compilers -- ensure callers pass at least format */
 	#define sprintf_safe(buffer, size, format, ...) snprintf(buffer, size, format, __VA_ARGS__)
+	#endif
 #endif
 
 int debugMode = 0;					//flag to indicate if we are in debug mode set by -d command line switch
@@ -1298,11 +1304,36 @@ selection_statement
 else_opt
 	: /* empty */		%prec LOWER_THAN_ELSE 	{simple_str_lit_copy(&$$, "");}
 	| ELSE statement
-		{size_t const size = strlen(", ") + strlen($2) + 1;
-		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, ", %s", $2);
-		 free($2);
-		} 
+		{
+          /* if ELSE is followed by a single if_stmt(...) produced earlier, convert it to an else_if_stmt fragment
+             so the outer if will attach ", \nelse_if_stmt(...)" rather than ", \nif_stmt(...)" */
+          if ($2 && strncmp($2, "\nif_stmt(branch(", 16) == 0) {
+              /* build ", \nelse_if_stmt(...)" from the existing if_stmt string by replacing "if_stmt" -> "else_if_stmt" */
+              const char *orig = $2 + 1; /* skip leading newline */
+              const char *needle = "if_stmt";
+              size_t orig_len = strlen(orig);
+              size_t add = strlen("else_if_stmt") - strlen(needle); /* typically +5 */
+              size_t const size = strlen(", \n") + orig_len + add + 1;
+              char *else_part = (char*)malloc(size);
+              /* prefix */
+              sprintf_safe(else_part, size, ", \n");
+              /* replace prefix "if_stmt" with "else_if_stmt" if present at start */
+              if (strncmp(orig, needle, strlen(needle)) == 0) {
+                  strcat_safe(else_part, size, "else_if_stmt");
+                  strcat_safe(else_part, size, orig + strlen(needle));
+              } else {
+                  /* fallback: just append whole original */
+                  strcat_safe(else_part, size, orig);
+              }
+              $$ = else_part;
+          } else { // normal else: return ", <statement>"
+              size_t const size = strlen(", ") + strlen($2) + 1;
+              $$ = (char*)malloc(size);
+              sprintf_safe($$, size, ", %s", $2);
+          }
+          free($2);
+        }
+	;
 
 iteration_statement
 	: WHILE '(' expression ')' statement 
