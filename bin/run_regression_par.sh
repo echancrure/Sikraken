@@ -204,12 +204,18 @@ check_diff() {
 }
 
 # --- MAIN EXECUTION ---
-
-# Run Sikraken in parallel
-for regression_test_file in "$c_files_directory"/*.c; do
+# Sort files by size (largest first) and process them
+while IFS= read -r regression_test_file; do
     job_pool
     generate_tests "$regression_test_file" &
-done
+done < <(find "$c_files_directory" -maxdepth 1 -name "*.c" -type f -printf '%s %p\n' | sort -rn | cut -d' ' -f2-)
+
+# Run Sikraken in parallel
+#for regression_test_file in "$c_files_directory"/*.c; do
+#    job_pool
+#    generate_tests "$regression_test_file" &
+#done
+
 wait
 
 # Check for parallel errors
