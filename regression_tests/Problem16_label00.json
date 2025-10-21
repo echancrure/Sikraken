@@ -4,8 +4,8 @@
         "id": "run1",
         "description": "Hard, slow testcov execution",
         "algo": "budget(2)",
-        "expected_tests_number": 93,
-        "expected_testcov_coverage": 64.96,
+        "expected_tests_number": 97,
+        "expected_testcov_coverage": 73.4,
         "expected_sikraken_edges": 392
       }
     ]

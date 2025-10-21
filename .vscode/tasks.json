@@ -92,7 +92,7 @@
             "args": [
                 "-v",
                 "${workspaceFolder}/bin/run_regression_par.sh",
-                "8",
+                "${input:parallelJobs}",
                 "regression_tests",
                 "${input:shortcutGen}"
             ],
@@ -114,6 +114,12 @@
         }
     ],
     "inputs": [
+        {
+            "id": "parallelJobs",
+            "type": "promptString",
+            "description": "Number of parallel jobs",
+            "default": "8"
+        },
         {
             "id": "shortcutGen",
             "type": "pickString",

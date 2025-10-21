@@ -260,8 +260,8 @@ for regression_test_file in "$c_files_directory"/*.c; do
     # Check each metric (set third parameter to "true" to show warning icons)
     sik_edges_display=$(check_diff "$sik_edges" "$expected_sikraken_edges" "true")
     sik_tests_display=$(check_diff "$sik_tests" "$expected_tests_number" "true")
-    sik_cov_display=$(check_diff "$sik_cov" "$expected_testcov_coverage" "true")
+    tc_cov_display=$(check_diff "$tc_cov" "$expected_testcov_coverage" "true")
 
     # Print summary line with highlighting
-    echo -e "$base_name.c → Branches: $sik_edges_display sik / $expected_sikraken_edges exp / $tc_goals tcv - Tests: $sik_tests_display sik / $expected_tests_number exp / $tc_tests tcv - Coverage: $sik_cov_display sik / $expected_testcov_coverage exp / $tc_cov tcv"
+    echo -e "$base_name.c → Branches: $sik_edges_display sik / $expected_sikraken_edges exp / $tc_goals tcv - Tests: $sik_tests_display sik / $expected_tests_number exp / $tc_tests tcv - Coverage: $sik_cov sik / $expected_testcov_coverage exp / $tc_cov_display tcv"
 done
