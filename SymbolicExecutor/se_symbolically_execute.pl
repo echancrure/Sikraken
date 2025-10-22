@@ -216,10 +216,9 @@ symbolic_execute(default_stmt(branch(_Id), Statements), Flow) :-
     symbolic_execute(Statements, Flow).
 symbolic_execute(goto_stmt(Label, Function), Flow) :-
     !,
-    %mytrace,
-    se_sub_atts__get(Function, 'body', cmp_stmts(Stmts)),
-    search_label_statement(Label, Stmts, Stmt_list),
-    symbolic_execute(Stmt_list, Flow).  %todo are you sure? what if within a loop? more testing needed
+    se_sub_atts__get(Function, 'body', cmp_stmts(Function_stmts)),
+    search_label_statement(Label, Function_stmts, Labelled_stmts_list),
+    symbolic_execute(Labelled_stmts_list, Flow).    %only partially implemented
 symbolic_execute(label_stmt(_Label, Statement), Flow) :- 
     !,
     symbolic_execute(Statement, Flow).
@@ -300,7 +299,7 @@ make_decision(Condition, Id, Outcome) :-
         )
     ),
     Branch = bran(Id, Outcome),
-    mytrace,
+    %mytrace,
     (ghost(Id, _, Outcome) ->   %performance hit
         true    %ignored, not added to subpath
     ;
@@ -327,14 +326,47 @@ make_decision(Condition, Id, Outcome) :-
     )
     ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-search_label_statement(Label, Stmts, Stmt_list) :-
-    (append(_, [label_stmt(Label, Stmt)|Rest_smt], Stmts) ->    %quick check to catch most labeled statements tha tare in the top scope in a function body
-        (!,
-         Stmt_list = [label_stmt(Label, Stmt)|Rest_smt]
-        )
+search_label_statement(Label, Stmts, Labelled_stmts_list) :-
+    mytrace,
+    find_label(Stmts, Label, Labelled_stmts_list),
+    !,  %compiler ensures only one possible
+    (Labelled_stmts_list = [] ->
+        common_util__error(9, "Labeled statement not found", "gotos to non-outer statement that are not if statements are unhandled", [('Label', Label)], '10_221025_1', 'se_symbolically_execute', 'search_label_statement', no_localisation, no_extra_info)
     ;
-        (%must search for the labeled statement
-        common_util__error(10, "Goto to a non-outer labeled statement is unhandled", "Sikraken needs expanding", [('Label', Label)], '10_191124_1', 'se_symbolically_execute', 'search_label_statement', no_localisation, no_extra_info)
-        )
+        true
     ).
+    %%%
+    find_label(All_stmts, Label, Labelled_stmts_list) :-
+        ((is_list(All_stmts), append(_, [label_stmt(Label, Stmt)|Rest], All_stmts)) ->
+            Labelled_stmts_list = [label_stmt(Label, Stmt)|Rest]   %simple case: matches outer labeled statement
+        ;
+            find_label_compound(All_stmts, Label, Labelled_stmts_list)
+        ).
+    find_label_compound([], _, _) :-
+        fail.
+    find_label_compound([Statement|Rest], Label, Labelled_stmts_list) :-
+        !,
+        (find_label_compound(Statement, Label, Inner_labelled_stmts_list) ->
+            append(Inner_labelled_stmts_list, Rest, Labelled_stmts_list)    %we found the labeled statement
+        ;
+            find_label_compound(Rest, Label, Labelled_stmts_list)   %continue the search
+        ).
+    find_label_compound(cmp_stmts(Stmts), Label, Labelled_stmts_list) :-
+        !,
+        find_label(Stmts, Label, Labelled_stmts_list).
+    find_label_compound(if_stmt(_, True_statements), Label, Labelled_stmts_list) :-
+        !,
+        find_label_compound(if_stmt(_, True_statements, []), Label, Labelled_stmts_list).
+    find_label_compound(if_stmt(_, True_statements, False_statements), Label, Labelled_stmts_list) :-
+        !,
+        (find_label(True_statements, Label, Labelled_stmts_list)
+        ;
+         find_label(False_statements, Label, Labelled_stmts_list)
+        ),
+        !.
+    find_label_compound(_, _Label, _Labelled_stmts_list) :-   %default for non compound statements e.g. assign, function call etc. 
+        !,
+        fail.
+
+    
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

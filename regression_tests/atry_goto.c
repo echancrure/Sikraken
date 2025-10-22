@@ -1,22 +1,25 @@
 extern int __VERIFIER_nondet_int();
 
 int main(void) {
- int x = 1;
- try_again: ;
- int y = __VERIFIER_nondet_int();
- if (y == -42) {
-   goto weirderror; 
- }
-weirderror: ;   
- if (y == 42) {
-     ;      //Sikraken does not work if you insert weirderror: ;  here
- }
- int z = __VERIFIER_nondet_int();
- if (z == 666) {
-   goto weirderror; //possibly infinite loop until we pick something else than 666
- }
- if (y == z) goto error;
- else goto try_again;
- return 0;
- error: return -1;
+      int x = 1;
+      try_again: ;
+      int y = __VERIFIER_nondet_int();
+      if (y == 24) {
+          goto error;      //forward jump to outer label statement
+      }
+      if (y == -42) {
+          goto weirderror;      //forward jump to within an if
+      }
+      if (y == 42) {
+          weirderror: y--;    //a label statement that is part of an if statement: not and 'outer' statement
+      }
+      int z = __VERIFIER_nondet_int();
+      if (z == 666) {
+        goto weirderror;
+      }
+      if (y == z) goto error;   //forward jump
+      else goto try_again;      //backward jump
+      return 0;
+      error: x++;   //outer label statement
+      return -1;
 }
