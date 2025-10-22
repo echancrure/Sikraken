@@ -1,3 +1,8 @@
+1.1.1
+**********
+22 October 2025
+  Minor: more accurate CFG building
+
 1.1.0
 **********
 October 2025
