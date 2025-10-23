@@ -23,7 +23,7 @@ base_name=$(basename "$file_name_no_ext")
 
 # --- Always write to absolute output paths ---
 result_dir="$BASE_DIR/sikraken_output/$base_name"
-
+echo "result_dir is $result_dir"
 # clean run: delete previous testcov directory for that C file and re-create it 
 rm -rf "$result_dir/testcov"
 mkdir -p "$result_dir/testcov"

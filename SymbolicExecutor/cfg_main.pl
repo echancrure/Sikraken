@@ -80,13 +80,12 @@ cfg_main__build_cfg(Parsed_prolog_code) :-
         make_graph_symbolic(ArrayNodes, AllEdges, Graph),   %including function calls as edges
         se_globals__get_val('install_dir', Install_dir),
         se_globals__get_val('target_source_file_name_no_ext', Target_source_file_name_no_ext),
-        concat_atom([Install_dir, "/sikraken_output/", Target_source_file_name_no_ext], Result_folder),
-        cd(Result_folder),
+        concat_atom([Install_dir, "/sikraken_output/", Target_source_file_name_no_ext, '/cfg.png'], Graph_file),
         (EdgeCount > 200 -> 
             true    %too big to visualize
         ;
             (EdgeCount < 20 -> Format = dot ; Format = neato),  %use slow but better looking dot for small graphs only
-             write_graph(Graph, "cfg.png", png, [edge_attrs_generator : edge_label_attrs, layout:Format])
+             write_graph(Graph, Graph_file, png, [edge_attrs_generator : edge_label_attrs, layout:Format])
         )
     ;
         true

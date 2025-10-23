@@ -86,6 +86,7 @@ se_main(ArgsL) :-
     catch(
         (
             print_test_run_log__preamble(ArgsL),
+            print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext),
             initialise_ptc_solver,
             capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
             read_parsed_file(Install_dir, Target_source_file_name_no_ext, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors
@@ -103,7 +104,6 @@ se_main(ArgsL) :-
             %%%
             statistics(event_time, Session_time),
             setval('start_session_time', Session_time),
-            print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext),
             (se_globals__get_val('EdgeCount', 0) -> 
                 print_test_inputs_testcomp([])      %silly edge case: no branches at all; we still print an empty test input vector to keep Testcov happy
             ;

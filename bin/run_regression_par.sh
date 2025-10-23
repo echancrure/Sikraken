@@ -125,11 +125,10 @@ generate_tests() {
         [ $? -ne 0 ] && echo "Sikraken ERROR: ECLiPSe call failed for $regression_test_file" >> "$PARALLEL_FAIL_FLAG" && return 1
 
         ###call Testcov with  
-        local testcov_dir="$SIKRAKEN_INSTALL_DIR/sikraken_output/$base_name/testcov"
-        mkdir -p "$testcov_dir"
-        local testcov_log="$testcov_dir/testcov_call.log"
-        TMPDIR="$testcov_dir/tmp"
-        mkdir -p "$TMPDIR"
+        #local testcov_dir="$SIKRAKEN_INSTALL_DIR/sikraken_output/$base_name/testcov"
+        #mkdir -p "$testcov_dir"
+        #TMPDIR="$testcov_dir/tmp"
+        #mkdir -p "$TMPDIR"
         #extract data model in testcov format
         local testcov_data_model
         case "$data_model" in
@@ -139,9 +138,8 @@ generate_tests() {
         local testcov_call=(./bin/run_testcov.sh "$regression_test_file" "$testcov_data_model")
         echo -e "\e[34mCalling Testcov for $regression_test_file\e[0m"
         # run it
-        "${testcov_call[@]}" >"$testcov_log" 2>&1
+        "${testcov_call[@]}" > "$SIKRAKEN_INSTALL_DIR/sikraken_output/$base_name/testcov_call.log" 2>&1
         echo -e "\e[32mEnded Testcov for $regression_test_file\e[0m"
-
     done
 }
 
@@ -232,7 +230,7 @@ echo -e "\n================ FINAL SUMMARY ================\n"
 for regression_test_file in "$c_files_directory"/*.c; do
     base_name=$(basename "$regression_test_file" .c)
     sikraken_log="$SIKRAKEN_INSTALL_DIR/sikraken_output/$base_name/sikraken.log"
-    testcov_log="$SIKRAKEN_INSTALL_DIR/sikraken_output/$base_name/testcov/testcov_call.log"
+    testcov_log="$SIKRAKEN_INSTALL_DIR/sikraken_output/$base_name/testcov_call.log"
     config_file="$c_files_directory/$base_name.json"
 
     # Parse Sikraken log
