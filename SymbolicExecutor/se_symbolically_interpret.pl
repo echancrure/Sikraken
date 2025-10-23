@@ -168,7 +168,7 @@ symbolically_interpret(div_op(Le_exp, Ri_exp), symb(Common_type, Casted_result))
         Result $= Le_casted_exp / Ri_casted_exp
     ),
     ptc_solver__check_overflow(Common_type, Result, Casted_result).
-%mod is not an IC constraint, rem is but it behaves differently and any in C: a mod b == a - b(a//b)
+%mod is not an IC constraint, rem is but it behaves differently and in any case, in C: a mod b == a - b(a//b)
 %todo what do we do on div by 0?
 symbolically_interpret(mod_op(Le_exp, Ri_exp), symb(Common_type, Casted_result)) :-
     !,   

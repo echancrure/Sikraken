@@ -18,25 +18,24 @@ else
     full_c_file="$(realpath -m "$BASE_DIR/$rel_path_c_file")"
 fi
 
-
 file_name_no_ext="${full_c_file%.*}"
 base_name=$(basename "$file_name_no_ext")
 
 # --- Always write to absolute output paths ---
-output_dir="$BASE_DIR/sikraken_output/$base_name"
-mkdir -p "$output_dir/testcov" "$output_dir/test-suite"
+result_dir="$BASE_DIR/sikraken_output/$base_name"
 
-zipfile="$output_dir/test-suite.zip"
+# clean run: delete previous testcov directory for that C file and re-create it 
+rm -rf "$result_dir/testcov"
+mkdir -p "$result_dir/testcov"
+
+zipfile="$result_dir/test-suite.zip"
 rm -f "$zipfile"
-zip -r "$zipfile" "$output_dir/test-suite"
+zip -r "$zipfile" "$result_dir/test-suite"
 
+#Oct 25 calling testcov in new fast mode 
+testcov_call="testcov --fast $testcov_data_model --test-suite \"$zipfile\" \"$full_c_file\" --output \"$result_dir/testcov\" "
 
-testcov_call="testcov --fast $testcov_data_model \
-  --test-suite \"$zipfile\" \
-  \"$full_c_file\" \
-  --output \"$output_dir/testcov\" "
-
-echo "CALL TO TESTCOV IS: $testcov_call"
+echo "CALLING TESTCOV: $testcov_call"
 eval $testcov_call
 
 [ $? -ne 0 ] && echo "ERROR: TestCov validation failed for $rel_path_c_file" && exit 1
