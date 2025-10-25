@@ -35,6 +35,8 @@ mytrace.            %call this to start debugging
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  
 se_main(ArgsL) :-
+    statistics(event_time, Session_time),
+    setval('start_session_time', Session_time),
     %set_flag('gc_policy', 'fixed'),
     (ArgsL = [Install_dir, Source_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Search_algo|Options] ->
         true
@@ -67,7 +69,7 @@ se_main(ArgsL) :-
             )
          ;
           Args = [Budget, First_time_out, Max_time_out, Multiplier, Min_time_out, Margin] ->
-            true    %todo
+            true    %low level customisation todo
          ;
             common_util__error(10, "Calling se_main/? with invalid budget configuration", "Review budget algo argument syntax", [('Search_algo', Search_algo)], '10_240926_1', 'se_main', 'se_main', no_localisation, no_extra_info)
          ),
@@ -80,9 +82,12 @@ se_main(ArgsL) :-
     ;
         common_util__error(10, "Calling se_main/? with invalid search algo configuration", "Review search algo argument syntax", [('Search_algo', Search_algo)], '10_240926_2', 'se_main', 'se_main', no_localisation, no_extra_info)
     ),         
-    se_globals__set_val('single_test_time_out', First_time_out),    
+    se_globals__set_val('single_test_time_out', First_time_out),  
+
+    %very approximative: based on wall clock, ok for single threaded
+    %see Joachim's email
     set_event_handler('overall_generation_time_out', handle_overall_time_out_event/0),
-    event_after('overall_generation_time_out', Budget),
+    event_after('overall_generation_time_out', Budget), %might not be raised or processed if budget is smaller than long processes such as read_parsed_file
     catch(
         (
             print_test_run_log__preamble(ArgsL),
@@ -102,8 +107,6 @@ se_main(ArgsL) :-
             cfg_main__build_cfg(Parsed_prolog_code),
             setval('execution_mode', 'local'),    %i.e. C run time (as opposed to compile time), tackling locals when implicit initialisation to 0 does not occur
             %%%
-            statistics(event_time, Session_time),
-            setval('start_session_time', Session_time),
             (se_globals__get_val('EdgeCount', 0) -> 
                 print_test_inputs_testcomp([])      %silly edge case: no branches at all; we still print an empty test input vector to keep Testcov happy
             ;
