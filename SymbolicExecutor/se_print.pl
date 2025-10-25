@@ -37,7 +37,12 @@ print_test_run_log :-
     se_globals__get_val('covered_bran', Overall_covered),
     length(Overall_covered, Covered_nb),
     se_globals__get_val('EdgeCount', EdgeCount),
-    (EdgeCount == 0 -> Coverage = 100.0 ; Coverage is (Covered_nb / EdgeCount) * 100),
+    ((EdgeCount == 0, Test_nb == 0) -> Coverage is 0.0     %no edges and no tests: CFG building probably got interupted by timeout: did not have time to build CFG
+    ;   
+     EdgeCount == 0 -> Coverage is 100.0     %Some tests generated but EdgeCount is 0: a C file with no branches
+    ; 
+     Coverage is (Covered_nb / EdgeCount) * 100
+    ),
     printf(output, "\tCFG: \t\t\t%w edges\n", [EdgeCount]),
     printf(output, "\tCoverage: \t\t%.2f%%\n", [Coverage]),
     se_globals__get_val('AllEdges', All_pure_edges_sorted),
