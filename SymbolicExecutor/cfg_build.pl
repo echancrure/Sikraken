@@ -176,7 +176,7 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls, Jumps) :-
             )
         ).
     cover(else_if_stmt(branch(Id, Condition), True_statements, False_statements), Flow) :-
-        !,mytrace,
+        !,%mytrace,
         cover_exp(Condition),
         create_ghost_branch(Id),    %dealing with fallthrough else if statements in TestCov by creating a ghost branch instead of a cfg edge
         setref(current_node, Id),

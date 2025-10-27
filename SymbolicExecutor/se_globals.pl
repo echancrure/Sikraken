@@ -64,7 +64,7 @@ se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode,
             setval('advanced_cfg', false).
         %%%
         init_options([]).
-        init_options([Option|Rest]) :-
+        init_options([Option|Rest]) :- %mytrace,
             (Option == 'shortcut_gen' ->
                 setval('shortcut_gen', true)   %incomplete test inputs are generated: this is a testcomp which uses testcov quirk see diary 16/09/25
             ; 

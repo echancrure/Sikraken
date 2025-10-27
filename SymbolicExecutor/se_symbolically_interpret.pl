@@ -31,7 +31,7 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
         (se_sub_atts__get(Function, 'body', Body),
          (Body == 'no_body_is_extern' -> %calling an extern function with no body
             (se_name_atts__get(Function, 'name', Function_name),
-                (is_verifier_input_function(Function_name, Type) ->
+                (is_verifier_input_function(Function_name, Type) -> %a Test-Comp input call
                     (getval('shortcut_gen_triggered', 'true') ->  %we are in shortcut generation mode, so we do not create new verifier inputs
                         end_of_path_predicate(_, _),
                         fail    %to trigger backtracking

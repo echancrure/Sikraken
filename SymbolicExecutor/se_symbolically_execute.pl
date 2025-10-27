@@ -309,14 +309,17 @@ make_decision(Condition, Id, Outcome) :-
         (cfg_main__bran_is_already_covered(Branch) ->
             true    %already covered, we carry on
         ;
-            (se_globals__get_ref('verifier_inputs', Verifier_inputs),
+            (%Branch is new: it has never been covered
+             se_globals__get_ref('verifier_inputs', Verifier_inputs),
              (call(label_testcomp(Verifier_inputs, Labeled_inputs)) @ eclipse ->  % "bank": we try to label what we have so far
-                (super_util__quick_dev_info("Following new branch: %w", [Branch]),
+                (
+                 super_util__quick_dev_info("Following new branch: %w", [Branch]),
                  setval(shortcut_gen_triggered, 'true'), %and we continue until end of path or next __VERIFIER_input call to continue recording new branches covered
-                 print_test_inputs_testcomp(Labeled_inputs)
+                 mytrace,
+                 print_test_inputs_testcomp(Labeled_inputs) 
                 )
              ;
-                fail  %labeling failed...no test input vector was generated, we abandon this path
+                fail  %labeling failed...no test input vector was generated, we abandon this subpath
              )
             )
         )
