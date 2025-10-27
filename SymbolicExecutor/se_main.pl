@@ -234,9 +234,10 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
             (se_globals__get_ref('verifier_inputs', Verifier_inputs),
              se_globals__get_val('single_test_time_out', Current_single_test_time_out),
              (timeout(label_testcomp(Verifier_inputs, Labeled_inputs), Current_single_test_time_out, fail) ->    %timeout added to avoid very long / impossible labelling
-                display_successful_test_stats(_Last_test_duration, _Current_session_time),
-                printf('output', "Dev Info: Incomplete test vector\n", []),
+                %display_successful_test_stats(_Last_test_duration, _Current_session_time),
+                reset_timer,
                 record_path_coverage,
+                printf('output', "Dev Info: Incomplete test vector\n", []),
                 print_test_inputs_testcomp(Labeled_inputs)     %banking a partial answer as allowed by testcomp                
              ;
                 printf('output', "Dev Info: Labelling failed after time out.\n", [])    %labeling failed...no test input vector could be generated
