@@ -269,7 +269,7 @@ make_decision(Condition, Id, Outcome) :-
     %mytrace,
     %different approach possible here: forcing or not see diary 23/09/25
     symbolically_interpret(Condition, symb(_, Cond_Symbolic)),  %leaves choice points behind because decisions are made there too (not pure delay)
-%will need redone if we want to guide the search (Cf. Mika? with combinations generated?)
+    %will need redone if we want to guide the search (Cf. Mika? with combinations generated?)
     (Cond_Symbolic == 1 ->  %always true: no choice
         Outcome = 'true'
     ;
@@ -303,28 +303,27 @@ make_decision(Condition, Id, Outcome) :-
     (ghost(Id, _, Outcome) ->   %performance hit
         true    %ignored, not added to subpath
     ;
-        (    
-    se_globals__update_ref('current_path_bran', Branch),
-    (se_globals__get_val('shortcut_gen', true) ->
-        (cfg_main__bran_is_already_covered(Branch) ->
-            true    %already covered, we carry on
-        ;
-            (%Branch is new: it has never been covered
-             se_globals__get_ref('verifier_inputs', Verifier_inputs),
-             (call(label_testcomp(Verifier_inputs, Labeled_inputs)) @ eclipse ->  % "bank": we try to label what we have so far
-                (
-                 super_util__quick_dev_info("Following new branch: %w", [Branch]),
-                 setval(shortcut_gen_triggered, 'true') %and we continue until end of path or next __VERIFIER_input call to continue recording new branches covered
+        (se_globals__update_ref('current_path_bran', Branch),
+         (se_globals__get_val('shortcut_gen', true) ->  %shortcut generation
+            (cfg_main__bran_is_already_covered(Branch) ->
+                true    %already covered, we carry on
+            ;
+                (%Branch is new: it has never been covered
+                 se_globals__get_ref('verifier_inputs', Verifier_inputs),
+                 (call(label_testcomp(Verifier_inputs, Labeled_inputs)) @ eclipse ->  %"bank": we try to label what we have so far
+                    (%of course, doing that, restrict the possible future because the variables become grounded: it leads to more incomplete test vectors, generated sooner: good when budget is small, but gain is non-existant on long run time
+                    super_util__quick_dev_info("Following new branch: %w", [Branch]),
+                    setval(shortcut_gen_triggered, 'true') %and we continue until end of path or next __VERIFIER_input call to continue recording new branches covered
+                    )
+                 ;
+                    fail  %labeling failed...no test input vector was generated, we abandon this subpath
+                 )
                 )
-             ;
-                fail  %labeling failed...no test input vector was generated, we abandon this subpath
-             )
             )
+         ;
+            true    %continue exploring this path
+         )   
         )
-     ;
-        true    %continue exploring this path
-    )
-    )
     ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 search_label_statement(Label, Stmts, Labelled_stmts_list) :-
