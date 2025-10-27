@@ -233,13 +233,13 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
         ;
             (se_globals__get_ref('verifier_inputs', Verifier_inputs),
              se_globals__get_val('single_test_time_out', Current_single_test_time_out),
-             (timeout(label_testcomp(Verifier_inputs, Labeled_inputs), Current_single_test_time_out, fail) ->    %timout added to avoid very long / impossible labelling
+             (timeout(label_testcomp(Verifier_inputs, Labeled_inputs), Current_single_test_time_out, fail) ->    %timeout added to avoid very long / impossible labelling
                 display_successful_test_stats(_Last_test_duration, _Current_session_time),
                 printf('output', "Dev Info: Incomplete test vector\n", []),
                 record_path_coverage,
                 print_test_inputs_testcomp(Labeled_inputs)     %banking a partial answer as allowed by testcomp                
              ;
-                printf('output', "Dev Info: Labelling failed.\n", [])    %labeling failed...no test input vector could be generated
+                printf('output', "Dev Info: Labelling failed after time out.\n", [])    %labeling failed...no test input vector could be generated
              )
             )
         ),
@@ -333,7 +333,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
                          )
                         )
                      ;
-                        true    %labeling failed (perhaps floating points could not be labeled or there was no solution to integer non-linear constraints, who knows), we succeed to count it as a valid attempt
+                        printf('output', "Dev Info: Labelling failed.\n", [])    %labeling failed (perhaps floating points could not be labeled or there was no solution to integer non-linear constraints, who knows), we succeed to count it as a valid attempt
                      )
                     )
                  ;

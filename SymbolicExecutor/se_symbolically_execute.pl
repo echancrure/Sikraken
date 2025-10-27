@@ -314,9 +314,7 @@ make_decision(Condition, Id, Outcome) :-
              (call(label_testcomp(Verifier_inputs, Labeled_inputs)) @ eclipse ->  % "bank": we try to label what we have so far
                 (
                  super_util__quick_dev_info("Following new branch: %w", [Branch]),
-                 setval(shortcut_gen_triggered, 'true'), %and we continue until end of path or next __VERIFIER_input call to continue recording new branches covered
-                 mytrace,
-                 print_test_inputs_testcomp(Labeled_inputs) 
+                 setval(shortcut_gen_triggered, 'true') %and we continue until end of path or next __VERIFIER_input call to continue recording new branches covered
                 )
              ;
                 fail  %labeling failed...no test input vector was generated, we abandon this subpath
