@@ -308,7 +308,7 @@ make_decision(Condition, Id, Outcome) :-
             (cfg_main__bran_is_already_covered(Branch) ->
                 true    %already covered, we carry on
             ;
-             setval(shortcut_gen_triggered, 'true') ->  %the test vector has already been generated
+             getval(shortcut_gen_triggered, 'true') ->  %the test vector has already been generated
                 super_util__quick_dev_info("Following next new branch in shortcut mode: %w", [Branch])
             ;
                 (%Branch is new: it has never been covered and we are not in a shortcut_gen_triggered subpath
