@@ -217,8 +217,8 @@ symbolic_execute(default_stmt(branch(_Id), Statements), Flow) :-
 symbolic_execute(goto_stmt(Label, Function), Flow) :-
     !,
     se_sub_atts__get(Function, 'body', cmp_stmts(Function_stmts)),
-    search_label_statement(Label, Function_stmts, Labelled_stmts_list),
-    symbolic_execute(Labelled_stmts_list, Flow).    %only partially implemented
+    search_label_statement(Label, Function_stmts, Labelled_stmts_list), %only partially implemented
+    symbolic_execute(Labelled_stmts_list, Flow).    
 symbolic_execute(label_stmt(_Label, Statement), Flow) :- 
     !,
     symbolic_execute(Statement, Flow).
@@ -308,12 +308,18 @@ make_decision(Condition, Id, Outcome) :-
             (cfg_main__bran_is_already_covered(Branch) ->
                 true    %already covered, we carry on
             ;
-                (%Branch is new: it has never been covered
+             setval(shortcut_gen_triggered, 'true') ->  %the test vector has already been generated
+                super_util__quick_dev_info("Following next new branch in shortcut mode: %w", [Branch])
+            ;
+                (%Branch is new: it has never been covered and we are not in a shortcut_gen_triggered subpath
                  se_globals__get_ref('verifier_inputs', Verifier_inputs),
                  (call(label_testcomp(Verifier_inputs, Labeled_inputs)) @ eclipse ->  %"bank": we try to label what we have so far
-                    (%of course, doing that, restrict the possible future because the variables become grounded: it leads to more incomplete test vectors, generated sooner: good when budget is small, but gain is non-existant on long run time
-                    super_util__quick_dev_info("Following new branch: %w", [Branch]),
-                    setval(shortcut_gen_triggered, 'true') %and we continue until end of path or next __VERIFIER_input call to continue recording new branches covered
+                    (%of course, doing that, restrict the possible future because the variables become grounded: it leads to more incomplete test vectors
+                     se_globals__get_val('path_nb', Previous_test_nb),
+                     Test_nb is Previous_test_nb + 1,   %but we do not set this new value: it will be done when the next verifier is encountered and the full subpath is recorded
+                     print_test_inputs_testcomp(Labeled_inputs, Test_nb),  %we generate the partial test vector early, to ensure completeness, the full subpath later is done at the next verifier encounter                    
+                     super_util__quick_dev_info("Following first new branch in shortcut mode: %w", [Branch]),
+                     setval(shortcut_gen_triggered, 'true') %and we continue until end of path or next __VERIFIER_input call to continue recording new branches covered
                     )
                  ;
                     fail  %labeling failed...no test input vector was generated, we abandon this subpath
@@ -329,22 +335,22 @@ make_decision(Condition, Id, Outcome) :-
 search_label_statement(Label, Stmts, Labelled_stmts_list) :-
     mytrace,
     find_label(Stmts, Label, Labelled_stmts_list),
-    !,  %compiler ensures only one possible
+    !,  %C rule ensures only one possible
     (Labelled_stmts_list = [] ->
-        common_util__error(9, "Labeled statement not found", "gotos to non-outer statement that are not if statements are unhandled", [('Label', Label)], '10_221025_1', 'se_symbolically_execute', 'search_label_statement', no_localisation, no_extra_info)
+        common_util__error(9, "Labeled statement not found", "gotos to non-outer statement, that are not if statements, are unhandled", [('Label', Label)], '09_221025_1', 'se_symbolically_execute', 'search_label_statement', no_localisation, no_extra_info)
     ;
         true
     ).
     %%%
     find_label(All_stmts, Label, Labelled_stmts_list) :-
-        ((is_list(All_stmts), append(_, [label_stmt(Label, Stmt)|Rest], All_stmts)) ->
+        ((is_list(All_stmts), append(_, [label_stmt(Label, Stmt)|Rest], All_stmts)) ->  %the label is an outer statement: easy
             Labelled_stmts_list = [label_stmt(Label, Stmt)|Rest]   %simple case: matches outer labeled statement
         ;
             find_label_compound(All_stmts, Label, Labelled_stmts_list)
         ).
-    find_label_compound([], _, _) :-
+    find_label_compound([], _, _) :-    
         fail.
-    find_label_compound([Statement|Rest], Label, Labelled_stmts_list) :-
+    find_label_compound([Statement|Rest], Label, Labelled_stmts_list) :-    %a list of statements
         !,
         (find_label_compound(Statement, Label, Inner_labelled_stmts_list) ->
             append(Inner_labelled_stmts_list, Rest, Labelled_stmts_list)    %we found the labeled statement
@@ -356,17 +362,15 @@ search_label_statement(Label, Stmts, Labelled_stmts_list) :-
         find_label(Stmts, Label, Labelled_stmts_list).
     find_label_compound(if_stmt(_, True_statements), Label, Labelled_stmts_list) :-
         !,
-        find_label_compound(if_stmt(_, True_statements, []), Label, Labelled_stmts_list).
+        find_label(True_statements, Label, Labelled_stmts_list).
     find_label_compound(if_stmt(_, True_statements, False_statements), Label, Labelled_stmts_list) :-
         !,
-        (find_label(True_statements, Label, Labelled_stmts_list)
-        ;
-         find_label(False_statements, Label, Labelled_stmts_list)
+        (   find_label(True_statements, Label, Labelled_stmts_list)
+        ;%deliberate choice point
+            find_label(False_statements, Label, Labelled_stmts_list)
         ),
         !.
     find_label_compound(_, _Label, _Labelled_stmts_list) :-   %default for non compound statements e.g. assign, function call etc. 
-        !,
+        !,  %will also fail for non handled statements: while loop, switch etc.
         fail.
-
-    
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

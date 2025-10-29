@@ -108,7 +108,7 @@ se_main(ArgsL) :-
             setval('execution_mode', 'local'),    %i.e. C run time (as opposed to compile time), tackling locals when implicit initialisation to 0 does not occur
             %%%
             (se_globals__get_val('EdgeCount', 0) -> 
-                print_test_inputs_testcomp([])      %silly edge case: no branches at all; we still print an empty test input vector to keep Testcov happy
+                print_test_inputs_testcomp([], 0)      %silly edge case: no branches at all; we still print a single empty test input vector to keep Testcov happy
             ;
                 %%% where it all happens
                 search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)
@@ -236,9 +236,9 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
              (timeout(label_testcomp(Verifier_inputs, Labeled_inputs), Current_single_test_time_out, fail) ->    %timeout added to avoid very long / impossible labelling
                 %display_successful_test_stats(_Last_test_duration, _Current_session_time),
                 reset_timer,
-                record_path_coverage,
-                printf('output', "Dev Info: Incomplete test vector\n", []),
-                print_test_inputs_testcomp(Labeled_inputs)     %banking a partial answer as allowed by testcomp                
+                record_path_coverage(Test_nb),
+                printf('output', "Dev Info: Was an incomplete test vector\n", []),
+                print_test_inputs_testcomp(Labeled_inputs, Test_nb)     %banking a partial answer as allowed by testcomp                
              ;
                 printf('output', "Dev Info: Labelling failed after time out.\n", [])    %labeling failed...no test input vector could be generated
              )
@@ -302,10 +302,10 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %always succeeds (even when labeling fails)
     end_of_path_predicate(SEAV_Inputs, Parsed_prolog_code) :-
-        (getval(shortcut_gen_triggered, 'true') ->  %we are in shortcut generation mode, so we do not create new verifier inputs
-            (setval(shortcut_gen_triggered, 'false'),  %reset for next time
+        (getval(shortcut_gen_triggered, 'true') ->  %we are in shortcut generation mode
+            (setval(shortcut_gen_triggered, 'false'),   %reset for next time
              reset_timer,
-             record_path_coverage
+             record_path_coverage(_Test_nb)            %partial path recorded, but the test vector has already been generated
             )
         ;
             (cfg_main__bran_newly_covered(_Overall_covered, Newly_covered),
@@ -318,11 +318,11 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
                      mytrace,
                      (label_testcomp(Verifier_inputs, Labeled_inputs) ->
                         (reset_timer,
-                         record_path_coverage,
+                         record_path_coverage(Test_nb),
                         %%%
                         %common_util__error(1, "End of path", 'no_error_consequences', [('Path Nb', Inc_test_nb), ('Newly_covered', Newly_covered), ('Current_path', Current_path)], '0_190824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info),
                          (Output_mode == 'testcomp' ->
-                            print_test_inputs_testcomp(Labeled_inputs)   %but don't print expected outputs
+                            print_test_inputs_testcomp(Labeled_inputs, Test_nb)   %but don't print expected outputs
                          ;
                             (print_test_inputs(SEAV_Inputs),
                              se_globals__pop_scope_stack,    %only after labeling and printed to preserve parameters
@@ -375,19 +375,23 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
             Last_test_duration is Current_session_time - Current_start_time,
             printf('output', "\nDev Info: Test generated in %.2f seconds; overall elapsed time is %.2f seconds\n", [Last_test_duration, Current_session_time]).
         %%%
-        record_path_coverage :-
+        record_path_coverage(Test_nb) :-
             %mytrace,
-            se_globals__get_val('path_nb', Test_nb),
-            Inc_test_nb is Test_nb + 1,
-            %(Inc_test_nb == 9 -> mytrace ; true),
-            se_globals__set_val('path_nb', Inc_test_nb),
+            se_globals__get_val('path_nb', Latest_test_nb),
+            Test_nb is Latest_test_nb + 1,
+            se_globals__set_val('path_nb', Test_nb),
             cfg_main__bran_newly_covered(Overall_covered, Newly_covered),
-            (se_globals__get_val('debug_mode', 'debug') -> print_branches_list(Newly_covered) ; true),
+            (se_globals__get_val('debug_mode', 'debug') -> 
+                printf('output', "Dev Info: New branches covered: ", []), 
+                print_branches_list(Newly_covered) 
+            ; 
+                true
+            ),
             length(Newly_covered, Nb_new),
             se_globals__set_val('covered_bran', Overall_covered),
             se_globals__get_val('EdgeCount', EdgeCount),
             (EdgeCount == 0 -> Coverage_delta = 100.0 ; Coverage_delta is (Nb_new / EdgeCount) * 100),
-            printf('output', "Dev Info: Covered  %d new branches increasing coverage by %.2f%%\n", [Nb_new, Coverage_delta]),
+            printf('output', "Dev Info: Test %d covers %d new branches increasing coverage by %.2f%%\n", [Test_nb, Nb_new, Coverage_delta]),
             flush('output').
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 initialise_ptc_solver :-

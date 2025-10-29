@@ -149,8 +149,3 @@ cfg_main__bran_newly_covered(Overall_covered, Newly_covered) :-
     se_globals__get_val('covered_bran', Already_covered),   %always sorted
     ordset:ord_union(Already_covered, Current_path_sorted, Overall_covered, Newly_covered).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-cfg_main__arcs_remaining :-
-    %get overall arcs: cannot do this until we build CFG
-    %se_globals__get_val('covered_bran', _Already_covered).
-    fail.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

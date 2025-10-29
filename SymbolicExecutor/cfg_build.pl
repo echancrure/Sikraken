@@ -105,10 +105,6 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls, Jumps) :-
     cover(function(_Specifiers, ptr_decl(pointer, function(_Function_name, _Parameters)), [], _Compound_statement), 'carry_on') :-
         !,
         common_util__error(0, "Warning in cover: check pointer to function", 'no_error_consequences', [], '0_060825_1', 'cfg_build', 'cover', no_localisation, no_extra_info).
-    cover(label_stmt(_Label, _Stmt), 'carry_on') :-
-        !,
-        common_util__error(0, "Warning in cover: todo label_stmt", 'no_error_consequences', [], '0_060825_3', 'cfg_build', 'cover', no_localisation, no_extra_info).
-    %symbolic_execute(Stmt, Flow).
     cover(cmp_stmts(Stmts), Flow) :-
         !,
         cover(Stmts, Flow).
@@ -222,7 +218,7 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls, Jumps) :-
             )
         ).
     cover(do_while_stmt(Statements, branch(Id, Condition)), Flow) :-
-        !, mytrace,
+        !, %mytrace,
         cover(Statements, Intermediate_flow), 
         (Intermediate_flow == 'break' ->
             Flow = 'carry_on'          %the break is consumed here and the loop is exited
@@ -250,7 +246,7 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls, Jumps) :-
         ).
     cover(switch_stmt(branch(Id, Expression), Statements), Flow) :-
         !,
-        mytrace,
+        %mytrace,
         cover_exp(Expression),
         create_branch_to(Id),
         (Statements = cmp_stmts(Case_statements) -> 
@@ -269,13 +265,11 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls, Jumps) :-
     cover(default_stmt(branch(Id), Statement), Flow) :- %within switch statements only
         !,
         cover(case_stmt(branch(Id, _Expression), Statement), Flow). %same coverage handling as for case statements
-    cover(goto_stmt(_Label, _Function_name), 'carry_on') :-
+    cover(goto_stmt(Label, Function), Flow) :- 
         !,
-        common_util__error(0, "Warning in cover: todo goto_stmt", 'no_error_consequences', [], '0_060825_2', 'cfg_build', 'cover', no_localisation, no_extra_info).
-    %mytrace,
-    %se_sub_atts__get(Function, 'body', cmp_stmts(Stmts)),
-    %search_label_statement(Label, Stmts, Stmt_list),
-    %symbolic_execute(Stmt_list, Flow).
+        se_sub_atts__get(Function, 'body', cmp_stmts(Function_stmts)),
+        search_label_statement(Label, Function_stmts, Labelled_stmts_list), %only partially implemented
+        cover(Labelled_stmts_list, Flow).           %continue the coverage at the matching label
     cover(label_stmt(_Label, Statement), Flow) :- 
         !,
         cover(Statement, Flow).

@@ -15,7 +15,6 @@ mytrace.            %call this to start debugging
 :- local reference('verifier_inputs', []).      %for testcomp: the chronogical list of verifier variables created in the form [verif(Type, Input)|...] 
 
 :- setval('debug_mode', 'debug').   %needed in case we need to write out an error message before globals are initiatilised... 
-:- dynamic covered_bran/1, path_nb/1.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 super_util__quick_dev_info(Message, Arguments) :-
     se_globals__get_val('debug_mode', Debug_mode),
@@ -40,7 +39,6 @@ se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode,
     seed(1970),                                 %set for repeatable random behaviour between runs, 1970 is the default seed
     %random(My_seed), seed(My_seed), super_util__quick_dev_info("Random Seed: %w", My_seed),
     setval('to_cover', []),                     %list of branches remaining to cover
-    setval('test_driver_test_nb', 0),
     setval('abandoned_path_nb', 0),	            %counts the number of timed out and unsuccessful labeling tests
     setval('install_dir', Install_dir),         %the install dir of the generator executable
     setval('target_source_file_name_no_ext', Target_source_file_name_no_ext),   %the name of target source file without extension

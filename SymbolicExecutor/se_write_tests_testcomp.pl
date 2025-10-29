@@ -57,8 +57,7 @@ print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext)
         local_time_string(T, "%c", Date_time).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %create a new test input vector in foo.xml file
-print_test_inputs_testcomp(Labeled_inputs) :-
-    se_globals__get_val('path_nb', Test_nb),
+print_test_inputs_testcomp(Labeled_inputs, Test_nb) :-
     concat_atom(['test_input-', Test_nb, '.xml'], Input_vector_filename),
     open(Input_vector_filename, 'write', 'test_input_stream'),
     printf('test_input_stream', "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n", []),
