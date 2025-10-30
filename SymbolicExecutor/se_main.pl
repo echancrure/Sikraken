@@ -199,6 +199,10 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
              setval(nb_try_solution, Post_try_solution_number)
             )
         ).
+        %%%
+        %used to bring control back to the catch within search_CFG_inner/? predicate above
+        handle_single_test_time_out_exception :-
+            fail. %the current "try" fails and a restart from the top is triggerred 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %tries to generate at most nb_tries of test input vectors using backtracking
 %always fails by design
@@ -214,7 +218,7 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
     %%%where it all happens
     catch(find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code), Any_exception, find_one_path_exception_handler(Any_exception)),
     %%%
-    getval(try_counter, I),
+    getval(try_counter, I), %all this should only be done in regression mode
     I1 is I + 1,
     setval(try_counter, I1),
     (I1 == Nb_tries ->
@@ -224,37 +228,14 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
     ),
     !,  
     fail.       %I know this is ugly: but this will only be reached during regression testing when the number of tries has been reached
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    handle_single_test_time_out_event :-
-        %mytrace,
-        printf('output', "Dev Info: Time out triggered.\n", []),
-        (cfg_main__bran_newly_covered(_Overall_covered, []) ->
-            printf('output', "Dev Info: Nothing new in the current subpath.\n", [])    
-        ;
-            (se_globals__get_ref('verifier_inputs', Verifier_inputs),
-             se_globals__get_val('single_test_time_out', Current_single_test_time_out),
-             (timeout(label_testcomp(Verifier_inputs, Labeled_inputs), Current_single_test_time_out, fail) ->    %timeout added to avoid very long / impossible labelling
-                %display_successful_test_stats(_Last_test_duration, _Current_session_time),
-                reset_timer,
-                record_path_coverage(Test_nb),
-                printf('output', "Dev Info: Was an incomplete test vector\n", []),
-                print_test_inputs_testcomp(Labeled_inputs, Test_nb)     %banking a partial answer as allowed by testcomp                
-             ;
-                printf('output', "Dev Info: Labelling failed after time out.\n", [])    %labeling failed...no test input vector could be generated
-             )
-            )
-        ),
-        throw('single_test_time_out_exception').
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    handle_single_test_time_out_exception :-
-        fail. %to make sure the not in search_CFG_inner succeeds and a restart from the top is triggerred 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%
     find_one_path_exception_handler(Exception) :-
         (Exception == 'abort' ->    %covers ECLiPSe exceptions: language/constraints violations and explicit calls to abort in Sikraken error messages
             ((get_stream(error, X), get_stream(null, X)) -> %error stream has already been set to null
                 true
             ;   
-                (common_util__error(9, "Caught ECLiPSe abort", "", [], '9_281024_1', 'se_main', 'se_main', no_localisation, no_extra_info)
+                (common_util__error(9, "Caught ECLiPSe abort", "", [], '9_281024_1', 'se_main', 'se_main', no_localisation, no_extra_info),
+                 fail
                  %,set_stream(error, null)   %can be set to avoid thousands additional identical error messages from ECLiPSe
                  %as this handler succeeds, the catch for find_one_path will succeed and count as a try, and hopefully backtrack out of the error and find another subpath, if not it will eventually reach the max number of tries or timeout
                 )
@@ -262,6 +243,37 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
         ;
             throw(Exception)    %rethrow...
         ).    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %this may be triggered at any time asynchronously during a "try" search
+    handle_single_test_time_out_event :-
+        mytrace,
+        printf('output', "\nDev Info: Time out triggered.\n", []),
+        throw('single_test_time_out_exception'),    %debug
+        (cfg_main__bran_newly_covered(_Overall_covered, []) ->
+            printf('output', "Dev Info: Nothing new in the current subpath.\n", []),
+            throw('single_test_time_out_exception') %will fail the current try and bring control back within search_CFG_inner/? and a restart
+        ;
+            (se_globals__get_ref('verifier_inputs', Verifier_inputs),
+             se_globals__get_val('single_test_time_out', Current_single_test_time_out),
+             (timeout(label_testcomp(Verifier_inputs, Labeled_inputs), Current_single_test_time_out, fail) ->    %timeout added to avoid very long / impossible labelling
+                printf('output', "Dev Info: This is an incomplete test vector\n", []),
+                se_globals__get_ref('current_path_bran', Current_path_with_calls),
+                printf('output', "Dev Info: current Path: ", []), 
+                print_branches_list(Current_path_with_calls),
+                record_path_coverage(Test_nb),
+                print_test_inputs_testcomp(Labeled_inputs, Test_nb),     %banking a partial answer test vector as may be allowed    
+                %reset_timer,
+                throw('single_test_time_out_exception')    %debug
+                %the handler succeeds: execution continues where the timeout was triggered: the subpath continues to be explored
+                %this may lead to may testvectors with the same prefix which should be filtered out to reduce the number of tests without reducing the amount of coverage achieved
+             ;
+                printf('output', "Dev Info: Labelling failed after time out.\n", []),  %no test input vector could be generated
+                %should fail where the timeout was triggered: we are following a subpath that is 'infeasible' (or at least we cannot generate tests for e.g. because of non-linearity) 
+                %perhaps, but for now just fail the entire try
+                throw('single_test_time_out_exception')
+             )
+            )
+        ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
     (Output_mode == 'testcomp' ->   %in the spirit of C we do not check Main: we accept any version (including argc/argv) 
@@ -315,7 +327,7 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
                 (se_globals__get_val('output_mode', Output_mode),
                  (Output_mode = 'testcomp' ->
                     (se_globals__get_ref('verifier_inputs', Verifier_inputs),
-                     mytrace,
+                     %mytrace,
                      (label_testcomp(Verifier_inputs, Labeled_inputs) ->
                         (reset_timer,
                          record_path_coverage(Test_nb),

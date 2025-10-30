@@ -251,22 +251,8 @@ symbolic_execute(Expression, 'carry_on') :- %assuming that there is no return in
         se_typedef_atts__create(Typedef_ptr_opt, Typedef_name),
         declare_typedefs(R, Type_name).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-traverse(Condition, Arc, Statements, Flow) :-
-    ptc_solver__sdl(Condition),
-    se_globals__update_ref('current_path_bran', Arc),
-    symbolic_execute(Statements, Flow).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-force(Condition, Id, Truth, Statements, Flow) :-
-    (Truth == 'true' ->
-        symbolically_interpret(Condition, symb(_, 1))
-    ;
-        symbolically_interpret(Condition, symb(_, 0))
-    ),
-    se_globals__update_ref('current_path_bran', bran(Id, Truth)),
-    symbolic_execute(Statements, Flow).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 make_decision(Condition, Id, Outcome) :-
-    %mytrace,
+    
     %different approach possible here: forcing or not see diary 23/09/25
     symbolically_interpret(Condition, symb(_, Cond_Symbolic)),  %leaves choice points behind because decisions are made there too (not pure delay)
     %will need redone if we want to guide the search (Cf. Mika? with combinations generated?)
@@ -298,6 +284,7 @@ make_decision(Condition, Id, Outcome) :-
             )
         )
     ),
+    %(Id == 5, Outcome == 'true' -> cancel_after_event('single_test_time_out_event', _), mytrace ; true),
     Branch = bran(Id, Outcome),
     %mytrace,
     (ghost(Id, _, Outcome) ->   %performance hit
@@ -333,7 +320,7 @@ make_decision(Condition, Id, Outcome) :-
     ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 search_label_statement(Label, Stmts, Labelled_stmts_list) :-
-    mytrace,
+    %mytrace,
     find_label(Stmts, Label, Labelled_stmts_list),
     !,  %C rule ensures only one possible
     (Labelled_stmts_list = [] ->
