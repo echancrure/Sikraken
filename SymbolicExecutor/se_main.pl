@@ -229,12 +229,7 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
     statistics(event_time, Start_time),
     setval(start_time, Start_time),
     %%%where it all happens
-    %catch(
-        find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code), 
-    %      Any_exception, 
-    %      find_one_path_exception_handler(Any_exception)
-    %     ),
-    %%%
+    find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code), 
     (getval(algo, time_budget) ->
         fail        %will generate more solutions by backtracking
     ;
@@ -249,12 +244,6 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
     ),
     !,  
     fail.       %I know this is ugly: but this will only be reached during regression testing when the number of tries has been reached
-    %%%
-    %find_one_path_exception_handler(Exception) :-
-    %    (
-    %    ;
-    %        throw(Exception)    %rethrow everything else...
-    %    ).    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %this may be triggered at any time asynchronously during a "try" search
     handle_single_test_time_out_event :-
