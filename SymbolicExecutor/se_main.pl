@@ -84,7 +84,7 @@ se_main(ArgsL) :-
     ),         
     se_globals__set_val('single_test_time_out', First_time_out),  
 
-    %very approximative: based on wall clock, ok for single threaded
+    %very approximative: based on wall clock, okish for single threaded
     %see Joachim's email
     set_event_handler('overall_generation_time_out', handle_overall_time_out_event/0),
     event_after('overall_generation_time_out', Budget), %might not be raised or processed if budget is smaller than long processes such as read_parsed_file
@@ -116,38 +116,25 @@ se_main(ArgsL) :-
             print_test_run_log   %only run once
         ),
         Any_exception,
-        handle_exception(Any_exception)
+        handle_outer_exception(Any_exception)
     ).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_overall_time_out_event :-
         cancel_after_event('single_test_time_out_event', _), %to ensure none are left and triggered later on especially in development mode
-        throw('outatime').
+        throw(outatime).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    handle_exception(Exception) :-
-        (Exception == 'outatime' ->
+    handle_outer_exception(Exception) :-
+        (Exception == outatime ->
             (easter_egg,
              print_test_run_log
             )
         ;
-            (Exception == 'global_trail_overflow' ->
-                (get_flag('max_global_trail', Max),
-                 MB is (Max div 1024) div 1024,
-                 common_util__error(10, "!!!Global/Trail stack overflow during search caught", "Review symbolic execution and/or increase initial ECLiPSe stack using -g", [('Curent Max global/trail stack in MB is', MB)], '10_260924_1', 'se_main', 'se_main', no_localisation, no_extra_info)
-                )
-            ;
-             Exception == 'local_control_overflow ' ->
-                (get_flag('max_local_control', Max),
-                 MB is (Max div 1024) div 1024,
-                 common_util__error(10, "!!!Local/Control stack overflow during search caught", "Review symbolic execution and/or increase initial ECLiPSe stack using -l", [('Curent Max local/control stack in MB is', MB)], '10_051024_1', 'se_main', 'se_main', no_localisation, no_extra_info)
-                )
-            ;
-             Exception == 'abort' ->
-                (print_test_run_log,
-                 throw('abort')
-                )
-            ; 
-                common_util__error(10, "Unknown exception caught", "Review, investigate and catch it better next time", [('Exception', Exception)], '10_260924_2', 'se_main', 'se_main', no_localisation, no_extra_info)
+         Exception == abort ->
+            (print_test_run_log,
+             throw(abort)   %will abort 
             )
+        ; 
+            common_util__error(10, "Unknown exception caught", "Review, investigate and catch it better next time", [('Exception', Exception)], '10_260924_2', 'se_main', 'se_main', no_localisation, no_extra_info)
         ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
@@ -167,7 +154,10 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
         setval(nb_try_solution, Initial_try_solution_number),
         setval(shortcut_gen_triggered, 'false'),
         not(
-            (catch(try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)), 'single_test_time_out_exception', handle_single_test_time_out_exception) -> 
+            (catch(try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)), 
+                   Any_exception, 
+                   handle_inner_exception(Any_exception)
+                  ) -> 
                 (%should logically never happen
                  common_util__error(10, "try_nb_path_budget SUCCESS: something is seriously wrong", "Big bug", [], '10_240924_1', 'se_main', 'search_CFG_inner', no_localisation, no_extra_info), 
                  fail
@@ -178,6 +168,7 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
                 )
             )
         ),
+        %a restart from the top is triggered
         se_globals__get_val('path_nb', Post_try_solution_number),
         getval(nb_try_solution, Pre_try_solution_number),
         Number_of_new_solutions is Post_try_solution_number - Pre_try_solution_number,
@@ -201,8 +192,30 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
         ).
         %%%
         %used to bring control back to the catch within search_CFG_inner/? predicate above
-        handle_single_test_time_out_exception :-
-            fail. %the current "try" fails and a restart from the top is triggerred 
+        handle_inner_exception(Exception) :-
+            (Exception == outatime ->   %global out of time
+                throw(outatime)
+            ;
+             Exception == 'global_trail_overflow' ->
+                (get_flag('max_global_trail', Max),
+                 MB is (Max div 1024) div 1024,
+                 common_util__error(9, "Global/Trail stack overflow during search caught", "Review symbolic execution and/or increase initial ECLiPSe stack using -g", [('Curent Max global/trail stack in MB is', MB)], '9_260924_1', 'se_main', 'se_main', no_localisation, no_extra_info),
+                 fail %will trigger restart: current search is abandoned because it is too deep, stack will be reclaimed, a fresh path is started 
+                )
+            ;
+             Exception == 'local_control_overflow ' ->
+                (get_flag('max_local_control', Max),
+                 MB is (Max div 1024) div 1024,
+                 common_util__error(9, "!!!Local/Control stack overflow during search caught", "Review symbolic execution and/or increase initial ECLiPSe stack using -l", [('Curent Max local/control stack in MB is', MB)], '9_051024_1', 'se_main', 'se_main', no_localisation, no_extra_info),
+                 fail %will trigger restart: current search is abandoned because it is too deep, stack will be reclaimed, a fresh path is started 
+                )
+            ; 
+             Exception == 'abort' ->    %covers ECLiPSe exceptions: language/constraints violations and explicit calls to abort in Sikraken error messages
+                common_util__error(9, "Caught ECLiPSe abort", "", [], '9_281024_1', 'se_main', 'se_main', no_localisation, no_extra_info),
+                fail
+            ;
+                fail %anything else: the current "try" fails and a restart from the top is triggerred 
+            ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %tries to generate at most nb_tries of test input vectors using backtracking
 %always fails by design
@@ -216,33 +229,32 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
     statistics(event_time, Start_time),
     setval(start_time, Start_time),
     %%%where it all happens
-    catch(find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code), Any_exception, find_one_path_exception_handler(Any_exception)),
+    %catch(
+        find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code), 
+    %      Any_exception, 
+    %      find_one_path_exception_handler(Any_exception)
+    %     ),
     %%%
-    getval(try_counter, I), %all this should only be done in regression mode
-    I1 is I + 1,
-    setval(try_counter, I1),
-    (I1 == Nb_tries ->
-        true    %target number of test inputs generated 
+    (getval(algo, time_budget) ->
+        fail        %will generate more solutions by backtracking
     ;
-        fail    %will generate more solutions by backtracking through find_one_path (and eventually symbolic_execution)
+        getval(try_counter, I), %all this should only be done in regression mode
+        I1 is I + 1,
+        setval(try_counter, I1),
+        (I1 == Nb_tries ->
+            true    %target number of test inputs generated 
+        ;
+            fail    %will generate more solutions by backtracking through find_one_path (and eventually symbolic_execution)
+        )
     ),
     !,  
     fail.       %I know this is ugly: but this will only be reached during regression testing when the number of tries has been reached
     %%%
-    find_one_path_exception_handler(Exception) :-
-        (Exception == 'abort' ->    %covers ECLiPSe exceptions: language/constraints violations and explicit calls to abort in Sikraken error messages
-            ((get_stream(error, X), get_stream(null, X)) -> %error stream has already been set to null
-                true
-            ;   
-                (common_util__error(9, "Caught ECLiPSe abort", "", [], '9_281024_1', 'se_main', 'se_main', no_localisation, no_extra_info),
-                 fail
-                 %,set_stream(error, null)   %can be set to avoid thousands additional identical error messages from ECLiPSe
-                 %as this handler succeeds, the catch for find_one_path will succeed and count as a try, and hopefully backtrack out of the error and find another subpath, if not it will eventually reach the max number of tries or timeout
-                )
-            )
-        ;
-            throw(Exception)    %rethrow...
-        ).    
+    %find_one_path_exception_handler(Exception) :-
+    %    (
+    %    ;
+    %        throw(Exception)    %rethrow everything else...
+    %    ).    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %this may be triggered at any time asynchronously during a "try" search
     handle_single_test_time_out_event :-
