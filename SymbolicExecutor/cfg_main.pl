@@ -74,7 +74,7 @@ cfg_main__build_cfg(Parsed_prolog_code) :-
         printf(output, "CFG list of Edges: %w\n", [Edges]),
         printf(output, "CFG list of function calls: %w\n", [FunctionCalls]),
         printf(output, "CFG list of jumps: %w\n", [Jumps]),
-        flush(output),
+        flush(output) /*,
         ArrayNodes =.. ['[]'|Nodes],    %trick to transform a list into a Prolog array
         append(Edges, FunctionCalls, AllEdges),
         make_graph_symbolic(ArrayNodes, AllEdges, Graph),   %including function calls as edges
@@ -86,7 +86,7 @@ cfg_main__build_cfg(Parsed_prolog_code) :-
         ;
             (EdgeCount < 20 -> Format = dot ; Format = neato),  %use slow but better looking dot for small graphs only
              write_graph(Graph, Graph_file, png, [edge_attrs_generator : edge_label_attrs, layout:Format])
-        )
+        )*/
     ;
         true
     ).
