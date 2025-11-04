@@ -33,7 +33,7 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
             (se_name_atts__get(Function, 'name', Function_name),
                 (is_verifier_input_function(Function_name, Type) -> %a Test-Comp input call
                     (getval('shortcut_gen_triggered', 'true') ->  %we are in shortcut generation mode, so we do not create new verifier inputs
-                        end_of_path_predicate(_, _),
+                        end_of_path_predicate,
                         fail    %to trigger backtracking
                     ;
                         (ptc_solver__create_variable(Type, Input_var),
@@ -49,7 +49,7 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
                      %common_util__error(0, "Exit Called:", 'no_error_consequences', [('Exit_code', Exit_code)], '0_170824_1', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info),
                      %mytrace,
                      Symbolic_expression = symb(void, Function_name),  %unused, just for symmetry
-                     (end_of_path_predicate(_, _) ->  % try to label and generate a test input vector
+                     (end_of_path_predicate ->  % try to label and generate a test input vector
                         fail   %labeling may have succeeded, a test vector was maybe generated, and new arcs were perhaps added to covered
                      ;   
                         fail    %should never occur

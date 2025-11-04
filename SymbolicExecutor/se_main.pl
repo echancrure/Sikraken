@@ -120,7 +120,7 @@ se_main(ArgsL) :-
     ).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_overall_time_out_event :-
-        cancel_after_event('single_test_time_out_event', _), %to ensure none are left and triggered later on especially in development mode
+        cancel_after_event('single_test_time_out_event', _), %to ensure none are left and triggered later on, especially in development mode
         throw(outatime).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_outer_exception(Exception) :-
@@ -156,7 +156,7 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
         not(
             (catch(try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)), 
                    Any_exception, 
-                   handle_inner_exception(Any_exception)
+                   handle_try_nb_path_budget_exception(Any_exception)
                   ) -> 
                 (%should logically never happen
                  common_util__error(10, "try_nb_path_budget SUCCESS: something is seriously wrong", "Big bug", [], '10_240924_1', 'se_main', 'search_CFG_inner', no_localisation, no_extra_info), 
@@ -192,8 +192,11 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
         ).
         %%%
         %used to bring control back to the catch within search_CFG_inner/? predicate above
-        handle_inner_exception(Exception) :-
-            (Exception == outatime ->   %global out of time
+        handle_try_nb_path_budget_exception(Exception) :-
+            (Exception == single_test_time_out_exception ->
+                fail                    %single path exploration fails : triggers a restart
+            ;
+             Exception == outatime ->   %global out of time
                 throw(outatime)
             ;
              Exception == 'global_trail_overflow' ->
@@ -214,7 +217,7 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
                 common_util__error(9, "Caught ECLiPSe abort", "", [], '9_281024_1', 'se_main', 'se_main', no_localisation, no_extra_info),
                 fail
             ;
-                fail %anything else: the current "try" fails and a restart from the top is triggerred 
+                fail    %anything else: the current "try" fails and a restart from the top is triggerred 
             ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %tries to generate at most nb_tries of test input vectors using backtracking
@@ -246,58 +249,45 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
     fail.       %I know this is ugly: but this will only be reached during regression testing when the number of tries has been reached
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %this may be triggered at any time asynchronously during a "try" search
-    handle_single_test_time_out_event :-
+    handle_single_test_time_out_event :-       %single path exploration time is up
         mytrace,
-        printf('output', "\nDev Info: Time out triggered.\n", []),
-        throw('single_test_time_out_exception'),    %debug
-        (cfg_main__bran_newly_covered(_Overall_covered, []) ->
-            printf('output', "Dev Info: Nothing new in the current subpath.\n", []),
-            throw('single_test_time_out_exception') %will fail the current try and bring control back within search_CFG_inner/? and a restart
+        printf(output, "\nDev Info: Time out triggered.\n", []),
+        cfg_main__bran_newly_covered(_Overall_covered, Newly_covered),
+        (Newly_covered == [] ->
+            printf(output, "Dev Info: time out handler: Nothing new in the current subpath.\n", []),
+            throw(single_test_time_out_exception)       %will trigger a restart
         ;
             (se_globals__get_ref('verifier_inputs', Verifier_inputs),
              se_globals__get_val('single_test_time_out', Current_single_test_time_out),
              (timeout(label_testcomp(Verifier_inputs, Labeled_inputs), Current_single_test_time_out, fail) ->    %timeout added to avoid very long / impossible labelling
-                printf('output', "Dev Info: This is an incomplete test vector\n", []),
+                printf('output', "Dev Info: time out handler: This is an incomplete test vector\n", []),
+                display_successful_test_stats(_Last_test_duration, _Current_session_time),
                 se_globals__get_ref('current_path_bran', Current_path_with_calls),
-                printf('output', "Dev Info: current Path: ", []), 
+                printf('output', "Dev Info: time out handler: current Path: ", []), 
                 print_branches_list(Current_path_with_calls),
-                record_path_coverage(Test_nb),
-                print_test_inputs_testcomp(Labeled_inputs, Test_nb),     %banking a partial answer test vector as may be allowed    
-                %reset_timer,
-                throw('single_test_time_out_exception')    %debug
+                record_path_coverage(Test_nb),                  %but could cover more up to the next verifier call...
+                print_test_inputs_testcomp(Labeled_inputs, Test_nb)     %banking a partial answer test vector as may be allowed    
+                %reset_timer(Last_test_duration, Current_session_time), %and carry on with true
+                %throw('single_test_time_out_exception')    %debug
                 %the handler succeeds: execution continues where the timeout was triggered: the subpath continues to be explored
                 %this may lead to may testvectors with the same prefix which should be filtered out to reduce the number of tests without reducing the amount of coverage achieved
              ;
-                printf('output', "Dev Info: Labelling failed after time out.\n", []),  %no test input vector could be generated
+                printf('output', "Dev Info: time out handler: Labelling failed after time out.\n", []),  %no test input vector could be generated
                 %should fail where the timeout was triggered: we are following a subpath that is 'infeasible' (or at least we cannot generate tests for e.g. because of non-linearity) 
                 %perhaps, but for now just fail the entire try
-                throw('single_test_time_out_exception')
+                throw(single_test_time_out_exception)
              )
             )
-        ).
+        ),
+        throw('single_test_time_out_exception').    %debug
+        
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
-    (Output_mode == 'testcomp' ->   %in the spirit of C we do not check Main: we accept any version (including argc/argv) 
-        (se_sub_atts__get(Main, 'body', Main_compound_statement),   
-         se_globals__update_ref('current_path_bran', start('Main', true)),
-         symbolic_execute(Main_compound_statement, _Flow)
-        )
-    ;
-        (%ignore this alternative for now: not testcomp
-         %always symbolically execute void main(void) for now: should be a switch allowing the main to be ignored via a switch if desired
-         se_sub_atts__get(Main, 'parameters', [unnamed_param([void], [])]),  
-         se_sub_atts__get(Main, 'return_type', void),                        %only handling main with void return type for now
-         se_sub_atts__get(Main, 'body', Main_compound_statement),
-         symbolic_execute(Main_compound_statement, _Flow),         %symbolically execute the target C function: for now only inputs are its arguments (expand to globals that get overwritten with a switch)
-         se_sub_atts__get(Target_subprogram_var, 'return_type', _Return_type),
-         se_sub_atts__get(Target_subprogram_var, 'parameters', Params),
-         se_globals__push_scope_stack,       %create function parameter scope
-         declare_params(Params, SEAV_Inputs),
-         se_sub_atts__get(Target_subprogram_var, 'body', Compound_statement),
-         symbolic_execute(Compound_statement, _Flow)
-        )
-    ),
-    end_of_path_predicate(SEAV_Inputs, Parsed_prolog_code).
+find_one_path(_Output_mode, Main, _Target_subprogram_var, _Parsed_prolog_code) :-
+    %in the spirit of C we do not check Main: we accept any version (including argc/argv) 
+    se_sub_atts__get(Main, 'body', Main_compound_statement),   
+    se_globals__update_ref('current_path_bran', start('Main', true)),
+    symbolic_execute(Main_compound_statement, _Flow),
+    end_of_path_predicate.
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     capitalize_first_letter(Input, Output) :-
         atom_string(Input, Input_string),
@@ -313,54 +303,57 @@ find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
         string_chars(Output_string, [UpperFirstChar|RestChars]),
         atom_string(Output, Output_string).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %always succeeds (even when labeling fails)
-    end_of_path_predicate(SEAV_Inputs, Parsed_prolog_code) :-
+    end_of_path_predicate :-
         (getval(shortcut_gen_triggered, 'true') ->  %we are in shortcut generation mode
             (setval(shortcut_gen_triggered, 'false'),   %reset for next time
-             reset_timer,
+             statistics(event_time, Current_session_time),
+             reset_timer(Current_session_time),
              record_path_coverage(_Test_nb)            %partial path recorded, but the test vector has already been generated
             )
         ;
             (cfg_main__bran_newly_covered(_Overall_covered, Newly_covered),
-             (Newly_covered == [] -> %no need to label: saves labelling run and test execution time
-                true %common_util__error(1, "End of path: no new branches", 'no_error_consequences', [], '0_210824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info)
+             (Newly_covered == [] ->
+                printf(output, "Dev Info: Nothing new: backtrack, timer is still running.\n", []),
+                true %will fail above in try_nb_path_budget/...
             ;
-                (se_globals__get_val('output_mode', Output_mode),
-                 (Output_mode = 'testcomp' ->
-                    (se_globals__get_ref('verifier_inputs', Verifier_inputs),
+                (cancel_after_event(single_test_time_out_event, _CancelledEvents),  %stop timer: reach the end and something new is in the path
+                 (se_globals__get_val(output_mode, testcomp)->
+                    (se_globals__get_ref(verifier_inputs, Verifier_inputs),
+                     se_globals__get_val(single_test_time_out, Current_single_test_time_out),
                      %mytrace,
-                     (label_testcomp(Verifier_inputs, Labeled_inputs) ->
-                        (reset_timer,
+                     (%timeout added to labeling avoid very long / impossible labelling
+                      %this is done while the timer is cancelled: very wastful to interrupt labeling while it is running
+                      timeout(label_testcomp(Verifier_inputs, Labeled_inputs), Current_single_test_time_out, fail) ->   
+                        (display_successful_test_stats(Last_test_duration, Current_session_time),
                          record_path_coverage(Test_nb),
-                        %%%
-                        %common_util__error(1, "End of path", 'no_error_consequences', [('Path Nb', Inc_test_nb), ('Newly_covered', Newly_covered), ('Current_path', Current_path)], '0_190824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info),
-                         (Output_mode == 'testcomp' ->
-                            print_test_inputs_testcomp(Labeled_inputs, Test_nb)   %but don't print expected outputs
-                         ;
-                            (print_test_inputs(SEAV_Inputs),
-                             se_globals__pop_scope_stack,    %only after labeling and printed to preserve parameters
-                             term_variables(Parsed_prolog_code, All_Ids),
-                             get_all_outputs(All_Ids, All_seavs),
-                             print_test_outputs(All_seavs),    
-                             flush(user_output)
-                            )
-                         )
+                         %common_util__error(1, "End of path", 'no_error_consequences', [('Path Nb', Inc_test_nb), ('Newly_covered', Newly_covered), ('Current_path', Current_path)], '0_190824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info),
+                         print_test_inputs_testcomp(Labeled_inputs, Test_nb),   %but don't print predicted outputs
+                         reset_timer(Last_test_duration, Current_session_time)    %timer restarts, possibly on reduced time
                         )
                      ;
-                        printf('output', "Dev Info: Labelling failed.\n", [])    %labeling failed (perhaps floating points could not be labeled or there was no solution to integer non-linear constraints, who knows), we succeed to count it as a valid attempt
+                        statistics(event_time, Current_session_time),
+                        getval(start_time, Current_start_time),
+                        Last_test_duration is Current_session_time - Current_start_time,
+                        printf('output', "Dev Info: Labelling failed or timed out.\n", []),    %labeling failed (perhaps floating points could not be labeled or there was no solution to integer non-linear constraints, who knows), we succeed to count it as a valid attempt
+                        se_globals__get_val(single_test_time_out, Current_single_test_time_out),
+                        Remaining_time is Current_single_test_time_out - Last_test_duration,
+                        (Remaining_time > 0 ->
+                            event_after(single_test_time_out_event, Remaining_time) %timer is restarted with remaining time, will backtrack
+                        ;
+                            throw(single_test_time_out_exception) %time is up and labeling failed: no hope
+                        )
                      )
                     )
                  ;
-                    common_util__error(10, "Unexpected output mode", "Only testcomp format is supported for now", [('Output_mode', Output_mode)], '10_100924_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info)
+                    common_util__error(10, "Unexpected output mode", "Only testcomp format is supported for now", [], '10_100924_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info)
                  )
                 )
              )
             )
         ).
         %%%
-        reset_timer :-
-            cancel_after_event('single_test_time_out_event', _CancelledEvents), 
-            display_successful_test_stats(Last_test_duration, Current_session_time),
+        reset_timer(Last_test_duration, Current_session_time) :-
+            cancel_after_event(single_test_time_out_event, _CancelledEvents), 
             %mytrace,
             (getval('algo', 'time_budget') ->
                 (se_globals__get_val('Min_time_out', Min_time_out), %seconds whatever is close but above the overheads
