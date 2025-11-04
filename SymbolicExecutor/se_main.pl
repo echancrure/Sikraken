@@ -142,14 +142,14 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
     getval('nb_restarts', Restarts),
     (for(Restart_counter, 1, Restarts), loop_name('restart'), param(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)
         do (
-            printf('output', "\nDev Info: Restart number %w\n", [Restart_counter]),
+            super_util__quick_dev_info("\nDev Info: Restart number %w\n", [Restart_counter]),
             search_CFG_inner(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)
         )
     ).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     search_CFG_inner(_Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
         se_globals__get_val('single_test_time_out', Current_single_test_time_out),
-        printf('output', "Dev Info: Time budget for a single test is %.2f seconds\n", [Current_single_test_time_out]),
+        super_util__quick_dev_info("Dev Info: Time budget for a single test is %.2f seconds\n", [Current_single_test_time_out]),
         se_globals__get_val('path_nb', Initial_try_solution_number),
         setval(nb_try_solution, Initial_try_solution_number),
         setval(shortcut_gen_triggered, 'false'),
@@ -180,7 +180,7 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
                  New_single_test_time_out is min(Current_single_test_time_out*Increase_duration_multiplier, Max_time_out), %but there is a maximum 
                  se_globals__set_val('single_test_time_out', New_single_test_time_out),   %todo should depend on global budget remaining
                  statistics(event_time, Current_session_time),
-                 printf('output', "Dev Info: Restart single test budget changed to: %.2f seconds; overall elapsed time is %.2f seconds\n", [New_single_test_time_out, Current_session_time])
+                 super_util__quick_dev_info("Dev Info: Restart single test budget changed to: %.2f seconds; overall elapsed time is %.2f seconds\n", [New_single_test_time_out, Current_session_time])
                 )
             ;
                 true
@@ -251,35 +251,34 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
     %this may be triggered at any time asynchronously during a "try" search
     handle_single_test_time_out_event :-       %single path exploration time is up
         mytrace,
-        printf(output, "\nDev Info: Time out triggered.\n", []),
+        super_util__quick_dev_info("\nDev Info: Time out triggered.\n", []),
         cfg_main__bran_newly_covered(_Overall_covered, Newly_covered),
         (Newly_covered == [] ->
-            printf(output, "Dev Info: time out handler: Nothing new in the current subpath.\n", []),
+            super_util__quick_dev_info("Dev Info: time out handler: Nothing new in the current subpath.\n", []),
             throw(single_test_time_out_exception)       %will trigger a restart
         ;
             (se_globals__get_ref('verifier_inputs', Verifier_inputs),
              se_globals__get_val('single_test_time_out', Current_single_test_time_out),
              (timeout(label_testcomp(Verifier_inputs, Labeled_inputs), Current_single_test_time_out, fail) ->    %timeout added to avoid very long / impossible labelling
-                printf('output', "Dev Info: time out handler: This is an incomplete test vector\n", []),
-                display_successful_test_stats(_Last_test_duration, _Current_session_time),
+                super_util__quick_dev_info("Dev Info: time out handler: This is an incomplete test vector\n", []),
+                display_successful_test_stats(Last_test_duration, Current_session_time),
                 se_globals__get_ref('current_path_bran', Current_path_with_calls),
-                printf('output', "Dev Info: time out handler: current Path: ", []), 
+                super_util__quick_dev_info("Dev Info: time out handler: current Path: ", []), 
                 print_branches_list(Current_path_with_calls),
                 record_path_coverage(Test_nb),                  %but could cover more up to the next verifier call...
-                print_test_inputs_testcomp(Labeled_inputs, Test_nb)     %banking a partial answer test vector as may be allowed    
-                %reset_timer(Last_test_duration, Current_session_time), %and carry on with true
+                print_test_inputs_testcomp(Labeled_inputs, Test_nb),     %banking a partial answer test vector as may be allowed    
+                reset_timer(Last_test_duration, Current_session_time) %and carry on with true
                 %throw('single_test_time_out_exception')    %debug
                 %the handler succeeds: execution continues where the timeout was triggered: the subpath continues to be explored
                 %this may lead to may testvectors with the same prefix which should be filtered out to reduce the number of tests without reducing the amount of coverage achieved
              ;
-                printf('output', "Dev Info: time out handler: Labelling failed after time out.\n", []),  %no test input vector could be generated
+                super_util__quick_dev_info("Dev Info: time out handler: Labelling failed after time out.\n", []),  %no test input vector could be generated
                 %should fail where the timeout was triggered: we are following a subpath that is 'infeasible' (or at least we cannot generate tests for e.g. because of non-linearity) 
                 %perhaps, but for now just fail the entire try
                 throw(single_test_time_out_exception)
              )
             )
-        ),
-        throw('single_test_time_out_exception').    %debug
+        ).    
         
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 find_one_path(_Output_mode, Main, _Target_subprogram_var, _Parsed_prolog_code) :-
@@ -313,7 +312,7 @@ find_one_path(_Output_mode, Main, _Target_subprogram_var, _Parsed_prolog_code) :
         ;
             (cfg_main__bran_newly_covered(_Overall_covered, Newly_covered),
              (Newly_covered == [] ->
-                printf(output, "Dev Info: Nothing new: backtrack, timer is still running.\n", []),
+                super_util__quick_dev_info("Dev Info: Nothing new: backtrack, timer is still running.\n", []),
                 true %will fail above in try_nb_path_budget/...
             ;
                 (cancel_after_event(single_test_time_out_event, _CancelledEvents),  %stop timer: reach the end and something new is in the path
@@ -334,7 +333,7 @@ find_one_path(_Output_mode, Main, _Target_subprogram_var, _Parsed_prolog_code) :
                         statistics(event_time, Current_session_time),
                         getval(start_time, Current_start_time),
                         Last_test_duration is Current_session_time - Current_start_time,
-                        printf('output', "Dev Info: Labelling failed or timed out.\n", []),    %labeling failed (perhaps floating points could not be labeled or there was no solution to integer non-linear constraints, who knows), we succeed to count it as a valid attempt
+                        super_util__quick_dev_info("Dev Info: Labelling failed or timed out.\n", []),    %labeling failed (perhaps floating points could not be labeled or there was no solution to integer non-linear constraints, who knows), we succeed to count it as a valid attempt
                         se_globals__get_val(single_test_time_out, Current_single_test_time_out),
                         Remaining_time is Current_single_test_time_out - Last_test_duration,
                         (Remaining_time > 0 ->
@@ -362,7 +361,7 @@ find_one_path(_Output_mode, Main, _Target_subprogram_var, _Parsed_prolog_code) :
                  (Current_single_test_time_out > Min_time_out, Current_single_test_time_out > Margin * Last_test_duration ->  %last test generation was faster by a wide margin: allocated budget is reduced
                     (New_single_test_time_out is max(Margin * Last_test_duration, Min_time_out), %but there is a minimum to reduce overheads
                      se_globals__set_val('single_test_time_out', New_single_test_time_out),
-                     printf('output', "Dev Info: Single test budget changed to: %.2f seconds; overall elapsed time is %.2f seconds\n", [New_single_test_time_out, Current_session_time])
+                     super_util__quick_dev_info("Dev Info: Single test budget changed to: %.2f seconds; overall elapsed time is %.2f seconds\n", [New_single_test_time_out, Current_session_time])
                     )
                  ;
                     New_single_test_time_out = Current_single_test_time_out
@@ -379,7 +378,7 @@ find_one_path(_Output_mode, Main, _Target_subprogram_var, _Parsed_prolog_code) :
             statistics(event_time, Current_session_time),
             getval(start_time, Current_start_time),
             Last_test_duration is Current_session_time - Current_start_time,
-            printf('output', "\nDev Info: Test generated in %.2f seconds; overall elapsed time is %.2f seconds\n", [Last_test_duration, Current_session_time]).
+            super_util__quick_dev_info("\nDev Info: Test generated in %.2f seconds; overall elapsed time is %.2f seconds\n", [Last_test_duration, Current_session_time]).
         %%%
         record_path_coverage(Test_nb) :-
             %mytrace,
@@ -388,7 +387,7 @@ find_one_path(_Output_mode, Main, _Target_subprogram_var, _Parsed_prolog_code) :
             se_globals__set_val('path_nb', Test_nb),
             cfg_main__bran_newly_covered(Overall_covered, Newly_covered),
             (se_globals__get_val('debug_mode', 'debug') -> 
-                printf('output', "Dev Info: New branches covered: ", []), 
+                super_util__quick_dev_info("Dev Info: New branches covered: ", []), 
                 print_branches_list(Newly_covered) 
             ; 
                 true
@@ -397,7 +396,7 @@ find_one_path(_Output_mode, Main, _Target_subprogram_var, _Parsed_prolog_code) :
             se_globals__set_val('covered_bran', Overall_covered),
             se_globals__get_val('EdgeCount', EdgeCount),
             (EdgeCount == 0 -> Coverage_delta = 100.0 ; Coverage_delta is (Nb_new / EdgeCount) * 100),
-            printf('output', "Dev Info: Test %d covers %d new branches increasing coverage by %.2f%%\n", [Test_nb, Nb_new, Coverage_delta]),
+            super_util__quick_dev_info("Dev Info: Test %d covers %d new branches increasing coverage by %.2f%%\n", [Test_nb, Nb_new, Coverage_delta]),
             flush('output').
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 initialise_ptc_solver :-

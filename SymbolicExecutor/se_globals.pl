@@ -20,7 +20,6 @@ super_util__quick_dev_info(Message, Arguments) :-
     (se_globals__get_val(debug_mode, debug) ->
         (printf(output, "Dev Info: ", []),
          printf(output, Message, Arguments),
-         printf(output, "\n", []),
          flush(output)        %systematically flushing ALL debug/development messages is important or they may get displayed in a wrong order when mixed with message from other streams and be out of sync with the ECLiPse tracer
         )
     ;

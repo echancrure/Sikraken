@@ -23,7 +23,7 @@ print_test_run_log__preamble(ArgsL) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 print_test_run_log :-
     statistics(event_time, Current_session_time),
-    printf('output', "Dev Info: Session time is %.2f seconds\n", [Current_session_time]),
+    super_util__quick_dev_info("Dev Info: Session time is %.2f seconds\n", [Current_session_time]),
     %getval('test_run_filename', Test_run_filename),
     %open(Test_run_filename, 'append', Test_run_stream),
     printf(output, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
