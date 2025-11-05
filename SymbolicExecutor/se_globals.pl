@@ -41,11 +41,10 @@ se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode,
     setval('install_dir', Install_dir),         %the install dir of the generator executable
     setval('target_source_file_name_no_ext', Target_source_file_name_no_ext),   %the name of target source file without extension
     setval('testcomp_test_suite_folder', ""),
-    %setval('debug_mode', Debug_mode),           %'debug' or 'release'
-    setval(debug_mode, debug),%override
+    setval('debug_mode', Debug_mode),           %'debug' or 'release'
+    %setval(debug_mode, debug),%override
     setval('output_mode', Output_mode),         %'testcomp' or something else 
     setval('data_model', Data_model),           %'-m32'|'m64'
-    setval('message_mode', Debug_mode),         %debug or release todo: remove, just use debug_mode
     setval('already_printed', []),              %list of already printed error messages : used in release mode only
     setval('EdgeCount', 0),
     setval('AllEdges', []),

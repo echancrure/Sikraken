@@ -46,19 +46,19 @@ common_util__error(Error_severity, Error_message, Error_consequences, ArgumentsL
                %(ErrorNb1 == 34 -> mytrace ; true),
                printf(output, "Error Nb: %w: ", [ErrorNb1]),
                se_globals__set_val('errorMessageNb', ErrorNb1),
-               se_globals__get_val('message_mode', Message_mode),
-               common_util__error2(Error_severity, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode)
+               se_globals__get_val(debug_mode, Debug_mode),
+               common_util__error2(Error_severity, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Debug_mode)
               )
        ).
 
-common_util__error2(10, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode) :-
+common_util__error2(10, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Debug_mode) :-
        !,
        se_globals__get_val('target_source_file_name_no_ext', Target_source_file_name_no_ext),
        printf(output, "%2n######################################################################%n", []),
        printf(output, "=>Sikraken: a fatal error has occurred for %w%n", [Target_source_file_name_no_ext]),
        printf(output, "        Error Code: %w%n", [Error_code]),
        printf(output, "        Message: %s%n", [Error_message]),
-       (Message_mode == debug ->
+       (Debug_mode == debug ->
             ((ArgumentsL == [] ->
                     true
              ;
@@ -106,9 +106,9 @@ common_util__error2(10, Error_message, Error_consequences, ArgumentsL, Error_cod
        flush(output),
        abort. %may be caught and ignored later on
 
-common_util__error2(0, Error_message, Error_consequences, ArgumentsL, _Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode) :-
+common_util__error2(0, Error_message, Error_consequences, ArgumentsL, _Error_code, From_module, From_predicate, Localisation, Extra_info, Debug_mode) :-
     !,
-    (Message_mode == debug ->
+    (MDebug_mode == debug ->
             (printf(output, "Debug_info: %s", [Error_message]),
              (ArgumentsL == no_arguments ->
                     true
@@ -137,8 +137,8 @@ common_util__error2(0, Error_message, Error_consequences, ArgumentsL, _Error_cod
             printf(output, "%s%n", [Error_message])
     ).
 
-common_util__error2(Error_severity, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Message_mode) :-
-    (Message_mode == debug ->
+common_util__error2(Error_severity, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Debug_mode) :-
+    (Debug_mode == debug ->
             (printf(output, "Sikraken warning level %w, %w, %s", [Error_severity, Error_code, Error_message]),
              (ArgumentsL == no_arguments ->
                     true
