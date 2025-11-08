@@ -12,7 +12,7 @@
 #   4. The relative path to the C source file (e.g., ./../SampleCode/atry_bitwise.c or .i)
 #   Optional: -ss STACK_SIZE in GB
 # The script creates the output directory $SIKRAKEN_INSTALL_DIR/sikraken_output/$file_name_no_ext for the generated test inputs and runs the symbolic executor.
-# Usage: ./sikraken.sh <debug|release> budget[<Seconds>]|regression[<Restarts>, <Tries>] <-m32|-m64> <relative_dir>/<file_name.c> [-ss STACK_SIZE]
+# Usage: ./sikraken.sh <debug|release> budget[<Seconds>]|regression[<Restarts>, <Tries>] <-m32|-m64> [-ss STACK_SIZE] <relative_dir>/<file_name.c>
 # Example: ./sikraken.sh debug budget[10] -m32 ./../SampleCode/atry_bitwise.c
 # Example: ./sikraken.sh release regression[5, 10] -m64 ./../SampleCode/atry_bitwise.c
 # Example: ./sikraken.sh -v     (TestComp requirement: output Sikraken version) 
@@ -40,19 +40,10 @@ echo "Sikraken from $0 says: SIKRAKEN_INSTALL_DIR is $SIKRAKEN_INSTALL_DIR"
 # --- Default stack size ---
 stack_size_value="$(( 3 * 953 ))M"  # Default 3 GB roughly 3*953 MiB
 
-# --- Parse optional -ss flag at the end ---
-if [ "$#" -ge 6 ] && [ "$5" == "-ss" ]; then
-    if ! [[ "$6" =~ ^[0-9]+$ ]] || [ "$6" -le 0 ]; then
-        echo "Sikraken ERROR from $0: STACK_SIZE for -ss must be a positive integer (GB)."
-        exit 1
-    fi
-    stack_size_value="$(( $6 * 953 ))M"
-    set -- "${@:1:4}"  # keep only first 4 positional arguments
-fi
-
-# Ensure we have exactly 4 arguments
-if [ $# -ne 4 ]; then
-    echo "Sikraken from $0 says usage (respect the order): $0 <debug|release> budget[<Seconds>]|regression[<Restarts>, <Tries>] <-m32|-m64> <relative_dir>/<file_name.c>"
+# --- Ensure 4 or 6 arguments ---
+if [ $# -ne 4 ] && [ $# -ne 6 ]; then
+    echo "Sikraken from $0 says usage (respect the order):"
+    echo "  $0 <debug|release> budget[<Seconds>]|regression[<Restarts>, <Tries>] <-m32|-m64> [-ss STACK_SIZE] <relative_dir>/<file_name.c>"
     exit 1
 fi
 
@@ -71,7 +62,20 @@ if [ "$data_model" == "-m32" ]; then
         exit 1
 fi
 
-rel_path_c_file="$4"                    #e.g. ./../SampleCode/atry_bitwise.c or .i
+# --- Handle optional -ss STACK_SIZE ---
+if [ "$4" == "-ss" ]; then
+    if [ -z "$5" ] || ! [[ "$5" =~ ^[0-9]+$ ]] || [ "$5" -le 0 ]; then
+        echo "Sikraken ERROR from $0: STACK_SIZE for -ss must be a positive integer (GB)."
+        exit 1
+    fi
+    stack_size_value="$(( $5 * 953 ))M"
+    rel_path_c_file="$6"
+else
+    rel_path_c_file="$4"        #e.g. ./../SampleCode/atry_bitwise.c or .i
+fi
+
+# --- Confirm stack size ---
+echo "Sikraken: using stack size $stack_size_value"              
 
 full_path_c_file="$SIKRAKEN_INSTALL_DIR/$rel_path_c_file"    #e.g. /home/chris/Sikraken/SampleCode/atry_bitwise.c or .i
 
