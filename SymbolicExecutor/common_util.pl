@@ -108,7 +108,7 @@ common_util__error2(10, Error_message, Error_consequences, ArgumentsL, Error_cod
 
 common_util__error2(0, Error_message, Error_consequences, ArgumentsL, _Error_code, From_module, From_predicate, Localisation, Extra_info, Debug_mode) :-
     !,
-    (MDebug_mode == debug ->
+    (Debug_mode == debug ->
             (printf(output, "Debug_info: %s", [Error_message]),
              (ArgumentsL == no_arguments ->
                     true
