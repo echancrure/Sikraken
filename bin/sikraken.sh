@@ -2,80 +2,86 @@
 #
 # Script: sikraken.sh
 # Author: Chris Meudec
-# Date: May 2025
-# Description: This script is a wrapper for Sikraken symbolic execution tool from C code.
-# It preprocesses a C source file using gcc, runs the Sikraken parser, and then calls the symbolic executor.
-# It takes four arguments:          
-#   1. The debug mode (debug or release)
-#   2. The test data generation algorithm (budget or regression)
-#   3. The data model (-m32 or -m64)
-#   4. The relative path to the C source file (e.g., ./../SampleCode/atry_bitwise.c or .i)
-#   Optional: -ss STACK_SIZE in GB
-# The script creates the output directory $SIKRAKEN_INSTALL_DIR/sikraken_output/$file_name_no_ext for the generated test inputs and runs the symbolic executor.
-# Usage: ./sikraken.sh <debug|release> budget[<Seconds>]|regression[<Restarts>, <Tries>] <-m32|-m64> [-ss STACK_SIZE] <relative_dir>/<file_name.c>
-# Example: ./sikraken.sh debug budget[10] -m32 ./../SampleCode/atry_bitwise.c
-# Example: ./sikraken.sh release regression[5, 10] -m64 ./../SampleCode/atry_bitwise.c
-# Example: ./sikraken.sh -v     (TestComp requirement: output Sikraken version) 
-# Dependencies: gcc, eclipse, sikraken_parser.exe
+# Date: Nov 2025
+# Description: Wrapper for Sikraken symbolic execution tool from C code.
+# Usage: ./sikraken.sh [debug|release] [budget[...]|regression[...]] [-m32|-m64] [-ss STACK_SIZE] <relative_dir>/<file_name.c>
+# Defaults: mode=debug, data_model=-m32, stack_size=3G (~2859M)
+# Example: ./sikraken.sh debug budget[10] -m32 -ss 1 ../sv-benchmarks/c/eca-rers2018/Problem17.c
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)" #Get the directory of the script <sikraken_install>/bin
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."
-
 VERSION_FILE="$SIKRAKEN_INSTALL_DIR/bin/version.txt"
-if [ $1 == "-v" ]; then 
+
+# --- Version check ---
+if [ "$1" == "-v" ]; then
     if [[ -f "$VERSION_FILE" ]]; then
-        version=$(head -n 1 "$VERSION_FILE") # Outputs the first line of version.txt
-        echo "$version"
+        head -n 1 "$VERSION_FILE"
         exit 0
     else
         echo "Error: $VERSION_FILE not found."
         exit 1
     fi
 fi
-version=$(head -n 1 "$VERSION_FILE") # Read the first line of version.txt
-echo "$version"
 
+version=$(head -n 1 "$VERSION_FILE" 2>/dev/null)
+echo "$version"
 echo "Sikraken from $0 says: SIKRAKEN_INSTALL_DIR is $SIKRAKEN_INSTALL_DIR"
 
-# --- Default stack size ---
-stack_size_value="$(( 3 * 953 ))M"  # Default 3 GB roughly 3*953 MiB
+# --- Defaults ---
+debug_mode="debug"
+data_model="-m32"
+stack_size_value="$((3 * 953))M"
+algo=""
+rel_path_c_file=""
 
-# --- Ensure 4 or 6 arguments ---
-if [ $# -ne 4 ] && [ $# -ne 6 ]; then
-    echo "Sikraken from $0 says usage (respect the order):"
-    echo "  $0 <debug|release> budget[<Seconds>]|regression[<Restarts>, <Tries>] <-m32|-m64> [-ss STACK_SIZE] <relative_dir>/<file_name.c>"
+# --- Parse all arguments except last ---
+while [[ $# -gt 1 ]]; do
+    case "$1" in
+        debug|release)
+            debug_mode="$1"
+            ;;
+        budget*|regression*)
+            algo="${1//[/\(}"
+            algo="${algo//]/\)}"
+            ;;
+        -m32|-m64)
+            data_model="$1"
+            ;;
+        -ss)
+            shift
+            if [[ -z "$1" || ! "$1" =~ ^[0-9]+$ || "$1" -le 0 ]]; then
+                echo "Sikraken ERROR: STACK_SIZE for -ss must be a positive integer (GB)."
+                exit 1
+            fi
+            stack_size_value="$(( $1 * 953 ))M"
+            ;;
+        *)
+            echo "Sikraken ERROR: Unknown argument: $1"
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+# --- Last argument must be C source path ---
+rel_path_c_file="$1"
+if [[ ! -f "$rel_path_c_file" ]]; then
+    echo "Sikraken ERROR: C source file '$rel_path_c_file' not found."
     exit 1
 fi
 
-debug_mode="$1"
-algo="$2"
-algo=${algo/\[/\(}  # Replace the first occurrence of [ with (
-algo=${algo/\]/\)}  # Replace the first occurrence of ] with )
+# --- Validate data model ---
+case "$data_model" in
+    -m32) testcov_data_model="-32" ;;
+    -m64) testcov_data_model="-64" ;;
+    *) echo "Sikraken ERROR: Unsupported data model: $data_model"; exit 1 ;;
+esac
 
-data_model="$3"                         #e.g. -m32
-if [ "$data_model" == "-m32" ]; then
-        testcov_data_model="-32"
-    elif [ "$data_model" == "-m64" ]; then
-        testcov_data_model="-64"
-    else
-        echo "Sikraken ERROR from $0: Unsupported data model: $data_model"
-        exit 1
-fi
-
-# --- Handle optional -ss STACK_SIZE ---
-if [ "$4" == "-ss" ]; then
-    if [ -z "$5" ] || ! [[ "$5" =~ ^[0-9]+$ ]] || [ "$5" -le 0 ]; then
-        echo "Sikraken ERROR from $0: STACK_SIZE for -ss must be a positive integer (GB)."
-        exit 1
-    fi
-    stack_size_value="$(( $5 * 953 ))M"
-    rel_path_c_file="$6"
-else
-    rel_path_c_file="$4"        #e.g. ./../SampleCode/atry_bitwise.c or .i
-fi
-
-# --- Confirm stack size ---
-echo "Sikraken: using stack size $stack_size_value"              
+echo "Mode: $debug_mode"
+echo "Algorithm: $algo"
+echo "Data model: $data_model"
+echo "Stack size: $stack_size_value"
+echo "C file: $rel_path_c_file"         
 
 full_path_c_file="$SIKRAKEN_INSTALL_DIR/$rel_path_c_file"    #e.g. /home/chris/Sikraken/SampleCode/atry_bitwise.c or .i
 

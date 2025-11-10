@@ -21,6 +21,7 @@ output/
 sikraken_output/
 sikraken_output/
 SymbolicExecutor/try.pl
+*.txt
 *.gcov
 *.zip
 *.log
