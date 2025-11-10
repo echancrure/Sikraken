@@ -1,6 +1,6 @@
-1.1.4
+1.1.5
 **********
-08 November 2025
+10 November 2025
   Minor: allowing ECLiPse global stack to be set from command line in GB
 
 1.1.2

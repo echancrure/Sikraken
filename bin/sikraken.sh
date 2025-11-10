@@ -4,9 +4,9 @@
 # Author: Chris Meudec
 # Date: Nov 2025
 # Description: Wrapper for Sikraken symbolic execution tool from C code.
-# Usage: ./sikraken.sh [debug|release] [budget[...]|regression[...]] [-m32|-m64] [-ss STACK_SIZE] <relative_dir>/<file_name.c>
-# Defaults: mode=debug, data_model=-m32, stack_size=3G (~2859M)
-# Example: ./sikraken.sh debug budget[10] -m32 -ss 1 ../sv-benchmarks/c/eca-rers2018/Problem17.c
+# Usage: ./sikraken.sh [debug|release] [budget[seconds]|regression[restarts,tries]] [-m32|-m64] [-ss STACK_SIZE] <relative_dir>/<file_name.c>
+# Defaults: mode=debug, data_model=-m32, stack_size=3 (i.e. 3GB ~2859MiB)
+# Example: ./sikraken.sh debug budget[1] -ss 1 SampleCode/simple_if.c
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."
