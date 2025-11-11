@@ -4,9 +4,9 @@
 # Author: Chris Meudec
 # Date: Nov 2025
 # Description: Wrapper for Sikraken symbolic execution tool from C code.
-# Usage: ./sikraken.sh [debug|release] [budget[seconds]|regression[restarts,tries]] [-m32|-m64] [-ss STACK_SIZE] <relative_dir>/<file_name.c>
+# Usage: ./sikraken.sh [debug|release] [budget[seconds]|regression[restarts,tries]] [-m32|-m64] [--ss=STACK_SIZE] <relative_dir>/<file_name.c>
 # Defaults: mode=debug, data_model=-m32, stack_size=3 (i.e. 3GB ~2859MiB)
-# Example: ./sikraken.sh debug budget[1] -ss 1 SampleCode/simple_if.c
+# Example: ./sikraken.sh debug budget[1] --ss=1 SampleCode/simple_if.c
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."
@@ -24,8 +24,8 @@ if [ "$1" == "-v" ]; then
 fi
 
 version=$(head -n 1 "$VERSION_FILE" 2>/dev/null)
-echo "$version"
-echo "Sikraken from $0 says: SIKRAKEN_INSTALL_DIR is $SIKRAKEN_INSTALL_DIR"
+echo "Sikraken version: $version"
+echo "Invoked with command: $0 $@"
 
 # --- Defaults ---
 debug_mode="debug"
@@ -47,13 +47,18 @@ while [[ $# -gt 1 ]]; do
         -m32|-m64)
             data_model="$1"
             ;;
-        -ss)
-            shift
-            if [[ -z "$1" || ! "$1" =~ ^[0-9]+$ || "$1" -le 0 ]]; then
-                echo "Sikraken ERROR: STACK_SIZE for -ss must be a positive integer (GB)."
+        --ss=*)
+            # 1. Extract the value after the '=' sign
+            stack_size_gb="${1#*=}"
+            
+            # 2. Validation
+            if [[ -z "$stack_size_gb" || ! "$stack_size_gb" =~ ^[0-9]+$ || "$stack_size_gb" -le 0 ]]; then
+                echo "Sikraken ERROR: STACK_SIZE for --ss must be a positive integer (GB). Value found: $stack_size_gb"
                 exit 1
             fi
-            stack_size_value="$(( $1 * 953 ))M"
+            
+            # 3. Calculate and set the final value in MiB
+            stack_size_value="$(( stack_size_gb * 953 ))M"
             ;;
         *)
             echo "Sikraken ERROR: Unknown argument: $1"
@@ -77,6 +82,7 @@ case "$data_model" in
     *) echo "Sikraken ERROR: Unsupported data model: $data_model"; exit 1 ;;
 esac
 
+echo "SIKRAKEN_INSTALL_DIR: $SIKRAKEN_INSTALL_DIR"
 echo "Mode: $debug_mode"
 echo "Algorithm: $algo"
 echo "Data model: $data_model"
