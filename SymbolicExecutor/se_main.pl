@@ -83,11 +83,10 @@ se_main(ArgsL) :-
         common_util__error(10, "Calling se_main/? with invalid search algo configuration", "Review search algo argument syntax", [('Search_algo', Search_algo)], '10_240926_2', 'se_main', 'se_main', no_localisation, no_extra_info)
     ),         
     se_globals__set_val('single_test_time_out', First_time_out),  
-
-    %very approximative: based on wall clock, okish for single threaded
+    %very approximative timed event: based on wall clock, okish for single threaded
     %see Joachim's email
-    set_event_handler('overall_generation_time_out', handle_overall_time_out_event/0),
-    event_after('overall_generation_time_out', Budget), %might not be raised or processed if budget is smaller than long processes such as read_parsed_file
+    set_event_handler(overall_generation_time_out, handle_overall_time_out_event/0),
+    event_after(overall_generation_time_out, Budget),
     catch(
         (
             print_test_run_log__preamble(ArgsL),
@@ -148,11 +147,12 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
     ).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     search_CFG_inner(_Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
-        se_globals__get_val('single_test_time_out', Current_single_test_time_out),
+        se_globals__get_val(single_test_time_out, Current_single_test_time_out),
         super_util__quick_dev_info("Dev Info: Time budget for a single test is %.2f seconds\n", [Current_single_test_time_out]),
-        se_globals__get_val('path_nb', Initial_try_solution_number),
+        se_globals__get_val(path_nb, Initial_try_solution_number),
         setval(nb_try_solution, Initial_try_solution_number),
-        setval(shortcut_gen_triggered, 'false'),
+        setval(shortcut_gen_triggered, false),
+        setval(time_out_triggered, false),
         not(
             (catch(try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)), 
                    Any_exception, 
@@ -163,13 +163,13 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
                  fail
                 )
             ;
-                (cancel_after_event('single_test_time_out_event', _CancelledEvents),    %to ensure none are left and be triggered later on
+                (cancel_after_event(single_test_time_out_event, _CancelledEvents),    %to ensure none are left and be triggered later on
                  fail   %to make sure the not succeeds...
                 )
             )
         ),
         %a restart from the top is triggered
-        se_globals__get_val('path_nb', Post_try_solution_number),
+        se_globals__get_val(path_nb, Post_try_solution_number),
         getval(nb_try_solution, Pre_try_solution_number),
         Number_of_new_solutions is Post_try_solution_number - Pre_try_solution_number,
         (Number_of_new_solutions == 0 ->    %we tried a path for Current_single_test_time_out amount of time and no tests were generated
@@ -228,7 +228,7 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
     se_globals__get_val('path_nb', Initial_test_number),
     setval(nbSolution, Initial_test_number),
     se_globals__get_val('single_test_time_out', Single_test_time_out),
-    event_after('single_test_time_out_event', Single_test_time_out),
+    event_after(single_test_time_out_event, Single_test_time_out),
     statistics(event_time, Start_time),
     setval(start_time, Start_time),
     %%%where it all happens
@@ -257,16 +257,21 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
             super_util__quick_dev_info("Dev Info: time out handler: Nothing new in the current subpath.\n", []),
             throw(single_test_time_out_exception)       %will trigger a restart
         ;
-            (se_globals__get_ref('verifier_inputs', Verifier_inputs),
-             se_globals__get_val('single_test_time_out', Current_single_test_time_out),
+            (se_globals__get_ref(verifier_inputs, Verifier_inputs),
+             se_globals__get_val(single_test_time_out, Current_single_test_time_out),
              (timeout(label_testcomp(Verifier_inputs, Labeled_inputs), Current_single_test_time_out, fail) ->    %timeout added to avoid very long / impossible labelling
-                super_util__quick_dev_info("Dev Info: time out handler: This is an incomplete test vector\n", []),
-                display_successful_test_stats(Last_test_duration, Current_session_time),
-                se_globals__get_ref('current_path_bran', Current_path_with_calls),
-                super_util__quick_dev_info("Dev Info: time out handler: current Path: ", []), 
-                print_branches_list(Current_path_with_calls),
-                record_path_coverage(Test_nb),                  %but could cover more up to the next verifier call...
-                print_test_inputs_testcomp(Labeled_inputs, Test_nb),     %banking a partial answer test vector as may be allowed    
+                (se_globals__get_val(debug_mode, debug) -> 
+                    super_util__quick_dev_info("Dev Info: time out handler: This is an incomplete test vector\n", []),
+                    display_successful_test_stats(Last_test_duration, Current_session_time),
+                    se_globals__get_ref(current_path_bran, Current_path_with_calls),
+                    super_util__quick_dev_info("Dev Info: time out handler: current Path: ", []), 
+                    print_branches_list(Current_path_with_calls)
+                ;
+                    true
+                ),
+                setval(time_out_triggered, true),
+                %record_path_coverage(Test_nb),                  %but could cover more up to the next verifier call...
+                %print_test_inputs_testcomp(Labeled_inputs, Test_nb),     %banking a partial answer test vector as may be allowed    
                 reset_timer(Last_test_duration, Current_session_time) %and carry on with true
                 %throw('single_test_time_out_exception')    %debug
                 %the handler succeeds: execution continues where the timeout was triggered: the subpath continues to be explored
@@ -278,8 +283,7 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
                 throw(single_test_time_out_exception)
              )
             )
-        ).    
-        
+        ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 find_one_path(_Output_mode, Main, _Target_subprogram_var, _Parsed_prolog_code) :-
     %in the spirit of C we do not check Main: we accept any version (including argc/argv) 
@@ -303,6 +307,7 @@ find_one_path(_Output_mode, Main, _Target_subprogram_var, _Parsed_prolog_code) :
         atom_string(Output, Output_string).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     end_of_path_predicate :-
+        setval(time_out_triggered, false),
         (getval(shortcut_gen_triggered, 'true') ->  %we are in shortcut generation mode
             (setval(shortcut_gen_triggered, 'false'),   %reset for next time
              statistics(event_time, Current_session_time),
@@ -366,7 +371,7 @@ find_one_path(_Output_mode, Main, _Target_subprogram_var, _Parsed_prolog_code) :
                  ;
                     New_single_test_time_out = Current_single_test_time_out
                  ),    
-                 event_after('single_test_time_out_event', New_single_test_time_out)
+                 event_after(single_test_time_out_event, New_single_test_time_out)
                 )
             ;
                 true

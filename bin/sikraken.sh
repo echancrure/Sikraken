@@ -5,8 +5,8 @@
 # Date: Nov 2025
 # Description: Wrapper for Sikraken symbolic execution tool from C code.
 # Usage: ./sikraken.sh [debug|release] [budget[seconds]|regression[restarts,tries]] [-m32|-m64] [--ss=STACK_SIZE] <relative_dir>/<file_name.c>
-# Defaults: mode=debug, data_model=-m32, stack_size=3 (i.e. 3GB ~2859MiB)
-# Example: ./sikraken.sh debug budget[1] --ss=1 SampleCode/simple_if.c
+# Defaults: mode is debug, data_model is -m32, stack_size is 3 (i.e. 3GB ~2859MiB)
+# Example: ./sikraken.sh release budget[1] --ss=1 SampleCode/simple_if.c
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."
