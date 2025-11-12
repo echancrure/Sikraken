@@ -9,7 +9,6 @@ regression_tests/*.zip
 SampleCode/**/
 SampleCode/a.out
 SampleCode/a.out
-SampleCode/*.i
 SampleCode/*.pl
 SampleCode/*.obj
 SampleCode/*.exe
