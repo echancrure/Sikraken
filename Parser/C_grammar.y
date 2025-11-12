@@ -479,7 +479,7 @@ logical_or_expression
 conditional_expression
 	: logical_or_expression
 	| logical_or_expression '?' expression ':' conditional_expression 
-		{size_t const size = strlen("cond_exp(branch(, ), , )") + branch_nb++ + strlen($1) + strlen($3) + strlen($5) + 1;
+		{size_t const size = strlen("cond_exp(branch(, ), , )") + MAX_BRANCH_STR + strlen($1) + strlen($3) + strlen($5) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "cond_exp(branch(%d, %s), %s, %s)", branch_nb++, $1, $3, $5);
 		 free($1);
