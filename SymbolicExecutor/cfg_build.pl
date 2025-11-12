@@ -327,6 +327,7 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls, Jumps) :-
         !.  %a number, a field name, a string, a character constant, a boolean etc.: nothing to do
     cover_exp(function_call(Function, Arguments)) :- 
         !,
+        %mytrace,
         (se_sub_atts__is_sub_atts(Function) ->
             se_name_atts__get(Function, 'name', Function_name),
             se_sub_atts__get(Function, 'body', Body),
@@ -346,7 +347,8 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls, Jumps) :-
                 )
             )
         ;
-            common_util__error(10, "Fatal error in cover_exp/1", "A function call has not been declared as a se_sub_atts in cover_exp: Should never happen", [], '10_071025_3', 'cfg_build', 'cover_exp', no_localisation, no_extra_info)
+            se_name_atts__get(Function, 'name', Function_name),
+            common_util__error(9, "Calling a non-extern function that has not been defined: add an include or declare as extern", "function call ignored for CFG building purposes", [('Function_name', Function_name)], '9_111225_1', 'cfg_build', 'cover_exp', no_localisation, no_extra_info)
         ).
     cover_exp(cond_exp(branch(Id, Condition), True_expression, False_expression)) :-
         !,
