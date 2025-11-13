@@ -957,7 +957,7 @@ direct_declarator
 		 $$.ptr_declarator = $1.ptr_declarator;
 		}
 	| direct_declarator {in_ordinary_id_declaration = 0; if (!typedef_flag) current_scope++; } '(' rest_function_definition ')'
-		{if (typedef_flag) handled_function_paramaters = 666;
+		{if (!typedef_flag) handled_function_paramaters = 666;
 		 in_ordinary_id_declaration = 0;
 		 size_t const size = strlen("function(, )") + strlen($1.full) + strlen($4) + 1;
 	     $$.full = (char*)malloc(size);
@@ -1031,7 +1031,8 @@ parameter_list
 
 parameter_declaration
 	: declaration_specifiers declarator
-		{char *decl_specifier = create_declaration_specifiers();
+		{in_ordinary_id_declaration = 0;
+		 char *decl_specifier = create_declaration_specifiers();
 		 size_t const size = strlen("param(, )") + strlen(decl_specifier) + strlen($2.full) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "param(%s, %s)", decl_specifier, $2.full);
@@ -1040,7 +1041,8 @@ parameter_declaration
 		 free($2.ptr_declarator);
 		}
 	| declaration_specifiers abstract_declarator
-		{char *decl_specifier = create_declaration_specifiers();
+		{in_ordinary_id_declaration = 0;
+		 char *decl_specifier = create_declaration_specifiers();
 		 size_t const size = strlen("unnamed_param(, dummy_abstract_declarator)") + strlen(decl_specifier) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "unnamed_param(%s, dummy_abstract_declarator)", decl_specifier);
@@ -1048,7 +1050,8 @@ parameter_declaration
 		 //free($2);
 		}
 	| declaration_specifiers
-		{char *decl_specifier = create_declaration_specifiers();
+		{in_ordinary_id_declaration = 0;
+		 char *decl_specifier = create_declaration_specifiers();
 		 size_t const size = strlen("unnamed_param(, [])") + strlen(decl_specifier) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "unnamed_param(%s, [])", decl_specifier);
@@ -1405,8 +1408,7 @@ external_declaration		//printed out
 		 free($1);
 		}
 	|  declaration
-		{if (handled_function_paramaters == 666) handled_function_paramaters = 0; 
-		else if(handled_function_paramaters) {
+		{if(handled_function_paramaters == 666) {
 			handled_function_paramaters = 0;
 			pop_scope(&current_scope);
 		 }

@@ -33,7 +33,7 @@ void free_list_node(list_node* node) {
 }
 
 typedef int my_int2;
-int hello0(int my_int2); //function prototype: should not define my_int2 as shadowing the typedef name
+int hello0(int my_int2); //function prototype: should not define my_int2 as shadowing the typedef name just as an IDENTIFIER
 
 int hello0(int my_int3) {
     return 0;

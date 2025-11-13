@@ -55,6 +55,7 @@ void push_scope(int scope_nb) {
 
 //only pop the top scope if its scope number matches the given scope number
 void pop_scope(int *scope_nb) {
+	if (debugMode) {printf("Trying to Pop scope %d when scope_stack scope_nb is %d\n", *scope_nb, scope_stack->scope_nb); fflush(stdout);}
 	if (scope_stack != NULL && scope_stack->scope_nb == *scope_nb) {
 		scope_node* top_scope = scope_stack;
 		scope_stack = scope_stack->below;
@@ -66,8 +67,9 @@ void pop_scope(int *scope_nb) {
 }
 
 void add_typedef_id(int scope, char* id, int is_typedef_name) {
-	if (scope_stack == NULL || scope_stack->scope_nb != scope) {
-		//a new scope is needed because either none exist yet or it is for a new scope
+	if (scope_stack == NULL) push_scope(scope);
+	else if (scope_stack->scope_nb != scope) {//a new scope is needed		
+		if (debugMode) {printf("Creating a new scope in add_typedef_id because current scope is %d but incoming scope is %d\n", scope_stack->scope_nb, scope); fflush(stdout);}
 		push_scope(scope);
 	}
 
@@ -87,7 +89,7 @@ void add_typedef_id(int scope, char* id, int is_typedef_name) {
 //called during lexical analysis: see grammar.l
 int is_typedef_name(char* id) {
 	if (debugMode) {
-		printf("Looking for %s in typedef list\n", id);
+		printf("is_typedef_name: Looking for %s in typedef list\n", id);
 		fflush(stdout);
 		print_scope_stack();
 	}
@@ -96,11 +98,16 @@ int is_typedef_name(char* id) {
 		list_node* current_typedef_node = current_scope->typedef_list;
 		while (current_typedef_node != NULL) {
 			if (current_typedef_node->is_typedef_name && !strcmp(current_typedef_node->name, id)) {	//a matching node representing a typedef_name has been found 
+				if (debugMode) {printf("is_typedef_name: found it\n"); fflush(stdout);}
 				return 1;
 			}
 			current_typedef_node = current_typedef_node->next;
 		}
 		current_scope = current_scope->below;
+	}
+	if (debugMode) {
+		printf("is_typedef_name: not found\n");
+		fflush(stdout);
 	}
 	return 0;
 }
