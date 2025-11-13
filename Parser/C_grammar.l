@@ -125,6 +125,7 @@ WS  [ \t\v\n\f]
 "__float128"            { return(FLOAT128); }   //GCC builtin 128-bit floating-point type
 "_Float128"             { return(FLOAT128); }   //GCC builtin 128-bit floating-point type
 "__builtin_va_list"     { return(VA_LIST); }    //GCC builtin variable argument list type
+"__gnuc_va_list"        { return(VA_LIST); }    //GCC builtin variable argument list type
 "_Alignas"              { return ALIGNAS; }
 "_Alignof"              { return ALIGNOF; }
 "_Atomic"{WS}*"("       { return ATOMIC_SPECIFIER; }
