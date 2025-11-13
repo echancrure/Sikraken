@@ -29,14 +29,14 @@ scope_node* scope_stack = NULL;
 void print_scope_stack() {
 	scope_node* current_scope = scope_stack;
 	if (current_scope == NULL) {
-		if (debugMode) printf("Scope stack is empty\n");
+		if (debugMode) {printf("Scope stack is empty\n"); fflush(stdout);}
 		return;
 	}
 	while (current_scope != NULL) {
-		if (debugMode) printf("Scope %d:\n", current_scope->scope_nb);
+		if (debugMode) {printf("Scope %d:\n", current_scope->scope_nb); fflush(stdout);}
 		list_node* current_typedef_node = current_scope->typedef_list;
 		while (current_typedef_node != NULL) {
-			if (debugMode) printf("\t%s is a %s\n", current_typedef_node->name, (current_typedef_node->is_typedef_name ? "TYPEDEF_NAME" : "shadow IDENTIFIER"));
+			if (debugMode) {printf("\t%s is a %s\n", current_typedef_node->name, (current_typedef_node->is_typedef_name ? "TYPEDEF_NAME" : "shadow IDENTIFIER")); fflush(stdout);}
 			current_typedef_node = current_typedef_node->next;
 		}
 		current_scope = current_scope->below;
@@ -50,7 +50,7 @@ void push_scope(int scope_nb) {
 	if (scope_stack != NULL) new_scope_node->below = scope_stack;
 	else new_scope_node->below = NULL;
 	scope_stack = new_scope_node;
-	if (debugMode) printf("Pushed scope %d\n", scope_nb);
+	if (debugMode) {printf("Pushed scope %d\n", scope_nb); fflush(stdout);}
 }
 
 //only pop the top scope if its scope number matches the given scope number
@@ -60,7 +60,7 @@ void pop_scope(int *scope_nb) {
 		scope_stack = scope_stack->below;
 		free_list_node(top_scope->typedef_list);
 		free(top_scope);
-		if (debugMode) printf("Popped scope %d\n", *scope_nb);
+		if (debugMode) {printf("Popped scope %d\n", *scope_nb); fflush(stdout);}
 	}
 	(*scope_nb)--;
 }
@@ -80,7 +80,7 @@ void add_typedef_id(int scope, char* id, int is_typedef_name) {
 	if (scope_stack->typedef_list != NULL) new_node->next = scope_stack->typedef_list;	//adding the new node to the front of the list
 	else new_node->next = NULL;
 	scope_stack->typedef_list = new_node;
-	if (debugMode) printf("Added %s as a %s to typedef list\n", id, (is_typedef_name ? "TYPEDEF_NAME" : "shadow IDENTIFIER"));
+	if (debugMode) {printf("Added %s as a %s to typedef list\n", id, (is_typedef_name ? "TYPEDEF_NAME" : "shadow IDENTIFIER")); fflush(stdout);}
 }
 
 //look for the id in the scope of list of typedefs
@@ -88,6 +88,7 @@ void add_typedef_id(int scope, char* id, int is_typedef_name) {
 int is_typedef_name(char* id) {
 	if (debugMode) {
 		printf("Looking for %s in typedef list\n", id);
+		fflush(stdout);
 		print_scope_stack();
 	}
 	scope_node* current_scope = scope_stack;
