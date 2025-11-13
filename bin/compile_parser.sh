@@ -38,10 +38,10 @@ if [ $? -ne 0 ]; then
     exit 1
 else
     echo "bison successfully processed C_grammar.y"
-fi
+fi 
 
 # Run the gcc command to compile the generated C code
-gcc -trigraphs "C_grammar.tab.c" -o "$SIKRAKEN_INSTALL_DIR/bin/sikraken_parser.exe"
+gcc -g -O0 -trigraphs "C_grammar.tab.c" -o "$SIKRAKEN_INSTALL_DIR/bin/sikraken_parser.exe"
 
 # Check if the gcc command was successful
 if [ $? -ne 0 ]; then
