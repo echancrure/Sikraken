@@ -65,7 +65,6 @@ int in_member_namespace = 0;	//indicates to the lexer that we are in the member 
 int in_ordinary_id_declaration = 0;
 int in_label_namespace = 0;		//used in lexer
 
-int handled_function_paramaters = 0;
 int current_scope = 0;
 
 char *current_function;			//we keep track of the function being parsed so that we can add it to goto statements
@@ -612,7 +611,7 @@ init_declarator
 	  	}
 	| declarator	// at the global level always add the empty initialiser: initializer([]) to trigger initialisation to 0, otherwise add 'no_initializer'
 		{if (typedef_flag == 1) {	// we are parsing a typedef declaration
-			add_typedef_id(current_scope, $1.ptr_declarator, 1);	//the id as a TYPEDEF_NAME is added to the data structures keeping track of typedef_names and ids shadowing
+			add_typedef_id(current_scope, $1.ptr_declarator, 1);	//the id as a TYPEDEF_NAME is added to the data structures keeping track of typedef_names (and ids shadowing)
 	   	 }
 		 free($1.ptr_declarator);
 		 simple_str_copy(&$$, $1.full);
@@ -956,8 +955,8 @@ direct_declarator
 		 free($3);
 		 $$.ptr_declarator = $1.ptr_declarator;
 		}
-	| direct_declarator {in_ordinary_id_declaration = 0; if (!typedef_flag) current_scope++; } '(' rest_function_definition ')'
-		{if (!typedef_flag) handled_function_paramaters = 666;
+	| direct_declarator {in_ordinary_id_declaration = 0; current_scope++; } '(' rest_function_definition ')'
+		{pop_scope(&current_scope);
 		 in_ordinary_id_declaration = 0;
 		 size_t const size = strlen("function(, )") + strlen($1.full) + strlen($4) + 1;
 	     $$.full = (char*)malloc(size);
@@ -1402,16 +1401,11 @@ translation_unit 			//printed out
 
 external_declaration		//printed out
 	: function_definition
-		{handled_function_paramaters = 0;
-		 pop_scope(&current_scope);
-		 fprintf(pl_file, "%s", $1); 
+		{fprintf(pl_file, "%s", $1); 
 		 free($1);
 		}
 	|  declaration
-		{if(handled_function_paramaters == 666) {
-			handled_function_paramaters = 0;
-			pop_scope(&current_scope);
-		 }
+		{
 		 fprintf(pl_file, "%s", $1); 
 		 free($1);
 		}
