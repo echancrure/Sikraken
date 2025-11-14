@@ -102,14 +102,16 @@ if [[ ! -f "$rel_path_c_file" ]]; then
 fi
 
 # -------------------------------------------------------------
-# --- FIX: SPECIAL CASE OVERRIDE LOGIC ---
+# --- SPECIAL CASE OVERRIDE LOGIC ---
 # -------------------------------------------------------------
 if [ "$testcomp_flag" -eq 1 ]; then
     echo -e "${YL}Sikraken WARNING: --testcomp option detected. Overwriting settings for TestComp run.${NC}"
-    debug_mode="release"
-    algo="budget(950)"
-    # 12 GiB for stack size (12 * 1024 MiB)
-    stack_size_value="$((12 * 1024))M"
+    debug_mode="debug"                  # for pre-runs to get all the debug messages
+    algo="budget(800)"                  # for pre-runs to get the full stats at the end of Sikraken run 
+    stack_size_value="$((2 * 1024))M"   # for pre-runs so as not to hit the limit of 3 GB
+    #debug_mode="release"               # for Test-Comp final-run : less time wasted writing out messages
+    #algo="budget(1000)"                # for Test-Comp final-run : to use up all the time available
+    #stack_size_value="$((12 * 1024))M" # for Test-Comp final-run : high enough GB to be of benefit, but below competition threshold of 15 GB to ensure Sikraken does not get killed
 fi
 # -------------------------------------------------------------
 
