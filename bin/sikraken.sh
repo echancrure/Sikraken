@@ -8,6 +8,9 @@
 # Defaults: mode is debug, data_model is -m32, stack_size is 3 (i.e. 3GB ~2859MiB)
 # Example: ./sikraken.sh release budget[1] --ss=1 SampleCode/simple_if.c
 
+# REFACTORING
+# should provide detailed command line syntax on --help and on syntax failure  
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."
 VERSION_FILE="$SIKRAKEN_INSTALL_DIR/bin/version.txt"
