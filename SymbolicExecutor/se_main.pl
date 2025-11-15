@@ -119,25 +119,26 @@ se_main(ArgsL) :-
     ).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_overall_time_out_event :-
-        cancel_after_event('single_test_time_out_event', _), %to ensure none are left and triggered later on, especially in development mode
+        cancel_after_event(single_test_time_out_event, _), %to ensure none are left and triggered later on, especially in development mode
         throw(outatime).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_outer_exception(Exception) :-
         (Exception == outatime ->
-            (easter_egg,
-             print_test_run_log
-            )
+            easter_egg,
+            print_test_run_log
         ;
          Exception == abort ->
-            (print_test_run_log,
-             throw(abort)   %will abort 
-            )
+            print_test_run_log,
+            throw(abort)   %will abort
         ; 
+         Exception == my_abort ->
+            throw(abort)   %will abort
+        ;    
             common_util__error(10, "Unknown exception caught", "Review, investigate and catch it better next time", [('Exception', Exception)], '10_260924_2', 'se_main', 'se_main', no_localisation, no_extra_info)
         ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
-    set_event_handler('single_test_time_out_event', handle_single_test_time_out_event/0),
+    set_event_handler(single_test_time_out_event, handle_single_test_time_out_event/0),
     getval('nb_restarts', Restarts),
     (for(Restart_counter, 1, Restarts), loop_name('restart'), param(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)
         do (
@@ -213,10 +214,15 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
                  fail %will trigger restart: current search is abandoned because it is too deep, stack will be reclaimed, a fresh path is started 
                 )
             ; 
-             Exception == 'abort' ->    %covers ECLiPSe exceptions: language/constraints violations and explicit calls to abort in Sikraken error messages
+             Exception == 'abort' ->        %covers ECLiPSe exceptions: language/constraints violations
                 common_util__error(9, "Caught ECLiPSe abort", "", [], '9_281024_1', 'se_main', 'se_main', no_localisation, no_extra_info),
                 fail
             ;
+             Exception == my_abort ->       %explicit calls to abort in Sikraken error messages
+                common_util__error(9, "Caught Sikraken abort", "", [], '9_151125_2', 'se_main', 'se_main', no_localisation, no_extra_info),
+                throw(abort)
+            ;
+                common_util__error(9, "Caught unknown exception", "", [('Exception', Exception)], '9_151125_1', 'se_main', 'se_main', no_localisation, no_extra_info),
                 fail    %anything else: the current "try" fails and a restart from the top is triggerred 
             ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

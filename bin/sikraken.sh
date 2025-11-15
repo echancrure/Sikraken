@@ -53,7 +53,7 @@ fi
 version=$(head -n 1 "$VERSION_FILE" 2>/dev/null)
 echo "Sikraken version: $version"
 echo "Invoked with command: $0 $@"
-
+testcomp_flag=0
 # --- Parse all arguments except last ---
 while [[ $# -gt 1 ]]; do
     case "$1" in

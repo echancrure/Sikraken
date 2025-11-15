@@ -104,7 +104,7 @@ common_util__error2(10, Error_message, Error_consequences, ArgumentsL, Error_cod
        printf(output, "######################################################################%n", []),
        print_test_run_log @ eclipse,
        flush(output),
-       abort. %may be caught and ignored later on
+       throw(my_abort). %to distinguish from general, ECLiPse generated, abort
 
 common_util__error2(0, Error_message, Error_consequences, ArgumentsL, _Error_code, From_module, From_predicate, Localisation, Extra_info, Debug_mode) :-
     !,
