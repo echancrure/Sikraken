@@ -80,8 +80,8 @@ int hello2(table tt) { //table is the typedef
 
 int main() {
     int table = 0; //table is a variable, not a typedef name
-    table t;  //gcc error: conflict as table represent a var and a typedef in the same scope and the same namespace
+    //table t;  //gcc error: conflict as table represent a var and a typedef in the same scope and the same namespace [although the programmer's intent is clear and our parser can handle this]
     int x = 6 + table; //causes parser error because shadowing is not implemented
     table : a = sizeof(table); //1st table is a label, not a typedef name, 2nd table is a TYPDEFNAME
-    //return table; //causes parser error because shadowing is not implemented
+    return table; //causes parser error because shadowing is not implemented
 }

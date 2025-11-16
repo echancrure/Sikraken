@@ -13,7 +13,7 @@
 # Usage: ./call_parser.sh <relative_dir>/<file_name.c> [gcc_flag] [-d]
 # Example: ./call_parser.sh ./../SampleCode atry_bitwise.c -m64
 
-# TO REFACTOR: this is very rigid (fixed order) and non standard linux CLI
+# TO REFACTOR: this is very rigid (fixed order) and non standard linux CLI and also different to sikraken.sh
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)" #Get the directory of the script <sikraken_install>/bin
 SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."

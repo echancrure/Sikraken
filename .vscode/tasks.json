@@ -46,6 +46,7 @@
             "command": "${workspaceFolder}/bin/call_parser.sh",
             "args": [
                 "${relativeFile}"
+                "${input:debugFlag}"
             ],
             "group": {
                 "kind": "build"
@@ -174,6 +175,13 @@
             "type": "promptString",
             "description": "Enter algorithm (e.g. budget[10], budget[30], regression[1,10])",
             "default": "budget[10]"
+        },
+        {
+            "id": "debugFlag",
+            "type": "pickString",
+            "description": "Enable debug mode?",
+            "options": ["", "-d"],
+            "default": ""
         }
     ]
 }

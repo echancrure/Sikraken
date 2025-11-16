@@ -602,7 +602,7 @@ init_declarator_list
 	;
 
 init_declarator
-	: declarator '=' initializer
+	: declarator '=' initializer	//{in_ordinary_id_declaration = 0;} should be insert before = ?
 		{size_t const size = strlen("initialised(, )") + strlen($1.full) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
 	   	 sprintf_safe($$, size, "initialised(%s, %s)", $1.full, $3);
@@ -756,9 +756,13 @@ specifier_qualifier_list
 	;
 
 struct_declarator_list
-	: {in_member_namespace = 1;} struct_declarator {$$= $2; in_member_namespace = 1;}
-	| struct_declarator_list ',' struct_declarator {in_member_namespace = 1;}
-		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
+	: {in_member_namespace = 1;} struct_declarator 
+		{in_member_namespace = 1;
+		 $$= $2; 
+		}
+	| struct_declarator_list ',' struct_declarator
+		{in_member_namespace = 1; 
+		 size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
          sprintf_safe($$, size, "%s, %s", $1, $3);
 	   	 free($1);
