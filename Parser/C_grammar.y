@@ -38,8 +38,8 @@ int debugMode = 0;					//flag to indicate if we are in debug mode set by -d comm
 #include <stdbool.h>
 #include "parser.h"
 #include "utils.c"
-#include "handle_typedefs.c"
-#include "handle_decl_specs.c"
+#include "handle_typedefs.c"		//stack to keep track of typedef declared and shadowing by identifiers
+#include "handle_decl_specs.c"		//
 
 extern int yylex();
 extern int yylineno;
@@ -659,14 +659,29 @@ type_specifier
 	| VA_LIST				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "va_list");}		//gcc extension: builtin type
 
 struct_or_union_specifier
-	: struct_or_union '{' {in_tag_declaration = 0;} struct_declaration_list '}'		//anonymous struct or union
+	: struct_or_union '{' {in_tag_declaration = 0;} '}'		//anonymous EMPTY struct or union (GNU extension)
+		{size_t const size = strlen("('anonymous', [])") + strlen($1) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_safe($$, size, "%s('anonymous', [])", $1);
+	     free($1);
+	    }
+	| struct_or_union '{' {in_tag_declaration = 0;} struct_declaration_list '}'		//anonymous struct or union
 		{size_t const size = strlen("('anonymous', [])") + strlen($1) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "%s('anonymous', [%s])", $1, $4);
 	     free($1);
 	     free($4);
 	    }
-	| struct_or_union IDENTIFIER {in_tag_declaration = 0;} '{' struct_declaration_list '}'	//Tag namespace Id declaration
+	| struct_or_union IDENTIFIER  '{' {in_tag_declaration = 0;} '}'	//Tag namespace Id declaration (EMPTY, GNU extension)
+		{char *tag_to_Prolog_var = to_prolog_var($2);
+		 size_t const size = strlen("(, [])") + strlen($1) + strlen(tag_to_Prolog_var) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_safe($$, size, "%s(%s, [])", $1, tag_to_Prolog_var);
+	     free($1);
+	     free($2);
+		 free(tag_to_Prolog_var);
+	    }
+	| struct_or_union IDENTIFIER '{' {in_tag_declaration = 0;} struct_declaration_list '}'	//Tag namespace Id declaration
 		{char *tag_to_Prolog_var = to_prolog_var($2);
 		 size_t const size = strlen("(, [])") + strlen($1) + strlen(tag_to_Prolog_var) + strlen($5) + 1;
 	     $$ = (char*)malloc(size);

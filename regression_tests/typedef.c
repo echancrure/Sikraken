@@ -1,6 +1,6 @@
 //15 Nov 2025
-//struct lock_class_key {
-//};
+struct lock_class_key { //valid: GCC and (Clang?) allow empty struct_declaration_list but C11 does not (C++ does...)
+};
 extern void abort(void);
 
 extern void __assert_fail (const char *__assertion, const char *__file,
