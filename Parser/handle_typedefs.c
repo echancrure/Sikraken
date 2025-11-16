@@ -55,7 +55,11 @@ void push_scope(int scope_nb) {
 
 //only pop the top scope if its scope number matches the given scope number
 void pop_scope(int *scope_nb) {
-	if (debugMode) {printf("Trying to Pop scope %d when scope_stack scope_nb is %d\n", *scope_nb, scope_stack->scope_nb); fflush(stdout);}
+	if (debugMode) { 
+		if (scope_stack == NULL) printf("Trying to Pop scope %d on empty scope_stack\n", *scope_nb);
+		else printf("Trying to Pop scope %d when scope_stack scope_nb is %d\n", *scope_nb, scope_stack->scope_nb); 
+		fflush(stdout);
+	}
 	if (scope_stack != NULL && scope_stack->scope_nb == *scope_nb) {
 		scope_node* top_scope = scope_stack;
 		scope_stack = scope_stack->below;
@@ -85,7 +89,7 @@ void add_typedef_id(int scope, char* id, int is_typedef_name) {
 	if (debugMode) {printf("Added %s as a %s to typedef list\n", id, (is_typedef_name ? "TYPEDEF_NAME" : "shadow IDENTIFIER")); fflush(stdout);}
 }
 
-//look for the id in the scope of list of typedefs
+//look for the id in the entire stack of scope of list of typedefs
 //called during lexical analysis: see grammar.l
 int is_typedef_name(char* id) {
 	if (debugMode) {

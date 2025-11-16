@@ -47,22 +47,21 @@ extern int yylineno;
 extern FILE *yyin;
 extern char *yytext;
 
-#define MAX_PATH 256
 #define MAX_BRANCH_STR 9		//maximum length of the string encoding the number of branches (max is "999999999" i.e. 1 billion - 1)
 
 int dataModel = 32;				//flag to indicate data model used in the C code under analysis; set by -m32 or -m64 on the command line; default is 32
 long int TARGET_LONG_MAX = 2147483647L; //the default LONG_MAX for the code under test if dataModel = 32
 FILE* pl_file;					//the file of containing the Prolog predicated after parsing the target C file
-char i_file_uri[MAX_PATH];
+char *i_file_uri;
 FILE *i_file;
-char pl_file_uri[MAX_PATH];		//the full path to the Prolog file: pl_file
+char *pl_file_uri;				//the full path to the Prolog file: pl_file
 int branch_nb = 1;				//unique id for branches created
 
 //start: ugly, breaking parsing spirit, flags and temporary variables
 int typedef_flag = 0; 			//indicates that we are within a typedef declaration
 int in_tag_declaration = 0;		//indicates to the lexer that we are in the tag namespace (for struct, union and enum tags) and that identifier should not be checked for typedef
 int in_member_namespace = 0;	//indicates to the lexer that we are in the member namespace (for members of structs and unions) and that identifier should not be checked for typedef
-int in_ordinary_id_declaration = 0;
+int in_ordinary_id_declaration = 0;	//indicate to the lexer that we should expect IDENTIFIER rather than a TYPEDEFNAME
 int in_label_namespace = 0;		//used in lexer
 
 int current_scope = 0;
@@ -292,13 +291,13 @@ unary_expression
 		 sprintf_safe($$, size, "size_of_exp(%s)", $2);
 		 free($2);
 		}
-	| SIZEOF '(' type_name ')'
+	| SIZEOF '(' type_name ')'	//in_ordinary_id_declaration should be set to 0: expect TYPEDENAME
 		{size_t const size = strlen("size_of_type()") + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "size_of_type(%s)", $3);
 		 free($3);
 		}
-	| ALIGNOF '(' type_name ')'
+	| ALIGNOF '(' type_name ')'	//in_ordinary_id_declaration should be set to 0: expect TYPEDENAME
 		{size_t const size = strlen("align_of()") + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "align_of(%s)", $3);
@@ -530,7 +529,7 @@ constant_expression
 
 //always in_ordinary_id_declaration = 0; after
 declaration 
-	: declaration_specifiers ';'
+	: type_declaration_specifiers ';'
 		{in_ordinary_id_declaration = 0;
 		 if (debugMode) printf("end of stand alone declaration specifier as a declaration in_ordinary_id_declaration is %d on line %d\n", in_ordinary_id_declaration, yylineno);
 		 char *decl_specifier = create_declaration_specifiers();
@@ -539,9 +538,9 @@ declaration
 		 sprintf_safe($$, size, "\ndeclaration(%s)", decl_specifier);
 		 free(decl_specifier);
 		}
-	| declaration_specifiers init_declarator_list ';' 
+	| type_declaration_specifiers init_declarator_list ';' 
 	  	{in_ordinary_id_declaration = 0;
-		 if (typedef_flag == 1) {	//we were processing typedef declarations
+		 if (typedef_flag == 1) {	//we were processing typedef declarations [why not done above?]
 	    	typedef_flag = 0; 
 			if (debugMode) printf("Debug: typedef switched to 0\n");
 	   	 }
@@ -561,25 +560,27 @@ declaration
 		 pop_decl_spec_stack();
 		}
 	;
+
 //always set in_ordinary_id_declaration = 1 afterwards as declarator are always after it
-//specify type
-declaration_specifiers
-	: storage_class_specifier declaration_specifiers
+//specify type. storage_class_specifier e.g. typedef, extern etc.
+type_declaration_specifiers
+	: storage_class_specifier type_declaration_specifiers	//storage_class_specifier e.g. typedef, extern etc.
 		{in_ordinary_id_declaration = 1;}
 	| storage_class_specifier 
 		{in_ordinary_id_declaration = 1;}
-	| type_specifier declaration_specifiers
+	| type_specifier type_declaration_specifiers				//type_specifier e.g. built-in type, typedefname, struct, union
 		{in_ordinary_id_declaration = 1;}
 	| type_specifier
 		{in_ordinary_id_declaration = 1;}
-	| type_qualifier declaration_specifiers
+	| type_qualifier type_declaration_specifiers				//type_qualifier e.g. const, volatile
 		{in_ordinary_id_declaration = 1;}
-	| type_qualifier {in_ordinary_id_declaration = 1;}
-	| function_specifier declaration_specifiers
+	| type_qualifier 
+		{in_ordinary_id_declaration = 1;}
+	| function_specifier type_declaration_specifiers			//function_specifier e.g. inline
 		{in_ordinary_id_declaration = 1;}
 	| function_specifier
 		{in_ordinary_id_declaration = 1;}
-	| alignment_specifier declaration_specifiers
+	| alignment_specifier type_declaration_specifiers		//alignment_specifier e.g. alignas
 		{in_ordinary_id_declaration = 1;}
 	| alignment_specifier
 		{in_ordinary_id_declaration = 1;}
@@ -968,11 +969,75 @@ direct_declarator
 		}
 	;
 
+/*** Start Function Parameters Section ***/
 rest_function_definition
 	: /* nothing */ {simple_str_lit_copy(&$$, "[]");}
 	| parameter_type_list 
 	| old_style_parameter_list {simple_str_lit_copy(&$$, "dummy_identifier_list");}
 	;
+
+old_style_parameter_list	//for old-style function declaration for the parameters see p. 226 K&R : just identifiers
+	: IDENTIFIER			//Ordinary Id declaration
+	| old_style_parameter_list ',' IDENTIFIER	//Ordinary Id declaration
+	;	
+
+parameter_type_list
+	: parameter_list ',' ELLIPSIS
+		{size_t const size = strlen("variable_length_args([])") + strlen($1) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_safe($$, size, "variable_length_args([%s])", $1);
+	     free($1);
+		}
+	| parameter_list
+		{size_t const size = strlen("[]") + strlen($1) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_safe($$, size, "[%s]", $1);
+	     free($1);
+		}
+	;
+
+parameter_list
+	: {push_decl_spec_stack();} parameter_declaration 
+	  	{$$ = $2;}
+	| parameter_list ',' {push_decl_spec_stack();} parameter_declaration
+		{size_t const size = strlen(", ") + strlen($1) + strlen($4) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_safe($$, size, "%s, %s", $1, $4);
+	     free($1);
+		 free($4);
+		}
+	;
+
+parameter_declaration
+	: type_declaration_specifiers declarator
+		{in_ordinary_id_declaration = 0;
+		 char *decl_specifier = create_declaration_specifiers();
+		 size_t const size = strlen("param(, )") + strlen(decl_specifier) + strlen($2.full) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_safe($$, size, "param(%s, %s)", decl_specifier, $2.full);
+	     free(decl_specifier);
+		 free($2.full); 
+		 free($2.ptr_declarator);
+		}
+	| type_declaration_specifiers abstract_declarator
+		{in_ordinary_id_declaration = 0;
+		 char *decl_specifier = create_declaration_specifiers();
+		 size_t const size = strlen("unnamed_param(, dummy_abstract_declarator)") + strlen(decl_specifier) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_safe($$, size, "unnamed_param(%s, dummy_abstract_declarator)", decl_specifier);
+	     free(decl_specifier);
+		 //free($2);
+		}
+	| type_declaration_specifiers
+		{in_ordinary_id_declaration = 0;
+		 char *decl_specifier = create_declaration_specifiers();
+		 size_t const size = strlen("unnamed_param(, [])") + strlen(decl_specifier) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_safe($$, size, "unnamed_param(%s, [])", decl_specifier);
+	     free(decl_specifier);
+		}
+	;
+/*** End Function Parameters section ***/
 
 pointer
 	: pointer_star pointer
@@ -1000,67 +1065,6 @@ pointer_star
 type_qualifier_list
 	: type_qualifier
 	| type_qualifier_list type_qualifier
-	;
-
-parameter_type_list
-	: parameter_list ',' ELLIPSIS
-		{size_t const size = strlen("variable_length_args([])") + strlen($1) + 1;
-	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "variable_length_args([%s])", $1);
-	     free($1);
-		}
-	| parameter_list
-		{size_t const size = strlen("[]") + strlen($1) + 1;
-	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "[%s]", $1);
-	     free($1);
-		}
-	;
-
-parameter_list
-	: {push_decl_spec_stack();} parameter_declaration {$$ = $2;}
-	| parameter_list ',' {push_decl_spec_stack();} parameter_declaration
-		{size_t const size = strlen(", ") + strlen($1) + strlen($4) + 1;
-	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "%s, %s", $1, $4);
-	     free($1);
-		 free($4);
-		}
-	;
-
-parameter_declaration
-	: declaration_specifiers declarator
-		{in_ordinary_id_declaration = 0;
-		 char *decl_specifier = create_declaration_specifiers();
-		 size_t const size = strlen("param(, )") + strlen(decl_specifier) + strlen($2.full) + 1;
-	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "param(%s, %s)", decl_specifier, $2.full);
-	     free(decl_specifier);
-		 free($2.full); 
-		 free($2.ptr_declarator);
-		}
-	| declaration_specifiers abstract_declarator
-		{in_ordinary_id_declaration = 0;
-		 char *decl_specifier = create_declaration_specifiers();
-		 size_t const size = strlen("unnamed_param(, dummy_abstract_declarator)") + strlen(decl_specifier) + 1;
-	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "unnamed_param(%s, dummy_abstract_declarator)", decl_specifier);
-	     free(decl_specifier);
-		 //free($2);
-		}
-	| declaration_specifiers
-		{in_ordinary_id_declaration = 0;
-		 char *decl_specifier = create_declaration_specifiers();
-		 size_t const size = strlen("unnamed_param(, [])") + strlen(decl_specifier) + 1;
-	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "unnamed_param(%s, [])", decl_specifier);
-	     free(decl_specifier);
-		}
-	;
-
-old_style_parameter_list	//for old-style function declaration for the parameters see p. 226 K&R
-	: IDENTIFIER		//Ordinary Id declaration
-	| old_style_parameter_list ',' IDENTIFIER	//Ordinary Id declaration
 	;
 
 type_name
@@ -1412,7 +1416,7 @@ external_declaration		//printed out
 	;
 //always in_ordinary_id_declaration = 0; after
 function_definition
-	: declaration_specifiers declarator declaration_list_opt {in_ordinary_id_declaration = 0;} compound_statement
+	: type_declaration_specifiers declarator declaration_list_opt {in_ordinary_id_declaration = 0;} compound_statement
 		{in_ordinary_id_declaration = 0;
 		 char *decl_specifier = create_declaration_specifiers();
 		 size_t const size = strlen("function(, , [], )") + strlen(decl_specifier) + strlen($2.full) + strlen($3) + strlen($5) + 1;
@@ -1447,14 +1451,10 @@ old_style_declaration_list
 #include "lex.yy.c"
 
 int main(int argc, char *argv[]) {
-	char C_file_path[MAX_PATH];				//directory where the C and .i files are
-	char filename_no_ext[MAX_PATH];
+	char *C_file_path = NULL;				//directory where the C and .i files are
+	char *filename_no_ext = NULL;	
 
-#ifdef _MSC_VER
-	strcpy_safe(C_file_path, 3, ".");		//default path for input file is current directory, overwrite with -p on command line
-#else
-	strcpy_safe(C_file_path, 3, ".");
-#endif
+	C_file_path = strdup(".");				//default path for input file is current directory, overwrite with -p on command line
 
 	for (int i = 1; i <= argc - 1; i++) {	//processing command line arguments
 		if (argv[i][0] == '-') {
@@ -1467,7 +1467,8 @@ int main(int argc, char *argv[]) {
 					fprintf(stderr, "Sikraken parser error: the indicated source path (via -p switch): %s , cannot be accessed\n", &argv[i][2]);
 					my_exit(1);
 				}
-				strcpy_safe(C_file_path, MAX_PATH, &argv[i][2]);
+				free(C_file_path);
+				C_file_path = strdup(&argv[i][2]);
 				break;
 			case 'd':
 				debugMode = 1;	//we are in debug mode (false is default): will affect output of warnings amongst other things
@@ -1483,18 +1484,23 @@ int main(int argc, char *argv[]) {
 			}
 		}
 		else {	//must be the filename to analyse
-			strcpy_safe(filename_no_ext, MAX_PATH, argv[i]);
+			filename_no_ext = strdup(argv[i]);
 		}
 	}
 	fprintf(stdout, "Sikraken %s parser: using %i bits data model.\n", (debugMode) ? "in debug mode" : "", dataModel); 
 
-	sprintf_safe(i_file_uri, 3*MAX_PATH, "%s/%s.i", C_file_path, filename_no_ext);
+	size_t i_path_len = strlen(C_file_path) + strlen(filename_no_ext) + 4; // "/.i\0"
+	i_file_uri = malloc(i_path_len);
+	snprintf(i_file_uri, i_path_len, "%s/%s.i", C_file_path, filename_no_ext);
 	if (fopen_safe(&i_file, i_file_uri, "r") != 0) {
 		fprintf(stderr, ".i file could not be opened for reading at: %s\n", i_file_uri);
 		my_exit(EXIT_FAILURE);
 	}
 	yyin = i_file;	//set the input to the parser
-	sprintf_safe(pl_file_uri, 3*MAX_PATH, "%s/%s.pl", C_file_path, filename_no_ext);
+
+	size_t pl_path_len = strlen(C_file_path) + strlen(filename_no_ext) + 5; // "/.pl\0"
+	pl_file_uri = malloc(pl_path_len);
+	snprintf(pl_file_uri, pl_path_len, "%s/%s.pl", C_file_path, filename_no_ext);
 	if (fopen_safe(&pl_file, pl_file_uri, "w") != 0) {
 		fprintf(stderr, ".pl file could not be created for writing at: %s\n", pl_file_uri);
 		my_exit(EXIT_FAILURE);

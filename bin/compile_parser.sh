@@ -41,9 +41,9 @@ else
 fi
 
 # Run the gcc command to compile the generated C code
+# insert "-g -O0" as starting options for debugging with dgb
 gcc -trigraphs "C_grammar.tab.c" -o "$SIKRAKEN_INSTALL_DIR/bin/sikraken_parser.exe"
 
-# Check if the gcc command was successful
 if [ $? -ne 0 ]; then
     echo "Error: gcc failed to compile C_grammar.tab.c"
     exit 1

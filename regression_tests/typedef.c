@@ -1,3 +1,25 @@
+//15 Nov 2025
+//struct lock_class_key {
+//};
+extern void abort(void);
+
+extern void __assert_fail (const char *__assertion, const char *__file,
+      unsigned int __line, const char *__function)
+     __attribute__ ((__nothrow__ , __leaf__)) __attribute__ ((__noreturn__));
+
+typedef unsigned long __kernel_ulong_t;
+//typedef unsigned int __kernel_uid32_t;
+//typedef unsigned int __kernel_gid32_t;
+typedef __kernel_ulong_t __kernel_size_t;
+    
+struct tabX{ 
+        const char *name;
+        int type;
+        int value;
+    };
+typedef struct tabX tableX;
+//int table = 0;  //OK: GCC error redeclaration of a different symbol is not allowed
+
 struct table;   //struct table is declared
 typedef struct table table; //typedef is used to define table as struct table
 union anonymous_62146 {
@@ -32,7 +54,7 @@ void free_list_node(list_node* node) {
  }
 }
 
-typedef int my_int2;
+typedef int my_int2;        //declared TYPEDEFNAME my_int2
 int hello0(int my_int2); //function prototype: should not define my_int2 as shadowing the typedef name just as an IDENTIFIER
 
 int hello0(int my_int3) {
@@ -43,7 +65,9 @@ int hello1(my_int2 *y) {
     while (y != ((void *)0)) {
         my_int2* z = y; 
         int a = 1;
-        int my_int = 42;        //shadowing of typedef name my_int
+        int my_int = 42;        //IDENTIFIER declaration shadows the TYPEDEFNAME my_int defined above, lexer must return IDENTIFIER and add as a shadow
+        //my_int new_id = 42;     //gcc error
+        int hello1 = sizeof(my_int);
     }
     //int x = (my_int);   //causes parser error because shadowing is not implemented
     return 0;
@@ -56,8 +80,8 @@ int hello2(table tt) { //table is the typedef
 
 int main() {
     int table = 0; //table is a variable, not a typedef name
-    //table t;  //gcc error: conflict as table represent a var and a typedef in the same scope and the same namespace
-    //int x = 6 + table; //causes parser error because shadowing is not implemented
-    table : a = 6; //table is a label, not a typedef name
+    table t;  //gcc error: conflict as table represent a var and a typedef in the same scope and the same namespace
+    int x = 6 + table; //causes parser error because shadowing is not implemented
+    table : a = sizeof(table); //1st table is a label, not a typedef name, 2nd table is a TYPDEFNAME
     //return table; //causes parser error because shadowing is not implemented
 }
