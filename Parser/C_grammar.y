@@ -103,7 +103,7 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 %token	CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
 %token ALIGNAS ALIGNOF ATOMIC_SPECIFIER ATOMIC GENERIC NORETURN STATIC_ASSERT THREAD_LOCAL
-%token INT128 FLOAT128 VA_LIST
+%token INT128 FLOAT128 VA_LIST TYPEOF TYPEOF_UNQUAL
 
 %type <id> init_declarator initializer pointer pointer_star init_declarator_list 
 %type <id> abstract_declarator_opt
@@ -121,8 +121,9 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 %type <id> expression_statement expression_opt jump_statement statement labeled_statement compound_statement
 %type <id> else_opt selection_statement iteration_statement
 %type <id> block_item_list block_item
-%type <id> declaration declaration_list_opt old_style_declaration_list
+%type <id> declaration declaration_list_opt old_style_declaration_list 
 %type <id> function_definition rest_function_definition
+%type <id> rest_direct_declarator
 %type <for_stmt_type> for_stmt_type
 %type <declarator_type> declarator direct_declarator 
 
@@ -141,7 +142,7 @@ primary_expression
 		}
 	| constant
 	| string
-	| '(' {in_ordinary_id_declaration = 0; current_scope++;} compound_statement ')'	//GCC statement-expression
+	| '(' {current_scope++;} compound_statement ')'	//GCC statement-expression
 		{pop_scope(&current_scope);
 		 size_t const size = strlen("\nstmt_exp()") + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
@@ -297,7 +298,7 @@ unary_expression
 		 sprintf_safe($$, size, "size_of_type(%s)", $3);
 		 free($3);
 		}
-	| ALIGNOF '(' type_name ')'
+	| ALIGNOF '(' type_name ')'				//incomplete alignof '(' expression ')' is also allowed	
 		{size_t const size = strlen("align_of()") + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "align_of(%s)", $3);
@@ -527,20 +528,19 @@ constant_expression
 	: conditional_expression	/* with constraints */
 	;
 
-//always in_ordinary_id_declaration = 0; after
-declaration 
+
+declaration
 	: type_declaration_specifiers ';'
-		{in_ordinary_id_declaration = 0;
-		 if (debugMode) printf("end of stand alone declaration specifier as a declaration in_ordinary_id_declaration is %d on line %d\n", in_ordinary_id_declaration, yylineno);
+		{if (debugMode) printf("end of stand alone declaration specifier as a declaration on line %d\n", yylineno);
 		 char *decl_specifier = create_declaration_specifiers();
 		 size_t const size = strlen("\ndeclaration()") + strlen(decl_specifier) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "\ndeclaration(%s)", decl_specifier);
 		 free(decl_specifier);
+		 in_ordinary_id_declaration = 0;
 		}
 	| type_declaration_specifiers init_declarator_list ';' 
-	  	{in_ordinary_id_declaration = 0;
-		 if (typedef_flag == 1) {	//we were processing typedef declarations [why not done above?]
+	  	{if (typedef_flag == 1) {	//we were processing typedef declarations [why not done above?]
 	    	typedef_flag = 0; 
 			if (debugMode) printf("Debug: typedef switched to 0\n");
 	   	 }
@@ -550,59 +550,57 @@ declaration
 		 sprintf_safe($$, size, "\ndeclaration(%s, [%s])", decl_specifier, $2);
 		 free(decl_specifier);
 		 free($2);
+		 in_ordinary_id_declaration = 0; //not needed but added for safety
 		}
 	| static_assert_declaration
-		{in_ordinary_id_declaration = 0;
-		 size_t const size = strlen("\n") + strlen($1) + 1;
+		{size_t const size = strlen("\n") + strlen($1) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "\n%s", $1);
 		 free($1);
 		 pop_decl_spec_stack();
+		 in_ordinary_id_declaration = 0; //not needed but added for safety
 		}
 	;
 
-//always set in_ordinary_id_declaration = 1 afterwards as declarator are always after it
 //specify type. storage_class_specifier e.g. typedef, extern etc.
+//cannot contain ids that are IDENTIFIER in the ordinary name space (they are struct, enum and union tags which are in_tag_declaration namespace, TYPEDEF_NAMES) and typeof(...) which is handled as a special case
 type_declaration_specifiers
 	: storage_class_specifier type_declaration_specifiers	//storage_class_specifier e.g. typedef, extern etc.
-		{in_ordinary_id_declaration = 1;}
+	  {in_ordinary_id_declaration = 1;}
 	| storage_class_specifier 
-		{in_ordinary_id_declaration = 1;}
-	| type_specifier type_declaration_specifiers				//type_specifier e.g. built-in type, typedefname, struct, union
-		{in_ordinary_id_declaration = 1;}
+	  {in_ordinary_id_declaration = 1;}
+	| type_specifier type_declaration_specifiers				//type_specifier e.g. built-in type, TYPEDEF_NAME, struct, union
+	  {in_ordinary_id_declaration = 1;}
 	| type_specifier
-		{in_ordinary_id_declaration = 1;}
+	  {in_ordinary_id_declaration = 1;}
 	| type_qualifier type_declaration_specifiers				//type_qualifier e.g. const, volatile
-		{in_ordinary_id_declaration = 1;}
-	| type_qualifier 
-		{in_ordinary_id_declaration = 1;}
+	  {in_ordinary_id_declaration = 1;}
+	| type_qualifier
+	  {in_ordinary_id_declaration = 1;}
 	| function_specifier type_declaration_specifiers			//function_specifier e.g. inline
-		{in_ordinary_id_declaration = 1;}
+	  {in_ordinary_id_declaration = 1;}
 	| function_specifier
-		{in_ordinary_id_declaration = 1;}
+	  {in_ordinary_id_declaration = 1;}
 	| alignment_specifier type_declaration_specifiers		//alignment_specifier e.g. alignas
-		{in_ordinary_id_declaration = 1;}
+	  {in_ordinary_id_declaration = 1;}
 	| alignment_specifier
-		{in_ordinary_id_declaration = 1;}
+	  {in_ordinary_id_declaration = 1;}
 	;
 
 init_declarator_list
 	: init_declarator 
-		{in_ordinary_id_declaration = 1;
-		 $$ = $1;
-		}
-	| init_declarator_list ',' init_declarator
-		{in_ordinary_id_declaration = 1;
-		 size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
+		{$$ = $1;}
+	| init_declarator_list ',' {in_ordinary_id_declaration = 1;} init_declarator
+		{size_t const size = strlen(", ") + strlen($1) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "%s, %s", $1, $3);
+		 sprintf_safe($$, size, "%s, %s", $1, $4);
 	     free($1);
-	     free($3);
+	     free($4);
 		}
 	;
 
 init_declarator
-	: declarator '=' initializer	//{in_ordinary_id_declaration = 0;} should be insert before = ?
+	: declarator '=' initializer	
 		{size_t const size = strlen("initialised(, )") + strlen($1.full) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
 	   	 sprintf_safe($$, size, "initialised(%s, %s)", $1.full, $3);
@@ -633,30 +631,42 @@ storage_class_specifier
 	| REGISTER		{ decl_spec_stack->decl_spec.storage.isRegister = true; }
 	;
 
+//cannot contain ids that are IDENITIFER in the ordinary name space (they are struct, enum and union tags which are in_tag_declaration namespace, TYPEDEF_NAMES) and typeof(...) which is handled as a special case
 type_specifier
-	: VOID					{ in_ordinary_id_declaration = 1; decl_spec_stack->decl_spec.atomic.isVoid = true;}
-	| CHAR					{ in_ordinary_id_declaration = 1; decl_spec_stack->decl_spec.atomic.isChar = true;}
-	| SHORT					{ in_ordinary_id_declaration = 1; decl_spec_stack->decl_spec.atomic.isShort= true;}
-	| INT					{ in_ordinary_id_declaration = 1; decl_spec_stack->decl_spec.atomic.isInt = true;}
-	| LONG					{ in_ordinary_id_declaration = 1; decl_spec_stack->decl_spec.atomic.longCount++;}
-	| FLOAT					{ in_ordinary_id_declaration = 1; decl_spec_stack->decl_spec.atomic.isFloat = true;}
-	| DOUBLE				{ in_ordinary_id_declaration = 1; decl_spec_stack->decl_spec.atomic.isDouble = true;}
-	| SIGNED				{ in_ordinary_id_declaration = 1; decl_spec_stack->decl_spec.atomic.isSigned = true;}
-	| UNSIGNED				{ in_ordinary_id_declaration = 1; decl_spec_stack->decl_spec.atomic.isUnSigned = true;}
-	| BOOL					{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&(decl_spec_stack->decl_spec.atomic.typeName), "bool");}
-	| COMPLEX				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "complex");}
-	| IMAGINARY				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "imaginary");}	
-	| atomic_type_specifier	{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "atomic_type_specifier");}
-	| struct_or_union_specifier { in_ordinary_id_declaration = 1; decl_spec_stack->decl_spec.non_atomic = $1;}
-	| enum_specifier		{ in_ordinary_id_declaration = 1; decl_spec_stack->decl_spec.non_atomic = $1;}
+	: VOID					{ decl_spec_stack->decl_spec.atomic.isVoid = true;}
+	| CHAR					{ decl_spec_stack->decl_spec.atomic.isChar = true;}
+	| SHORT					{ decl_spec_stack->decl_spec.atomic.isShort= true;}
+	| INT					{ decl_spec_stack->decl_spec.atomic.isInt = true;}
+	| LONG					{ decl_spec_stack->decl_spec.atomic.longCount++;}
+	| FLOAT					{ decl_spec_stack->decl_spec.atomic.isFloat = true;}
+	| DOUBLE				{ decl_spec_stack->decl_spec.atomic.isDouble = true;}
+	| SIGNED				{ decl_spec_stack->decl_spec.atomic.isSigned = true;}
+	| UNSIGNED				{ decl_spec_stack->decl_spec.atomic.isUnSigned = true;}
+	| BOOL					{ simple_str_lit_copy(&(decl_spec_stack->decl_spec.atomic.typeName), "bool");}
+	| COMPLEX				{ simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "complex");}
+	| IMAGINARY				{ simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "imaginary");}	
+	| atomic_type_specifier	{ simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "atomic_type_specifier");}
+	| struct_or_union_specifier { decl_spec_stack->decl_spec.non_atomic = $1;}
+	| enum_specifier		{ decl_spec_stack->decl_spec.non_atomic = $1;}
+	| typeof_specifier		{;}	//totally ignored for now
 	| TYPEDEF_NAME			
-		{in_ordinary_id_declaration = 1; 
-		 decl_spec_stack->decl_spec.non_atomic = to_prolog_var($1);
+		{decl_spec_stack->decl_spec.non_atomic = to_prolog_var($1);
 		 free($1);
 		}
-	| INT128				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "int128");}		//gcc extension: builtin type
-	| FLOAT128				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "float128");}	//gcc extension: builtin type
-	| VA_LIST				{ in_ordinary_id_declaration = 1; simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "va_list");}		//gcc extension: builtin type
+	| INT128				{ simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "int128");}		//gcc extension: builtin type
+	| FLOAT128				{ simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "float128");}	//gcc extension: builtin type
+	| VA_LIST				{ simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "va_list");}		//gcc extension: builtin type
+	;
+
+//added in_ordinary_id_declaration = 0 here to ensure that if we have an expression which contains an id, it is not declared as as a shadowing IDENTIFIER by the lexer if there is a TYPEDEF_NAME of the same name
+typeof_specifier
+    : TYPEOF {in_ordinary_id_declaration = 0;} rest_typeof_specifier
+    | TYPEOF_UNQUAL {in_ordinary_id_declaration = 0;} rest_typeof_specifier
+    ;
+rest_typeof_specifier
+	: '(' expression ')'
+	| '(' type_name ')'
+	;
 
 struct_or_union_specifier
 	: struct_or_union '{' {in_tag_declaration = 0;} '}'		//anonymous EMPTY struct or union (GNU extension)
@@ -777,7 +787,7 @@ struct_declarator		//added to avoid reduce-reduce conflict
          sprintf_safe($$, size, "anonymous_bit_field(%s)", $3);
 	   	 free($3);
         } 
-	| declarator {in_ordinary_id_declaration = 0;} ':'  constant_expression 	//bit field
+	| declarator ':' {in_member_namespace = 0;} constant_expression 	//bit field
 		{size_t const size = strlen("bit_field(, )") + strlen($1.full) + strlen($4) + 1;
        	 $$ = (char*)malloc(size);
          sprintf_safe($$, size, "bit_field(%s, %s)", $1.full, $4);
@@ -785,10 +795,11 @@ struct_declarator		//added to avoid reduce-reduce conflict
 		 free($1.ptr_declarator);
 	     free($4);
         }
-	|  declarator
+	| declarator
 		{$$ = strdup($1.full);
 		 free($1.full);
 		 free($1.ptr_declarator);
+		 in_member_namespace = 0;
 		}
 	;
 
@@ -831,14 +842,13 @@ enum_specifier_rest
 	;
 
 enumerator_list
-	: enumerator {in_ordinary_id_declaration = 1;}
-	| enumerator_list ',' enumerator
-		{in_ordinary_id_declaration = 1;
-		 size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
+	: enumerator
+	| enumerator_list ',' {in_ordinary_id_declaration = 1;} enumerator
+		{size_t const size = strlen(", ") + strlen($1) + strlen($4) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_safe($$, size, "%s, %s", $1, $3);
+         sprintf_safe($$, size, "%s, %s", $1, $4);
 	   	 free($1);
-	     free($3);
+	     free($4);
         }
 	;
 
@@ -884,18 +894,16 @@ alignment_specifier
 		}
 	;
 
-//always set in_ordinary_id_declaration = 0; after
 declarator
 	: pointer direct_declarator
-	  {in_ordinary_id_declaration = 0;
-	   size_t const size = strlen("ptr_decl(, )") + strlen($1) + strlen($2.full) + 1;
+	  {size_t const size = strlen("ptr_decl(, )") + strlen($1) + strlen($2.full) + 1;
        $$.full = (char*)malloc(size);
        sprintf_safe($$.full, size, "ptr_decl(%s, %s)", $1, $2.full);
 	   $$.ptr_declarator = $2.ptr_declarator;
 	   free($1);
 	   free($2.full);
       }
-	| direct_declarator {in_ordinary_id_declaration = 0;}
+	| direct_declarator
 	;
 
 direct_declarator
@@ -906,7 +914,7 @@ direct_declarator
 		 	strcpy_safe($$.full, size, $1);
 			$$.ptr_declarator = (char*)malloc(size);
 		 	strcpy_safe($$.ptr_declarator, size, $1);
-		 } else {
+		 } else {	//only place where a new IDENTIFIER (apart from ENUM constants) can be declared: added in the table of symbols in the lexer (it has to be done there) if it shadows a TYPEDEF_NAME
 			char Prolog_var_name[MAX_ID_LENGTH+5];	//todo should use to_prolog_var($1);
 			if (islower($1[0])) {
 				Prolog_var_name[0] = toupper($1[0]);
@@ -921,53 +929,14 @@ direct_declarator
 		 	$$.ptr_declarator = strdup($$.full);
 		 	free($1);
 		 }
+		 in_ordinary_id_declaration = 0;
 		} 
 	| '(' declarator ')'			//function pointer e.g. in "int (*func_ptr)(int, int);" declarator is "*func_ptr"
 		//many need in_member_namespace = 0; in case we are within a union or struct to indicate that we just processed the member and the rest my involve typedefs see diary 12/11/24
-		{$$ = $2;}
-	| direct_declarator '[' ']'		
-		{size_t const size = strlen("array_decl(, int(0))") + strlen($1.full) + 1;
-         $$.full = (char*)malloc(size);
-         sprintf_safe($$.full, size, "array_decl(%s, int(0))", $1.full);
-		 free($1.full);
-		 $$.ptr_declarator = $1.ptr_declarator;
+		{$$ = $2;
+		 in_ordinary_id_declaration = 0;
 		}
-	| direct_declarator '[' '*' ']'	
-		{simple_str_lit_copy(&$$.full, "D3");
-		 free($1.full);
-		 $$.ptr_declarator = $1.ptr_declarator;
-		}
-	| direct_declarator '[' STATIC type_qualifier_list assignment_expression ']' 
-		{simple_str_lit_copy(&$$.full, "D4");
-		 free($1.full);
-		 $$.ptr_declarator = $1.ptr_declarator;
-		}
-	| direct_declarator '[' STATIC assignment_expression ']'
-		{simple_str_lit_copy(&$$.full, "D5");
-		 free($1.full);
-		 $$.ptr_declarator = $1.ptr_declarator;
-		}
-	| direct_declarator '[' type_qualifier_list '*' ']'
-		{simple_str_lit_copy(&$$.full, "D6");
-		 free($1.full);
-		 $$.ptr_declarator = $1.ptr_declarator;
-		}
-	| direct_declarator '[' type_qualifier_list STATIC assignment_expression ']'
-		{simple_str_lit_copy(&$$.full, "D7");
-		 free($1.full);
-		 $$.ptr_declarator = $1.ptr_declarator;
-		}
-	| direct_declarator '[' type_qualifier_list assignment_expression ']'
-		{simple_str_lit_copy(&$$.full, "D8");
-		 free($1.full);
-		 $$.ptr_declarator = $1.ptr_declarator;
-		}
-	| direct_declarator '[' type_qualifier_list ']'
-		{simple_str_lit_copy(&$$.full, "D9");
-		 free($1.full);
-		 $$.ptr_declarator = $1.ptr_declarator;
-		}
-	| direct_declarator '[' assignment_expression ']'
+	| direct_declarator {in_ordinary_id_declaration = 0;} rest_direct_declarator
 		{size_t const size = strlen("array_decl(, )") + strlen($1.full) + strlen($3) + 1;
          $$.full = (char*)malloc(size);
          sprintf_safe($$.full, size, "array_decl(%s, %s)", $1.full, $3);
@@ -975,9 +944,8 @@ direct_declarator
 		 free($3);
 		 $$.ptr_declarator = $1.ptr_declarator;
 		}
-	| direct_declarator {in_ordinary_id_declaration = 0; current_scope++; } '(' rest_function_definition ')'
+	| direct_declarator {current_scope++; in_ordinary_id_declaration = 0;} '(' rest_function_definition ')'
 		{pop_scope(&current_scope);
-		 in_ordinary_id_declaration = 0;
 		 size_t const size = strlen("function(, )") + strlen($1.full) + strlen($4) + 1;
 	     $$.full = (char*)malloc(size);
 	     sprintf_safe($$.full, size, "function(%s, %s)", $1.full, $4);
@@ -985,6 +953,36 @@ direct_declarator
 	     free($1.full);
 		 $$.ptr_declarator = $1.ptr_declarator;
 		 free($4);
+		}
+	;
+	  
+rest_direct_declarator
+	: '[' ']'
+		{simple_str_lit_copy(&$$, "int(0)"); 
+		}
+	| '[' assignment_expression ']'
+		{$$ = $2;
+		}
+	| '[' '*' ']'
+		{simple_str_lit_copy(&$$, "D3"); 
+		}
+	| '[' STATIC type_qualifier_list assignment_expression ']' 
+		{simple_str_lit_copy(&$$, "D4");
+		}
+	| '[' STATIC assignment_expression ']'
+		{simple_str_lit_copy(&$$, "D5");
+		}
+	| '[' type_qualifier_list '*' ']'
+		{simple_str_lit_copy(&$$, "D6");
+		}
+	| '[' type_qualifier_list STATIC assignment_expression ']'
+		{simple_str_lit_copy(&$$, "D7");
+		}
+	| '[' type_qualifier_list assignment_expression ']'
+		{simple_str_lit_copy(&$$, "D8");
+		}
+	| '[' type_qualifier_list ']'
+		{simple_str_lit_copy(&$$, "D9");
 		}
 	;
 
@@ -1017,7 +1015,8 @@ parameter_type_list
 
 parameter_list
 	: {push_decl_spec_stack();} parameter_declaration 
-	  	{$$ = $2;}
+	  	{$$ = $2;
+		}
 	| parameter_list ',' {push_decl_spec_stack();} parameter_declaration
 		{size_t const size = strlen(", ") + strlen($1) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
@@ -1029,31 +1028,31 @@ parameter_list
 
 parameter_declaration
 	: type_declaration_specifiers declarator
-		{in_ordinary_id_declaration = 0;
-		 char *decl_specifier = create_declaration_specifiers();
+		{char *decl_specifier = create_declaration_specifiers();
 		 size_t const size = strlen("param(, )") + strlen(decl_specifier) + strlen($2.full) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "param(%s, %s)", decl_specifier, $2.full);
 	     free(decl_specifier);
 		 free($2.full); 
 		 free($2.ptr_declarator);
+		 in_ordinary_id_declaration = 0; //not needed but added for safety
 		}
 	| type_declaration_specifiers abstract_declarator
-		{in_ordinary_id_declaration = 0;
-		 char *decl_specifier = create_declaration_specifiers();
+		{char *decl_specifier = create_declaration_specifiers();
 		 size_t const size = strlen("unnamed_param(, dummy_abstract_declarator)") + strlen(decl_specifier) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "unnamed_param(%s, dummy_abstract_declarator)", decl_specifier);
 	     free(decl_specifier);
 		 //free($2);
+		 in_ordinary_id_declaration = 0;
 		}
 	| type_declaration_specifiers
-		{in_ordinary_id_declaration = 0;
-		 char *decl_specifier = create_declaration_specifiers();
+		{char *decl_specifier = create_declaration_specifiers();
 		 size_t const size = strlen("unnamed_param(, [])") + strlen(decl_specifier) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "unnamed_param(%s, [])", decl_specifier);
 	     free(decl_specifier);
+		 in_ordinary_id_declaration = 0;
 		}
 	;
 /*** End Function Parameters section ***/
@@ -1081,7 +1080,7 @@ pointer_star
 		{simple_str_lit_copy(&$$, "pointer");}
 	;	
 
-type_qualifier_list
+type_qualifier_list		//CONST, RESTRICT, VOLATILE etc.
 	: type_qualifier
 	| type_qualifier_list type_qualifier
 	;
@@ -1113,6 +1112,7 @@ abstract_declarator
 	| direct_abstract_declarator
 	;
 
+//toto check if may contain ids that are IDENTIFIER? need to switch in_ordinary_id_declaration off
 direct_abstract_declarator
 	: '(' abstract_declarator ')'
 	| '[' ']'
@@ -1218,18 +1218,18 @@ designator
 	;
 
 static_assert_declaration
-	: STATIC_ASSERT '(' constant_expression ',' STRING_LITERAL ')' ';'
-		{size_t const size = strlen("static_assert(, )") + strlen($3) + strlen($5) + 1;
+	: STATIC_ASSERT {in_ordinary_id_declaration = 0;} '(' constant_expression ',' STRING_LITERAL ')' ';'
+		{size_t const size = strlen("static_assert(, )") + strlen($4) + strlen($6) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "static_assert(%s, %s)", $3, $5);
-		 free($3);
-		 free($5);
+	     sprintf_safe($$, size, "static_assert(%s, %s)", $4, $6);
+		 free($4);
+		 free($6);
 		}
 	;
 
 statement
 	: labeled_statement
-	| {in_ordinary_id_declaration = 0; current_scope++;} 
+	| {current_scope++;} 
 	  compound_statement	
 	  {pop_scope(&current_scope);
 	   $$ = $2;
@@ -1282,10 +1282,9 @@ compound_statement	//aka a 'block'
 	;
 
 block_item_list
-	: {push_decl_spec_stack();} block_item {$$ = $2; in_ordinary_id_declaration = 0;}
+	: {push_decl_spec_stack();} block_item {$$ = $2;}
 	| block_item_list {push_decl_spec_stack();} block_item
-	  {in_ordinary_id_declaration = 0;
-	   size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
+	  {size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
 	   $$ = (char*)malloc(size);
 	   sprintf_safe($$, size, "%s, %s", $1, $3);
 	   free($1);
@@ -1433,20 +1432,18 @@ external_declaration		//printed out
 		 free($1);
 		}
 	;
-//always in_ordinary_id_declaration = 0; after
 function_definition
-	: type_declaration_specifiers declarator declaration_list_opt {in_ordinary_id_declaration = 0;} compound_statement
-		{in_ordinary_id_declaration = 0;
-		 char *decl_specifier = create_declaration_specifiers();
-		 size_t const size = strlen("function(, , [], )") + strlen(decl_specifier) + strlen($2.full) + strlen($3) + strlen($5) + 1;
+	: type_declaration_specifiers declarator declaration_list_opt compound_statement
+		{char *decl_specifier = create_declaration_specifiers();
+		 size_t const size = strlen("function(, , [], )") + strlen(decl_specifier) + strlen($2.full) + strlen($3) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "function(%s, %s, [%s], %s)", decl_specifier, $2.full, $3, $5);
+	     sprintf_safe($$, size, "function(%s, %s, [%s], %s)", decl_specifier, $2.full, $3, $4);
 		 if (debugMode) printf("function parsed\n");
 	     free(decl_specifier);
 		 free($2.full);
 		 free($2.ptr_declarator);
 		 free($3);
-		 free($5);
+		 free($4);
 		}
 	;
 

@@ -3,6 +3,19 @@ struct lock_class_key { //valid: GCC and (Clang?) allow empty struct_declaration
 };
 extern void abort(void);
 
+typedef int claude1;
+int main_claude1() {
+    int claude1 = 5;
+    int x = (claude1)3.14;  // OK: uses typedef from outer scope
+}
+
+
+typedef int claud; //or clause both work
+int main_claude() {
+    int claude = 5;
+    int x = _Alignof(claude);   //accept type_name and expression
+}
+
 extern void __assert_fail (const char *__assertion, const char *__file,
       unsigned int __line, const char *__function)
      __attribute__ ((__nothrow__ , __leaf__)) __attribute__ ((__noreturn__));

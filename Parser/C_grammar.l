@@ -139,6 +139,8 @@ WS  [ \t\v\n\f]
 "_Thread_local"         { return THREAD_LOCAL; }
 "__PRETTY_FUNCTION__"   { return FUNC_NAME; }   //__PRETTY_FUNCTION__ is a GCC extension: an enhanced version of __func__; which we ignore 
 "__func__"              { return FUNC_NAME; }
+"typeof_unqual"         { return TYPEOF_UNQUAL; }   //C23 and GCC extension
+"typeof"                { return TYPEOF; }   //C23 and GCC extension
 
 {L}{A}*                     {size_t const size = strlen(yytext) + 1;
                              yylval.id = (char*)malloc(size);
