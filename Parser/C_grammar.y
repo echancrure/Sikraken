@@ -61,7 +61,7 @@ int branch_nb = 1;				//unique id for branches created
 int typedef_flag = 0; 			//indicates that we are within a typedef declaration
 int in_tag_declaration = 0;		//indicates to the lexer that we are in the tag namespace (for struct, union and enum tags) and that identifier should not be checked for typedef
 int in_member_namespace = 0;	//indicates to the lexer that we are in the member namespace (for members of structs and unions) and that identifier should not be checked for typedef
-int in_ordinary_id_declaration = 0;	//indicate to the lexer that we should expect IDENTIFIER rather than a TYPEDEFNAME
+int in_ordinary_id_declaration = 0;	//indicate to the lexer that we are declaring an IDENTIFIER that may shadow a TYPEDEF_NAME
 int in_label_namespace = 0;		//used in lexer
 
 int current_scope = 0;
@@ -291,13 +291,13 @@ unary_expression
 		 sprintf_safe($$, size, "size_of_exp(%s)", $2);
 		 free($2);
 		}
-	| SIZEOF '(' type_name ')'	//in_ordinary_id_declaration should be set to 0: expect TYPEDENAME
+	| SIZEOF '(' type_name ')'
 		{size_t const size = strlen("size_of_type()") + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "size_of_type(%s)", $3);
 		 free($3);
 		}
-	| ALIGNOF '(' type_name ')'	//in_ordinary_id_declaration should be set to 0: expect TYPEDENAME
+	| ALIGNOF '(' type_name ')'
 		{size_t const size = strlen("align_of()") + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "align_of(%s)", $3);
