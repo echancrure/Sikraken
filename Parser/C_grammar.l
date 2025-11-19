@@ -1,6 +1,5 @@
 /****************************************************************************************************/
-/* C11 lexer file from https://www.quut.com/c/ANSI-C-grammar-l-2011.html                            */
-/* Flex documentation: https://westes.github.io/flex/manual/index.html                        */
+/* Flex documentation: https://westes.github.io/flex/manual/index.html                              */
 /****************************************************************************************************/
 /* definition section */
 %e  1019
@@ -32,6 +31,16 @@ void wrap_floating_point_constants(int, char *, char **);
 void add_missing_zero(char *, char **);
 
 int open_parens = 0;        //Declaration in the definitions section
+
+//FSM to detect when we are in declaration state
+typedef enum { DM_NONE=0, DM_SPECS=1, DM_DECLS=2 } decl_mode_t;
+static decl_mode_t decl_mode = DM_NONE;
+static int peek_next_nontrivia_char(void);
+static inline bool is_declarator_follower(int);
+static inline void fsm_from_none_to_spec(void);
+static inline void fsm_from_spec_to_decls(void);
+void fsm_reset(void);
+static const char* mode_str(decl_mode_t);
 
 %}
 
@@ -83,64 +92,64 @@ WS  [ \t\v\n\f]
                                              open_parens = 1;   //Start with the initial single opening parenthesis
                                              BEGIN(ATTRIBUTE);  //Enter the ATTRIBUTE start condition to read everything until the final closing parenthesis
                                             }
-"auto"					{ return(AUTO); }
+"auto"					{ fsm_from_none_to_spec(); return(AUTO); }
 "break"					{ return(BREAK); }
 "case"					{ return(CASE); }
-"char"					{ return(CHAR); }
-"const"					{ return(CONST); }
+"char"					{ fsm_from_none_to_spec(); return(CHAR); }
+"const"					{ fsm_from_none_to_spec(); return(CONST); }
 "continue"				{ return(CONTINUE); }
 "default"				{ return(DEFAULT); }
 "do"					{ return(DO); }
-"double"				{ return(DOUBLE); }
+"double"				{ fsm_from_none_to_spec(); return(DOUBLE); }
 "else"					{ return(ELSE); }
-"enum"					{ return(ENUM); }
-"extern"				{ return(EXTERN); }
-"float"					{ return(FLOAT); }
+"enum"					{ fsm_from_none_to_spec(); return(ENUM); }
+"extern"				{ fsm_from_none_to_spec(); return(EXTERN); }
+"float"					{ fsm_from_none_to_spec(); return(FLOAT); }
 "for"					{ return(FOR); }
 "goto"					{ in_label_namespace = 1; return(GOTO); } //special namespace for labels GOTO
 "if"					{ return(IF); }
-"inline"				{ return(INLINE); }
-"__inline"				{ return(INLINE); }     //GCC version of INLINE
-"int"					{ return(INT); }
-"long"					{ return(LONG); }
-"register"				{ return(REGISTER); }
-"restrict"				{ return(RESTRICT); }
-"__restrict"            { return(RESTRICT); }   //GCC version of RESTRICT
-"return"				{ return(RETURN); }
-"short"					{ return(SHORT); }
-"signed"				{ return(SIGNED); }
+"inline"				{ fsm_from_none_to_spec(); return(INLINE); }
+"__inline"				{ fsm_from_none_to_spec(); return(INLINE); }     //GCC version of INLINE
+"int"					{ fsm_from_none_to_spec(); return(INT); }
+"long"					{ fsm_from_none_to_spec(); return(LONG); }
+"register"				{ fsm_from_none_to_spec(); return(REGISTER); }
+"restrict"				{ fsm_from_none_to_spec(); return(RESTRICT); }
+"__restrict"            { fsm_from_none_to_spec(); return(RESTRICT); }   //GCC version of RESTRICT
+"return"				{ fsm_reset(); return(RETURN); }
+"short"					{ fsm_from_none_to_spec(); return(SHORT); }
+"signed"				{ fsm_from_none_to_spec(); return(SIGNED); }
 "sizeof"				{ return(SIZEOF); }
-"static"				{ return(STATIC); }
-"struct"				{ return(STRUCT); }
+"static"				{ fsm_from_none_to_spec(); return(STATIC); }
+"struct"				{ fsm_from_none_to_spec(); return(STRUCT); }
 "switch"				{ return(SWITCH); }
-"typedef"				{ return(TYPEDEF); }
-"union"					{ return(UNION); }
-"unsigned"				{ return(UNSIGNED); }
-"void"					{ return(VOID); }
-"volatile"				{ return(VOLATILE); }
+"typedef"				{ fsm_from_none_to_spec(); return(TYPEDEF); }
+"union"					{ fsm_from_none_to_spec(); return(UNION); }
+"unsigned"				{ fsm_from_none_to_spec(); return(UNSIGNED); }
+"void"					{ fsm_from_none_to_spec(); return(VOID); }
+"volatile"				{ fsm_from_none_to_spec(); return(VOLATILE); }
 "while"					{ return(WHILE); }
-"__int128"              { return(INT128); }     //GCC builtin 128-bit integer type
-"_Float32"              { return(FLOAT); }      //GCC builtin 32-bit floating-point type
-"_Float64"              { return(DOUBLE); }     //GCC builtin 64-bit floating-point type
-"__float128"            { return(FLOAT128); }   //GCC builtin 128-bit floating-point type
-"_Float128"             { return(FLOAT128); }   //GCC builtin 128-bit floating-point type
-"__builtin_va_list"     { return(VA_LIST); }    //GCC builtin variable argument list type
-"__gnuc_va_list"        { return(VA_LIST); }    //GCC builtin variable argument list type
-"_Alignas"              { return ALIGNAS; }
-"_Alignof"              { return ALIGNOF; }
-"_Atomic"{WS}*"("       { return ATOMIC_SPECIFIER; }
-"_Atomic"               { return ATOMIC; }
-"_Bool"                 { return BOOL; }
-"_Complex"              { return COMPLEX; }
+"__int128"              { fsm_from_none_to_spec(); return(INT128); }     //GCC builtin 128-bit integer type
+"_Float32"              { fsm_from_none_to_spec(); return(FLOAT); }      //GCC builtin 32-bit floating-point type
+"_Float64"              { fsm_from_none_to_spec(); return(DOUBLE); }     //GCC builtin 64-bit floating-point type
+"__float128"            { fsm_from_none_to_spec(); return(FLOAT128); }   //GCC builtin 128-bit floating-point type
+"_Float128"             { fsm_from_none_to_spec(); return(FLOAT128); }   //GCC builtin 128-bit floating-point type
+"__builtin_va_list"     { fsm_from_none_to_spec(); return(VA_LIST); }    //GCC builtin variable argument list type
+"__gnuc_va_list"        { fsm_from_none_to_spec(); return(VA_LIST); }    //GCC builtin variable argument list type
+"_Alignas"              { fsm_from_none_to_spec(); return ALIGNAS; }
+"_Alignof"              { fsm_from_none_to_spec(); return ALIGNOF; }
+"_Atomic"{WS}*"("       { fsm_from_none_to_spec(); return ATOMIC_SPECIFIER; }
+"_Atomic"               { fsm_from_none_to_spec(); return ATOMIC; }
+"_Bool"                 { fsm_from_none_to_spec(); return BOOL; }
+"_Complex"              { fsm_from_none_to_spec(); return COMPLEX; }
 "_Generic"              { return GENERIC; }
-"_Imaginary"            { return IMAGINARY; }
-"_Noreturn"             { return NORETURN; }
+"_Imaginary"            { fsm_from_none_to_spec(); return IMAGINARY; }
+"_Noreturn"             { fsm_from_none_to_spec(); return NORETURN; }
 "_Static_assert"        { return STATIC_ASSERT; }
-"_Thread_local"         { return THREAD_LOCAL; }
+"_Thread_local"         { fsm_from_none_to_spec(); return THREAD_LOCAL; }
 "__PRETTY_FUNCTION__"   { return FUNC_NAME; }   //__PRETTY_FUNCTION__ is a GCC extension: an enhanced version of __func__; which we ignore 
 "__func__"              { return FUNC_NAME; }
-"typeof_unqual"         { return TYPEOF_UNQUAL; }   //C23 and GCC extension
-"typeof"                { return TYPEOF; }   //C23 and GCC extension
+"typeof_unqual"         { fsm_from_none_to_spec(); return TYPEOF_UNQUAL; }   //C23 and GCC extension
+"typeof"                { fsm_from_none_to_spec(); return TYPEOF; }   //C23 and GCC extension
 
 {L}{A}*                     {size_t const size = strlen(yytext) + 1;
                              yylval.id = (char*)malloc(size);
@@ -154,18 +163,35 @@ WS  [ \t\v\n\f]
                              }
                              yylval.id[i] = '\0';
                              if (in_member_namespace || in_tag_declaration || in_label_namespace) //these are always identifiers they cannot be types
-                                return IDENTIFIER;  
+                                return IDENTIFIER;
                              if (is_typedef_name(yylval.id)) {
-                                if (1) {  //if declaring a new identifier: where the difficulty is
+                                if (decl_mode == DM_DECLS) { 
+                                    /* We are already in declarators → this typedef_name is a shadowing identifier */
                                     //shadowing of typedef occuring: push the identifier onto the typedef stack with the current scope level
                                     add_typedef_id(current_scope, yylval.id, 0);   //0 indicates that it is an ordinary id
                                     if (debugMode) printf("lexer Debug: SHADOWING of a typedef_name found: %s on line %d\n", yylval.id, yylineno);
                                     return IDENTIFIER;
-                                } else {
-                                    if (debugMode) printf("lexer Debug: returning TYPEDEF_NAME %s from lexer on line %d\n", yylval.id, yylineno);
-                                    return TYPEDEF_NAME;
                                 }
-                             } else return IDENTIFIER;
+                                /* We’re in DM_NONE or DM_SPECS. Predict whether THIS occurrence is the declarator name (an IDENTIFIER). */
+                                int nxt = peek_next_nontrivia_char();
+                                if (nxt == ')') {   /* Cast/parenthesized type like (Type name) — definitely a TYPEDEF_NAME here */ //WHY I DO NOT UNDERSTAND
+                                  if (decl_mode == DM_NONE) decl_mode = DM_SPECS;
+                                  return TYPEDEF_NAME;
+                                }
+                                if (is_declarator_follower(nxt)) {  /* Right after THIS typedef_name comes (, [, ',', '=', ';' → it's acting as a DECLARATOR NAME */
+                                  add_typedef_id(current_scope, yylval.id, 0);   //0 indicates that it is an ordinary id
+                                  if (debugMode) printf("lexer Debug: SHADOWING of a typedef_name found: %s on line %d\n", yylval.id, yylineno);
+                                  decl_mode = DM_DECLS;                  /* transition SPECIFIERS → DECLARATORS */
+                                  return IDENTIFIER;
+                                }
+                                /* Otherwise, treat it as a TYPE specifier and remain in DM_SPECS */
+                                if (decl_mode == DM_NONE) decl_mode = DM_SPECS;
+                                if (debugMode) printf("lexer Debug: returning TYPEDEF_NAME %s from lexer on line %d\n", yylval.id, yylineno);
+                                return TYPEDEF_NAME;
+                             }
+                             if (decl_mode == DM_SPECS) decl_mode = DM_DECLS;  /* first declarator token we’ve seen we are in declarator mode */
+                             if (decl_mode == DM_NONE) if (debugMode) printf("lexer Debug: this should never happen in DM_NONE mode: found IDENTIFIER %s on line %d\n", yylval.id, yylineno);
+                             return IDENTIFIER;
                             }
 
 {HP}{H}+{IS}?				{wrap_integer_constants("16'", &yytext[2], &yylval.id);     //hexadecimal integer
@@ -254,12 +280,12 @@ WS  [ \t\v\n\f]
 ";"					    { return ';'; }
 ("{"|"<%")				{ return '{'; }
 ("}"|"%>")				{ return '}'; }
-","					    { return ','; }
+","					    { if (decl_mode != DM_NONE) decl_mode = DM_DECLS; return ','; }
 ":"					    { return ':'; }
 "="					    { return '='; }
-"("					    { return '('; }
+"("					    { if (decl_mode != DM_NONE) decl_mode = DM_DECLS; return '('; }
 ")"					    { return ')'; }
-("["|"<:")				{ return '['; }
+("["|"<:")				{ if (decl_mode != DM_NONE) decl_mode = DM_DECLS; return '['; }
 ("]"|":>")				{ return ']'; }
 "."					    { return '.'; }
 "&"					    { return '&'; }
@@ -267,7 +293,7 @@ WS  [ \t\v\n\f]
 "~"					    { return '~'; }
 "-"					    { return '-'; }
 "+"					    { return '+'; }
-"*"					    { return '*'; }
+"*"					    { if (decl_mode != DM_NONE) decl_mode = DM_DECLS; return '*'; }
 "/"					    { return '/'; }
 "%"					    { return '%'; }
 "<"					    { return '<'; }
@@ -281,17 +307,51 @@ WS  [ \t\v\n\f]
 
 %%
 /* user code section */
-int yywrap(void)        /* called at end of input */
-{
+/* FSM helpers */
+
+static inline void fsm_from_none_to_spec(void) {
+    if (decl_mode == DM_NONE) decl_mode = DM_SPECS;
+}
+
+static void fsm_from_spec_to_decls(void) {
+    if (decl_mode == DM_SPECS) decl_mode = DM_DECLS;
+}
+
+void fsm_reset(void) {
+    decl_mode = DM_NONE;
+}
+
+/* Debug (optional) */
+static const char* mode_str(decl_mode_t m) {
+    switch (m) {
+        case DM_NONE:  return "NONE";
+        case DM_SPECS: return "SPECS";
+        case DM_DECLS: return "DECLS";
+        default:       return "?";
+    }
+}
+
+// Small lookahead: peek next non-space/comment char and push it back --- */
+// We already consume whitespace, comments, and attributes, so the next raw char from input() is significant. We read one byte and push it back.
+static int peek_next_nontrivia_char(void) {
+   int c = input();         /* read one char from Flex’s input stream */
+   if (c != EOF) unput(c);  /* push it back so the next rule will see it */
+   return c;                /* return the char (or EOF) */
+}
+
+/* Is this char one that typically FOLLOWS a declarator name? */
+static inline bool is_declarator_follower(int c) {
+   return c == '(' || c == '[' || c == ',' || c == '=' || c == ';' /* || attribute-start if you support it */;
+}
+
+int yywrap(void) {     /* called at end of input */
     return 1;           /* terminate now */
 }
 
 void read_comment() {
     int c;
-
     while ((c = input()) != 0)
-        if (c == '*')
-        {
+        if (c == '*') {
             while ((c = input()) == '*')
                 ;
             if (c == '/')

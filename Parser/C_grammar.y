@@ -69,6 +69,8 @@ char *current_function;			//we keep track of the function being parsed so that w
 void yyerror(const char*);
 void my_exit(int);				//attempts to close handles and delete generated files prior to caling exit(int);
 
+void fsm_reset(void);
+
 %}
 
 %union {
@@ -84,14 +86,14 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 	} declarator_type;
 }
 
-%token <id> IDENTIFIER I_CONSTANT F_CONSTANT ENUMERATION_CONSTANT STRING_LITERAL
+%token <id> IDENTIFIER TYPEDEF_NAME I_CONSTANT F_CONSTANT ENUMERATION_CONSTANT STRING_LITERAL
 %token  FUNC_NAME SIZEOF
 %token	PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
 %token	AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
 %token	SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
 %token	XOR_ASSIGN OR_ASSIGN
 
-%token  TYPEDEF 
+%token  TYPEDEF
 %token  EXTERN STATIC AUTO REGISTER INLINE
 %token	CONST RESTRICT VOLATILE
 %token	BOOL CHAR SHORT INT LONG SIGNED UNSIGNED FLOAT DOUBLE VOID
@@ -533,7 +535,7 @@ constant_expression
 	;
 
 declaration
-	: type_declaration_specifiers ';'
+	: type_declaration_specifiers ';' {fsm_reset();}
 		{if (debugMode) printf("end of stand alone declaration specifier as a declaration on line %d\n", yylineno);
 		 char *decl_specifier = create_declaration_specifiers();
 		 size_t const size = strlen("\ndeclaration()") + strlen(decl_specifier) + 1;
