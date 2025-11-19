@@ -1,5 +1,4 @@
 /****************************************************************************************************/
-/* C11 grammar file from https://www.quut.com/c/ANSI-C-grammar-y.html								*/
 /* Bison documentation: https://www.gnu.org/software/bison/manual/html_node/index.html              */
 /****************************************************************************************************/
 
@@ -61,7 +60,6 @@ int branch_nb = 1;				//unique id for branches created
 int typedef_flag = 0; 			//indicates that we are within a typedef declaration
 int in_tag_declaration = 0;		//indicates to the lexer that we are in the tag namespace (for struct, union and enum tags) and that identifier should not be checked for typedef
 int in_member_namespace = 0;	//indicates to the lexer that we are in the member namespace (for members of structs and unions) and that identifier should not be checked for typedef
-int in_ordinary_id_declaration = 0;	//indicate to the lexer that we are declaring an IDENTIFIER that may shadow a TYPEDEF_NAME
 int in_label_namespace = 0;		//used in lexer
 
 int current_scope = 0;
@@ -86,7 +84,7 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 	} declarator_type;
 }
 
-%token <id> IDENTIFIER TYPEDEF_NAME I_CONSTANT F_CONSTANT ENUMERATION_CONSTANT STRING_LITERAL
+%token <id> IDENTIFIER I_CONSTANT F_CONSTANT ENUMERATION_CONSTANT STRING_LITERAL
 %token  FUNC_NAME SIZEOF
 %token	PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
 %token	AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
@@ -298,7 +296,13 @@ unary_expression
 		 sprintf_safe($$, size, "size_of_type(%s)", $3);
 		 free($3);
 		}
-	| ALIGNOF '(' type_name ')'				//incomplete alignof '(' expression ')' is also allowed	
+	| ALIGNOF '(' type_name ')'
+		{size_t const size = strlen("align_of()") + strlen($3) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_safe($$, size, "align_of(%s)", $3);
+		 free($3);
+		}
+	| ALIGNOF '(' expression ')'
 		{size_t const size = strlen("align_of()") + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "align_of(%s)", $3);
@@ -528,7 +532,6 @@ constant_expression
 	: conditional_expression	/* with constraints */
 	;
 
-
 declaration
 	: type_declaration_specifiers ';'
 		{if (debugMode) printf("end of stand alone declaration specifier as a declaration on line %d\n", yylineno);
@@ -537,7 +540,6 @@ declaration
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "\ndeclaration(%s)", decl_specifier);
 		 free(decl_specifier);
-		 in_ordinary_id_declaration = 0;
 		}
 	| type_declaration_specifiers init_declarator_list ';' 
 	  	{if (typedef_flag == 1) {	//we were processing typedef declarations [why not done above?]
@@ -550,7 +552,6 @@ declaration
 		 sprintf_safe($$, size, "\ndeclaration(%s, [%s])", decl_specifier, $2);
 		 free(decl_specifier);
 		 free($2);
-		 in_ordinary_id_declaration = 0; //not needed but added for safety
 		}
 	| static_assert_declaration
 		{size_t const size = strlen("\n") + strlen($1) + 1;
@@ -558,7 +559,6 @@ declaration
 		 sprintf_safe($$, size, "\n%s", $1);
 		 free($1);
 		 pop_decl_spec_stack();
-		 in_ordinary_id_declaration = 0; //not needed but added for safety
 		}
 	;
 
@@ -566,36 +566,26 @@ declaration
 //cannot contain ids that are IDENTIFIER in the ordinary name space (they are struct, enum and union tags which are in_tag_declaration namespace, TYPEDEF_NAMES) and typeof(...) which is handled as a special case
 type_declaration_specifiers
 	: storage_class_specifier type_declaration_specifiers	//storage_class_specifier e.g. typedef, extern etc.
-	  {in_ordinary_id_declaration = 1;}
 	| storage_class_specifier 
-	  {in_ordinary_id_declaration = 1;}
 	| type_specifier type_declaration_specifiers				//type_specifier e.g. built-in type, TYPEDEF_NAME, struct, union
-	  {in_ordinary_id_declaration = 1;}
 	| type_specifier
-	  {in_ordinary_id_declaration = 1;}
 	| type_qualifier type_declaration_specifiers				//type_qualifier e.g. const, volatile
-	  {in_ordinary_id_declaration = 1;}
 	| type_qualifier
-	  {in_ordinary_id_declaration = 1;}
 	| function_specifier type_declaration_specifiers			//function_specifier e.g. inline
-	  {in_ordinary_id_declaration = 1;}
 	| function_specifier
-	  {in_ordinary_id_declaration = 1;}
 	| alignment_specifier type_declaration_specifiers		//alignment_specifier e.g. alignas
-	  {in_ordinary_id_declaration = 1;}
 	| alignment_specifier
-	  {in_ordinary_id_declaration = 1;}
 	;
 
 init_declarator_list
 	: init_declarator 
 		{$$ = $1;}
-	| init_declarator_list ',' {in_ordinary_id_declaration = 1;} init_declarator
-		{size_t const size = strlen(", ") + strlen($1) + strlen($4) + 1;
+	| init_declarator_list ',' init_declarator
+		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "%s, %s", $1, $4);
+		 sprintf_safe($$, size, "%s, %s", $1, $3);
 	     free($1);
-	     free($4);
+	     free($3);
 		}
 	;
 
@@ -609,7 +599,8 @@ init_declarator
 	   	 free($3);
 	  	}
 	| declarator	// at the global level always add the empty initialiser: initializer([]) to trigger initialisation to 0, otherwise add 'no_initializer'
-		{if (typedef_flag == 1) {	// we are parsing a typedef declaration
+		{if (debugMode) printf("DEBUG: typedef_flag=%d, ptr_declarator=%s\n", typedef_flag, $1.ptr_declarator);
+			if (typedef_flag == 1) {	// we are parsing a typedef declaration
 			add_typedef_id(current_scope, $1.ptr_declarator, 1);	//the id as a TYPEDEF_NAME is added to the data structures keeping track of typedef_names (and ids shadowing)
 	   	 }
 		 free($1.ptr_declarator);
@@ -631,7 +622,7 @@ storage_class_specifier
 	| REGISTER		{ decl_spec_stack->decl_spec.storage.isRegister = true; }
 	;
 
-//cannot contain ids that are IDENITIFER in the ordinary name space (they are struct, enum and union tags which are in_tag_declaration namespace, TYPEDEF_NAMES) and typeof(...) which is handled as a special case
+//cannot contain ids that are IDENTIFIER in the ordinary name space (they are struct, enum and union tags which are in_tag_declaration namespace, TYPEDEF_NAMES) and typeof(...) which is handled as a special case
 type_specifier
 	: VOID					{ decl_spec_stack->decl_spec.atomic.isVoid = true;}
 	| CHAR					{ decl_spec_stack->decl_spec.atomic.isChar = true;}
@@ -658,10 +649,9 @@ type_specifier
 	| VA_LIST				{ simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "va_list");}		//gcc extension: builtin type
 	;
 
-//added in_ordinary_id_declaration = 0 here to ensure that if we have an expression which contains an id, it is not declared as as a shadowing IDENTIFIER by the lexer if there is a TYPEDEF_NAME of the same name
 typeof_specifier
-    : TYPEOF {in_ordinary_id_declaration = 0;} rest_typeof_specifier
-    | TYPEOF_UNQUAL {in_ordinary_id_declaration = 0;} rest_typeof_specifier
+    : TYPEOF rest_typeof_specifier
+    | TYPEOF_UNQUAL rest_typeof_specifier
     ;
 rest_typeof_specifier
 	: '(' expression ')'
@@ -804,23 +794,21 @@ struct_declarator		//added to avoid reduce-reduce conflict
 	;
 
 enum_specifier
-	: ENUM {in_ordinary_id_declaration = 1;} '{' enumerator_list comma_opt '}'
-		{in_ordinary_id_declaration = 0;
-		 if (!strcmp($5, ",")) {
-			size_t const size = strlen("trailing_comma_anonymous_enum([])") + strlen($4) + 1;
+	: ENUM '{' enumerator_list comma_opt '}'
+		{if (!strcmp($4, ",")) {
+			size_t const size = strlen("trailing_comma_anonymous_enum([])") + strlen($3) + 1;
        	 	$$ = (char*)malloc(size);
-         	sprintf_safe($$, size, "trailing_comma_anonymous_enum([%s])", $4);
+         	sprintf_safe($$, size, "trailing_comma_anonymous_enum([%s])", $3);
 		 } else {
-			size_t const size = strlen("anonymous_enum([])") + strlen($4) + 1;
+			size_t const size = strlen("anonymous_enum([])") + strlen($3) + 1;
        	 	$$ = (char*)malloc(size);
-         	sprintf_safe($$, size, "anonymous_enum([%s])", $4);
+         	sprintf_safe($$, size, "anonymous_enum([%s])", $3);
 		 }
-	     free($4);
-		 free($5);
+	     free($3);
+		 free($4);
         }
-	| ENUM {in_tag_declaration = 1;} IDENTIFIER {in_tag_declaration = 0; in_ordinary_id_declaration = 1;} enum_specifier_rest 	//Tag namespace Id declaration ; 
-		{in_ordinary_id_declaration = 0;
-		 size_t const size = strlen("enum(, [])") + strlen($3) + strlen($5) + 1;
+	| ENUM {in_tag_declaration = 1;} IDENTIFIER {in_tag_declaration = 0;} enum_specifier_rest 	//Tag namespace Id declaration ; 
+		{size_t const size = strlen("enum(, [])") + strlen($3) + strlen($5) + 1;
        	 $$ = (char*)malloc(size);
          sprintf_safe($$, size, "enum(%s, [%s])", $3, $5);
 	     free($3);
@@ -843,22 +831,22 @@ enum_specifier_rest
 
 enumerator_list
 	: enumerator
-	| enumerator_list ',' {in_ordinary_id_declaration = 1;} enumerator
-		{size_t const size = strlen(", ") + strlen($1) + strlen($4) + 1;
+	| enumerator_list ',' enumerator
+		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_safe($$, size, "%s, %s", $1, $4);
+         sprintf_safe($$, size, "%s, %s", $1, $3);
 	   	 free($1);
-	     free($4);
+	     free($3);
         }
 	;
 
 enumerator	/* identifiers must be flagged as ENUMERATION_CONSTANT */
-	: enumeration_constant {in_ordinary_id_declaration = 0;} '=' constant_expression
-		{size_t const size = strlen("init_enum(, )") + strlen($1) + strlen($4) + 1;
+	: enumeration_constant '=' constant_expression
+		{size_t const size = strlen("init_enum(, )") + strlen($1) + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_safe($$, size, "init_enum(%s, %s)", $1, $4);
+         sprintf_safe($$, size, "init_enum(%s, %s)", $1, $3);
 	   	 free($1);
-	     free($4);
+	     free($3);
         }
 	| enumeration_constant
 	;
@@ -907,14 +895,19 @@ declarator
 	;
 
 direct_declarator
-	: IDENTIFIER		//Ordinary namespace id declaration unless within a struct declaration in which case it is a Member namespace id
+	: IDENTIFIER 		//Ordinary namespace id declaration unless within a struct declaration in which case it is a Member namespace id
 		{if (in_member_namespace) {	//this is a member (from a struct or union) no need to transform into a Prolog var
+			if (debugMode) printf("direct_declarator: in member namespace: %s on line %d\n", $1, yylineno);
 			size_t const size = strlen($1) + 1;
 			$$.full = (char*)malloc(size);
 		 	strcpy_safe($$.full, size, $1);
 			$$.ptr_declarator = (char*)malloc(size);
 		 	strcpy_safe($$.ptr_declarator, size, $1);
 		 } else {	//only place where a new IDENTIFIER (apart from ENUM constants) can be declared: added in the table of symbols in the lexer (it has to be done there) if it shadows a TYPEDEF_NAME
+			if (is_typedef_name($1)) {
+				add_typedef_id(current_scope, yylval.id, 0);   //0 indicates that it is an ordinary id
+                if (debugMode) printf("direct_declarator: SHADOWING of a typedef_name found: %s on line %d\n", $1, yylineno);
+			} else if (debugMode) printf("direct_declarator: just an ordinary IDENTIFIER declaration: %s on line %d\n", $1, yylineno);
 			char Prolog_var_name[MAX_ID_LENGTH+5];	//todo should use to_prolog_var($1);
 			if (islower($1[0])) {
 				Prolog_var_name[0] = toupper($1[0]);
@@ -929,22 +922,20 @@ direct_declarator
 		 	$$.ptr_declarator = strdup($$.full);
 		 	free($1);
 		 }
-		 in_ordinary_id_declaration = 0;
 		} 
 	| '(' declarator ')'			//function pointer e.g. in "int (*func_ptr)(int, int);" declarator is "*func_ptr"
 		//many need in_member_namespace = 0; in case we are within a union or struct to indicate that we just processed the member and the rest my involve typedefs see diary 12/11/24
 		{$$ = $2;
-		 in_ordinary_id_declaration = 0;
 		}
-	| direct_declarator {in_ordinary_id_declaration = 0;} rest_direct_declarator
-		{size_t const size = strlen("array_decl(, )") + strlen($1.full) + strlen($3) + 1;
+	| direct_declarator rest_direct_declarator
+		{size_t const size = strlen("array_decl(, )") + strlen($1.full) + strlen($2) + 1;
          $$.full = (char*)malloc(size);
-         sprintf_safe($$.full, size, "array_decl(%s, %s)", $1.full, $3);
+         sprintf_safe($$.full, size, "array_decl(%s, %s)", $1.full, $2);
 		 free($1.full);
-		 free($3);
+		 free($2);
 		 $$.ptr_declarator = $1.ptr_declarator;
 		}
-	| direct_declarator {current_scope++; in_ordinary_id_declaration = 0;} '(' rest_function_definition ')'
+	| direct_declarator {current_scope++; } '(' rest_function_definition ')'
 		{pop_scope(&current_scope);
 		 size_t const size = strlen("function(, )") + strlen($1.full) + strlen($4) + 1;
 	     $$.full = (char*)malloc(size);
@@ -955,7 +946,7 @@ direct_declarator
 		 free($4);
 		}
 	;
-	  
+
 rest_direct_declarator
 	: '[' ']'
 		{simple_str_lit_copy(&$$, "int(0)"); 
@@ -1035,7 +1026,6 @@ parameter_declaration
 	     free(decl_specifier);
 		 free($2.full); 
 		 free($2.ptr_declarator);
-		 in_ordinary_id_declaration = 0; //not needed but added for safety
 		}
 	| type_declaration_specifiers abstract_declarator
 		{char *decl_specifier = create_declaration_specifiers();
@@ -1044,7 +1034,6 @@ parameter_declaration
 	     sprintf_safe($$, size, "unnamed_param(%s, dummy_abstract_declarator)", decl_specifier);
 	     free(decl_specifier);
 		 //free($2);
-		 in_ordinary_id_declaration = 0;
 		}
 	| type_declaration_specifiers
 		{char *decl_specifier = create_declaration_specifiers();
@@ -1052,7 +1041,6 @@ parameter_declaration
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "unnamed_param(%s, [])", decl_specifier);
 	     free(decl_specifier);
-		 in_ordinary_id_declaration = 0;
 		}
 	;
 /*** End Function Parameters section ***/
@@ -1112,7 +1100,6 @@ abstract_declarator
 	| direct_abstract_declarator
 	;
 
-//toto check if may contain ids that are IDENTIFIER? need to switch in_ordinary_id_declaration off
 direct_abstract_declarator
 	: '(' abstract_declarator ')'
 	| '[' ']'
@@ -1218,12 +1205,12 @@ designator
 	;
 
 static_assert_declaration
-	: STATIC_ASSERT {in_ordinary_id_declaration = 0;} '(' constant_expression ',' STRING_LITERAL ')' ';'
-		{size_t const size = strlen("static_assert(, )") + strlen($4) + strlen($6) + 1;
+	: STATIC_ASSERT '(' constant_expression ',' STRING_LITERAL ')' ';'
+		{size_t const size = strlen("static_assert(, )") + strlen($3) + strlen($5) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "static_assert(%s, %s)", $4, $6);
-		 free($4);
-		 free($6);
+	     sprintf_safe($$, size, "static_assert(%s, %s)", $3, $5);
+		 free($3);
+		 free($5);
 		}
 	;
 
@@ -1248,6 +1235,7 @@ labeled_statement
 	   free($1);
 	   free($3);
 	  }
+	  /*
 	| //fake rule in case a label is wrongly identified as a TYPEDEF_NAME
 	  TYPEDEF_NAME ':' statement 	//Label Id declaration
 	  {size_t const size = strlen("label_stmt(, )") + strlen($1) + strlen($3) + 1;
@@ -1256,6 +1244,7 @@ labeled_statement
 	   free($1);
 	   free($3);
 	  }
+	  */
 	| CASE constant_expression ':' statement
 	  {size_t const size = strlen("case_stmt(branch(, ), )") + MAX_BRANCH_STR + strlen($2) + strlen($4) + 1;
 	   $$ = (char*)malloc(size);

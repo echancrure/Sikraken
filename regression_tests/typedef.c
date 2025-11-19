@@ -6,7 +6,7 @@ extern void abort(void);
 typedef int claude1;
 int main_claude1() {
     int claude1 = 5;
-    int x = (claude1)3.14;  // OK: uses typedef from outer scope
+    int x = (int)3.14 + claude1;  // OK: uses the shadow claude1
 }
 
 
@@ -45,6 +45,7 @@ struct table {  //struct table is defined
     int type;
     int value;
 };
+int my_array[5];
 static const table universal_time_zone_table_200015[4]; //table is a typedef name denoting struct table
 static table tt; //table is a typedef name denoting struct table
 table t3;

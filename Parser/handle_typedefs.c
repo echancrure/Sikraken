@@ -101,16 +101,17 @@ int is_typedef_name(char* id) {
 	while (current_scope != NULL) {
 		list_node* current_typedef_node = current_scope->typedef_list;
 		while (current_typedef_node != NULL) {
-			if (current_typedef_node->is_typedef_name && !strcmp(current_typedef_node->name, id)) {	//a matching node representing a typedef_name has been found 
-				if (debugMode) {printf("is_typedef_name: found it\n"); fflush(stdout);}
-				return 1;
+			if (!strcmp(current_typedef_node->name, id)) {	//a matching node matching the a typedef_name has been found 
+				int is_typedef_name = current_typedef_node->is_typedef_name;
+				if (debugMode) {printf("is_typedef_name: a matching id has been found it is a %s\n", (is_typedef_name ? "TYPEDEF_NAME" : "shadow IDENTIFIER")); fflush(stdout);}
+				return is_typedef_name;
 			}
 			current_typedef_node = current_typedef_node->next;
 		}
 		current_scope = current_scope->below;
 	}
 	if (debugMode) {
-		printf("is_typedef_name: not found\n");
+		printf("is_typedef_name: not found it must be an IDENTIFIER\n");
 		fflush(stdout);
 	}
 	return 0;
