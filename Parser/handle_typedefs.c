@@ -5,8 +5,8 @@
 extern void* safe_malloc(size_t);
 
 typedef struct node {
-	int is_typedef_name;	//the id represents a TYPEDEF_NAME (and not an IDENTIFIER shadowing it)
-	char* name;				//the name of the id
+	int is_typedef_name;	// 1 a pure typedef_name, 2 a shadowing identifier
+	char* name;				// the name of the id
 	struct node* next;
 } list_node;
 
@@ -36,7 +36,7 @@ void print_scope_stack() {
 		if (debugMode) {printf("Scope %d:\n", current_scope->scope_nb); fflush(stdout);}
 		list_node* current_typedef_node = current_scope->typedef_list;
 		while (current_typedef_node != NULL) {
-			if (debugMode) {printf("\t%s is a %s\n", current_typedef_node->name, (current_typedef_node->is_typedef_name ? "TYPEDEF_NAME" : "shadow IDENTIFIER")); fflush(stdout);}
+			if (debugMode) {printf("\t%s is a %s\n", current_typedef_node->name, (current_typedef_node->is_typedef_name==1 ? "TYPEDEF_NAME" : "shadow IDENTIFIER")); fflush(stdout);}
 			current_typedef_node = current_typedef_node->next;
 		}
 		current_scope = current_scope->below;
@@ -71,12 +71,16 @@ void pop_scope(int *scope_nb) {
 }
 
 void add_typedef_id(int scope, char* id, int is_typedef_name) {
+	if (is_typedef_name != 1 && is_typedef_name != 2) {
+		printf("add_typedef_id: Illegal Arguments, invalid is_typedef_name value: %d\n", is_typedef_name);
+		fflush(stdout);
+		exit(1);
+	}
 	if (scope_stack == NULL) push_scope(scope);
-	else if (scope_stack->scope_nb != scope) {//a new scope is needed		
-		if (debugMode) {printf("Creating a new scope in add_typedef_id because current scope is %d but incoming scope is %d\n", scope_stack->scope_nb, scope); fflush(stdout);}
+	else if (scope_stack->scope_nb != scope) {	//a new scope is needed		
+		if (debugMode) {printf("add_typedef_id: Creating a new scope in because current scope is %d but incoming scope is %d\n", scope_stack->scope_nb, scope); fflush(stdout);}
 		push_scope(scope);
 	}
-
 	if (!strncmp(id, "UC_", 3)) id = &id[3];	//removing the "UC_"  prefix before adding to collection of typedef
 	else id[0] = tolower(id[0]);	//lowering the first letter before adding to collection of typedef
 	list_node* new_node = (list_node *)safe_malloc(sizeof(list_node));	
@@ -86,7 +90,7 @@ void add_typedef_id(int scope, char* id, int is_typedef_name) {
 	if (scope_stack->typedef_list != NULL) new_node->next = scope_stack->typedef_list;	//adding the new node to the front of the list
 	else new_node->next = NULL;
 	scope_stack->typedef_list = new_node;
-	if (debugMode) {printf("Added %s as a %s to typedef list\n", id, (is_typedef_name ? "TYPEDEF_NAME" : "shadow IDENTIFIER")); fflush(stdout);}
+	if (debugMode) {printf("add_typedef_id: Added %s as a %s to typedef list\n", id, (is_typedef_name==1 ? "TYPEDEF_NAME" : "shadow IDENTIFIER")); fflush(stdout);}
 }
 
 //look for the id in the entire stack of scope of list of typedefs
@@ -103,7 +107,7 @@ int is_typedef_name(char* id) {
 		while (current_typedef_node != NULL) {
 			if (!strcmp(current_typedef_node->name, id)) {	//a matching node matching the a typedef_name has been found 
 				int is_typedef_name = current_typedef_node->is_typedef_name;
-				if (debugMode) {printf("is_typedef_name: a matching id has been found it is a %s\n", (is_typedef_name ? "TYPEDEF_NAME" : "shadow IDENTIFIER")); fflush(stdout);}
+				if (debugMode) {printf("is_typedef_name: a matching id has been found it is a %s\n", (is_typedef_name==1 ? "TYPEDEF_NAME" : "shadow IDENTIFIER")); fflush(stdout);}
 				return is_typedef_name;
 			}
 			current_typedef_node = current_typedef_node->next;
@@ -111,7 +115,7 @@ int is_typedef_name(char* id) {
 		current_scope = current_scope->below;
 	}
 	if (debugMode) {
-		printf("is_typedef_name: not found it must be an IDENTIFIER\n");
+		printf("is_typedef_name: not found %s is a basic IDENTIFIER\n", id);
 		fflush(stdout);
 	}
 	return 0;

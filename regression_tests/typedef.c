@@ -10,10 +10,10 @@ int main_claude1() {
 }
 
 
-typedef int claud; //or clause both work
+typedef long claude; //or clause both work
 int main_claude() {
-    int claude = 5;
-    int x = _Alignof(claude);   //accept type_name and expression
+    int claude = 5;     //shadow identifier declaration
+    int x = _Alignof(claude);   //accept type_name and expression, here it is an expression because claude is an identifier
 }
 
 extern void __assert_fail (const char *__assertion, const char *__file,
@@ -83,7 +83,7 @@ int hello1(my_int2 *y) {
         //my_int new_id = 42;     //gcc error
         int hello1 = sizeof(my_int);
     }
-    //int x = (my_int);   //causes parser error because shadowing is not implemented
+    //int x = (my_int); //gcc error: my_int  is a type here 
     return 0;
 }
 
@@ -97,5 +97,5 @@ int main() {
     //table t;  //gcc error: conflict as table represent a var and a typedef in the same scope and the same namespace [although the programmer's intent is clear and our parser can handle this]
     int x = 6 + table; //causes parser error because shadowing is not implemented
     table : a = sizeof(table); //1st table is a label, not a typedef name, 2nd table is a TYPDEFNAME
-    return table; //causes parser error because shadowing is not implemented
+    return table; //causes parser error if shadowing is not implemented
 }

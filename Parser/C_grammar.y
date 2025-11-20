@@ -142,7 +142,7 @@ primary_expression
 		}
 	| constant
 	| string
-	| '(' {current_scope++;} compound_statement ')'	//GCC statement-expression
+	| '(' {current_scope++; fsm_reset();} compound_statement ')'	//GCC statement-expression
 		{pop_scope(&current_scope);
 		 size_t const size = strlen("\nstmt_exp()") + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
@@ -535,7 +535,7 @@ constant_expression
 	;
 
 declaration
-	: type_declaration_specifiers ';' {fsm_reset();}
+	: type_declaration_specifiers {fsm_reset();} ';'
 		{if (debugMode) printf("end of stand alone declaration specifier as a declaration on line %d\n", yylineno);
 		 char *decl_specifier = create_declaration_specifiers();
 		 size_t const size = strlen("\ndeclaration()") + strlen(decl_specifier) + 1;
@@ -543,7 +543,7 @@ declaration
 		 sprintf_safe($$, size, "\ndeclaration(%s)", decl_specifier);
 		 free(decl_specifier);
 		}
-	| type_declaration_specifiers init_declarator_list ';' 
+	| type_declaration_specifiers init_declarator_list {fsm_reset();} ';' 
 	  	{if (typedef_flag == 1) {	//we were processing typedef declarations [why not done above?]
 	    	typedef_flag = 0; 
 			if (debugMode) printf("Debug: typedef switched to 0\n");
@@ -744,7 +744,7 @@ struct_declaration
 	   	 free(decl_specifier);
 		 free($3);
         }
-	| static_assert_declaration	
+	| static_assert_declaration		//somehow the ; is in that rule
 		{$$ = $1;
 		 pop_decl_spec_stack(); 
 		}
@@ -906,10 +906,6 @@ direct_declarator
 			$$.ptr_declarator = (char*)malloc(size);
 		 	strcpy_safe($$.ptr_declarator, size, $1);
 		 } else {	//only place where a new IDENTIFIER (apart from ENUM constants) can be declared: added in the table of symbols in the lexer (it has to be done there) if it shadows a TYPEDEF_NAME
-			if (is_typedef_name($1)) {
-				add_typedef_id(current_scope, yylval.id, 0);   //0 indicates that it is an ordinary id
-                if (debugMode) printf("direct_declarator: SHADOWING of a typedef_name found: %s on line %d\n", $1, yylineno);
-			} else if (debugMode) printf("direct_declarator: just an ordinary IDENTIFIER declaration: %s on line %d\n", $1, yylineno);
 			char Prolog_var_name[MAX_ID_LENGTH+5];	//todo should use to_prolog_var($1);
 			if (islower($1[0])) {
 				Prolog_var_name[0] = toupper($1[0]);
@@ -1207,7 +1203,7 @@ designator
 	;
 
 static_assert_declaration
-	: STATIC_ASSERT '(' constant_expression ',' STRING_LITERAL ')' ';'
+	: STATIC_ASSERT '(' constant_expression ',' STRING_LITERAL ')' {fsm_reset();} ';'
 		{size_t const size = strlen("static_assert(, )") + strlen($3) + strlen($5) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "static_assert(%s, %s)", $3, $5);
@@ -1218,7 +1214,7 @@ static_assert_declaration
 
 statement
 	: labeled_statement
-	| {current_scope++;} 
+	| {current_scope++; fsm_reset();} 
 	  compound_statement	
 	  {pop_scope(&current_scope);
 	   $$ = $2;
@@ -1264,7 +1260,7 @@ labeled_statement
 
 compound_statement	//aka a 'block'
 	: '{' '}'	{simple_str_lit_copy(&$$, "\ncmp_stmts([])");}
-	| '{' block_item_list '}' 
+	| '{' block_item_list '}' //too late to call fsm_reset(); after '{' : the next token has already been read: must call fsm_reset(); before every call to compound_statement
 	  {size_t const size = strlen("\ncmp_stmts([\n])") + strlen($2) + 1;
 	   $$ = (char*)malloc(size);
 	   sprintf_safe($$, size, "\ncmp_stmts([%s\n])", $2);
@@ -1273,9 +1269,10 @@ compound_statement	//aka a 'block'
 	;
 
 block_item_list
-	: {push_decl_spec_stack();} block_item {$$ = $2;}
+	: {push_decl_spec_stack();} block_item {fsm_reset(); $$ = $2;}
 	| block_item_list {push_decl_spec_stack();} block_item
-	  {size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
+	  {fsm_reset();
+	   size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
 	   $$ = (char*)malloc(size);
 	   sprintf_safe($$, size, "%s, %s", $1, $3);
 	   free($1);
@@ -1424,17 +1421,17 @@ external_declaration		//printed out
 		}
 	;
 function_definition
-	: type_declaration_specifiers declarator declaration_list_opt compound_statement
+	: type_declaration_specifiers declarator declaration_list_opt {fsm_reset();} compound_statement
 		{char *decl_specifier = create_declaration_specifiers();
-		 size_t const size = strlen("function(, , [], )") + strlen(decl_specifier) + strlen($2.full) + strlen($3) + strlen($4) + 1;
+		 size_t const size = strlen("function(, , [], )") + strlen(decl_specifier) + strlen($2.full) + strlen($3) + strlen($5) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "function(%s, %s, [%s], %s)", decl_specifier, $2.full, $3, $4);
+	     sprintf_safe($$, size, "function(%s, %s, [%s], %s)", decl_specifier, $2.full, $3, $5);
 		 if (debugMode) printf("function parsed\n");
 	     free(decl_specifier);
 		 free($2.full);
 		 free($2.ptr_declarator);
 		 free($3);
-		 free($4);
+		 free($5);
 		}
 	;
 

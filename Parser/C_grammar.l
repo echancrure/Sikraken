@@ -36,9 +36,9 @@ int open_parens = 0;        //Declaration in the definitions section
 typedef enum { DM_NONE=0, DM_SPECS=1, DM_DECLS=2 } decl_mode_t;
 static decl_mode_t decl_mode = DM_NONE;
 static int peek_next_nontrivia_char(void);
+int peek_and_push_token(void);
 static inline bool is_declarator_follower(int);
 static inline void fsm_from_none_to_spec(void);
-static inline void fsm_from_spec_to_decls(void);
 void fsm_reset(void);
 static const char* mode_str(decl_mode_t);
 
@@ -110,7 +110,11 @@ WS  [ \t\v\n\f]
 "if"					{ return(IF); }
 "inline"				{ fsm_from_none_to_spec(); return(INLINE); }
 "__inline"				{ fsm_from_none_to_spec(); return(INLINE); }     //GCC version of INLINE
-"int"					{ fsm_from_none_to_spec(); return(INT); }
+"int"					{ if (debugMode) { 
+                                printf("Lexer FSM: found INT in mode %s\n", mode_str(decl_mode));
+                                fflush(stdout);
+                          }
+                          fsm_from_none_to_spec(); return(INT); }
 "long"					{ fsm_from_none_to_spec(); return(LONG); }
 "register"				{ fsm_from_none_to_spec(); return(REGISTER); }
 "restrict"				{ fsm_from_none_to_spec(); return(RESTRICT); }
@@ -162,36 +166,43 @@ WS  [ \t\v\n\f]
                                 }
                              }
                              yylval.id[i] = '\0';
-                             if (in_member_namespace || in_tag_declaration || in_label_namespace) //these are always identifiers they cannot be types
-                                return IDENTIFIER;
-                             if (is_typedef_name(yylval.id)) {
-                                if (decl_mode == DM_DECLS) { 
-                                    /* We are already in declarators → this typedef_name is a shadowing identifier */
-                                    //shadowing of typedef occuring: push the identifier onto the typedef stack with the current scope level
-                                    add_typedef_id(current_scope, yylval.id, 0);   //0 indicates that it is an ordinary id
-                                    if (debugMode) printf("lexer Debug: SHADOWING of a typedef_name found: %s on line %d\n", yylval.id, yylineno);
-                                    return IDENTIFIER;
-                                }
-                                /* We’re in DM_NONE or DM_SPECS. Predict whether THIS occurrence is the declarator name (an IDENTIFIER). */
-                                int nxt = peek_next_nontrivia_char();
-                                if (nxt == ')') {   /* Cast/parenthesized type like (Type name) — definitely a TYPEDEF_NAME here */ //WHY I DO NOT UNDERSTAND
-                                  if (decl_mode == DM_NONE) decl_mode = DM_SPECS;
-                                  return TYPEDEF_NAME;
-                                }
-                                if (is_declarator_follower(nxt)) {  /* Right after THIS typedef_name comes (, [, ',', '=', ';' → it's acting as a DECLARATOR NAME */
-                                  add_typedef_id(current_scope, yylval.id, 0);   //0 indicates that it is an ordinary id
-                                  if (debugMode) printf("lexer Debug: SHADOWING of a typedef_name found: %s on line %d\n", yylval.id, yylineno);
-                                  decl_mode = DM_DECLS;                  /* transition SPECIFIERS → DECLARATORS */
-                                  return IDENTIFIER;
-                                }
-                                /* Otherwise, treat it as a TYPE specifier and remain in DM_SPECS */
-                                if (decl_mode == DM_NONE) decl_mode = DM_SPECS;
-                                if (debugMode) printf("lexer Debug: returning TYPEDEF_NAME %s from lexer on line %d\n", yylval.id, yylineno);
-                                return TYPEDEF_NAME;
+                             if (in_member_namespace || in_tag_declaration || in_label_namespace) //these contexts never treat ids as types: no point checking
+                                return IDENTIFIER; 
+                             int id_status = is_typedef_name(yylval.id);                                
+                             if (debugMode) { 
+                                printf("Lexer FSM: checking id: %s with status %d in mode %s\n", yylval.id, id_status, mode_str(decl_mode));
+                                fflush(stdout);
                              }
-                             if (decl_mode == DM_SPECS) decl_mode = DM_DECLS;  /* first declarator token we’ve seen we are in declarator mode */
-                             if (decl_mode == DM_NONE) if (debugMode) printf("lexer Debug: this should never happen in DM_NONE mode: found IDENTIFIER %s on line %d\n", yylval.id, yylineno);
-                             return IDENTIFIER;
+                             switch (id_status) {
+                                case 2:         // a shadowing identifier: no questions asked it is an identifier
+                                    if (decl_mode == DM_SPECS) decl_mode = DM_DECLS;    //unless within a typeof(expression) which returns a type, then stay in SPEC mode
+                                    return IDENTIFIER;
+                                case 1:         // a pure typedef name
+                                    if (decl_mode == DM_SPECS) {                        //In type specifier mode
+                                        // Predict whether THIS occurrence is in fact a declarator name (i.e. an actual SHADOWING IDENTIFIER and switch to DM_DECLS mode) or not (a true TYPEDEF_NAME and stay in DM_SPECS)
+                                        int nxt = peek_and_push_token();
+                                        if (debugMode) printf("lexer Debug: peek found a %c\n", nxt);
+                                        if (nxt == ')') {   // e.g. cast, parenthesized type like (Type name), or function declaration — definitely a TYPEDEF_NAME here : cannot be a declaration
+                                            if (debugMode) printf("lexer Debug: a real typedef_name in SPECS mode found: %s on line %d\n", yylval.id, yylineno);
+                                            //stay in SPECS mode
+                                            return TYPEDEF_NAME;
+                                        }
+                                        if (is_declarator_follower(nxt)) {  /* Right after THIS typedef_name comes (, [, ',', '=', ';' → it's acting as a DECLARATOR NAME */
+                                            add_typedef_id(current_scope, yylval.id, 2);   //2 indicates that it is a SHADOWING IDENTIFIER
+                                            if (debugMode) printf("lexer Debug: SHADOWING of a typedef_name found: %s on line %d\n", yylval.id, yylineno);
+                                            decl_mode = DM_DECLS;                   //true transition to declaration mode
+                                            return IDENTIFIER;                      //and change the return type: that's the only time we should change the return type
+                                        }
+                                        return TYPEDEF_NAME;    //otherwise
+                                    }
+                                    if (decl_mode == DM_NONE) decl_mode = DM_SPECS;
+                                    if (decl_mode == DM_DECLS) decl_mode = DM_DECLS;    //useless but for completeness
+                                    return TYPEDEF_NAME;
+                                case 0:         //am ordinary identifier
+                                default:
+                                    if (decl_mode == DM_SPECS) decl_mode = DM_DECLS;
+                                    return IDENTIFIER;
+                             }
                             }
 
 {HP}{H}+{IS}?				{wrap_integer_constants("16'", &yytext[2], &yylval.id);     //hexadecimal integer
@@ -313,9 +324,6 @@ static inline void fsm_from_none_to_spec(void) {
     if (decl_mode == DM_NONE) decl_mode = DM_SPECS;
 }
 
-static void fsm_from_spec_to_decls(void) {
-    if (decl_mode == DM_SPECS) decl_mode = DM_DECLS;
-}
 
 void fsm_reset(void) {
     decl_mode = DM_NONE;
@@ -338,6 +346,17 @@ static int peek_next_nontrivia_char(void) {
    if (c != EOF) unput(c);  /* push it back so the next rule will see it */
    return c;                /* return the char (or EOF) */
 }
+
+
+// Peek the next token and immediately push it back
+int peek_and_push_token(void) {
+    int tok = yylex();          // This skips whitespace/comments/attributes automatically
+    if (tok != 0) {
+        yyless(0); // Push back so next yylex() sees it again
+    }
+    return tok;
+}
+
 
 /* Is this char one that typically FOLLOWS a declarator name? */
 static inline bool is_declarator_follower(int c) {
