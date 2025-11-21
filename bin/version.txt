@@ -1,7 +1,12 @@
+1.2
+**********
+14 November 2025
+  Medium: some parsing improvements in handling typedefs
+
 1.1.7
 **********
 14 November 2025
-  Minor: some parsing improvments, new --testcomp CLI option
+  Minor: some parsing improvements, new --testcomp CLI option
 
 1.1.6
 **********
