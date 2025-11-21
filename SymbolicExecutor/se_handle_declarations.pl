@@ -123,6 +123,8 @@ extract_pointers(Var, Type_name, Type_name_ptr_opt, Clean_var) :-
             (extract_inner_pointers(Inner_ptr_exp, Type_name, Inner_type_name),
              Type_name_ptr_opt = pointer(Inner_type_name)
             )
+        ;
+            common_util__error(9, "pointer cannot be extracted", "Pointer expression is malformed", [('Ptr_exp', Ptr_exp)], '9_211125', 'se_handle_all_declarations', 'extract_pointers', no_localisation, no_extra_info)
         ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 declare_params([], []).

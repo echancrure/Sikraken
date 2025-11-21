@@ -35,7 +35,11 @@ seav__create_var(Type_name, Input, Output, SEAV):-
     (seav__is_seav(SEAV) -> %it is already a SEAV, so new scope: must shadow
         push_scope_list(SEAV, scope(Type_name, Input, Output))
     ;
-        add_attribute(SEAV, se_seav_atts([scope(Type_name, Input, Output)])) %brand new SEAV only has one scope
+        (add_attribute(SEAV, se_seav_atts([scope(Type_name, Input, Output)])) -> %brand new SEAV only has one scope
+            true
+        ;
+            call(common_util__error(9, "Failed to create an attributed SEAV", "Serious", [('SEAV', SEAV)], '9_211125_1', se_seav_atts, seav__create_var, no_localisation, no_extra_info)) @ eclipse
+        )
     ),
     se_globals__get_ref('scope_stack', [scope(_Current_level, Current_var_scope)|_]),
     suspend(pop_scope_list(SEAV), 3, Current_var_scope->inst).  %delays pop_scope_list until Current_var_scope becomes instantiated (i.e. when leaving a scope)
