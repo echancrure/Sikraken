@@ -4,9 +4,9 @@
       "id": "run1",
       "description": "Testing the parser for typedef",
       "algo": "budget(1)",
-      "expected_tests_number": 0,
-      "expected_testcov_coverage": 0,
-      "expected_sikraken_edges": 4
+      "expected_tests_number": 2,
+      "expected_testcov_coverage": 33.33,
+      "expected_sikraken_edges": 6
     }
   ]
 }

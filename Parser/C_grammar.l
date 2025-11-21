@@ -37,11 +37,15 @@ typedef enum { DM_NONE=0, DM_SPECS=1, DM_DECLS=2 } decl_mode_t;
 static decl_mode_t decl_mode = DM_NONE;
 static int peek_next_nontrivia_char(void);
 int peek_and_push_token(void);
+int peeking = 0;
 static inline bool is_declarator_follower(int);
 static inline void fsm_from_none_to_spec(void);
 void fsm_reset(void);
+void fsm_set_to_specs(void);
 static const char* mode_str(decl_mode_t);
 
+extern const char *const yytname[];  // to access token names
+const char* token_name(int);
 %}
 
 %x ATTRIBUTE
@@ -92,70 +96,67 @@ WS  [ \t\v\n\f]
                                              open_parens = 1;   //Start with the initial single opening parenthesis
                                              BEGIN(ATTRIBUTE);  //Enter the ATTRIBUTE start condition to read everything until the final closing parenthesis
                                             }
-"auto"					{ fsm_from_none_to_spec(); return(AUTO); }
+"auto"					{ if (!peeking) fsm_from_none_to_spec(); return(AUTO); }
 "break"					{ return(BREAK); }
 "case"					{ return(CASE); }
-"char"					{ fsm_from_none_to_spec(); return(CHAR); }
-"const"					{ fsm_from_none_to_spec(); return(CONST); }
+"char"					{ if (!peeking) fsm_from_none_to_spec(); return(CHAR); }
+"const"					{ if (!peeking) fsm_from_none_to_spec(); return(CONST); }
 "continue"				{ return(CONTINUE); }
 "default"				{ return(DEFAULT); }
 "do"					{ return(DO); }
-"double"				{ fsm_from_none_to_spec(); return(DOUBLE); }
+"double"				{ if (!peeking) fsm_from_none_to_spec(); return(DOUBLE); }
 "else"					{ return(ELSE); }
-"enum"					{ fsm_from_none_to_spec(); return(ENUM); }
-"extern"				{ fsm_from_none_to_spec(); return(EXTERN); }
-"float"					{ fsm_from_none_to_spec(); return(FLOAT); }
+"enum"					{ if (!peeking) fsm_from_none_to_spec(); return(ENUM); }
+"extern"				{ if (!peeking) fsm_from_none_to_spec(); return(EXTERN); }
+"float"					{ if (!peeking) fsm_from_none_to_spec(); return(FLOAT); }
 "for"					{ return(FOR); }
-"goto"					{ in_label_namespace = 1; return(GOTO); } //special namespace for labels GOTO
+"goto"					{ if (!peeking) in_label_namespace = 1; return(GOTO); } //special namespace for labels GOTO
 "if"					{ return(IF); }
-"inline"				{ fsm_from_none_to_spec(); return(INLINE); }
-"__inline"				{ fsm_from_none_to_spec(); return(INLINE); }     //GCC version of INLINE
-"int"					{ if (debugMode) { 
-                                printf("Lexer FSM: found INT in mode %s\n", mode_str(decl_mode));
-                                fflush(stdout);
-                          }
-                          fsm_from_none_to_spec(); return(INT); }
-"long"					{ fsm_from_none_to_spec(); return(LONG); }
-"register"				{ fsm_from_none_to_spec(); return(REGISTER); }
-"restrict"				{ fsm_from_none_to_spec(); return(RESTRICT); }
-"__restrict"            { fsm_from_none_to_spec(); return(RESTRICT); }   //GCC version of RESTRICT
-"return"				{ fsm_reset(); return(RETURN); }
-"short"					{ fsm_from_none_to_spec(); return(SHORT); }
-"signed"				{ fsm_from_none_to_spec(); return(SIGNED); }
+"inline"				{ if (!peeking) fsm_from_none_to_spec(); return(INLINE); }
+"__inline"				{ if (!peeking) fsm_from_none_to_spec(); return(INLINE); }     //GCC version of INLINE
+"int"					{ if (!peeking) fsm_from_none_to_spec(); return(INT); }
+"long"					{ if (!peeking) fsm_from_none_to_spec(); return(LONG); }
+"register"				{ if (!peeking) fsm_from_none_to_spec(); return(REGISTER); }
+"restrict"				{ if (!peeking) fsm_from_none_to_spec(); return(RESTRICT); }
+"__restrict"            { if (!peeking) fsm_from_none_to_spec(); return(RESTRICT); }   //GCC version of RESTRICT
+"return"				{ if (!peeking) fsm_reset(); return(RETURN); }
+"short"					{ if (!peeking) fsm_from_none_to_spec(); return(SHORT); }
+"signed"				{ if (!peeking) fsm_from_none_to_spec(); return(SIGNED); }
 "sizeof"				{ return(SIZEOF); }
-"static"				{ fsm_from_none_to_spec(); return(STATIC); }
-"struct"				{ fsm_from_none_to_spec(); return(STRUCT); }
+"static"				{ if (!peeking) fsm_from_none_to_spec(); return(STATIC); }
+"struct"				{ if (!peeking) fsm_from_none_to_spec(); return(STRUCT); }
 "switch"				{ return(SWITCH); }
-"typedef"				{ fsm_from_none_to_spec(); return(TYPEDEF); }
-"union"					{ fsm_from_none_to_spec(); return(UNION); }
-"unsigned"				{ fsm_from_none_to_spec(); return(UNSIGNED); }
-"void"					{ fsm_from_none_to_spec(); return(VOID); }
-"volatile"				{ fsm_from_none_to_spec(); return(VOLATILE); }
+"typedef"				{ if (!peeking) fsm_from_none_to_spec(); return(TYPEDEF); }
+"union"					{ if (!peeking) fsm_from_none_to_spec(); return(UNION); }
+"unsigned"				{ if (!peeking) fsm_from_none_to_spec(); return(UNSIGNED); }
+"void"					{ if (!peeking) fsm_from_none_to_spec(); return(VOID); }
+"volatile"				{ if (!peeking) fsm_from_none_to_spec(); return(VOLATILE); }
 "while"					{ return(WHILE); }
-"__int128"              { fsm_from_none_to_spec(); return(INT128); }     //GCC builtin 128-bit integer type
-"_Float32"              { fsm_from_none_to_spec(); return(FLOAT); }      //GCC builtin 32-bit floating-point type
-"_Float64"              { fsm_from_none_to_spec(); return(DOUBLE); }     //GCC builtin 64-bit floating-point type
-"__float128"            { fsm_from_none_to_spec(); return(FLOAT128); }   //GCC builtin 128-bit floating-point type
-"_Float128"             { fsm_from_none_to_spec(); return(FLOAT128); }   //GCC builtin 128-bit floating-point type
-"__builtin_va_list"     { fsm_from_none_to_spec(); return(VA_LIST); }    //GCC builtin variable argument list type
-"__gnuc_va_list"        { fsm_from_none_to_spec(); return(VA_LIST); }    //GCC builtin variable argument list type
-"_Alignas"              { fsm_from_none_to_spec(); return ALIGNAS; }
-"_Alignof"              { fsm_from_none_to_spec(); return ALIGNOF; }
-"_Atomic"{WS}*"("       { fsm_from_none_to_spec(); return ATOMIC_SPECIFIER; }
-"_Atomic"               { fsm_from_none_to_spec(); return ATOMIC; }
-"_Bool"                 { fsm_from_none_to_spec(); return BOOL; }
-"_Complex"              { fsm_from_none_to_spec(); return COMPLEX; }
+"__int128"              { if (!peeking) fsm_from_none_to_spec(); return(INT128); }     //GCC builtin 128-bit integer type
+"_Float32"              { if (!peeking) fsm_from_none_to_spec(); return(FLOAT); }      //GCC builtin 32-bit floating-point type
+"_Float64"              { if (!peeking) fsm_from_none_to_spec(); return(DOUBLE); }     //GCC builtin 64-bit floating-point type
+"__float128"            { if (!peeking) fsm_from_none_to_spec(); return(FLOAT128); }   //GCC builtin 128-bit floating-point type
+"_Float128"             { if (!peeking) fsm_from_none_to_spec(); return(FLOAT128); }   //GCC builtin 128-bit floating-point type
+"__builtin_va_list"     { if (!peeking) fsm_from_none_to_spec(); return(VA_LIST); }    //GCC builtin variable argument list type
+"__gnuc_va_list"        { if (!peeking) fsm_from_none_to_spec(); return(VA_LIST); }    //GCC builtin variable argument list type
+"_Alignas"              { if (!peeking) fsm_from_none_to_spec(); return ALIGNAS; }
+"_Alignof"              { if (!peeking) fsm_from_none_to_spec(); return ALIGNOF; }
+"_Atomic"{WS}*"("       { if (!peeking) fsm_from_none_to_spec(); return ATOMIC_SPECIFIER; }
+"_Atomic"               { if (!peeking) fsm_from_none_to_spec(); return ATOMIC; }
+"_Bool"                 { if (!peeking) fsm_from_none_to_spec(); return BOOL; }
+"_Complex"              { if (!peeking) fsm_from_none_to_spec(); return COMPLEX; }
 "_Generic"              { return GENERIC; }
-"_Imaginary"            { fsm_from_none_to_spec(); return IMAGINARY; }
-"_Noreturn"             { fsm_from_none_to_spec(); return NORETURN; }
+"_Imaginary"            { if (!peeking) fsm_from_none_to_spec(); return IMAGINARY; }
+"_Noreturn"             { if (!peeking) fsm_from_none_to_spec(); return NORETURN; }
 "_Static_assert"        { return STATIC_ASSERT; }
-"_Thread_local"         { fsm_from_none_to_spec(); return THREAD_LOCAL; }
+"_Thread_local"         { if (!peeking) fsm_from_none_to_spec(); return THREAD_LOCAL; }
 "__PRETTY_FUNCTION__"   { return FUNC_NAME; }   //__PRETTY_FUNCTION__ is a GCC extension: an enhanced version of __func__; which we ignore 
 "__func__"              { return FUNC_NAME; }
-"typeof_unqual"         { fsm_from_none_to_spec(); return TYPEOF_UNQUAL; }   //C23 and GCC extension
-"typeof"                { fsm_from_none_to_spec(); return TYPEOF; }   //C23 and GCC extension
+"typeof_unqual"         { if (!peeking) fsm_from_none_to_spec(); return TYPEOF_UNQUAL; }   //C23 and GCC extension
+"typeof"                { if (!peeking) fsm_from_none_to_spec(); return TYPEOF; }   //C23 and GCC extension
 
-{L}{A}*                     {size_t const size = strlen(yytext) + 1;
+{L}{A}*                     {if (peeking) return IDENTIFIER;
+                             size_t const size = strlen(yytext) + 1;
                              yylval.id = (char*)malloc(size);
                              int i = 0;
                              for (; yytext[i] != '\0'; i++) {
@@ -166,8 +167,10 @@ WS  [ \t\v\n\f]
                                 }
                              }
                              yylval.id[i] = '\0';
-                             if (in_member_namespace || in_tag_declaration || in_label_namespace) //these contexts never treat ids as types: no point checking
+                             if (in_tag_declaration || in_label_namespace) { //these contexts never treat ids as types: no point checking
+                                if (debugMode) printf("Lexer FSM: bypassing typedef_name check: id: %s is a %s\n", yylval.id, (in_member_namespace ? "member" : (in_tag_declaration ? "tag" : "label")));
                                 return IDENTIFIER; 
+                             }
                              int id_status = is_typedef_name(yylval.id);                                
                              if (debugMode) { 
                                 printf("Lexer FSM: checking id: %s with status %d in mode %s\n", yylval.id, id_status, mode_str(decl_mode));
@@ -181,20 +184,23 @@ WS  [ \t\v\n\f]
                                     if (decl_mode == DM_SPECS) {                        //In type specifier mode
                                         // Predict whether THIS occurrence is in fact a declarator name (i.e. an actual SHADOWING IDENTIFIER and switch to DM_DECLS mode) or not (a true TYPEDEF_NAME and stay in DM_SPECS)
                                         int nxt = peek_and_push_token();
-                                        if (debugMode) printf("lexer Debug: peek found a %c\n", nxt);
+                                        if (debugMode) {printf("Lexer Debug: peek found: %s\n", token_name(nxt)); fflush(stdout);}
                                         if (nxt == ')') {   // e.g. cast, parenthesized type like (Type name), or function declaration — definitely a TYPEDEF_NAME here : cannot be a declaration
-                                            if (debugMode) printf("lexer Debug: a real typedef_name in SPECS mode found: %s on line %d\n", yylval.id, yylineno);
+                                            if (debugMode) printf("Lexer Debug: a real typedef_name in SPECS mode found: %s on line %d\n", yylval.id, yylineno);
                                             //stay in SPECS mode
                                             return TYPEDEF_NAME;
                                         }
                                         if (is_declarator_follower(nxt)) {  /* Right after THIS typedef_name comes (, [, ',', '=', ';' → it's acting as a DECLARATOR NAME */
-                                            add_typedef_id(current_scope, yylval.id, 2);   //2 indicates that it is a SHADOWING IDENTIFIER
-                                            if (debugMode) printf("lexer Debug: SHADOWING of a typedef_name found: %s on line %d\n", yylval.id, yylineno);
+                                            if (!in_member_namespace) {
+                                                add_typedef_id(current_scope, yylval.id, 2);   //2 indicates that it is a SHADOWING IDENTIFIER
+                                                if (debugMode) printf("Lexer Debug: SHADOWING of a typedef_name found: %s on line %d\n", yylval.id, yylineno);
+                                            }
                                             decl_mode = DM_DECLS;                   //true transition to declaration mode
                                             return IDENTIFIER;                      //and change the return type: that's the only time we should change the return type
                                         }
                                         return TYPEDEF_NAME;    //otherwise
                                     }
+                                    if (in_member_namespace) return IDENTIFIER;   //members cannot be typedef names excep in DM_SPECS mode (handled above) sometimes
                                     if (decl_mode == DM_NONE) decl_mode = DM_SPECS;
                                     if (decl_mode == DM_DECLS) decl_mode = DM_DECLS;    //useless but for completeness
                                     return TYPEDEF_NAME;
@@ -205,64 +211,74 @@ WS  [ \t\v\n\f]
                              }
                             }
 
-{HP}{H}+{IS}?				{wrap_integer_constants("16'", &yytext[2], &yylval.id);     //hexadecimal integer
+{HP}{H}+{IS}?				{if (!peeking) wrap_integer_constants("16'", &yytext[2], &yylval.id);     //hexadecimal integer
                              return I_CONSTANT;
                             }
-{NZ}{D}*{IS}?				{wrap_integer_constants("", yytext, &yylval.id);            //decimal integer
+{NZ}{D}*{IS}?				{if (!peeking) wrap_integer_constants("", yytext, &yylval.id);            //decimal integer
                              return I_CONSTANT;
                             }
                             
-"0"{O}*{IS}?				{if (isdigit(yytext[1])) wrap_integer_constants("8'", &yytext[1], &yylval.id);  //octal integer 
-                             else {     //the second char after 0 is not a digit (it's /0, ofr an IS (u|U)(l|L|ll|LL) char), so it's just the constant 0, rather than a true octal 
-                                yylval.id = (char*)malloc(7);
-                                strcpy(yylval.id, "int(0)");    
+"0"{O}*{IS}?				{if (!peeking) {
+                                if (isdigit(yytext[1])) wrap_integer_constants("8'", &yytext[1], &yylval.id);  //octal integer 
+                                else {     //the second char after 0 is not a digit (it's /0, ofr an IS (u|U)(l|L|ll|LL) char), so it's just the constant 0, rather than a true octal 
+                                    yylval.id = (char*)malloc(7);
+                                    strcpy(yylval.id, "int(0)");    
+                                }
                              }
                              return I_CONSTANT;
                             }
-{CP}?"'"([^'\\\n]|{ES})+"'"	{//single char 
-                             char *content = yytext + (yytext[0] == '\'' ? 1 : 2);  //Skip prefix and opening quote
-                             content[strlen(content) - 1] = '\0';                   //Remove closing quote
-                             int ascii;
-                             if (content[0] == '\\') {                              //it's an escape sequence
-                                    ascii = convert_escape_sequence(content);
-                             } else {
-                                    ascii = (int)content[0];
+{CP}?"'"([^'\\\n]|{ES})+"'"	{if (!peeking) {
+                                //single char 
+                                char *content = yytext + (yytext[0] == '\'' ? 1 : 2);  //Skip prefix and opening quote
+                                content[strlen(content) - 1] = '\0';                   //Remove closing quote
+                                int ascii;
+                                if (content[0] == '\\') {                              //it's an escape sequence
+                                        ascii = convert_escape_sequence(content);
+                                } else {
+                                        ascii = (int)content[0];
+                                }
+                                yylval.id = (char*)malloc(10);
+                                sprintf(yylval.id, "int(%d)", ascii);
                              }
-                             yylval.id = (char*)malloc(10);
-                             sprintf(yylval.id, "int(%d)", ascii);
                              return I_CONSTANT;
                             }       
 
-{D}+{E}{FS}?				{wrap_floating_point_constants(0, yytext, &yylval.id);     //Decimal floating-point constants with an exponent.
+{D}+{E}{FS}?				{if (!peeking) wrap_floating_point_constants(0, yytext, &yylval.id);     //Decimal floating-point constants with an exponent.
                              return F_CONSTANT;
                             }
-{D}*"."{D}+{E}?{FS}?		{wrap_floating_point_constants(0, yytext, &yylval.id);     //Decimal floating-point constants with a fractional part.
+{D}*"."{D}+{E}?{FS}?		{if (!peeking) wrap_floating_point_constants(0, yytext, &yylval.id);     //Decimal floating-point constants with a fractional part.
                              return F_CONSTANT;
                             }
-{D}+"."{E}?{FS}?			{char* added_0;
-                             add_missing_zero(yytext, &added_0);
-                             wrap_floating_point_constants(0, added_0, &yylval.id);            //Decimal floating-point constants with a fractional part.
+{D}+"."{E}?{FS}?			{if (!peeking)  {
+                                char* added_0;
+                                add_missing_zero(yytext, &added_0);
+                                wrap_floating_point_constants(0, added_0, &yylval.id);            //Decimal floating-point constants with a fractional part.
+                             }
                              return F_CONSTANT;
                             }
-{HP}{H}+{P}{FS}?			{wrap_floating_point_constants(1, yytext, &yylval.id);  //Hexadecimal floating-point constants: will fail parser in ECLiPSe
+{HP}{H}+{P}{FS}?			{if (!peeking) wrap_floating_point_constants(1, yytext, &yylval.id);  //Hexadecimal floating-point constants: will fail parser in ECLiPSe
                              return F_CONSTANT;
                             }
-{HP}{H}*"."{H}+{P}{FS}?		{wrap_floating_point_constants(1, yytext, &yylval.id);  //Hexadecimal floating-point constants with a fractional part.: will fail parser in ECLiPSe
+{HP}{H}*"."{H}+{P}{FS}?		{if (!peeking) wrap_floating_point_constants(1, yytext, &yylval.id);  //Hexadecimal floating-point constants with a fractional part.: will fail parser in ECLiPSe
                              return F_CONSTANT;
                             }
-{HP}{H}+"."{P}{FS}?			{char* added_0;
-                             add_missing_zero(yytext, &added_0);
-                             wrap_floating_point_constants(1, added_0, &yylval.id); //Hexadecimal floating-point constants with digits before the decimal point, but none after. : will fail parser in ECLiPSe
+{HP}{H}+"."{P}{FS}?			{if (!peeking)  {
+                                char* added_0;
+                                add_missing_zero(yytext, &added_0);
+                                wrap_floating_point_constants(1, added_0, &yylval.id); //Hexadecimal floating-point constants with digits before the decimal point, but none after. : will fail parser in ECLiPSe
+                             }
                              return F_CONSTANT;
                             }
 
-({SP}?\"([^"\\\n]|{ES})*\"{WS}*)+	{if (yytext[0] == 'L') { //a wide string constant
-                                        size_t const size = strlen("wide_string()") + strlen(yytext) - 1 + 1;
-                                        yylval.id = (char*)malloc(size);
-                                        sprintf_safe(yylval.id, size, "wide_string(%s)", &yytext[1]);      //copy from yytext[1] to remove 'L' prefix 
-                                     } else {
-                                        yylval.id = strdup_safe(yytext);
-                                     }
+({SP}?\"([^"\\\n]|{ES})*\"{WS}*)+	{if (!peeking) {
+                                        if (yytext[0] == 'L') { //a wide string constant
+                                            size_t const size = strlen("wide_string()") + strlen(yytext) - 1 + 1;
+                                            yylval.id = (char*)malloc(size);
+                                            sprintf_safe(yylval.id, size, "wide_string(%s)", &yytext[1]);      //copy from yytext[1] to remove 'L' prefix 
+                                        } else {
+                                            yylval.id = strdup_safe(yytext);
+                                        }
+                                     }   
                                      return STRING_LITERAL;
                                     }
 
@@ -291,12 +307,12 @@ WS  [ \t\v\n\f]
 ";"					    { return ';'; }
 ("{"|"<%")				{ return '{'; }
 ("}"|"%>")				{ return '}'; }
-","					    { if (decl_mode != DM_NONE) decl_mode = DM_DECLS; return ','; }
+","					    { if (!peeking) {if (decl_mode != DM_NONE) decl_mode = DM_DECLS;} return ','; }
 ":"					    { return ':'; }
 "="					    { return '='; }
-"("					    { if (decl_mode != DM_NONE) decl_mode = DM_DECLS; return '('; }
+"("					    { if (!peeking) {if (decl_mode != DM_NONE) decl_mode = DM_DECLS;} return '('; }
 ")"					    { return ')'; }
-("["|"<:")				{ if (decl_mode != DM_NONE) decl_mode = DM_DECLS; return '['; }
+("["|"<:")				{ if (!peeking) {if (decl_mode != DM_NONE) decl_mode = DM_DECLS;} return '['; }
 ("]"|":>")				{ return ']'; }
 "."					    { return '.'; }
 "&"					    { return '&'; }
@@ -304,7 +320,7 @@ WS  [ \t\v\n\f]
 "~"					    { return '~'; }
 "-"					    { return '-'; }
 "+"					    { return '+'; }
-"*"					    { if (decl_mode != DM_NONE) decl_mode = DM_DECLS; return '*'; }
+"*"					    { if (!peeking) {if (decl_mode != DM_NONE) decl_mode = DM_DECLS;} return '*'; }
 "/"					    { return '/'; }
 "%"					    { return '%'; }
 "<"					    { return '<'; }
@@ -329,12 +345,16 @@ void fsm_reset(void) {
     decl_mode = DM_NONE;
 }
 
+void fsm_set_to_specs(void) {
+    decl_mode = DM_SPECS;
+}
+
 /* Debug (optional) */
 static const char* mode_str(decl_mode_t m) {
     switch (m) {
-        case DM_NONE:  return "NONE";
-        case DM_SPECS: return "SPECS";
-        case DM_DECLS: return "DECLS";
+        case DM_NONE:  return "DM_NONE";
+        case DM_SPECS: return "DM_SPECS";
+        case DM_DECLS: return "DM_DECLS";
         default:       return "?";
     }
 }
@@ -350,10 +370,12 @@ static int peek_next_nontrivia_char(void) {
 
 // Peek the next token and immediately push it back
 int peek_and_push_token(void) {
+    peeking = 1;
     int tok = yylex();          // This skips whitespace/comments/attributes automatically
     if (tok != 0) {
         yyless(0); // Push back so next yylex() sees it again
     }
+    peeking = 0;
     return tok;
 }
 

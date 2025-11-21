@@ -70,7 +70,7 @@ void yyerror(const char*);
 void my_exit(int);				//attempts to close handles and delete generated files prior to caling exit(int);
 
 void fsm_reset(void);
-
+void fsm_set_to_specs(void);
 %}
 
 %union {
@@ -115,7 +115,7 @@ void fsm_reset(void);
 %type <id> initializer_list designation designator_list designator
 %type <id> struct_or_union_specifier struct_or_union struct_declaration_list struct_declaration  
 %type <id> struct_declarator_list struct_declarator
-%type <id> static_assert_declaration
+%type <id> static_assert_declaration enum_tag_name member_tag_name
 %type <id> enum_specifier enum_specifier_rest enumerator_list enumerator
 %type <id> parameter_type_list parameter_list parameter_declaration
 %type <id> expression_statement expression_opt jump_statement statement labeled_statement compound_statement
@@ -661,49 +661,63 @@ rest_typeof_specifier
 	;
 
 struct_or_union_specifier
-	: struct_or_union '{' {in_tag_declaration = 0;} '}'		//anonymous EMPTY struct or union (GNU extension)
-		{size_t const size = strlen("('anonymous', [])") + strlen($1) + 1;
+	: struct_or_union set_tag0 '}'		//anonymous EMPTY struct or union (GNU extension)
+		{in_member_namespace = 0;
+		 size_t const size = strlen("('anonymous', [])") + strlen($1) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "%s('anonymous', [])", $1);
 	     free($1);
 	    }
-	| struct_or_union '{' {in_tag_declaration = 0;} struct_declaration_list '}'		//anonymous struct or union
-		{size_t const size = strlen("('anonymous', [])") + strlen($1) + strlen($4) + 1;
+	| struct_or_union set_tag0 struct_declaration_list '}'		//anonymous struct or union
+		{in_member_namespace = 0;
+		 size_t const size = strlen("('anonymous', [])") + strlen($1) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "%s('anonymous', [%s])", $1, $4);
+	     sprintf_safe($$, size, "%s('anonymous', [%s])", $1, $3);
 	     free($1);
-	     free($4);
+	     free($3);
 	    }
-	| struct_or_union IDENTIFIER  '{' {in_tag_declaration = 0;} '}'	//Tag namespace Id declaration (EMPTY, GNU extension)
-		{char *tag_to_Prolog_var = to_prolog_var($2);
-		 size_t const size = strlen("(, [])") + strlen($1) + strlen(tag_to_Prolog_var) + 1;
+	| struct_or_union member_tag_name  '{' '}'	//Tag namespace Id declaration (EMPTY, GNU extension)
+		{in_member_namespace = 0;
+		 size_t const size = strlen("(, [])") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "%s(%s, [])", $1, tag_to_Prolog_var);
+	     sprintf_safe($$, size, "%s(%s, [])", $1, $2);
 	     free($1);
 	     free($2);
-		 free(tag_to_Prolog_var);
 	    }
-	| struct_or_union IDENTIFIER '{' {in_tag_declaration = 0;} struct_declaration_list '}'	//Tag namespace Id declaration
-		{char *tag_to_Prolog_var = to_prolog_var($2);
-		 size_t const size = strlen("(, [])") + strlen($1) + strlen(tag_to_Prolog_var) + strlen($5) + 1;
+	| struct_or_union member_tag_name '{' struct_declaration_list '}'	//Tag namespace Id declaration
+		{in_member_namespace = 0;
+		 size_t const size = strlen("(, [])") + strlen($1) + strlen($2) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "%s(%s, [%s])", $1, tag_to_Prolog_var, $5);
+	     sprintf_safe($$, size, "%s(%s, [%s])", $1, $2, $4);
 	     free($1);
 	     free($2);
-		 free($5);
-		 free(tag_to_Prolog_var);
+		 free($4);
 	    }
-	| struct_or_union IDENTIFIER	//forward declaration Tag namespace Id declaration or as part of a variable declaration
-		{in_tag_declaration = 0;
-		 char *tag_to_Prolog_var = to_prolog_var($2);
-		 size_t const size = strlen("%s(%s)") + strlen($1) + strlen(tag_to_Prolog_var) + 1;
+	| struct_or_union member_tag_name	//forward declaration Tag namespace Id declaration or as part of a variable declaration
+		{in_member_namespace = 0;
+		 size_t const size = strlen("%s(%s)") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "%s(%s)", $1, tag_to_Prolog_var);
+	     sprintf_safe($$, size, "%s(%s)", $1, $2);
 	     free($1);
 	     free($2);
-		 free(tag_to_Prolog_var);
 	    }
 	;
+
+set_tag0 :
+	'{' 
+		{in_tag_declaration = 0;
+		 in_member_namespace = 1;
+		}
+	;	
+
+member_tag_name :
+	IDENTIFIER
+		{in_tag_declaration = 0;
+		 in_member_namespace = 1;
+		 $$ = to_prolog_var($1);
+		 free($1);
+		}
+	;	
 
 struct_or_union
 	: STRUCT	
@@ -727,16 +741,18 @@ struct_declaration_list
 	    }
 	;
 
+// in_member_namespace cannot be set to 1 in the grammar: same problem with shadow identifiers, a token needs to be read ahead 
 struct_declaration
 	: specifier_qualifier_list ';'	//for inner "Anonymous Members in Structs" C11
-		{char *decl_specifier = create_declaration_specifiers();
+		{fsm_set_to_specs();
+		 char *decl_specifier = create_declaration_specifiers();
 		 size_t const size = strlen("anonymous_member()") + strlen(decl_specifier) + 1;
        	 $$ = (char*)malloc(size);
          sprintf_safe($$, size, "anonymous_member(%s)", decl_specifier);
 	   	 free(decl_specifier);
         }
 	| specifier_qualifier_list {in_member_namespace = 1;} struct_declarator_list ';'
-		{in_member_namespace = 0;
+		{fsm_set_to_specs();
 		 char *decl_specifier = create_declaration_specifiers();
 		 size_t const size = strlen("struct_decl(, [])") + strlen(decl_specifier) + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
@@ -745,7 +761,8 @@ struct_declaration
 		 free($3);
         }
 	| static_assert_declaration		//somehow the ; is in that rule
-		{$$ = $1;
+		{fsm_set_to_specs();
+		 $$ = $1;
 		 pop_decl_spec_stack(); 
 		}
 	;
@@ -758,9 +775,9 @@ specifier_qualifier_list
 	;
 
 struct_declarator_list
-	: {in_member_namespace = 1;} struct_declarator 
+	: struct_declarator 
 		{in_member_namespace = 1;
-		 $$= $2; 
+		 $$= $1;
 		}
 	| struct_declarator_list ',' struct_declarator
 		{in_member_namespace = 1; 
@@ -773,14 +790,16 @@ struct_declarator_list
 	;
 
 struct_declarator		//added to avoid reduce-reduce conflict
-	: {in_member_namespace = 0;} ':' constant_expression		//bit field
-		{size_t const size = strlen("anonymous_bit_field()") + strlen($3) + 1;
+	: ':' {in_member_namespace = 0;} constant_expression		//bit field
+		{in_member_namespace = 1;
+		 size_t const size = strlen("anonymous_bit_field()") + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
          sprintf_safe($$, size, "anonymous_bit_field(%s)", $3);
 	   	 free($3);
         } 
 	| declarator ':' {in_member_namespace = 0;} constant_expression 	//bit field
-		{size_t const size = strlen("bit_field(, )") + strlen($1.full) + strlen($4) + 1;
+		{in_member_namespace = 1;
+		 size_t const size = strlen("bit_field(, )") + strlen($1.full) + strlen($4) + 1;
        	 $$ = (char*)malloc(size);
          sprintf_safe($$, size, "bit_field(%s, %s)", $1.full, $4);
 	   	 free($1.full);
@@ -791,7 +810,6 @@ struct_declarator		//added to avoid reduce-reduce conflict
 		{$$ = strdup($1.full);
 		 free($1.full);
 		 free($1.ptr_declarator);
-		 in_member_namespace = 0;
 		}
 	;
 
@@ -809,14 +827,23 @@ enum_specifier
 	     free($3);
 		 free($4);
         }
-	| ENUM {in_tag_declaration = 1;} IDENTIFIER {in_tag_declaration = 0;} enum_specifier_rest 	//Tag namespace Id declaration ; 
-		{size_t const size = strlen("enum(, [])") + strlen($3) + strlen($5) + 1;
+	| ENUM {in_tag_declaration = 1;} enum_tag_name enum_specifier_rest 	//Tag namespace Id declaration ; 
+		{size_t const size = strlen("enum(, [])") + strlen($3) + strlen($4) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_safe($$, size, "enum(%s, [%s])", $3, $5);
+         sprintf_safe($$, size, "enum(%s, [%s])", $3, $4);
 	     free($3);
-		 free($5);
+		 free($4);
         }
 	;
+
+enum_tag_name :
+	IDENTIFIER
+		{in_tag_declaration = 0;
+		 $$ = to_prolog_var($1);
+		 free($1);
+		}
+	;	
+
 //new rule to avoid reduce-reduce conflict when introducing in_tag_declaration in enum_specifier rule just above
 enum_specifier_rest
 	: /* empty */	
@@ -1385,7 +1412,7 @@ expression_opt
 	| expression
 
 jump_statement
-	: GOTO IDENTIFIER ';'	//in_label_namespace is already switched off within lexer after GOTO
+	: GOTO IDENTIFIER ';'	//in_label_namespace is already switched on within lexer after GOTO
 	  {in_label_namespace = 0;
 	   size_t const size = strlen("\ngoto_stmt(, )\n") + strlen($2) + strlen(current_function) + 1;
 	   $$ = (char*)malloc(size);
@@ -1529,11 +1556,22 @@ int main(int argc, char *argv[]) {
 void yyerror(const char* s) {
 	extern char* yytext;  	// Points to the text of the current token
     extern int yyleng;    	// Length of the current token
-    const char* token_name = (yychar >= 0 && yychar < YYNTOKENS) ? yytname[yychar] : "unknown token";
     
     fprintf(stderr, "Sikraken Parsing error: %s, at line %d, near token '%s' (token code: %d)\n", s, yylineno, yytext, yychar);
     fprintf(stderr, "Problematic token: '%.*s'\n", yyleng, yytext);
-	fprintf(stderr, "Unexpected token: %s\n", token_name); 
+	fprintf(stderr, "Unexpected token: %s\n", token_name(yychar)); 
+}
+
+const char *token_name(int token) {
+    if (token >= 0 && token <= 255) {  // a char token
+        static char buf[2] = {0};
+        buf[0] = (char)token;
+        return buf;
+    } else if (token >= 256 && token < 256 + YYNTOKENS) {// Token values start at 256 (after single chars and EOF/error)
+        return yytname[token - 255];
+    } else {
+        return "unknown token";
+    }
 }
 
 void my_exit(int exit_code) {			//exits and performs some tidying up if not in debug mode

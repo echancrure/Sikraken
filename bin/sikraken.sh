@@ -6,7 +6,7 @@
 # Description: Wrapper for Sikraken symbolic execution tool from C code.
 # Example: ./bin/sikraken.sh release budget[1] --ss=1 SampleCode/simple_if.c
 
-clear
+# clear # don't: this breaks CI because it requires a TERMINAL environment, which does not exist in CI mode
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."
 VERSION_FILE="$SIKRAKEN_INSTALL_DIR/bin/version.txt"

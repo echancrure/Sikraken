@@ -909,14 +909,18 @@ typedef enum { DM_NONE=0, DM_SPECS=1, DM_DECLS=2 } decl_mode_t;
 static decl_mode_t decl_mode = DM_NONE;
 static int peek_next_nontrivia_char(void);
 int peek_and_push_token(void);
+int peeking = 0;
 static inline bool is_declarator_follower(int);
 static inline void fsm_from_none_to_spec(void);
 void fsm_reset(void);
+void fsm_set_to_specs(void);
 static const char* mode_str(decl_mode_t);
 
-#line 918 "lex.yy.c"
+extern const char *const yytname[];  // to access token names
+const char* token_name(int);
+#line 922 "lex.yy.c"
 
-#line 920 "lex.yy.c"
+#line 924 "lex.yy.c"
 
 #define INITIAL 0
 #define ATTRIBUTE 1
@@ -1134,11 +1138,11 @@ YY_DECL
 		}
 
 	{
-#line 65 "C_grammar.l"
+#line 69 "C_grammar.l"
 
-#line 67 "C_grammar.l"
+#line 71 "C_grammar.l"
         /* rules section */
-#line 1142 "lex.yy.c"
+#line 1146 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1207,27 +1211,27 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 68 "C_grammar.l"
+#line 72 "C_grammar.l"
 { read_comment(); }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 69 "C_grammar.l"
+#line 73 "C_grammar.l"
 { /* consume //-comment */ }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 70 "C_grammar.l"
+#line 74 "C_grammar.l"
 { /* Ignore the entire line after `#pragma` */ }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 71 "C_grammar.l"
+#line 75 "C_grammar.l"
 { /* Ignoring GCC keyword __extension__ that disables compiler warnings about non-compliant features */ }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 72 "C_grammar.l"
+#line 76 "C_grammar.l"
 { /* Ignoring all GCC __attribute__ at our peril obviously */ 
                                              open_parens = 2;   //Start with the initial two opening parentheses
                                              BEGIN(ATTRIBUTE);  //Enter the ATTRIBUTE start condition to read everything until the final 2 closing parenthesis
@@ -1235,7 +1239,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 76 "C_grammar.l"
+#line 80 "C_grammar.l"
 {                  //use this because flex regular expressions cannot match matching inner parentheses as in __attribute__ ((__nonnull__ (1, 2))) or __asm__("addl $3, %0" : "=r" (result) : "0" (result) : "cc")
     if (yytext[0] == '(') { 
         open_parens++;          //Increment for each additional opening parenthesis
@@ -1250,7 +1254,7 @@ YY_RULE_SETUP
 }
 	YY_BREAK
 case YY_STATE_EOF(ATTRIBUTE):
-#line 88 "C_grammar.l"
+#line 92 "C_grammar.l"
 { /* Handle unexpected EOF */
     fprintf(stderr, "Error: Unclosed __attribute__(( found.\n");
     exit(1);
@@ -1258,7 +1262,7 @@ case YY_STATE_EOF(ATTRIBUTE):
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 92 "C_grammar.l"
+#line 96 "C_grammar.l"
 { /* Ignoring all GCC __asm__ at our peril obviously */ 
                                              open_parens = 1;   //Start with the initial single opening parenthesis
                                              BEGIN(ATTRIBUTE);  //Enter the ATTRIBUTE start condition to read everything until the final closing parenthesis
@@ -1266,137 +1270,133 @@ YY_RULE_SETUP
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 96 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(AUTO); }
+#line 100 "C_grammar.l"
+{ if (!peeking) fsm_from_none_to_spec(); return(AUTO); }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 97 "C_grammar.l"
+#line 101 "C_grammar.l"
 { return(BREAK); }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 98 "C_grammar.l"
+#line 102 "C_grammar.l"
 { return(CASE); }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 99 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(CHAR); }
+#line 103 "C_grammar.l"
+{ if (!peeking) fsm_from_none_to_spec(); return(CHAR); }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 100 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(CONST); }
+#line 104 "C_grammar.l"
+{ if (!peeking) fsm_from_none_to_spec(); return(CONST); }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 101 "C_grammar.l"
+#line 105 "C_grammar.l"
 { return(CONTINUE); }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 102 "C_grammar.l"
+#line 106 "C_grammar.l"
 { return(DEFAULT); }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 103 "C_grammar.l"
+#line 107 "C_grammar.l"
 { return(DO); }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 104 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(DOUBLE); }
+#line 108 "C_grammar.l"
+{ if (!peeking) fsm_from_none_to_spec(); return(DOUBLE); }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 105 "C_grammar.l"
+#line 109 "C_grammar.l"
 { return(ELSE); }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 106 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(ENUM); }
+#line 110 "C_grammar.l"
+{ if (!peeking) fsm_from_none_to_spec(); return(ENUM); }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 107 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(EXTERN); }
+#line 111 "C_grammar.l"
+{ if (!peeking) fsm_from_none_to_spec(); return(EXTERN); }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 108 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(FLOAT); }
+#line 112 "C_grammar.l"
+{ if (!peeking) fsm_from_none_to_spec(); return(FLOAT); }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 109 "C_grammar.l"
+#line 113 "C_grammar.l"
 { return(FOR); }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 110 "C_grammar.l"
-{ in_label_namespace = 1; return(GOTO); } //special namespace for labels GOTO
+#line 114 "C_grammar.l"
+{ if (!peeking) in_label_namespace = 1; return(GOTO); } //special namespace for labels GOTO
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 111 "C_grammar.l"
+#line 115 "C_grammar.l"
 { return(IF); }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 112 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(INLINE); }
+#line 116 "C_grammar.l"
+{ if (!peeking) fsm_from_none_to_spec(); return(INLINE); }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 113 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(INLINE); }     //GCC version of INLINE
+#line 117 "C_grammar.l"
+{ if (!peeking) fsm_from_none_to_spec(); return(INLINE); }     //GCC version of INLINE
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 114 "C_grammar.l"
-{ if (debugMode) { 
-                                printf("Lexer FSM: found INT in mode %s\n", mode_str(decl_mode));
-                                fflush(stdout);
-                          }
-                          fsm_from_none_to_spec(); return(INT); }
+#line 118 "C_grammar.l"
+{ if (!peeking) fsm_from_none_to_spec(); return(INT); }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
 #line 119 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(LONG); }
+{ if (!peeking) fsm_from_none_to_spec(); return(LONG); }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
 #line 120 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(REGISTER); }
+{ if (!peeking) fsm_from_none_to_spec(); return(REGISTER); }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
 #line 121 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(RESTRICT); }
+{ if (!peeking) fsm_from_none_to_spec(); return(RESTRICT); }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
 #line 122 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(RESTRICT); }   //GCC version of RESTRICT
+{ if (!peeking) fsm_from_none_to_spec(); return(RESTRICT); }   //GCC version of RESTRICT
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
 #line 123 "C_grammar.l"
-{ fsm_reset(); return(RETURN); }
+{ if (!peeking) fsm_reset(); return(RETURN); }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
 #line 124 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(SHORT); }
+{ if (!peeking) fsm_from_none_to_spec(); return(SHORT); }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
 #line 125 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(SIGNED); }
+{ if (!peeking) fsm_from_none_to_spec(); return(SIGNED); }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
@@ -1406,12 +1406,12 @@ YY_RULE_SETUP
 case 35:
 YY_RULE_SETUP
 #line 127 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(STATIC); }
+{ if (!peeking) fsm_from_none_to_spec(); return(STATIC); }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
 #line 128 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(STRUCT); }
+{ if (!peeking) fsm_from_none_to_spec(); return(STRUCT); }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
@@ -1421,27 +1421,27 @@ YY_RULE_SETUP
 case 38:
 YY_RULE_SETUP
 #line 130 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(TYPEDEF); }
+{ if (!peeking) fsm_from_none_to_spec(); return(TYPEDEF); }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
 #line 131 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(UNION); }
+{ if (!peeking) fsm_from_none_to_spec(); return(UNION); }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
 #line 132 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(UNSIGNED); }
+{ if (!peeking) fsm_from_none_to_spec(); return(UNSIGNED); }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
 #line 133 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(VOID); }
+{ if (!peeking) fsm_from_none_to_spec(); return(VOID); }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
 #line 134 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(VOLATILE); }
+{ if (!peeking) fsm_from_none_to_spec(); return(VOLATILE); }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
@@ -1451,68 +1451,68 @@ YY_RULE_SETUP
 case 44:
 YY_RULE_SETUP
 #line 136 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(INT128); }     //GCC builtin 128-bit integer type
+{ if (!peeking) fsm_from_none_to_spec(); return(INT128); }     //GCC builtin 128-bit integer type
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
 #line 137 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(FLOAT); }      //GCC builtin 32-bit floating-point type
+{ if (!peeking) fsm_from_none_to_spec(); return(FLOAT); }      //GCC builtin 32-bit floating-point type
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
 #line 138 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(DOUBLE); }     //GCC builtin 64-bit floating-point type
+{ if (!peeking) fsm_from_none_to_spec(); return(DOUBLE); }     //GCC builtin 64-bit floating-point type
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
 #line 139 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(FLOAT128); }   //GCC builtin 128-bit floating-point type
+{ if (!peeking) fsm_from_none_to_spec(); return(FLOAT128); }   //GCC builtin 128-bit floating-point type
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
 #line 140 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(FLOAT128); }   //GCC builtin 128-bit floating-point type
+{ if (!peeking) fsm_from_none_to_spec(); return(FLOAT128); }   //GCC builtin 128-bit floating-point type
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
 #line 141 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(VA_LIST); }    //GCC builtin variable argument list type
+{ if (!peeking) fsm_from_none_to_spec(); return(VA_LIST); }    //GCC builtin variable argument list type
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
 #line 142 "C_grammar.l"
-{ fsm_from_none_to_spec(); return(VA_LIST); }    //GCC builtin variable argument list type
+{ if (!peeking) fsm_from_none_to_spec(); return(VA_LIST); }    //GCC builtin variable argument list type
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
 #line 143 "C_grammar.l"
-{ fsm_from_none_to_spec(); return ALIGNAS; }
+{ if (!peeking) fsm_from_none_to_spec(); return ALIGNAS; }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
 #line 144 "C_grammar.l"
-{ fsm_from_none_to_spec(); return ALIGNOF; }
+{ if (!peeking) fsm_from_none_to_spec(); return ALIGNOF; }
 	YY_BREAK
 case 53:
 /* rule 53 can match eol */
 YY_RULE_SETUP
 #line 145 "C_grammar.l"
-{ fsm_from_none_to_spec(); return ATOMIC_SPECIFIER; }
+{ if (!peeking) fsm_from_none_to_spec(); return ATOMIC_SPECIFIER; }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
 #line 146 "C_grammar.l"
-{ fsm_from_none_to_spec(); return ATOMIC; }
+{ if (!peeking) fsm_from_none_to_spec(); return ATOMIC; }
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
 #line 147 "C_grammar.l"
-{ fsm_from_none_to_spec(); return BOOL; }
+{ if (!peeking) fsm_from_none_to_spec(); return BOOL; }
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
 #line 148 "C_grammar.l"
-{ fsm_from_none_to_spec(); return COMPLEX; }
+{ if (!peeking) fsm_from_none_to_spec(); return COMPLEX; }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
@@ -1522,12 +1522,12 @@ YY_RULE_SETUP
 case 58:
 YY_RULE_SETUP
 #line 150 "C_grammar.l"
-{ fsm_from_none_to_spec(); return IMAGINARY; }
+{ if (!peeking) fsm_from_none_to_spec(); return IMAGINARY; }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
 #line 151 "C_grammar.l"
-{ fsm_from_none_to_spec(); return NORETURN; }
+{ if (!peeking) fsm_from_none_to_spec(); return NORETURN; }
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
@@ -1537,7 +1537,7 @@ YY_RULE_SETUP
 case 61:
 YY_RULE_SETUP
 #line 153 "C_grammar.l"
-{ fsm_from_none_to_spec(); return THREAD_LOCAL; }
+{ if (!peeking) fsm_from_none_to_spec(); return THREAD_LOCAL; }
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
@@ -1552,17 +1552,18 @@ YY_RULE_SETUP
 case 64:
 YY_RULE_SETUP
 #line 156 "C_grammar.l"
-{ fsm_from_none_to_spec(); return TYPEOF_UNQUAL; }   //C23 and GCC extension
+{ if (!peeking) fsm_from_none_to_spec(); return TYPEOF_UNQUAL; }   //C23 and GCC extension
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
 #line 157 "C_grammar.l"
-{ fsm_from_none_to_spec(); return TYPEOF; }   //C23 and GCC extension
+{ if (!peeking) fsm_from_none_to_spec(); return TYPEOF; }   //C23 and GCC extension
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
 #line 159 "C_grammar.l"
-{size_t const size = strlen(yytext) + 1;
+{if (peeking) return IDENTIFIER;
+                             size_t const size = strlen(yytext) + 1;
                              yylval.id = (char*)malloc(size);
                              int i = 0;
                              for (; yytext[i] != '\0'; i++) {
@@ -1573,8 +1574,10 @@ YY_RULE_SETUP
                                 }
                              }
                              yylval.id[i] = '\0';
-                             if (in_member_namespace || in_tag_declaration || in_label_namespace) //these contexts never treat ids as types: no point checking
+                             if (in_tag_declaration || in_label_namespace) { //these contexts never treat ids as types: no point checking
+                                if (debugMode) printf("Lexer FSM: bypassing typedef_name check: id: %s is a %s\n", yylval.id, (in_member_namespace ? "member" : (in_tag_declaration ? "tag" : "label")));
                                 return IDENTIFIER; 
+                             }
                              int id_status = is_typedef_name(yylval.id);                                
                              if (debugMode) { 
                                 printf("Lexer FSM: checking id: %s with status %d in mode %s\n", yylval.id, id_status, mode_str(decl_mode));
@@ -1588,20 +1591,23 @@ YY_RULE_SETUP
                                     if (decl_mode == DM_SPECS) {                        //In type specifier mode
                                         // Predict whether THIS occurrence is in fact a declarator name (i.e. an actual SHADOWING IDENTIFIER and switch to DM_DECLS mode) or not (a true TYPEDEF_NAME and stay in DM_SPECS)
                                         int nxt = peek_and_push_token();
-                                        if (debugMode) printf("lexer Debug: peek found a %c\n", nxt);
+                                        if (debugMode) {printf("Lexer Debug: peek found: %s\n", token_name(nxt)); fflush(stdout);}
                                         if (nxt == ')') {   // e.g. cast, parenthesized type like (Type name), or function declaration — definitely a TYPEDEF_NAME here : cannot be a declaration
-                                            if (debugMode) printf("lexer Debug: a real typedef_name in SPECS mode found: %s on line %d\n", yylval.id, yylineno);
+                                            if (debugMode) printf("Lexer Debug: a real typedef_name in SPECS mode found: %s on line %d\n", yylval.id, yylineno);
                                             //stay in SPECS mode
                                             return TYPEDEF_NAME;
                                         }
                                         if (is_declarator_follower(nxt)) {  /* Right after THIS typedef_name comes (, [, ',', '=', ';' → it's acting as a DECLARATOR NAME */
-                                            add_typedef_id(current_scope, yylval.id, 2);   //2 indicates that it is a SHADOWING IDENTIFIER
-                                            if (debugMode) printf("lexer Debug: SHADOWING of a typedef_name found: %s on line %d\n", yylval.id, yylineno);
+                                            if (!in_member_namespace) {
+                                                add_typedef_id(current_scope, yylval.id, 2);   //2 indicates that it is a SHADOWING IDENTIFIER
+                                                if (debugMode) printf("Lexer Debug: SHADOWING of a typedef_name found: %s on line %d\n", yylval.id, yylineno);
+                                            }
                                             decl_mode = DM_DECLS;                   //true transition to declaration mode
                                             return IDENTIFIER;                      //and change the return type: that's the only time we should change the return type
                                         }
                                         return TYPEDEF_NAME;    //otherwise
                                     }
+                                    if (in_member_namespace) return IDENTIFIER;   //members cannot be typedef names excep in DM_SPECS mode (handled above) sometimes
                                     if (decl_mode == DM_NONE) decl_mode = DM_SPECS;
                                     if (decl_mode == DM_DECLS) decl_mode = DM_DECLS;    //useless but for completeness
                                     return TYPEDEF_NAME;
@@ -1614,353 +1620,363 @@ YY_RULE_SETUP
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 209 "C_grammar.l"
-{wrap_integer_constants("16'", &yytext[2], &yylval.id);     //hexadecimal integer
+#line 215 "C_grammar.l"
+{if (!peeking) wrap_integer_constants("16'", &yytext[2], &yylval.id);     //hexadecimal integer
                              return I_CONSTANT;
                             }
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 212 "C_grammar.l"
-{wrap_integer_constants("", yytext, &yylval.id);            //decimal integer
+#line 218 "C_grammar.l"
+{if (!peeking) wrap_integer_constants("", yytext, &yylval.id);            //decimal integer
                              return I_CONSTANT;
                             }
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 216 "C_grammar.l"
-{if (isdigit(yytext[1])) wrap_integer_constants("8'", &yytext[1], &yylval.id);  //octal integer 
-                             else {     //the second char after 0 is not a digit (it's /0, ofr an IS (u|U)(l|L|ll|LL) char), so it's just the constant 0, rather than a true octal 
-                                yylval.id = (char*)malloc(7);
-                                strcpy(yylval.id, "int(0)");    
+#line 222 "C_grammar.l"
+{if (!peeking) {
+                                if (isdigit(yytext[1])) wrap_integer_constants("8'", &yytext[1], &yylval.id);  //octal integer 
+                                else {     //the second char after 0 is not a digit (it's /0, ofr an IS (u|U)(l|L|ll|LL) char), so it's just the constant 0, rather than a true octal 
+                                    yylval.id = (char*)malloc(7);
+                                    strcpy(yylval.id, "int(0)");    
+                                }
                              }
                              return I_CONSTANT;
                             }
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 223 "C_grammar.l"
-{//single char 
-                             char *content = yytext + (yytext[0] == '\'' ? 1 : 2);  //Skip prefix and opening quote
-                             content[strlen(content) - 1] = '\0';                   //Remove closing quote
-                             int ascii;
-                             if (content[0] == '\\') {                              //it's an escape sequence
-                                    ascii = convert_escape_sequence(content);
-                             } else {
-                                    ascii = (int)content[0];
+#line 231 "C_grammar.l"
+{if (!peeking) {
+                                //single char 
+                                char *content = yytext + (yytext[0] == '\'' ? 1 : 2);  //Skip prefix and opening quote
+                                content[strlen(content) - 1] = '\0';                   //Remove closing quote
+                                int ascii;
+                                if (content[0] == '\\') {                              //it's an escape sequence
+                                        ascii = convert_escape_sequence(content);
+                                } else {
+                                        ascii = (int)content[0];
+                                }
+                                yylval.id = (char*)malloc(10);
+                                sprintf(yylval.id, "int(%d)", ascii);
                              }
-                             yylval.id = (char*)malloc(10);
-                             sprintf(yylval.id, "int(%d)", ascii);
                              return I_CONSTANT;
                             }       
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 237 "C_grammar.l"
-{wrap_floating_point_constants(0, yytext, &yylval.id);     //Decimal floating-point constants with an exponent.
+#line 247 "C_grammar.l"
+{if (!peeking) wrap_floating_point_constants(0, yytext, &yylval.id);     //Decimal floating-point constants with an exponent.
                              return F_CONSTANT;
                             }
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 240 "C_grammar.l"
-{wrap_floating_point_constants(0, yytext, &yylval.id);     //Decimal floating-point constants with a fractional part.
+#line 250 "C_grammar.l"
+{if (!peeking) wrap_floating_point_constants(0, yytext, &yylval.id);     //Decimal floating-point constants with a fractional part.
                              return F_CONSTANT;
                             }
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 243 "C_grammar.l"
-{char* added_0;
-                             add_missing_zero(yytext, &added_0);
-                             wrap_floating_point_constants(0, added_0, &yylval.id);            //Decimal floating-point constants with a fractional part.
+#line 253 "C_grammar.l"
+{if (!peeking)  {
+                                char* added_0;
+                                add_missing_zero(yytext, &added_0);
+                                wrap_floating_point_constants(0, added_0, &yylval.id);            //Decimal floating-point constants with a fractional part.
+                             }
                              return F_CONSTANT;
                             }
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 248 "C_grammar.l"
-{wrap_floating_point_constants(1, yytext, &yylval.id);  //Hexadecimal floating-point constants: will fail parser in ECLiPSe
+#line 260 "C_grammar.l"
+{if (!peeking) wrap_floating_point_constants(1, yytext, &yylval.id);  //Hexadecimal floating-point constants: will fail parser in ECLiPSe
                              return F_CONSTANT;
                             }
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-#line 251 "C_grammar.l"
-{wrap_floating_point_constants(1, yytext, &yylval.id);  //Hexadecimal floating-point constants with a fractional part.: will fail parser in ECLiPSe
+#line 263 "C_grammar.l"
+{if (!peeking) wrap_floating_point_constants(1, yytext, &yylval.id);  //Hexadecimal floating-point constants with a fractional part.: will fail parser in ECLiPSe
                              return F_CONSTANT;
                             }
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-#line 254 "C_grammar.l"
-{char* added_0;
-                             add_missing_zero(yytext, &added_0);
-                             wrap_floating_point_constants(1, added_0, &yylval.id); //Hexadecimal floating-point constants with digits before the decimal point, but none after. : will fail parser in ECLiPSe
+#line 266 "C_grammar.l"
+{if (!peeking)  {
+                                char* added_0;
+                                add_missing_zero(yytext, &added_0);
+                                wrap_floating_point_constants(1, added_0, &yylval.id); //Hexadecimal floating-point constants with digits before the decimal point, but none after. : will fail parser in ECLiPSe
+                             }
                              return F_CONSTANT;
                             }
 	YY_BREAK
 case 77:
 /* rule 77 can match eol */
 YY_RULE_SETUP
-#line 260 "C_grammar.l"
-{if (yytext[0] == 'L') { //a wide string constant
-                                        size_t const size = strlen("wide_string()") + strlen(yytext) - 1 + 1;
-                                        yylval.id = (char*)malloc(size);
-                                        sprintf_safe(yylval.id, size, "wide_string(%s)", &yytext[1]);      //copy from yytext[1] to remove 'L' prefix 
-                                     } else {
-                                        yylval.id = strdup_safe(yytext);
-                                     }
+#line 274 "C_grammar.l"
+{if (!peeking) {
+                                        if (yytext[0] == 'L') { //a wide string constant
+                                            size_t const size = strlen("wide_string()") + strlen(yytext) - 1 + 1;
+                                            yylval.id = (char*)malloc(size);
+                                            sprintf_safe(yylval.id, size, "wide_string(%s)", &yytext[1]);      //copy from yytext[1] to remove 'L' prefix 
+                                        } else {
+                                            yylval.id = strdup_safe(yytext);
+                                        }
+                                     }   
                                      return STRING_LITERAL;
                                     }
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 270 "C_grammar.l"
+#line 286 "C_grammar.l"
 { return ELLIPSIS; }
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 271 "C_grammar.l"
+#line 287 "C_grammar.l"
 { return RIGHT_ASSIGN; }
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
-#line 272 "C_grammar.l"
+#line 288 "C_grammar.l"
 { return LEFT_ASSIGN; }
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 273 "C_grammar.l"
+#line 289 "C_grammar.l"
 { return ADD_ASSIGN; }
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
-#line 274 "C_grammar.l"
+#line 290 "C_grammar.l"
 { return SUB_ASSIGN; }
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
-#line 275 "C_grammar.l"
+#line 291 "C_grammar.l"
 { return MUL_ASSIGN; }
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 276 "C_grammar.l"
+#line 292 "C_grammar.l"
 { return DIV_ASSIGN; }
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
-#line 277 "C_grammar.l"
+#line 293 "C_grammar.l"
 { return MOD_ASSIGN; }
 	YY_BREAK
 case 86:
 YY_RULE_SETUP
-#line 278 "C_grammar.l"
+#line 294 "C_grammar.l"
 { return AND_ASSIGN; }
 	YY_BREAK
 case 87:
 YY_RULE_SETUP
-#line 279 "C_grammar.l"
+#line 295 "C_grammar.l"
 { return XOR_ASSIGN; }
 	YY_BREAK
 case 88:
 YY_RULE_SETUP
-#line 280 "C_grammar.l"
+#line 296 "C_grammar.l"
 { return OR_ASSIGN; }
 	YY_BREAK
 case 89:
 YY_RULE_SETUP
-#line 281 "C_grammar.l"
+#line 297 "C_grammar.l"
 { return RIGHT_OP; }
 	YY_BREAK
 case 90:
 YY_RULE_SETUP
-#line 282 "C_grammar.l"
+#line 298 "C_grammar.l"
 { return LEFT_OP; }
 	YY_BREAK
 case 91:
 YY_RULE_SETUP
-#line 283 "C_grammar.l"
+#line 299 "C_grammar.l"
 { return INC_OP; }
 	YY_BREAK
 case 92:
 YY_RULE_SETUP
-#line 284 "C_grammar.l"
+#line 300 "C_grammar.l"
 { return DEC_OP; }
 	YY_BREAK
 case 93:
 YY_RULE_SETUP
-#line 285 "C_grammar.l"
+#line 301 "C_grammar.l"
 { return PTR_OP; }
 	YY_BREAK
 case 94:
 YY_RULE_SETUP
-#line 286 "C_grammar.l"
+#line 302 "C_grammar.l"
 { return AND_OP; }
 	YY_BREAK
 case 95:
 YY_RULE_SETUP
-#line 287 "C_grammar.l"
+#line 303 "C_grammar.l"
 { return OR_OP; }
 	YY_BREAK
 case 96:
 YY_RULE_SETUP
-#line 288 "C_grammar.l"
+#line 304 "C_grammar.l"
 { return LE_OP; }
 	YY_BREAK
 case 97:
 YY_RULE_SETUP
-#line 289 "C_grammar.l"
+#line 305 "C_grammar.l"
 { return GE_OP; }
 	YY_BREAK
 case 98:
 YY_RULE_SETUP
-#line 290 "C_grammar.l"
+#line 306 "C_grammar.l"
 { return EQ_OP; }
 	YY_BREAK
 case 99:
 YY_RULE_SETUP
-#line 291 "C_grammar.l"
+#line 307 "C_grammar.l"
 { return NE_OP; }
 	YY_BREAK
 case 100:
 YY_RULE_SETUP
-#line 292 "C_grammar.l"
+#line 308 "C_grammar.l"
 { return ';'; }
 	YY_BREAK
 case 101:
 YY_RULE_SETUP
-#line 293 "C_grammar.l"
+#line 309 "C_grammar.l"
 { return '{'; }
 	YY_BREAK
 case 102:
 YY_RULE_SETUP
-#line 294 "C_grammar.l"
+#line 310 "C_grammar.l"
 { return '}'; }
 	YY_BREAK
 case 103:
 YY_RULE_SETUP
-#line 295 "C_grammar.l"
-{ if (decl_mode != DM_NONE) decl_mode = DM_DECLS; return ','; }
+#line 311 "C_grammar.l"
+{ if (!peeking) {if (decl_mode != DM_NONE) decl_mode = DM_DECLS;} return ','; }
 	YY_BREAK
 case 104:
 YY_RULE_SETUP
-#line 296 "C_grammar.l"
+#line 312 "C_grammar.l"
 { return ':'; }
 	YY_BREAK
 case 105:
 YY_RULE_SETUP
-#line 297 "C_grammar.l"
+#line 313 "C_grammar.l"
 { return '='; }
 	YY_BREAK
 case 106:
 YY_RULE_SETUP
-#line 298 "C_grammar.l"
-{ if (decl_mode != DM_NONE) decl_mode = DM_DECLS; return '('; }
+#line 314 "C_grammar.l"
+{ if (!peeking) {if (decl_mode != DM_NONE) decl_mode = DM_DECLS;} return '('; }
 	YY_BREAK
 case 107:
 YY_RULE_SETUP
-#line 299 "C_grammar.l"
+#line 315 "C_grammar.l"
 { return ')'; }
 	YY_BREAK
 case 108:
 YY_RULE_SETUP
-#line 300 "C_grammar.l"
-{ if (decl_mode != DM_NONE) decl_mode = DM_DECLS; return '['; }
+#line 316 "C_grammar.l"
+{ if (!peeking) {if (decl_mode != DM_NONE) decl_mode = DM_DECLS;} return '['; }
 	YY_BREAK
 case 109:
 YY_RULE_SETUP
-#line 301 "C_grammar.l"
+#line 317 "C_grammar.l"
 { return ']'; }
 	YY_BREAK
 case 110:
 YY_RULE_SETUP
-#line 302 "C_grammar.l"
+#line 318 "C_grammar.l"
 { return '.'; }
 	YY_BREAK
 case 111:
 YY_RULE_SETUP
-#line 303 "C_grammar.l"
+#line 319 "C_grammar.l"
 { return '&'; }
 	YY_BREAK
 case 112:
 YY_RULE_SETUP
-#line 304 "C_grammar.l"
+#line 320 "C_grammar.l"
 { return '!'; }
 	YY_BREAK
 case 113:
 YY_RULE_SETUP
-#line 305 "C_grammar.l"
+#line 321 "C_grammar.l"
 { return '~'; }
 	YY_BREAK
 case 114:
 YY_RULE_SETUP
-#line 306 "C_grammar.l"
+#line 322 "C_grammar.l"
 { return '-'; }
 	YY_BREAK
 case 115:
 YY_RULE_SETUP
-#line 307 "C_grammar.l"
+#line 323 "C_grammar.l"
 { return '+'; }
 	YY_BREAK
 case 116:
 YY_RULE_SETUP
-#line 308 "C_grammar.l"
-{ if (decl_mode != DM_NONE) decl_mode = DM_DECLS; return '*'; }
+#line 324 "C_grammar.l"
+{ if (!peeking) {if (decl_mode != DM_NONE) decl_mode = DM_DECLS;} return '*'; }
 	YY_BREAK
 case 117:
 YY_RULE_SETUP
-#line 309 "C_grammar.l"
+#line 325 "C_grammar.l"
 { return '/'; }
 	YY_BREAK
 case 118:
 YY_RULE_SETUP
-#line 310 "C_grammar.l"
+#line 326 "C_grammar.l"
 { return '%'; }
 	YY_BREAK
 case 119:
 YY_RULE_SETUP
-#line 311 "C_grammar.l"
+#line 327 "C_grammar.l"
 { return '<'; }
 	YY_BREAK
 case 120:
 YY_RULE_SETUP
-#line 312 "C_grammar.l"
+#line 328 "C_grammar.l"
 { return '>'; }
 	YY_BREAK
 case 121:
 YY_RULE_SETUP
-#line 313 "C_grammar.l"
+#line 329 "C_grammar.l"
 { return '^'; }
 	YY_BREAK
 case 122:
 YY_RULE_SETUP
-#line 314 "C_grammar.l"
+#line 330 "C_grammar.l"
 { return '|'; }
 	YY_BREAK
 case 123:
 YY_RULE_SETUP
-#line 315 "C_grammar.l"
+#line 331 "C_grammar.l"
 { return '?'; }
 	YY_BREAK
 case 124:
 /* rule 124 can match eol */
 YY_RULE_SETUP
-#line 317 "C_grammar.l"
+#line 333 "C_grammar.l"
 { /* whitespaces (including new lines) separate tokens */ }
 	YY_BREAK
 case 125:
 YY_RULE_SETUP
-#line 318 "C_grammar.l"
+#line 334 "C_grammar.l"
 { /* discard bad characters */ }
 	YY_BREAK
 case 126:
 YY_RULE_SETUP
-#line 320 "C_grammar.l"
+#line 336 "C_grammar.l"
 ECHO;
 	YY_BREAK
-#line 1964 "lex.yy.c"
+#line 1980 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2977,7 +2993,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 320 "C_grammar.l"
+#line 336 "C_grammar.l"
 
 /* user code section */
 /* FSM helpers */
@@ -2991,12 +3007,16 @@ void fsm_reset(void) {
     decl_mode = DM_NONE;
 }
 
+void fsm_set_to_specs(void) {
+    decl_mode = DM_SPECS;
+}
+
 /* Debug (optional) */
 static const char* mode_str(decl_mode_t m) {
     switch (m) {
-        case DM_NONE:  return "NONE";
-        case DM_SPECS: return "SPECS";
-        case DM_DECLS: return "DECLS";
+        case DM_NONE:  return "DM_NONE";
+        case DM_SPECS: return "DM_SPECS";
+        case DM_DECLS: return "DM_DECLS";
         default:       return "?";
     }
 }
@@ -3012,10 +3032,12 @@ static int peek_next_nontrivia_char(void) {
 
 // Peek the next token and immediately push it back
 int peek_and_push_token(void) {
+    peeking = 1;
     int tok = yylex();          // This skips whitespace/comments/attributes automatically
     if (tok != 0) {
         yyless(0); // Push back so next yylex() sees it again
     }
+    peeking = 0;
     return tok;
 }
 

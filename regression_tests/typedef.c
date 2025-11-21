@@ -1,3 +1,21 @@
+extern int __VERIFIER_nondet_int();
+//21 Nov
+typedef int my_int44, my_int45, my_int46;
+struct {
+  int my_int44, my_int45;
+  my_int46 my_int99;
+} var44;
+
+//20 Nov 2025
+typedef int my_int42;
+typedef my_int42 my_int43;
+__extension__ typedef long int __time_t;
+__extension__ typedef long int __syscall_slong_t;
+typedef __time_t time_t;
+struct timespec {
+  __time_t tv_sec;
+  __syscall_slong_t tv_nsec;
+};
 //15 Nov 2025
 struct lock_class_key { //valid: GCC and (Clang?) allow empty struct_declaration_list but C11 does not (C++ does...)
 };
@@ -8,7 +26,6 @@ int main_claude1() {
     int claude1 = 5;
     int x = (int)3.14 + claude1;  // OK: uses the shadow claude1
 }
-
 
 typedef long claude; //or clause both work
 int main_claude() {
@@ -97,5 +114,9 @@ int main() {
     //table t;  //gcc error: conflict as table represent a var and a typedef in the same scope and the same namespace [although the programmer's intent is clear and our parser can handle this]
     int x = 6 + table; //causes parser error because shadowing is not implemented
     table : a = sizeof(table); //1st table is a label, not a typedef name, 2nd table is a TYPDEFNAME
+    int v = __VERIFIER_nondet_int();
+    if (v == x) {
+        x++;
+    }
     return table; //causes parser error if shadowing is not implemented
 }

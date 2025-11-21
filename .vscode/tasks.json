@@ -122,7 +122,8 @@
                 "${input:category}",
                 "${input:parallelJobs}",
                 "${input:budget}",
-                "debug"
+                "debug",
+                "${input:testcov}"                
             ],
             "group": {
                 "kind": "build"
@@ -153,6 +154,16 @@
             "type": "promptString",
             "description": "Benchmark category",
             "default": "ECA"
+        },
+        {
+            "id": "testcov",
+            "type": "pickString",
+            "description": "Run TestCov after",
+            "options": [
+                "",        // blank TestCov will run 
+                "-no_testcov"
+            ],
+            "default": "-no_testcov"
         },
         {
             "id": "budget",

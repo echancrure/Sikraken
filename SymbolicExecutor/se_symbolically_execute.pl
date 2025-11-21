@@ -218,7 +218,7 @@ symbolic_execute(goto_stmt(Label, Function), Flow) :-
     !,
     se_sub_atts__get(Function, 'body', cmp_stmts(Function_stmts)),
     search_label_statement(Label, Function_stmts, Labelled_stmts_list), %only partially implemented
-    symbolic_execute(Labelled_stmts_list, Flow).    
+    symbolic_execute(Labelled_stmts_list, Flow).
 symbolic_execute(label_stmt(_Label, Statement), Flow) :- 
     !,
     symbolic_execute(Statement, Flow).
@@ -230,7 +230,7 @@ symbolic_execute(return_stmt, return) :-    %a return with no expression
 symbolic_execute(break_stmt, 'break') :-    %within iteration and switch statements: basically bubble up to the innermost construct
     !.
 symbolic_execute(continue_stmt, 'continue') :-
-    !. 
+    !.
 %we have anything here: an assignment, comma_op, postfix_inc_op, postfix_dec_op or any expression!
 symbolic_execute(Expression, 'carry_on') :- %assuming that there is no return in there...
     !,
