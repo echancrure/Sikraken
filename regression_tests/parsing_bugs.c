@@ -18,7 +18,27 @@ struct sysfs_ops {
    ssize_t (*store)(struct kobject * , struct attribute * , char const * , size_t ) ;
    void const *(*namespace)(struct kobject * , struct attribute const * ) ;
 };
-
+struct ctl_table;          //forward declaration
+typedef struct ctl_table ctl_table;    //typedef
+typedef long long loff_t;
+typedef int proc_handler(struct ctl_table *ctl , int write , void *buffer , size_t *lenp , loff_t *ppos );
+struct ctl_table {
+   char const *procname ;
+   void *data ;
+   int maxlen ;
+   umode_t mode ;
+   struct ctl_table *child ;  //ctl_table is just a tag
+   proc_handler *proc_handler ;
+   struct ctl_table_poll *poll ;
+   void *extra1 ;
+   void *extra2 ;
+};
+struct __anonstruct____missing_field_name_212 {
+   struct ctl_table *ctl_table ;                //FIXED: Sikraken Parsing error: syntax error, unexpected TYPEDEF_NAME, expecting IDENTIFIER or '(', at line 1237, near token 'ctl_table' (token code: 259)
+   int used ;
+   int count ;
+   int nreg ;
+};
 int main() {
     int v = __VERIFIER_nondet_int();
     int x = 42;

@@ -39,7 +39,7 @@ static int peek_next_nontrivia_char(void);
 int peek_and_push_token(void);
 int peeking = 0;
 static inline bool is_declarator_follower(int);
-static inline void fsm_from_none_to_spec(void);
+void fsm_from_none_to_spec(void);
 void fsm_reset(void);
 void fsm_set_to_specs(void);
 static const char* mode_str(decl_mode_t);
@@ -168,7 +168,7 @@ WS  [ \t\v\n\f]
                              }
                              yylval.id[i] = '\0';
                              if (in_tag_declaration || in_label_namespace) { //these contexts never treat ids as types: no point checking
-                                if (debugMode) printf("Lexer FSM: bypassing typedef_name check in mode %s: id: %s is a %s\n", mode_str(decl_mode), yylval.id, (in_member_namespace ? "member" : (in_tag_declaration ? "tag" : "label")));
+                                if (debugMode) printf("Lexer FSM: bypassing typedef_name check in mode %s: id: %s is a %s\n", mode_str(decl_mode), yylval.id, (in_tag_declaration ? "tag" : "label"));
                                 return IDENTIFIER; 
                              }
                              int id_status = is_typedef_name(yylval.id);                                
@@ -336,7 +336,7 @@ WS  [ \t\v\n\f]
 /* user code section */
 /* FSM helpers */
 
-static inline void fsm_from_none_to_spec(void) {
+void fsm_from_none_to_spec(void) {
     if (decl_mode == DM_NONE) decl_mode = DM_SPECS;
 }
 

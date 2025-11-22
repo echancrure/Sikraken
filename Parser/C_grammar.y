@@ -71,6 +71,7 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 
 void fsm_reset(void);
 void fsm_set_to_specs(void);
+void fsm_from_none_to_spec(void);
 %}
 
 %union {
@@ -115,7 +116,7 @@ void fsm_set_to_specs(void);
 %type <id> initializer_list designation designator_list designator
 %type <id> struct_or_union_specifier struct_or_union struct_declaration_list struct_declaration  
 %type <id> struct_declarator_list struct_declarator
-%type <id> static_assert_declaration enum_tag_name member_tag_name
+%type <id> static_assert_declaration enum_tag_name tag_name
 %type <id> enum_specifier enum_specifier_rest enumerator_list enumerator
 %type <id> parameter_type_list parameter_list parameter_declaration
 %type <id> expression_statement expression_opt jump_statement statement labeled_statement compound_statement
@@ -676,7 +677,7 @@ struct_or_union_specifier
 	     free($1);
 	     free($3);
 	    }
-	| struct_or_union member_tag_name  '{' '}'	//Tag namespace Id declaration (EMPTY, GNU extension)
+	| struct_or_union tag_name  '{' '}'	//Tag namespace Id declaration (EMPTY, GNU extension)
 		{in_member_namespace = 0;
 		 size_t const size = strlen("(, [])") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
@@ -684,7 +685,7 @@ struct_or_union_specifier
 	     free($1);
 	     free($2);
 	    }
-	| struct_or_union member_tag_name '{' struct_declaration_list '}'	//Tag namespace Id declaration
+	| struct_or_union tag_name '{' struct_declaration_list '}'	//Tag namespace Id declaration
 		{in_member_namespace = 0;
 		 size_t const size = strlen("(, [])") + strlen($1) + strlen($2) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
@@ -693,8 +694,9 @@ struct_or_union_specifier
 	     free($2);
 		 free($4);
 	    }
-	| struct_or_union member_tag_name	//forward declaration Tag namespace Id declaration or as part of a variable declaration
-		{in_member_namespace = 0;
+	| struct_or_union tag_name	//forward declaration Tag namespace Id declaration or as part of a variable or member declaration
+		{fsm_from_none_to_spec();
+		 in_member_namespace = 0;
 		 size_t const size = strlen("%s(%s)") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "%s(%s)", $1, $2);
@@ -711,7 +713,7 @@ set_tag0 :
 		}
 	;	
 
-member_tag_name :
+tag_name :
 	IDENTIFIER
 		{in_tag_declaration = 0;
 		 in_member_namespace = 1;
@@ -1558,7 +1560,7 @@ int main(int argc, char *argv[]) {
 void yyerror(const char* s) {
 	extern char* yytext;  	// Points to the text of the current token
     extern int yyleng;    	// Length of the current token
-    
+    fflush(stdout);			//to ensure all previous information messages are printed out of buffer before the error message
     fprintf(stderr, "Sikraken Parsing error: %s, at line %d, near token '%s' (token code: %d)\n", s, yylineno, yytext, yychar);
 	fprintf(stderr, "Unexpected token: %s\n", token_name(yychar)); 
 }
