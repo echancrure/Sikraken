@@ -1522,14 +1522,13 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	
-
 	size_t i_path_len = strlen(C_file_path) + strlen(filename_no_ext) + 4; // "/.i\0"
 	i_file_uri = malloc(i_path_len);
 	snprintf(i_file_uri, i_path_len, "%s/%s.i", C_file_path, filename_no_ext);
 	if (fopen_safe(&i_file, i_file_uri, "r") != 0) {
 		fprintf(stderr, ".i file could not be opened for reading at: %s\n", i_file_uri);
 		my_exit(EXIT_FAILURE);
-	} else fprintf(stdout, "Sikraken parser %s: parsing the file %s.i using %i bits data model.\n", (debugMode) ? "in debug mode" : "", i_file_uri, dataModel); 
+	} else fprintf(stdout, "Sikraken parser %s: parsing the file %s using %i bits data model.\n", (debugMode) ? "in debug mode" : "", i_file_uri, dataModel); 
 	yyin = i_file;	//set the input to the parser
 
 	size_t pl_path_len = strlen(C_file_path) + strlen(filename_no_ext) + 5; // "/.pl\0"
@@ -1540,8 +1539,13 @@ int main(int argc, char *argv[]) {
 		my_exit(EXIT_FAILURE);
 	}
 	fflush(stdout);							//to ensure all previous information messages are printed out of buffer before the parsing starts and potentially generate unbuffered error messages
-	fprintf(pl_file, "prolog_c([");			//opening top-level predicate
 
+	/* initialisations */
+	char *predefined_typedef = strdup("__gnuc_va_list");
+	add_typedef_id(current_scope, predefined_typedef, 1);		//predefined typedef in GCC
+
+	/* call the parser */
+	fprintf(pl_file, "prolog_c([");			//opening top-level predicate
 	if (yyparse() != 0) {					//the parser is called here
 		fprintf(stderr, "Parsing failed.\n");
 		my_exit(EXIT_FAILURE);

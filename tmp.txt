@@ -1,19 +1,22 @@
 Sikraken ./bin/call_parser.sh says: SIKRAKEN_INSTALL_DIR is /home/chris/Sikraken/bin/..
-Sikraken parser in debug mode: parsing the file /home/chris/Sikraken/bin/../sikraken_output/parsing_bugs/parsing_bugs.i.i using 32 bits data model.
+Sikraken parser in debug mode: parsing the file /home/chris/Sikraken/bin/../sikraken_output/parsing_bugs/parsing_bugs.i using 32 bits data model.
+Pushed scope 0
+add_typedef_id: Added __gnuc_va_list as a TYPEDEF_NAME to typedef list
 is_typedef_name: Looking for __VERIFIER_nondet_int in typedef list
-Scope stack is empty
+Scope 0:
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found __VERIFIER_nondet_int is a basic IDENTIFIER
 Lexer FSM: checking id: __VERIFIER_nondet_int with status 0 in mode DM_SPECS
-Trying to Pop scope 1 on empty scope_stack
+Trying to Pop scope 1 when scope_stack scope_nb is 0
 DEBUG: typedef_flag=0, ptr_declarator=UC___VERIFIER_nondet_int
 Debug: create_declaration_specifiers returned: spec([extern], int)
 Debug: typedef switched to 1
 is_typedef_name: Looking for umode_t in typedef list
-Scope stack is empty
+Scope 0:
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found umode_t is a basic IDENTIFIER
 Lexer FSM: checking id: umode_t with status 0 in mode DM_SPECS
 DEBUG: typedef_flag=1, ptr_declarator=Umode_t
-Pushed scope 0
 add_typedef_id: Added umode_t as a TYPEDEF_NAME to typedef list
 Debug: typedef switched to 0
 Debug: create_declaration_specifiers returned: spec([typedef], unsigned(short))
@@ -24,6 +27,7 @@ Lexer FSM: bypassing typedef_name check in mode DM_SPECS: id: attribute is a tag
 is_typedef_name: Looking for name in typedef list
 Scope 0:
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found name is a basic IDENTIFIER
 Lexer FSM: checking id: name with status 0 in mode DM_DECLS
 direct_declarator: in member namespace: name on line 5
@@ -32,11 +36,13 @@ Debug: create_declaration_specifiers returned: spec([], char)
 is_typedef_name: Looking for umode_t in typedef list
 Scope 0:
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: umode_t with status 1 in mode DM_NONE
 is_typedef_name: Looking for mode in typedef list
 Scope 0:
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found mode is a basic IDENTIFIER
 Lexer FSM: checking id: mode with status 0 in mode DM_SPECS
 direct_declarator: in member namespace: mode on line 6
@@ -46,11 +52,13 @@ Debug: create_declaration_specifiers returned: spec([], struct(Attribute, [struc
 is_typedef_name: Looking for umode_t in typedef list
 Scope 0:
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: umode_t with status 1 in mode DM_NONE
 is_typedef_name: Looking for is_visible in typedef list
 Scope 0:
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found is_visible is a basic IDENTIFIER
 Lexer FSM: checking id: is_visible with status 0 in mode DM_DECLS
 Lexer FSM: bypassing typedef_name check in mode DM_DECLS: id: kobject is a tag
@@ -65,6 +73,7 @@ Lexer FSM: bypassing typedef_name check in mode DM_SPECS: id: attribute_group is
 is_typedef_name: Looking for name in typedef list
 Scope 0:
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found name is a basic IDENTIFIER
 Lexer FSM: checking id: name with status 0 in mode DM_DECLS
 direct_declarator: in member namespace: name on line 10
@@ -73,11 +82,13 @@ Debug: create_declaration_specifiers returned: spec([], char)
 is_typedef_name: Looking for umode_t in typedef list
 Scope 0:
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: umode_t with status 1 in mode DM_NONE
 is_typedef_name: Looking for is_visible in typedef list
 Scope 0:
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found is_visible is a basic IDENTIFIER
 Lexer FSM: checking id: is_visible with status 0 in mode DM_DECLS
 direct_declarator: in member namespace: is_visible on line 11
@@ -92,6 +103,7 @@ Lexer FSM: bypassing typedef_name check in mode DM_SPECS: id: attribute is a tag
 is_typedef_name: Looking for attrs in typedef list
 Scope 0:
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found attrs is a basic IDENTIFIER
 Lexer FSM: checking id: attrs with status 0 in mode DM_DECLS
 direct_declarator: in member namespace: attrs on line 12
@@ -102,6 +114,7 @@ Debug: typedef switched to 1
 is_typedef_name: Looking for size_t in typedef list
 Scope 0:
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found size_t is a basic IDENTIFIER
 Lexer FSM: checking id: size_t with status 0 in mode DM_SPECS
 DEBUG: typedef_flag=1, ptr_declarator=Size_t
@@ -113,6 +126,7 @@ is_typedef_name: Looking for ssize_t in typedef list
 Scope 0:
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found ssize_t is a basic IDENTIFIER
 Lexer FSM: checking id: ssize_t with status 0 in mode DM_SPECS
 DEBUG: typedef_flag=1, ptr_declarator=Ssize_t
@@ -125,6 +139,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: ssize_t with status 1 in mode DM_NONE
 is_typedef_name: Looking for show in typedef list
@@ -132,6 +147,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found show is a basic IDENTIFIER
 Lexer FSM: checking id: show with status 0 in mode DM_DECLS
 direct_declarator: in member namespace: show on line 17
@@ -147,6 +163,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: ssize_t with status 1 in mode DM_NONE
 is_typedef_name: Looking for store in typedef list
@@ -154,6 +171,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found store is a basic IDENTIFIER
 Lexer FSM: checking id: store with status 0 in mode DM_DECLS
 direct_declarator: in member namespace: store on line 18
@@ -168,6 +186,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: size_t with status 1 in mode DM_DECLS
 Debug: create_declaration_specifiers returned: spec([], Size_t)
@@ -178,6 +197,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found namespace is a basic IDENTIFIER
 Lexer FSM: checking id: namespace with status 0 in mode DM_DECLS
 direct_declarator: in member namespace: namespace on line 19
@@ -201,6 +221,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found ctl_table is a basic IDENTIFIER
 Lexer FSM: checking id: ctl_table with status 0 in mode DM_NONE
 DEBUG: typedef_flag=1, ptr_declarator=Ctl_table
@@ -214,6 +235,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found loff_t is a basic IDENTIFIER
 Lexer FSM: checking id: loff_t with status 0 in mode DM_SPECS
 DEBUG: typedef_flag=1, ptr_declarator=Loff_t
@@ -228,6 +250,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found proc_handler is a basic IDENTIFIER
 Lexer FSM: checking id: proc_handler with status 0 in mode DM_SPECS
 Lexer FSM: bypassing typedef_name check in mode DM_DECLS: id: ctl_table is a tag
@@ -238,6 +261,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found ctl is a basic IDENTIFIER
 Lexer FSM: checking id: ctl with status 0 in mode DM_SPECS
 Debug: create_declaration_specifiers returned: spec([], struct(Ctl_table))
@@ -248,6 +272,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found write is a basic IDENTIFIER
 Lexer FSM: checking id: write with status 0 in mode DM_DECLS
 Debug: create_declaration_specifiers returned: spec([], int)
@@ -258,6 +283,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found buffer is a basic IDENTIFIER
 Lexer FSM: checking id: buffer with status 0 in mode DM_DECLS
 Debug: create_declaration_specifiers returned: spec([], void)
@@ -268,6 +294,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: size_t with status 1 in mode DM_DECLS
 is_typedef_name: Looking for lenp in typedef list
@@ -277,6 +304,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found lenp is a basic IDENTIFIER
 Lexer FSM: checking id: lenp with status 0 in mode DM_DECLS
 Debug: create_declaration_specifiers returned: spec([], Size_t)
@@ -287,6 +315,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: loff_t with status 1 in mode DM_DECLS
 is_typedef_name: Looking for ppos in typedef list
@@ -296,6 +325,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found ppos is a basic IDENTIFIER
 Lexer FSM: checking id: ppos with status 0 in mode DM_DECLS
 Debug: create_declaration_specifiers returned: spec([], Loff_t)
@@ -313,6 +343,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found procname is a basic IDENTIFIER
 Lexer FSM: checking id: procname with status 0 in mode DM_DECLS
 direct_declarator: in member namespace: procname on line 26
@@ -326,6 +357,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found data is a basic IDENTIFIER
 Lexer FSM: checking id: data with status 0 in mode DM_DECLS
 direct_declarator: in member namespace: data on line 27
@@ -338,6 +370,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found maxlen is a basic IDENTIFIER
 Lexer FSM: checking id: maxlen with status 0 in mode DM_SPECS
 direct_declarator: in member namespace: maxlen on line 28
@@ -350,6 +383,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: umode_t with status 1 in mode DM_NONE
 is_typedef_name: Looking for mode in typedef list
@@ -360,6 +394,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found mode is a basic IDENTIFIER
 Lexer FSM: checking id: mode with status 0 in mode DM_SPECS
 direct_declarator: in member namespace: mode on line 29
@@ -373,6 +408,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found child is a basic IDENTIFIER
 Lexer FSM: checking id: child with status 0 in mode DM_SPECS
 direct_declarator: in member namespace: child on line 30
@@ -385,6 +421,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: proc_handler with status 1 in mode DM_NONE
 is_typedef_name: Looking for proc_handler in typedef list
@@ -395,6 +432,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: proc_handler with status 1 in mode DM_DECLS
 direct_declarator: in member namespace: proc_handler on line 31
@@ -408,6 +446,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found poll is a basic IDENTIFIER
 Lexer FSM: checking id: poll with status 0 in mode DM_SPECS
 direct_declarator: in member namespace: poll on line 32
@@ -420,6 +459,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found extra1 is a basic IDENTIFIER
 Lexer FSM: checking id: extra1 with status 0 in mode DM_DECLS
 direct_declarator: in member namespace: extra1 on line 33
@@ -432,6 +472,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found extra2 is a basic IDENTIFIER
 Lexer FSM: checking id: extra2 with status 0 in mode DM_DECLS
 direct_declarator: in member namespace: extra2 on line 34
@@ -448,6 +489,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: ctl_table with status 1 in mode DM_SPECS
 Lexer Debug: peek found: ;
@@ -461,6 +503,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found used is a basic IDENTIFIER
 Lexer FSM: checking id: used with status 0 in mode DM_SPECS
 direct_declarator: in member namespace: used on line 38
@@ -473,6 +516,7 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found count is a basic IDENTIFIER
 Lexer FSM: checking id: count with status 0 in mode DM_SPECS
 direct_declarator: in member namespace: count on line 39
@@ -485,13 +529,15 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found nreg is a basic IDENTIFIER
 Lexer FSM: checking id: nreg with status 0 in mode DM_SPECS
 direct_declarator: in member namespace: nreg on line 40
 Debug: create_declaration_specifiers returned: spec([], int)
 end of stand alone declaration specifier as a declaration on line 41
 Debug: create_declaration_specifiers returned: spec([], struct(UC___anonstruct____missing_field_name_212, [struct_decl(spec([], struct(Ctl_table)), [ptr_decl(pointer, ctl_table)]), struct_decl(spec([], int), [used]), struct_decl(spec([], int), [count]), struct_decl(spec([], int), [nreg])]))
-is_typedef_name: Looking for main in typedef list
+Debug: typedef switched to 1
+is_typedef_name: Looking for __gnuc_va_list in typedef list
 Scope 0:
 	proc_handler is a TYPEDEF_NAME
 	loff_t is a TYPEDEF_NAME
@@ -499,80 +545,123 @@ Scope 0:
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: __gnuc_va_list with status 1 in mode DM_SPECS
+Lexer Debug: peek found: [
+add_typedef_id: Added __gnuc_va_list as a shadow IDENTIFIER to typedef list
+Lexer Debug: SHADOWING of a typedef_name found: __gnuc_va_list on line 42
+DEBUG: typedef_flag=1, ptr_declarator=UC___gnuc_va_list
+add_typedef_id: Added __gnuc_va_list as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+decl_spec_stack->decl_spec.atomic.typeName is va_list
+Debug: create_declaration_specifiers returned: spec([typedef], va_list)
+is_typedef_name: Looking for main in typedef list
+Scope 0:
+	__gnuc_va_list is a TYPEDEF_NAME
+	__gnuc_va_list is a shadow IDENTIFIER
+	proc_handler is a TYPEDEF_NAME
+	loff_t is a TYPEDEF_NAME
+	ctl_table is a TYPEDEF_NAME
+	ssize_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found main is a basic IDENTIFIER
 Lexer FSM: checking id: main with status 0 in mode DM_SPECS
 Trying to Pop scope 1 when scope_stack scope_nb is 0
 is_typedef_name: Looking for v in typedef list
 Scope 0:
+	__gnuc_va_list is a TYPEDEF_NAME
+	__gnuc_va_list is a shadow IDENTIFIER
 	proc_handler is a TYPEDEF_NAME
 	loff_t is a TYPEDEF_NAME
 	ctl_table is a TYPEDEF_NAME
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found v is a basic IDENTIFIER
 Lexer FSM: checking id: v with status 0 in mode DM_SPECS
 is_typedef_name: Looking for __VERIFIER_nondet_int in typedef list
 Scope 0:
+	__gnuc_va_list is a TYPEDEF_NAME
+	__gnuc_va_list is a shadow IDENTIFIER
 	proc_handler is a TYPEDEF_NAME
 	loff_t is a TYPEDEF_NAME
 	ctl_table is a TYPEDEF_NAME
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found __VERIFIER_nondet_int is a basic IDENTIFIER
 Lexer FSM: checking id: __VERIFIER_nondet_int with status 0 in mode DM_DECLS
 Debug: create_declaration_specifiers returned: spec([], int)
 is_typedef_name: Looking for x in typedef list
 Scope 0:
+	__gnuc_va_list is a TYPEDEF_NAME
+	__gnuc_va_list is a shadow IDENTIFIER
 	proc_handler is a TYPEDEF_NAME
 	loff_t is a TYPEDEF_NAME
 	ctl_table is a TYPEDEF_NAME
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found x is a basic IDENTIFIER
 Lexer FSM: checking id: x with status 0 in mode DM_SPECS
 Debug: create_declaration_specifiers returned: spec([], int)
 is_typedef_name: Looking for v in typedef list
 Scope 0:
+	__gnuc_va_list is a TYPEDEF_NAME
+	__gnuc_va_list is a shadow IDENTIFIER
 	proc_handler is a TYPEDEF_NAME
 	loff_t is a TYPEDEF_NAME
 	ctl_table is a TYPEDEF_NAME
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found v is a basic IDENTIFIER
 Lexer FSM: checking id: v with status 0 in mode DM_NONE
 is_typedef_name: Looking for x in typedef list
 Scope 0:
+	__gnuc_va_list is a TYPEDEF_NAME
+	__gnuc_va_list is a shadow IDENTIFIER
 	proc_handler is a TYPEDEF_NAME
 	loff_t is a TYPEDEF_NAME
 	ctl_table is a TYPEDEF_NAME
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found x is a basic IDENTIFIER
 Lexer FSM: checking id: x with status 0 in mode DM_NONE
 is_typedef_name: Looking for x in typedef list
 Scope 0:
+	__gnuc_va_list is a TYPEDEF_NAME
+	__gnuc_va_list is a shadow IDENTIFIER
 	proc_handler is a TYPEDEF_NAME
 	loff_t is a TYPEDEF_NAME
 	ctl_table is a TYPEDEF_NAME
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found x is a basic IDENTIFIER
 Lexer FSM: checking id: x with status 0 in mode DM_NONE
 Trying to Pop scope 1 when scope_stack scope_nb is 0
 is_typedef_name: Looking for x in typedef list
 Scope 0:
+	__gnuc_va_list is a TYPEDEF_NAME
+	__gnuc_va_list is a shadow IDENTIFIER
 	proc_handler is a TYPEDEF_NAME
 	loff_t is a TYPEDEF_NAME
 	ctl_table is a TYPEDEF_NAME
 	ssize_t is a TYPEDEF_NAME
 	size_t is a TYPEDEF_NAME
 	umode_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found x is a basic IDENTIFIER
 Lexer FSM: checking id: x with status 0 in mode DM_NONE
 Debug: create_declaration_specifiers returned: spec([], int)

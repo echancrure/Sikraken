@@ -78,7 +78,7 @@ void add_typedef_id(int scope, char* id, int is_typedef_name) {
 	}
 	if (scope_stack == NULL) push_scope(scope);
 	else if (scope_stack->scope_nb != scope) {	//a new scope is needed		
-		if (debugMode) {printf("add_typedef_id: Creating a new scope in because current scope is %d but incoming scope is %d\n", scope_stack->scope_nb, scope); fflush(stdout);}
+		if (debugMode) fprintf(stderr, "add_typedef_id: Creating a new scope in because current scope is %d but incoming scope is %d\n", scope_stack->scope_nb, scope);
 		push_scope(scope);
 	}
 	if (!strncmp(id, "UC_", 3)) id = &id[3];	//removing the "UC_"  prefix before adding to collection of typedef

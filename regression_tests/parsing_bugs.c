@@ -39,6 +39,7 @@ struct __anonstruct____missing_field_name_212 {
    int count ;
    int nreg ;
 };
+typedef __builtin_va_list __gnuc_va_list[1U];   //Sikraken Parsing error: syntax error, unexpected '[', expecting ';', at line 42, near token '[' (token code: 91)
 int main() {
     int v = __VERIFIER_nondet_int();
     int x = 42;
