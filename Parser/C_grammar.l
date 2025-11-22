@@ -48,6 +48,7 @@ extern const char *const yytname[];  // to access token names
 const char* token_name(int);
 %}
 
+%x ASM_QUALIFIER
 %x ATTRIBUTE
 
 O   [0-7]
@@ -72,6 +73,18 @@ WS  [ \t\v\n\f]
 "//".*                                      { /* consume //-comment */ }
 "#pragma".*                                 { /* Ignore the entire line after `#pragma` */ }
 "__extension__"                             { /* Ignoring GCC keyword __extension__ that disables compiler warnings about non-compliant features */ }
+"__asm__"[ ]*                               { BEGIN(ASM_QUALIFIER); /* New state for consuming qualifiers in __asm__() constructs */ }
+<ASM_QUALIFIER>"volatile"[ ]* |
+<ASM_QUALIFIER>"inline"[ ]* |
+<ASM_QUALIFIER>"__inline__"[ ]* { 
+    /* Consume the qualifier and stay in the state to check for more, or transition */
+    // No return statement; the lexer consumes the text.
+}
+<ASM_QUALIFIER>\([ ]* {
+    // Once the opening parenthesis is seen, start counting
+    open_parens = 1;
+    BEGIN(ATTRIBUTE);
+}
 "__attribute__"[ ]*\([ ]*\(                 { /* Ignoring all GCC __attribute__ at our peril obviously */ 
                                              open_parens = 2;   //Start with the initial two opening parentheses
                                              BEGIN(ATTRIBUTE);  //Enter the ATTRIBUTE start condition to read everything until the final 2 closing parenthesis
@@ -92,10 +105,6 @@ WS  [ \t\v\n\f]
     fprintf(stderr, "Error: Unclosed __attribute__(( found.\n");
     exit(1);
 }
-"__asm__"[ ]*\(                             { /* Ignoring all GCC __asm__ at our peril obviously */ 
-                                             open_parens = 1;   //Start with the initial single opening parenthesis
-                                             BEGIN(ATTRIBUTE);  //Enter the ATTRIBUTE start condition to read everything until the final closing parenthesis
-                                            }
 "auto"					{ if (!peeking) fsm_from_none_to_spec(); return(AUTO); }
 "break"					{ return(BREAK); }
 "case"					{ return(CASE); }
