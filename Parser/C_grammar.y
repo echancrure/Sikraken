@@ -1518,7 +1518,7 @@ int main(int argc, char *argv[]) {
 			filename_no_ext = strdup(argv[i]);
 		}
 	}
-	fprintf(stdout, "Sikraken %s parser: using %i bits data model.\n", (debugMode) ? "in debug mode" : "", dataModel); 
+	
 
 	size_t i_path_len = strlen(C_file_path) + strlen(filename_no_ext) + 4; // "/.i\0"
 	i_file_uri = malloc(i_path_len);
@@ -1526,7 +1526,7 @@ int main(int argc, char *argv[]) {
 	if (fopen_safe(&i_file, i_file_uri, "r") != 0) {
 		fprintf(stderr, ".i file could not be opened for reading at: %s\n", i_file_uri);
 		my_exit(EXIT_FAILURE);
-	}
+	} else fprintf(stdout, "Sikraken parser %s: parsing the file %s.i using %i bits data model.\n", (debugMode) ? "in debug mode" : "", i_file_uri, dataModel); 
 	yyin = i_file;	//set the input to the parser
 
 	size_t pl_path_len = strlen(C_file_path) + strlen(filename_no_ext) + 5; // "/.pl\0"
@@ -1536,9 +1536,10 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr, ".pl file could not be created for writing at: %s\n", pl_file_uri);
 		my_exit(EXIT_FAILURE);
 	}
+	fflush(stdout);							//to ensure all previous information messages are printed out of buffer before the parsing starts and potentially generate unbuffered error messages
+	fprintf(pl_file, "prolog_c([");			//opening top-level predicate
 
-	fprintf(pl_file, "prolog_c([");			//opening predicate
-	if (yyparse() != 0) {					//the parser is called
+	if (yyparse() != 0) {					//the parser is called here
 		fprintf(stderr, "Parsing failed.\n");
 		my_exit(EXIT_FAILURE);
 	}	
@@ -1558,7 +1559,6 @@ void yyerror(const char* s) {
     extern int yyleng;    	// Length of the current token
     
     fprintf(stderr, "Sikraken Parsing error: %s, at line %d, near token '%s' (token code: %d)\n", s, yylineno, yytext, yychar);
-    fprintf(stderr, "Problematic token: '%.*s'\n", yyleng, yytext);
 	fprintf(stderr, "Unexpected token: %s\n", token_name(yychar)); 
 }
 

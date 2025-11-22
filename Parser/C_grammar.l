@@ -200,7 +200,7 @@ WS  [ \t\v\n\f]
                                         }
                                         return TYPEDEF_NAME;    //otherwise
                                     }
-                                    if (in_member_namespace) return IDENTIFIER;   //members cannot be typedef names excep in DM_SPECS mode (handled above) sometimes
+                                    if (in_member_namespace) return IDENTIFIER;   //members cannot be typedef names except in DM_SPECS mode (handled above) sometimes
                                     if (decl_mode == DM_NONE) decl_mode = DM_SPECS;
                                     if (decl_mode == DM_DECLS) decl_mode = DM_DECLS;    //useless but for completeness
                                     return TYPEDEF_NAME;
