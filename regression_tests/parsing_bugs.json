@@ -1,0 +1,12 @@
+{
+  "configurations": [
+    {
+      "id": "run1",
+      "description": "Previous Parsing bugs fixed and added to regression tests",
+      "algo": "budget(1)",
+      "expected_tests_number": 2,
+      "expected_testcov_coverage": 100.0,
+      "expected_sikraken_edges": 2
+    }
+  ]
+}

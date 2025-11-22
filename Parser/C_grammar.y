@@ -707,6 +707,7 @@ set_tag0 :
 	'{' 
 		{in_tag_declaration = 0;
 		 in_member_namespace = 1;
+		 fsm_reset();
 		}
 	;	
 
@@ -714,6 +715,7 @@ member_tag_name :
 	IDENTIFIER
 		{in_tag_declaration = 0;
 		 in_member_namespace = 1;
+		 fsm_reset();
 		 $$ = to_prolog_var($1);
 		 free($1);
 		}
@@ -744,16 +746,15 @@ struct_declaration_list
 // in_member_namespace cannot be set to 1 in the grammar: same problem with shadow identifiers, a token needs to be read ahead 
 struct_declaration
 	: specifier_qualifier_list ';'	//for inner "Anonymous Members in Structs" C11
-		{fsm_set_to_specs();
+		{fsm_reset();
 		 char *decl_specifier = create_declaration_specifiers();
 		 size_t const size = strlen("anonymous_member()") + strlen(decl_specifier) + 1;
        	 $$ = (char*)malloc(size);
          sprintf_safe($$, size, "anonymous_member(%s)", decl_specifier);
 	   	 free(decl_specifier);
         }
-	| specifier_qualifier_list {in_member_namespace = 1;} struct_declarator_list ';'
-		{fsm_set_to_specs();
-		 char *decl_specifier = create_declaration_specifiers();
+	| specifier_qualifier_list {in_member_namespace = 1;} struct_declarator_list {fsm_reset();} ';'
+		{char *decl_specifier = create_declaration_specifiers();
 		 size_t const size = strlen("struct_decl(, [])") + strlen(decl_specifier) + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
          sprintf_safe($$, size, "struct_decl(%s, [%s])", decl_specifier, $3);
@@ -761,7 +762,7 @@ struct_declaration
 		 free($3);
         }
 	| static_assert_declaration		//somehow the ; is in that rule
-		{fsm_set_to_specs();
+		{fsm_reset();
 		 $$ = $1;
 		 pop_decl_spec_stack(); 
 		}

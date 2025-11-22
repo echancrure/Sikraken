@@ -1575,7 +1575,7 @@ YY_RULE_SETUP
                              }
                              yylval.id[i] = '\0';
                              if (in_tag_declaration || in_label_namespace) { //these contexts never treat ids as types: no point checking
-                                if (debugMode) printf("Lexer FSM: bypassing typedef_name check: id: %s is a %s\n", yylval.id, (in_member_namespace ? "member" : (in_tag_declaration ? "tag" : "label")));
+                                if (debugMode) printf("Lexer FSM: bypassing typedef_name check in mode %s: id: %s is a %s\n", mode_str(decl_mode), yylval.id, (in_member_namespace ? "member" : (in_tag_declaration ? "tag" : "label")));
                                 return IDENTIFIER; 
                              }
                              int id_status = is_typedef_name(yylval.id);                                
@@ -1607,8 +1607,8 @@ YY_RULE_SETUP
                                         }
                                         return TYPEDEF_NAME;    //otherwise
                                     }
-                                    if (in_member_namespace) return IDENTIFIER;   //members cannot be typedef names except in DM_SPECS mode (handled above) sometimes
                                     if (decl_mode == DM_NONE) decl_mode = DM_SPECS;
+                                    if (decl_mode == DM_DECLS && in_member_namespace) return IDENTIFIER;   //in member name space an id cannot be typedef names except in DM_SPECS mode (handled above) sometimes, and in DM_NONE
                                     if (decl_mode == DM_DECLS) decl_mode = DM_DECLS;    //useless but for completeness
                                     return TYPEDEF_NAME;
                                 case 0:         //am ordinary identifier
