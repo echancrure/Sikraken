@@ -1,3 +1,8 @@
+1.2.1
+**********
+22 November 2025
+  Minor: parsing refinements
+
 1.2
 **********
 14 November 2025
