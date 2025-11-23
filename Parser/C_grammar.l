@@ -188,9 +188,9 @@ WS  [ \t\v\n\f]
                                 case 2:         // a shadowing identifier: no questions asked it is an identifier
                                     if (decl_mode == DM_SPECS) decl_mode = DM_DECLS;    //unless within a typeof(expression) which returns a type, then stay in SPEC mode
                                     return IDENTIFIER;
-                                case 1:         // a pure typedef name
+                                case 1:         // a typedef name
                                     if (decl_mode == DM_SPECS) {                        //In type specifier mode
-                                        // Predict whether THIS occurrence is in fact a declarator name (i.e. an actual SHADOWING IDENTIFIER and switch to DM_DECLS mode) or not (a true TYPEDEF_NAME and stay in DM_SPECS)
+                                        // Predict whether THIS occurrence is in fact a declarator name (i.e. an actual SHADOWING IDENTIFIER deand switch to DM_DECLS mode) or not (a true TYPEDEF_NAME and stay in DM_SPECS)
                                         int nxt = peek_and_push_token();
                                         if (debugMode) {printf("Lexer Debug: peek found: %s\n", token_name(nxt)); fflush(stdout);}
                                         if (nxt == ')') {   // e.g. cast, parenthesized type like (Type name), or function declaration — definitely a TYPEDEF_NAME here : cannot be a declaration
@@ -198,6 +198,10 @@ WS  [ \t\v\n\f]
                                             //stay in SPECS mode
                                             return TYPEDEF_NAME;
                                         }
+                                        /*if (nxt == '(') { // Return TYPE, but transition mode for the NEXT identifier (aws_hash_fn).
+                                            decl_mode = DM_DECLS; // Set up to catch the next identifier as a declarator name
+                                            return TYPEDEF_NAME;
+                                        }*/
                                         if (is_declarator_follower(nxt)) {  /* Right after THIS typedef_name comes (, [, ',', '=', ';' → it's acting as a DECLARATOR NAME */
                                             if (!in_member_namespace) {
                                                 add_typedef_id(current_scope, yylval.id, 2);   //2 indicates that it is a SHADOWING IDENTIFIER

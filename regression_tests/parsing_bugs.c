@@ -1,4 +1,12 @@
 extern int __VERIFIER_nondet_int();
+typedef int my_int56;                              //23 November 2025
+
+void my_f(void) {
+   typedef my_int56 (MyFuncPtr)(int, int);           // my_int56 is a type, MyFuncPtr is the new type name
+   typedef my_int56 (*MyFuncPtr_Pointer)(int, int); // my_int56 is a type, MyFuncPtr_Pointer is the new type name
+   my_int56 (*my_callback_ptr)(void);              //my_int56 is a type
+   int my_int56(int x);                            //my_int56 is a shadow identifier
+}
 typedef unsigned short umode_t; //22nd November 2025
 struct kobject;                 // example from 2_1_cilled_ok_nondet_linux-3.4-32_1-drivers--macintosh--mac_hid.ko-ldv_main0_sequence_infinite_withcheck_stateful.cil.out.i
 struct attribute {
@@ -39,7 +47,10 @@ struct __anonstruct____missing_field_name_212 {
    int count ;
    int nreg ;
 };
-typedef __builtin_va_list __gnuc_va_list[1U];   //Sikraken Parsing error: syntax error, unexpected '[', expecting ';', at line 42, near token '[' (token code: 91)
+typedef __builtin_va_list __gnuc_va_list[1U];   //FIXED: Sikraken Parsing error: syntax error, unexpected '[', expecting ';', at line 42, near token '[' (token code: 91)
+typedef unsigned long int __uint64_t;
+typedef __uint64_t uint64_t;
+typedef uint64_t(aws_hash_fn)(const void *key);
 int main() {
     int v = __VERIFIER_nondet_int();
     int x = 42;
