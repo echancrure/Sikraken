@@ -105,18 +105,18 @@ WS  [ \t\v\n\f]
     fprintf(stderr, "Error: Unclosed __attribute__(( found.\n");
     exit(1);
 }
-"auto"					{ if (!peeking) fsm_from_none_to_spec(); return(AUTO); }
+"auto"					{ if (0) fsm_from_none_to_spec(); return(AUTO); }
 "break"					{ return(BREAK); }
 "case"					{ return(CASE); }
 "char"					{ if (!peeking) fsm_from_none_to_spec(); return(CHAR); }
-"const"					{ if (!peeking) fsm_from_none_to_spec(); return(CONST); }
+"const"					{ if (0) fsm_from_none_to_spec(); return(CONST); }
 "continue"				{ return(CONTINUE); }
 "default"				{ return(DEFAULT); }
 "do"					{ return(DO); }
 "double"				{ if (!peeking) fsm_from_none_to_spec(); return(DOUBLE); }
 "else"					{ return(ELSE); }
 "enum"					{ if (!peeking) fsm_from_none_to_spec(); return(ENUM); }
-"extern"				{ if (!peeking) fsm_from_none_to_spec(); return(EXTERN); }
+"extern"				{ if (0) fsm_from_none_to_spec(); return(EXTERN); }
 "float"					{ if (!peeking) fsm_from_none_to_spec(); return(FLOAT); }
 "for"					{ return(FOR); }
 "goto"					{ if (!peeking) in_label_namespace = 1; return(GOTO); } //special namespace for labels GOTO
@@ -125,9 +125,9 @@ WS  [ \t\v\n\f]
 "__inline"				{ if (!peeking) fsm_from_none_to_spec(); return(INLINE); }     //GCC version of INLINE
 "int"					{ if (!peeking) fsm_from_none_to_spec(); return(INT); }
 "long"					{ if (!peeking) fsm_from_none_to_spec(); return(LONG); }
-"register"				{ if (!peeking) fsm_from_none_to_spec(); return(REGISTER); }
-"restrict"				{ if (!peeking) fsm_from_none_to_spec(); return(RESTRICT); }
-"__restrict"            { if (!peeking) fsm_from_none_to_spec(); return(RESTRICT); }   //GCC version of RESTRICT
+"register"				{ if (0) fsm_from_none_to_spec(); return(REGISTER); }
+"restrict"				{ if (0) fsm_from_none_to_spec(); return(RESTRICT); }
+"__restrict"            { if (0) fsm_from_none_to_spec(); return(RESTRICT); }   //GCC version of RESTRICT
 "return"				{ if (!peeking) fsm_reset(); return(RETURN); }
 "short"					{ if (!peeking) fsm_from_none_to_spec(); return(SHORT); }
 "signed"				{ if (!peeking) fsm_from_none_to_spec(); return(SIGNED); }
@@ -135,11 +135,11 @@ WS  [ \t\v\n\f]
 "static"				{ if (!peeking) fsm_from_none_to_spec(); return(STATIC); }
 "struct"				{ if (!peeking) fsm_from_none_to_spec(); return(STRUCT); }
 "switch"				{ return(SWITCH); }
-"typedef"				{ if (!peeking) fsm_from_none_to_spec(); return(TYPEDEF); }
+"typedef"				{ if (0) fsm_from_none_to_spec(); return(TYPEDEF); }
 "union"					{ if (!peeking) fsm_from_none_to_spec(); return(UNION); }
 "unsigned"				{ if (!peeking) fsm_from_none_to_spec(); return(UNSIGNED); }
 "void"					{ if (!peeking) fsm_from_none_to_spec(); return(VOID); }
-"volatile"				{ if (!peeking) fsm_from_none_to_spec(); return(VOLATILE); }
+"volatile"				{ if (0) fsm_from_none_to_spec(); return(VOLATILE); }
 "while"					{ return(WHILE); }
 "__int128"              { if (!peeking) fsm_from_none_to_spec(); return(INT128); }     //GCC builtin 128-bit integer type
 "_Float32"              { if (!peeking) fsm_from_none_to_spec(); return(FLOAT); }      //GCC builtin 32-bit floating-point type
@@ -198,10 +198,6 @@ WS  [ \t\v\n\f]
                                             //stay in SPECS mode
                                             return TYPEDEF_NAME;
                                         }
-                                        /*if (nxt == '(') { // Return TYPE, but transition mode for the NEXT identifier (aws_hash_fn).
-                                            decl_mode = DM_DECLS; // Set up to catch the next identifier as a declarator name
-                                            return TYPEDEF_NAME;
-                                        }*/
                                         if (is_declarator_follower(nxt)) {  /* Right after THIS typedef_name comes (, [, ',', '=', ';' → it's acting as a DECLARATOR NAME */
                                             if (!in_member_namespace) {
                                                 add_typedef_id(current_scope, yylval.id, 2);   //2 indicates that it is a SHADOWING IDENTIFIER

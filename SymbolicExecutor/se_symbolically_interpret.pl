@@ -37,9 +37,10 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
                         fail    %to trigger backtracking
                     ;
                      getval(time_out_triggered, true) ->
-                        setval(time_out_triggered, false),
-                        end_of_path_predicate,
-                        fail    %to trigger backtracking
+                        (setval(time_out_triggered, false),
+                         end_of_path_predicate,
+                         fail    %to trigger backtracking
+                        )
                     ; 
                         (ptc_solver__create_variable(Type, Input_var),
                          se_globals__get_ref('verifier_inputs', Verifier_inputs),

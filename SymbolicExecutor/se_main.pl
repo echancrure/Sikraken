@@ -266,9 +266,9 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
             (se_globals__get_ref(verifier_inputs, Verifier_inputs),
              se_globals__get_val(single_test_time_out, Current_single_test_time_out),
              (timeout(label_testcomp(Verifier_inputs, Labeled_inputs), Current_single_test_time_out, fail) ->    %timeout added to avoid very long / impossible labelling
-                (se_globals__get_val(debug_mode, debug) -> 
+                ((se_globals__get_val(debug_mode, debug) -> 
                     super_util__quick_dev_info("Dev Info: time out handler: This is an incomplete test vector\n", []),
-                    display_successful_test_stats(Last_test_duration, Current_session_time),
+            %display_successful_test_stats(Last_test_duration, Current_session_time),
                     se_globals__get_ref(current_path_bran, Current_path_with_calls),
                     super_util__quick_dev_info("Dev Info: time out handler: current Path: ", []), 
                     print_branches_list(Current_path_with_calls)
@@ -276,12 +276,17 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
                     true
                 ),
                 setval(time_out_triggered, true),
+
                 %record_path_coverage(Test_nb),                  %but could cover more up to the next verifier call...
                 %print_test_inputs_testcomp(Labeled_inputs, Test_nb),     %banking a partial answer test vector as may be allowed    
-                reset_timer(Last_test_duration, Current_session_time) %and carry on with true
+            statistics(event_time, Current_session_time),
+            getval(start_time, Current_start_time),
+            Last_test_duration is Current_session_time - Current_start_time,
+            reset_timer(Last_test_duration, Current_session_time) %and carry on with true
                 %throw('single_test_time_out_exception')    %debug
                 %the handler succeeds: execution continues where the timeout was triggered: the subpath continues to be explored
                 %this may lead to may testvectors with the same prefix which should be filtered out to reduce the number of tests without reducing the amount of coverage achieved
+                )
              ;
                 super_util__quick_dev_info("Dev Info: time out handler: Labelling failed after time out.\n", []),  %no test input vector could be generated
                 %should fail where the timeout was triggered: we are following a subpath that is 'infeasible' (or at least we cannot generate tests for e.g. because of non-linearity) 
@@ -337,8 +342,8 @@ find_one_path(_Output_mode, Main, _Target_subprogram_var, _Parsed_prolog_code) :
                         (display_successful_test_stats(Last_test_duration, Current_session_time),
                          record_path_coverage(Test_nb),
                          %common_util__error(1, "End of path", 'no_error_consequences', [('Path Nb', Inc_test_nb), ('Newly_covered', Newly_covered), ('Current_path', Current_path)], '0_190824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info),
-                         print_test_inputs_testcomp(Labeled_inputs, Test_nb),   %but don't print predicted outputs
-                         reset_timer(Last_test_duration, Current_session_time)    %timer restarts, possibly on reduced time
+                         print_test_inputs_testcomp(Labeled_inputs, Test_nb),       %but don't print predicted outputs
+                         reset_timer(Last_test_duration, Current_session_time)      %timer restarts, possibly on reduced time
                         )
                      ;
                         statistics(event_time, Current_session_time),
@@ -389,7 +394,7 @@ find_one_path(_Output_mode, Main, _Target_subprogram_var, _Parsed_prolog_code) :
             statistics(event_time, Current_session_time),
             getval(start_time, Current_start_time),
             Last_test_duration is Current_session_time - Current_start_time,
-            super_util__quick_dev_info("\nDev Info: Test generated in %.2f seconds; overall elapsed time is %.2f seconds\n", [Last_test_duration, Current_session_time]).
+            super_util__quick_dev_info("Dev Info: Test generated in %.2f seconds; overall elapsed time is %.2f seconds\n", [Last_test_duration, Current_session_time]).
         %%%
         record_path_coverage(Test_nb) :-
             %mytrace,
