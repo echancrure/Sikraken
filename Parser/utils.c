@@ -1,7 +1,5 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include "parser.h"
+#include <ctype.h>
+#include "utils.h"
 
 char* to_prolog_var(const char *input) {
     char Prolog_var_name[MAX_ID_LENGTH + 5];
@@ -43,4 +41,3 @@ void simple_str_lit_copy(char **SS, const char *S1) {
     *SS = (char*)malloc(size);
     strcpy_safe(*SS, size, S1);
 }
-

@@ -142,7 +142,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 76 "./Parser/C_grammar.y"
+#line 56 "Parser/C_grammar.y"
 
 	char* id;
 	struct for_stmt {

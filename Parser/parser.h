@@ -1,6 +1,6 @@
 #ifndef PARSER_H
+#define PARSER_H
 
-    #define PARSER_H
-    #define MAX_ID_LENGTH 255
+#define MAX_ID_LENGTH 1024
 
-#endif
+#endif // PARSER_H
