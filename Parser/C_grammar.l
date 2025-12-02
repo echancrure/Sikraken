@@ -110,6 +110,7 @@ WS  [ \t\v\n\f]
 "case"					{ return(CASE); }
 "char"					{ if (!peeking) fsm_from_none_to_spec(); return(CHAR); }
 "const"					{ if (0) fsm_from_none_to_spec(); return(CONST); }
+"__const"				{ if (0) fsm_from_none_to_spec(); return(CONST); }       //GCC version of CONST
 "continue"				{ return(CONTINUE); }
 "default"				{ return(DEFAULT); }
 "do"					{ return(DO); }
@@ -131,6 +132,7 @@ WS  [ \t\v\n\f]
 "return"				{ if (!peeking) fsm_reset(); return(RETURN); }
 "short"					{ if (!peeking) fsm_from_none_to_spec(); return(SHORT); }
 "signed"				{ if (!peeking) fsm_from_none_to_spec(); return(SIGNED); }
+"__signed__"			{ if (!peeking) fsm_from_none_to_spec(); return(SIGNED); }  //GCC version of SIGNED
 "sizeof"				{ return(SIZEOF); }
 "static"				{ if (!peeking) fsm_from_none_to_spec(); return(STATIC); }
 "struct"				{ if (!peeking) fsm_from_none_to_spec(); return(STRUCT); }
@@ -140,6 +142,7 @@ WS  [ \t\v\n\f]
 "unsigned"				{ if (!peeking) fsm_from_none_to_spec(); return(UNSIGNED); }
 "void"					{ if (!peeking) fsm_from_none_to_spec(); return(VOID); }
 "volatile"				{ if (0) fsm_from_none_to_spec(); return(VOLATILE); }
+"__volatile__"			{ if (0) fsm_from_none_to_spec(); return(VOLATILE); }   //GCC version of VOLATILE
 "while"					{ return(WHILE); }
 "__int128"              { if (!peeking) fsm_from_none_to_spec(); return(INT128); }     //GCC builtin 128-bit integer type
 "_Float32"              { if (!peeking) fsm_from_none_to_spec(); return(FLOAT); }      //GCC builtin 32-bit floating-point type
@@ -150,6 +153,7 @@ WS  [ \t\v\n\f]
 "__builtin_va_list"     { if (!peeking) fsm_from_none_to_spec(); return(VA_LIST); }    //GCC builtin variable argument list type
 "_Alignas"              { if (!peeking) fsm_from_none_to_spec(); return ALIGNAS; }
 "_Alignof"              { if (!peeking) fsm_from_none_to_spec(); return ALIGNOF; }
+"__alignof__"           { if (!peeking) fsm_from_none_to_spec(); return ALIGNOF; }      //GCC version of ALIGNOF
 "_Atomic"{WS}*"("       { if (!peeking) fsm_from_none_to_spec(); return ATOMIC_SPECIFIER; }
 "_Atomic"               { if (!peeking) fsm_from_none_to_spec(); return ATOMIC; }
 "_Bool"                 { if (!peeking) fsm_from_none_to_spec(); return BOOL; }
@@ -164,6 +168,7 @@ WS  [ \t\v\n\f]
 "__func__"              { return FUNC_NAME; }
 "typeof_unqual"         { if (!peeking) fsm_from_none_to_spec(); return TYPEOF_UNQUAL; }   //C23 and GCC extension
 "typeof"                { if (!peeking) fsm_from_none_to_spec(); return TYPEOF; }   //C23 and GCC extension
+"__typeof__"            { if (!peeking) fsm_from_none_to_spec(); return TYPEOF; }   //GCC extension
 
 {L}{A}*                     {if (peeking) return IDENTIFIER;
                              size_t const size = strlen(yytext) + 1;
