@@ -1,8 +1,15 @@
+typedef void *PVOID;
+void (*NormalRoutine)(PVOID NormalContext , PVOID SystemArgument1 , PVOID SystemArgument2 ) ;
+struct _KAPC {
+   void (*RundownRoutine)(int x) ;
+//   void (*NormalRoutine)(PVOID NormalContext2 , PVOID SystemArgument1 , PVOID SystemArgument2 ) ;
+   PVOID NormalContext3 ;
+}
 static __thread int tl_last_error = 0;
 void aws_raise_error_private(int err) {
     tl_last_error = err;
 }
-    int x = 42;
+    int x = .5;
     void *p = &x;      // p is a void pointer pointing to x
     void **pp = &p;    // pp is a pointer to a void pointer
 

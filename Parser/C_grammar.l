@@ -28,7 +28,8 @@ int convert_escape_sequence(const char *);
 int differentiate_identifiers(char *);
 void wrap_integer_constants(char *, char *, char **);
 void wrap_floating_point_constants(int, char *, char **);
-void add_missing_zero(char *, char **);
+void add_missing_zero_after_decimal_point(char *, char **);
+char *add_missing_zero_before_decimal_point(const char *, int);
 
 int open_parens = 0;        //Declaration in the definitions section
 
@@ -261,12 +262,15 @@ WS  [ \t\v\n\f]
 {D}+{E}{FS}?				{if (!peeking) wrap_floating_point_constants(0, yytext, &yylval.id);     //Decimal floating-point constants with an exponent.
                              return F_CONSTANT;
                             }
-{D}*"."{D}+{E}?{FS}?		{if (!peeking) wrap_floating_point_constants(0, yytext, &yylval.id);     //Decimal floating-point constants with a fractional part.
+{D}*"."{D}+{E}?{FS}?		{if (!peeking) {
+                                char *modified_float_literal = add_missing_zero_before_decimal_point(yytext, yyleng);
+                                wrap_floating_point_constants(0, modified_float_literal, &yylval.id);     //Decimal floating-point constants with a fractional part.
+                             }
                              return F_CONSTANT;
                             }
 {D}+"."{E}?{FS}?			{if (!peeking)  {
                                 char* added_0;
-                                add_missing_zero(yytext, &added_0);
+                                add_missing_zero_after_decimal_point(yytext, &added_0);
                                 wrap_floating_point_constants(0, added_0, &yylval.id);            //Decimal floating-point constants with a fractional part.
                              }
                              return F_CONSTANT;
@@ -279,7 +283,7 @@ WS  [ \t\v\n\f]
                             }
 {HP}{H}+"."{P}{FS}?			{if (!peeking)  {
                                 char* added_0;
-                                add_missing_zero(yytext, &added_0);
+                                add_missing_zero_after_decimal_point(yytext, &added_0);
                                 wrap_floating_point_constants(1, added_0, &yylval.id); //Hexadecimal floating-point constants with digits before the decimal point, but none after. : will fail parser in ECLiPSe
                              }
                              return F_CONSTANT;
@@ -382,7 +386,6 @@ static int peek_next_nontrivia_char(void) {
    return c;                /* return the char (or EOF) */
 }
 
-
 // Peek the next token and immediately push it back
 int peek_and_push_token(void) {
     peeking = 1;
@@ -393,7 +396,6 @@ int peek_and_push_token(void) {
     peeking = 0;
     return tok;
 }
-
 
 /* Is this char one that typically FOLLOWS a declarator name? */
 static inline bool is_declarator_follower(int c) {
@@ -575,7 +577,7 @@ void wrap_floating_point_constants(int is_hexadecimal, char * input, char ** out
 }
 
 //float has no digit after decimal point: need to add 0
-void add_missing_zero(char * input, char ** output) {
+void add_missing_zero_after_decimal_point(char *input, char **output) {
     size_t len = strlen(input);
     *output = (char*)malloc(len + 1 + 1); // +1 for extra '0'
     strcpy(*output, input);
@@ -587,4 +589,16 @@ void add_missing_zero(char * input, char ** output) {
     size_t decimal_pos = decimal_point - *output;
     memmove(decimal_point + 2, decimal_point + 1, len - decimal_pos); //copy everything after the decimal point to +1 location
     (*output)[decimal_pos + 1] = '0';    //add the 'missing' 0
+}
+
+char *add_missing_zero_before_decimal_point(const char *yytext, int yyleng) {
+    if (yytext[0] == '.') {
+        char *corrected_token = (char *)malloc(yyleng + 2);
+        sprintf(corrected_token, "0%s", yytext);
+        return corrected_token;
+    } else {
+        char *copy = (char *)malloc(yyleng + 1);
+        strcpy(copy, yytext);
+        return copy;
+    }
 }
