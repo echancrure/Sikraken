@@ -1,4 +1,7 @@
-
+static __thread int tl_last_error = 0;
+void aws_raise_error_private(int err) {
+    tl_last_error = err;
+}
     int x = 42;
     void *p = &x;      // p is a void pointer pointing to x
     void **pp = &p;    // pp is a pointer to a void pointer

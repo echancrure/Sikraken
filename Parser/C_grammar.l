@@ -159,6 +159,7 @@ WS  [ \t\v\n\f]
 "_Noreturn"             { if (!peeking) fsm_from_none_to_spec(); return NORETURN; }
 "_Static_assert"        { return STATIC_ASSERT; }
 "_Thread_local"         { if (!peeking) fsm_from_none_to_spec(); return THREAD_LOCAL; }
+"__thread"              { if (!peeking) fsm_from_none_to_spec(); return THREAD_LOCAL; }
 "__PRETTY_FUNCTION__"   { return FUNC_NAME; }   //__PRETTY_FUNCTION__ is a GCC extension: an enhanced version of __func__; which we ignore 
 "__func__"              { return FUNC_NAME; }
 "typeof_unqual"         { if (!peeking) fsm_from_none_to_spec(); return TYPEOF_UNQUAL; }   //C23 and GCC extension
