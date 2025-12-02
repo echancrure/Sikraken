@@ -146,6 +146,7 @@ WS  [ \t\v\n\f]
 "_Float64"              { if (!peeking) fsm_from_none_to_spec(); return(DOUBLE); }     //GCC builtin 64-bit floating-point type
 "__float128"            { if (!peeking) fsm_from_none_to_spec(); return(FLOAT128); }   //GCC builtin 128-bit floating-point type
 "_Float128"             { if (!peeking) fsm_from_none_to_spec(); return(FLOAT128); }   //GCC builtin 128-bit floating-point type
+"__builtin_va_arg"      { if (!peeking) return(BUILTIN_VA_ARG); }                      //GCC builtin variable argument retrieval
 "__builtin_va_list"     { if (!peeking) fsm_from_none_to_spec(); return(VA_LIST); }    //GCC builtin variable argument list type
 "_Alignas"              { if (!peeking) fsm_from_none_to_spec(); return ALIGNAS; }
 "_Alignof"              { if (!peeking) fsm_from_none_to_spec(); return ALIGNOF; }

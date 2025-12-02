@@ -104,7 +104,7 @@ void fsm_from_none_to_spec(void);
 %token	CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
 %token ALIGNAS ALIGNOF ATOMIC_SPECIFIER ATOMIC GENERIC NORETURN STATIC_ASSERT THREAD_LOCAL
-%token INT128 FLOAT128 VA_LIST TYPEOF TYPEOF_UNQUAL
+%token INT128 FLOAT128 VA_LIST BUILTIN_VA_ARG TYPEOF TYPEOF_UNQUAL
 
 %type <id> init_declarator initializer pointer pointer_star init_declarator_list 
 %type <id> abstract_declarator_opt
@@ -125,6 +125,7 @@ void fsm_from_none_to_spec(void);
 %type <id> declaration declaration_list_opt old_style_declaration_list 
 %type <id> function_definition rest_function_definition
 %type <id> rest_direct_declarator
+%type <id> builtin_va_arg_expr
 %type <for_stmt_type> for_stmt_type
 %type <declarator_type> declarator direct_declarator 
 
@@ -157,7 +158,20 @@ primary_expression
 		 free($2);
 		}
 	| generic_selection		{simple_str_lit_copy(&$$, "generic_selection");}
+	| builtin_va_arg_expr	{$$ = $1;}
 	;
+
+
+builtin_va_arg_expr
+    : BUILTIN_VA_ARG '(' assignment_expression ',' type_name ')'
+	  {size_t const size = strlen("builtin_va_arg_expr(, )") + strlen($3) + strlen($5) + 1;
+	   $$ = (char*)malloc(size);
+	   sprintf_safe($$, size, "builtin_va_arg_expr(%s, %s)", $3, $5);
+	   free($3);
+	   free($5);
+	  }
+    ;
+
 
 constant
 	: I_CONSTANT		/* includes character_constant */

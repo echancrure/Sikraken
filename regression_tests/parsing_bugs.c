@@ -1,3 +1,8 @@
+
+    int x = 42;
+    void *p = &x;      // p is a void pointer pointing to x
+    void **pp = &p;    // pp is a pointer to a void pointer
+
 extern int __VERIFIER_nondet_int();
 typedef int my_int56;                              //23 November 2025
 
