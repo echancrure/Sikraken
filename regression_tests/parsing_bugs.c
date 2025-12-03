@@ -6,7 +6,7 @@ struct _KAPC {
    void (*NormalRoutine)(PVOID NormalContext2 , PVOID SystemArgument1 , PVOID SystemArgument2 ) ;
    int chris2[sizeof(PVOID2)];
    PVOID NormalContext3 ;
-}
+};
 static __thread int tl_last_error = 0;
 void aws_raise_error_private(int err) {
     tl_last_error = err;
@@ -67,7 +67,9 @@ typedef unsigned long int __uint64_t;
 typedef __uint64_t uint64_t;
 typedef uint64_t(aws_hash_fn)(const void *key);
 int my_func() {
-   ;
+   asm("nop");
+   __asm__("nop");
+   __asm("nop");
 }; //gcc allows this
 int main() {
     int v = __VERIFIER_nondet_int();
