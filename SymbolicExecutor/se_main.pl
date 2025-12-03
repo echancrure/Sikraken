@@ -125,14 +125,15 @@ se_main(ArgsL) :-
     handle_outer_exception(Exception) :-
         (Exception == outatime ->
             easter_egg,
-            print_test_run_log
-        ;
-         Exception == abort ->
             print_test_run_log,
-            throw(abort)   %will abort
+            exit(0)    %success : we just used up the global budget
+        ;
+         Exception == abort ->  %ECLiPSe abort
+            print_test_run_log,
+            exit(10)   %ends execution with error code
         ; 
-         Exception == my_abort ->
-            throw(abort)   %will abort
+         Exception == my_abort ->   %Sikraken abort
+            exit(11)   %ends execution with error code
         ;    
             common_util__error(10, "Unknown exception caught", "Review, investigate and catch it better next time", [('Exception', Exception)], '10_260924_2', 'se_main', 'se_main', no_localisation, no_extra_info)
         ).
@@ -214,15 +215,14 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
                  fail %will trigger restart: current search is abandoned because it is too deep, stack will be reclaimed, a fresh path is started 
                 )
             ; 
-             Exception == 'abort' ->        %covers ECLiPSe exceptions: language/constraints violations
-                common_util__error(9, "Caught ECLiPSe abort", "", [], '9_281024_1', 'se_main', 'se_main', no_localisation, no_extra_info),
+             Exception == abort ->          %catches ECLiPSe exceptions: language/constraints violations
+                common_util__error(9, "Caught ECLiPSe abort", "Will retry with a different path", [], '9_281024_1', 'se_main', 'se_main', no_localisation, no_extra_info),
                 fail
             ;
              Exception == my_abort ->       %explicit calls to abort in Sikraken error messages
-                common_util__error(9, "Caught Sikraken abort", "", [], '9_151125_2', 'se_main', 'se_main', no_localisation, no_extra_info),
-                throw(abort)
+                throw(my_abort)             %rethrow: will be handled in handle_outer_exception/1 above
             ;
-                common_util__error(9, "Caught unknown exception", "", [('Exception', Exception)], '9_151125_1', 'se_main', 'se_main', no_localisation, no_extra_info),
+                common_util__error(9, "Caught unknown exception", "Will retry with a different path", [('Exception', Exception)], '9_151125_1', 'se_main', 'se_main', no_localisation, no_extra_info),
                 fail    %anything else: the current "try" fails and a restart from the top is triggerred 
             ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -130,10 +130,10 @@ file_name_no_ext=$(basename "$file_name_no_ext")
 call_parser="$SIKRAKEN_INSTALL_DIR/bin/call_parser.sh $rel_path_c_file $data_model"
 echo "Sikraken from $0 says: $call_parser"
 $call_parser
-# Check if the call_parser was successful
-if [ $? -ne 0 ]; then
-    echo "Sikraken ERROR from $0: call_parser failed on $call_parser"
-    exit 1
+ret_code=$?
+if [ $ret_code -ne 0 ]; then
+    echo "Sikraken ERROR from $0: error code $ret_code, parser failed on: $call_parser"
+    exit $ret_code
 fi
 
 echo "Sikraken from $0 Successfully preprocessed $rel_path_c_file and ran sikraken_parser."
@@ -147,11 +147,10 @@ fi
 # Call the symbolic executor via ECLiPSe
 eclipse_call="se_main(['$SIKRAKEN_INSTALL_DIR', '$output_dir', '$file_name_no_ext', main, '$debug_mode', testcomp, '$data_model', $algo])"
 $SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e "$eclipse_call" -g $stack_size_value -l 1G 
-
-# check if test generation was successful
-if [ $? -ne 0 ]; then
-    echo "Sikraken ERROR from $0: call to ECLiPSe $eclipse_call failed"
-    exit 1
+ret_code=$?
+if [ ret_code? -ne 0 ]; then
+    echo "Sikraken ERROR from $0: error code $ret_code, call to ECLiPSe failed on: $eclipse_call"
+    exit $ret_code
 else
     echo "Sikraken from $0 generated test inputs for $file_name_no_ext in $SIKRAKEN_INSTALL_DIR/sikraken_output/$file_name_no_ext/"
     echo "Sikraken from $0 says, now run: ./bin/run_testcov.sh $rel_path_c_file $testcov_data_model"

@@ -22,7 +22,7 @@ echo "Sikraken $0 says: SIKRAKEN_INSTALL_DIR is $SIKRAKEN_INSTALL_DIR"
 # Ensure we have at least 1 argument and a maximum of 3
 if [ $# -lt 1 ] || [ $# -gt 3 ]; then
     echo "Sikraken ERROR from $0: usage is $0 <relative_dir>/<file_name.c> [gcc_flag] [-d]"
-    exit 1
+    exit 20
 fi
 
 rel_path_c_file="$1"                    #e.g. ./../SampleCode/atry_bitwise.c or .i
@@ -55,27 +55,27 @@ if [ "$file_extension" == "i" ]; then
     cp "$full_path_c_file" "$output_directory/"
     if [ $? -ne 0 ]; then
         echo "Sikraken ERROR from $0: Failed to copy $full_path_c_file to $output_directory"
-        exit 1
+        exit 21
     fi
 else
     # If the file is not preprocessed, preprocess it with gcc
     gcc_call="gcc -E -P "$full_path_c_file" $data_model -o "$output_directory/$input_file_no_ext.i""
     #echo $gcc_call
     $gcc_call
-    # Check if gcc was successful
-    if [ $? -ne 0 ]; then
-        echo "Sikraken ERROR from $0: gcc failed on $gcc_call"
-        exit 1
+    ret_code=$?
+    if [ $ret_code -ne 0 ]; then
+        echo "Sikraken ERROR from $0: error code $ret_code, gcc failed on $gcc_call"
+        exit 22
     fi
 fi
 
 # Run the parser
 parser_call="$SIKRAKEN_INSTALL_DIR/bin/sikraken_parser.exe $debug_mode $data_model -p"$output_directory" "$input_file_no_ext""
 $parser_call
-# Check if sikraken_parser was successful
-if [ $? -ne 0 ]; then
-    echo "Sikraken ERROR from $0: sikraken_parser failed on $parser_call"
-    exit 1
+ret_code=$?
+if [ $ret_code -ne 0 ]; then
+    echo "Sikraken ERROR from $0: error code $ret_code, sikraken_parser failed on $parser_call"
+    exit $ret_code
 fi
 
 echo "Sikraken from $0: successfully preprocessed $input_file_no_ext and ran sikraken_parser."

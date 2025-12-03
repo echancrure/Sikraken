@@ -104,7 +104,7 @@ WS  [ \t\v\n\f]
 }
 <ATTRIBUTE><<EOF>> { /* Handle unexpected EOF */
     fprintf(stderr, "Error: Unclosed __attribute__(( found.\n");
-    exit(1);
+    exit(LEXING_FAILURE);
 }
 "auto"					{ if (0) fsm_from_none_to_spec(); return(AUTO); }
 "break"					{ return(BREAK); }
@@ -439,7 +439,7 @@ int convert_escape_sequence(const char *str) {
         return (int)strtol(str + 2, NULL, 16);
     }
     fprintf(stderr, "Invalid escape sequence: %s\n", str);
-    exit(EXIT_FAILURE);
+    exit(LEXING_FAILURE);
 }
 
 //add hexademical or octal wrapper and handle u|l|ll variations

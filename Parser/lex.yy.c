@@ -1326,7 +1326,7 @@ case YY_STATE_EOF(ATTRIBUTE):
 #line 106 "C_grammar.l"
 { /* Handle unexpected EOF */
     fprintf(stderr, "Error: Unclosed __attribute__(( found.\n");
-    exit(1);
+    exit(LEXING_FAILURE);
 }
 	YY_BREAK
 case 12:
@@ -3177,7 +3177,7 @@ int convert_escape_sequence(const char *str) {
         return (int)strtol(str + 2, NULL, 16);
     }
     fprintf(stderr, "Invalid escape sequence: %s\n", str);
-    exit(EXIT_FAILURE);
+    exit(LEXING_FAILURE);
 }
 
 //add hexademical or octal wrapper and handle u|l|ll variations

@@ -609,8 +609,7 @@ is_verifier_input_function('UC___VERIFIER_nondet_sector_t', sector_t) :-
 is_verifier_input_function('UC___VERIFIER_nondet_short', short).
 is_verifier_input_function('UC___VERIFIER_nondet_size_t', size_t) :-
     common_util__error(10, "Unhandled function name in is_verifier_input_function", "Cannot perform symbolic interpretation", [('Function name', 'UC___VERIFIER_nondet_size_t')], '10_040924', 'se_symbolically_interpret', 'is_verifier_input_function', no_localisation, no_extra_info).
-is_verifier_input_function('UC___VERIFIER_nondet_u32', u32) :-
-    common_util__error(10, "Unhandled function name in is_verifier_input_function", "Cannot perform symbolic interpretation", [('Function name', 'UC___VERIFIER_nondet_u32')], '10_040924', 'se_symbolically_interpret', 'is_verifier_input_function', no_localisation, no_extra_info).
+is_verifier_input_function('UC___VERIFIER_nondet_u32', unsigned(int)).      %u32 is to force 32 bits, on most machines that's the case, some embedded system may use 16 bits for unsigned ints
 is_verifier_input_function('UC___VERIFIER_nondet_uchar', unsigned(char)).
 is_verifier_input_function('UC___VERIFIER_nondet_uint', unsigned(int)).
 is_verifier_input_function('UC___VERIFIER_nondet_uint128', uint128) :-  %128 bit unsigned integer, gcc extension
@@ -619,6 +618,8 @@ is_verifier_input_function('UC___VERIFIER_nondet_ulong', unsigned(long)).
 is_verifier_input_function('UC___VERIFIER_nondet_ulonglong', unsigned(long_long)).
 is_verifier_input_function('UC___VERIFIER_nondet_unsigned', unsigned(int)).
 is_verifier_input_function('UC___VERIFIER_nondet_ushort', unsigned(short)).
+is_verifier_input_function('UC___VERIFIER_nondet_size_t', pointer) :-
+    common_util__error(9, "Non implemented verifier function", "Allowed, but unpredictable symbolic execution follows", [('Function name', 'UC___VERIFIER_nondet_size_t')], '9_031225', 'se_symbolically_interpret', 'is_verifier_input_function', no_localisation, no_extra_info).
 is_verifier_input_function('UC___VERIFIER_nondet_pointer', pointer) :-  %pointer to void
     common_util__error(10, "Unhandled function name in is_verifier_input_function", "Cannot perform symbolic interpretation", [('Function name', 'UC___VERIFIER_nondet_pointer')], '10_040924', 'se_symbolically_interpret', 'is_verifier_input_function', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

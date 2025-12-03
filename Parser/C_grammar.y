@@ -72,6 +72,16 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 void fsm_reset(void);
 void fsm_set_to_specs(void);
 void fsm_from_none_to_spec(void);
+
+
+enum ParserExitCodes {
+    SUCCESS = 0,
+    COMMAND_LINE_FAILURE = 1,
+    PARSING_ERROR = 2,
+	LEXING_FAILURE = 3,
+    RENAME_ME = 9
+};
+
 %}
 
 %union {
@@ -1509,11 +1519,11 @@ int main(int argc, char *argv[]) {
 			switch (argv[i][1]) {
 			case 'h':
 				printf("Usage: .\\sikraken_parser [OPTION]... FILE_NO_EXT\nParses the .i file of a C file pre-processsed by GCC to Prolog terms.\n\n-h\t Display help information\n-m32|-m64\t Specify the data model, -m32 is the default\n-p\t Path to the .c/.i file (DEFAULT: Current Directory ('.'))\n\nExamples:\n\t.\\sikraken_parser -p\".\" get_sign \n\t.\\sikraken_parser get_sign \n\t.\\sikraken_parser -m64 -p\"C:/Parser/\" sign \n");
-				my_exit(0);
+				my_exit(SUCCESS);
 			case 'p':	//path to the .i pre-processed input C file
 				if (access_safe(&argv[i][2], 0) == -1) {    //checks if it is a valid directory
 					fprintf(stderr, "Sikraken parser error: the indicated source path (via -p switch): %s , cannot be accessed\n", &argv[i][2]);
-					my_exit(1);
+					my_exit(COMMAND_LINE_FAILURE);
 				}
 				free(C_file_path);
 				C_file_path = strdup(&argv[i][2]);
@@ -1541,7 +1551,7 @@ int main(int argc, char *argv[]) {
 	snprintf(i_file_uri, i_path_len, "%s/%s.i", C_file_path, filename_no_ext);
 	if (fopen_safe(&i_file, i_file_uri, "r") != 0) {
 		fprintf(stderr, ".i file could not be opened for reading at: %s\n", i_file_uri);
-		my_exit(EXIT_FAILURE);
+		my_exit(COMMAND_LINE_FAILURE);
 	} else fprintf(stdout, "Sikraken parser %s: parsing the file %s using %i bits data model.\n", (debugMode) ? "in debug mode" : "", i_file_uri, dataModel); 
 	yyin = i_file;	//set the input to the parser
 
@@ -1550,7 +1560,7 @@ int main(int argc, char *argv[]) {
 	snprintf(pl_file_uri, pl_path_len, "%s/%s.pl", C_file_path, filename_no_ext);
 	if (fopen_safe(&pl_file, pl_file_uri, "w") != 0) {
 		fprintf(stderr, ".pl file could not be created for writing at: %s\n", pl_file_uri);
-		my_exit(EXIT_FAILURE);
+		my_exit(COMMAND_LINE_FAILURE);
 	}
 	fflush(stdout);							//to ensure all previous information messages are printed out of buffer before the parsing starts and potentially generate unbuffered error messages
 
@@ -1562,14 +1572,14 @@ int main(int argc, char *argv[]) {
 	fprintf(pl_file, "prolog_c([");			//opening top-level predicate
 	if (yyparse() != 0) {					//the parser is called here
 		fprintf(stderr, "Parsing failed.\n");
-		my_exit(EXIT_FAILURE);
+		my_exit(PARSING_ERROR);
 	}	
 	fprintf(pl_file, "\n]).");
 	fclose(pl_file);
 	pl_file = NULL;
 	fclose(i_file);
 	i_file = NULL;
-	my_exit(EXIT_SUCCESS);
+	my_exit(SUCCESS);
 }
 
 //handles parsing errors: since the C input file is the output of a C pre-processor it will only be called if
@@ -1600,6 +1610,6 @@ void my_exit(int exit_code) {			//exits and performs some tidying up if not in d
     if (i_file) fclose(i_file);
     if (pl_file) fclose(pl_file);
   }
-  if (exit_code == EXIT_SUCCESS) fprintf(stderr, "Sikraken parsing SUCCESS, wrote %s\n", pl_file_uri);
+  if (exit_code == SUCCESS) fprintf(stderr, "Sikraken parsing SUCCESS, wrote %s\n", pl_file_uri);
   exit(exit_code);
 }

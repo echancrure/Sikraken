@@ -20,7 +20,6 @@ cd "$SIKRAKEN_INSTALL_DIR/Parser"
 
 # Run the flex command
 flex "C_grammar.l"
-
 # Check if the flex command was successful
 if [ $? -ne 0 ]; then
     echo "Error: flex failed to process C_grammar.l"
