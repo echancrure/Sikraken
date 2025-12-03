@@ -189,7 +189,7 @@ WS  [ \t\v\n\f]
                              }
                              int id_status = is_typedef_name(yylval.id);                                
                              if (debugMode) { 
-                                printf("Lexer FSM: checking id: %s with status %d in mode %s\n", yylval.id, id_status, mode_str(decl_mode));
+                                printf("Lexer FSM: checking id: %s with status %d in mode %s %s\n", yylval.id, id_status, mode_str(decl_mode), (in_member_namespace ? "(in member namespace)" : ""));
                                 fflush(stdout);
                              }
                              switch (id_status) {
@@ -217,7 +217,10 @@ WS  [ \t\v\n\f]
                                         return TYPEDEF_NAME;    //otherwise
                                     }
                                     if (decl_mode == DM_NONE) decl_mode = DM_SPECS;
-                                    if (decl_mode == DM_DECLS && in_member_namespace) return IDENTIFIER;   //in member name space an id cannot be typedef names except in DM_SPECS mode (handled above) sometimes, and in DM_NONE
+                                    if (decl_mode == DM_DECLS && in_member_namespace) {
+                                        if (debugMode) printf("Lexer Debug: a real typedef_name in DECLS mode found in member namespce is an IDENTIFIER: %s on line %d\n", yylval.id, yylineno);
+                                        return IDENTIFIER;   //in member name space an id cannot be typedef names except in DM_SPECS mode (handled above) sometimes, and in DM_NONE
+                                    }
                                     if (decl_mode == DM_DECLS) decl_mode = DM_DECLS;    //useless but for completeness
                                     return TYPEDEF_NAME;
                                 case 0:         //am ordinary identifier

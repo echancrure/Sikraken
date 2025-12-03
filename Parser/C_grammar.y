@@ -580,7 +580,7 @@ declaration
 		 free(decl_specifier);
 		 free($2);
 		}
-	| static_assert_declaration
+	| static_assert_declaration		//always has an ending internal ';'
 		{size_t const size = strlen("\n") + strlen($1) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "\n%s", $1);
@@ -979,15 +979,15 @@ direct_declarator
 		//many need in_member_namespace = 0; in case we are within a union or struct to indicate that we just processed the member and the rest my involve typedefs see diary 12/11/24
 		{$$ = $2;
 		}
-	| direct_declarator rest_direct_declarator
-		{size_t const size = strlen("array_decl(, )") + strlen($1.full) + strlen($2) + 1;
+	| direct_declarator {if (in_member_namespace) in_member_namespace=0; } rest_direct_declarator
+		{size_t const size = strlen("array_decl(, )") + strlen($1.full) + strlen($3) + 1;
          $$.full = (char*)malloc(size);
-         sprintf_safe($$.full, size, "array_decl(%s, %s)", $1.full, $2);
+         sprintf_safe($$.full, size, "array_decl(%s, %s)", $1.full, $3);
 		 free($1.full);
-		 free($2);
+		 free($3);
 		 $$.ptr_declarator = $1.ptr_declarator;
 		}
-	| direct_declarator {current_scope++; } '(' rest_function_definition ')'
+	| direct_declarator {if (in_member_namespace) in_member_namespace=0; current_scope++; } '(' rest_function_definition ')'
 		{pop_scope(&current_scope);
 		 size_t const size = strlen("function(, )") + strlen($1.full) + strlen($4) + 1;
 	     $$.full = (char*)malloc(size);
@@ -1464,8 +1464,8 @@ translation_unit 			//printed out
 	;
 
 external_declaration		//printed out
-	: function_definition
-		{fprintf(pl_file, "%s", $1); 
+	: function_definition opt_semi_colon	//gcc allow an option semi-colon after a function definition
+		{fprintf(pl_file, "%s", $1);
 		 free($1);
 		}
 	|  declaration
@@ -1488,7 +1488,10 @@ function_definition
 		 free($5);
 		}
 	;
-
+opt_semi_colon
+	: /* empty */
+	| ';'
+	;
 declaration_list_opt
 	: /* empty */		{simple_str_lit_copy(&$$, "");}
 	| old_style_declaration_list	//for old-style function declaration for the parameters see p. 226 K&R

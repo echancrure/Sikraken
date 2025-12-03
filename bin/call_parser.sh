@@ -52,10 +52,15 @@ file_extension="${rel_path_c_file##*.}"
 
 if [ "$file_extension" == "i" ]; then
     # If the file is already preprocessed (.i), just copy it to $output_directory
-    cp "$full_path_c_file" "$output_directory/"
-    if [ $? -ne 0 ]; then
-        echo "Sikraken ERROR from $0: Failed to copy $full_path_c_file to $output_directory"
-        exit 21
+    dest_file="$output_directory/$(basename "$full_path_c_file")"
+    if [ "$(realpath "$full_path_c_file")" != "$(realpath "$dest_file")" ]; then
+        cp "$full_path_c_file" "$output_directory/"
+        if [ $? -ne 0 ]; then
+            echo "Sikraken ERROR from $0: Failed to copy $full_path_c_file to $output_directory"
+            exit 21
+        fi
+    else
+        echo "Skipping copy: source and destination are the same file."
     fi
 else
     # If the file is not preprocessed, preprocess it with gcc

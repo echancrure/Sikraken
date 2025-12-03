@@ -1,8 +1,10 @@
 typedef void *PVOID;
+typedef void *PVOID2;
 void (*NormalRoutine)(PVOID NormalContext , PVOID SystemArgument1 , PVOID SystemArgument2 ) ;
 struct _KAPC {
    void (*RundownRoutine)(int x) ;
-//   void (*NormalRoutine)(PVOID NormalContext2 , PVOID SystemArgument1 , PVOID SystemArgument2 ) ;
+   void (*NormalRoutine)(PVOID NormalContext2 , PVOID SystemArgument1 , PVOID SystemArgument2 ) ;
+   int chris2[sizeof(PVOID2)];
    PVOID NormalContext3 ;
 }
 static __thread int tl_last_error = 0;
@@ -12,10 +14,8 @@ void aws_raise_error_private(int err) {
     int x = .5;
     void *p = &x;      // p is a void pointer pointing to x
     void **pp = &p;    // pp is a pointer to a void pointer
-
 extern int __VERIFIER_nondet_int();
 typedef int my_int56;                              //23 November 2025
-
 void my_f(void) {
    typedef my_int56 (MyFuncPtr)(int, int);           // my_int56 is a type, MyFuncPtr is the new type name
    typedef my_int56 (*MyFuncPtr_Pointer)(int, int); // my_int56 is a type, MyFuncPtr_Pointer is the new type name
@@ -66,6 +66,9 @@ typedef __builtin_va_list __gnuc_va_list[1U];   //FIXED: Sikraken Parsing error:
 typedef unsigned long int __uint64_t;
 typedef __uint64_t uint64_t;
 typedef uint64_t(aws_hash_fn)(const void *key);
+int my_func() {
+   ;
+}; //gcc allows this
 int main() {
     int v = __VERIFIER_nondet_int();
     int x = 42;
