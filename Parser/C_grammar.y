@@ -3,6 +3,7 @@
 /****************************************************************************************************/
 
 %define parse.error verbose
+%locations                  /* enable locations: defines YYLTYPE and yylloc */
 
 %{
 #ifdef _MSC_VER
@@ -1588,13 +1589,47 @@ int main(int argc, char *argv[]) {
 //handles parsing errors: since the C input file is the output of a C pre-processor it will only be called if
 //  the syntax rules are wrong due to GCC extensions 
 //  or if the .i file has been badly generated manually: i.e. during development
-void yyerror(const char* s) {
+/*void yyerror(const char* s) {
 	extern char* yytext;  	// Points to the text of the current token
     extern int yyleng;    	// Length of the current token
     fflush(stdout);			//to ensure all previous information messages are printed out of buffer before the error message
     fprintf(stderr, "Sikraken Parsing error: %s, at line %d, near token '%s' (token code: %d)\n", s, yylineno, yytext, yychar);
 	fprintf(stderr, "Unexpected token: %s\n", token_name(yychar)); 
+}*/
+
+/* Non-reentrant yyerror: uses global yylloc and yylineno */
+void yyerror(const char* s) {
+    extern char* yytext; /* current token lexeme (from Flex) */
+    extern int yyleng;   /* current token length (from Flex) */
+    /* yylloc is defined by Bison when you use %locations in non-reentrant mode */
+
+    fflush(stdout);
+
+    /* yychar may be YYEMPTY (-2) when there is no current lookahead */
+    int tok = yychar;
+    const char *tokname = token_name(tok); /* you already have token_name(int) */
+
+    /* Print precise location using yylloc (line:column span) */
+    fprintf(stderr,
+            "Sikraken Parsing error: %s at %d:%d–%d:%d\n",
+            s,
+            yylloc.first_line, yylloc.first_column,
+            yylloc.last_line,  yylloc.last_column);
+
+    /* Nice “near token …” line; fall back if no yytext */
+    if (yytext && yyleng > 0) {
+        fprintf(stderr, "Near token: '%.*s'\n", yyleng, yytext);
+    } else {
+        fprintf(stderr, "Near token: <none>\n");
+    }
+
+    if (tok >= 0) {
+        fprintf(stderr, "Token code: %d (%s)\n", tok, tokname ? tokname : "unknown");
+    } else {
+        fprintf(stderr, "Token: <no lookahead>\n");
+    }
 }
+
 
 const char *token_name(int token) {
     if (token >= 0 && token <= 255) {  // a char token

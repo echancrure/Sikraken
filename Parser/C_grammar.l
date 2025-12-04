@@ -1,6 +1,4 @@
-/****************************************************************************************************/
-/* Flex documentation: https://westes.github.io/flex/manual/index.html                              */
-/****************************************************************************************************/
+/* flex */
 /* definition section */
 %e  1019
 %p  2807
@@ -47,6 +45,14 @@ static const char* mode_str(decl_mode_t);
 
 extern const char *const yytname[];  // to access token names
 const char* token_name(int);
+
+int yycolumn = 1;
+
+#define YY_USER_ACTION \
+    yylloc.first_line = yylloc.last_line = yylineno; \
+    yylloc.first_column = yycolumn; \
+    yylloc.last_column = yycolumn + yyleng - 1; \
+    yycolumn += yyleng;
 %}
 
 %x ASM_QUALIFIER
@@ -350,8 +356,22 @@ WS  [ \t\v\n\f]
 "^"					    { return '^'; }
 "|"					    { return '|'; }
 "?"					    { return '?'; }
-
-{WS}+				    { /* whitespaces (including new lines) separate tokens */ }
+{WS}+				    { for (int i = 0; i < yyleng; ++i) {    //handling white space for column counting
+                            switch (yytext[i]) {
+                                case ' ':  yycolumn += 1; break;
+                                case '\v': /* treat like a single column advance */
+                                case '\f': yycolumn += 1; break;
+                                case '\t': {
+                                    const int tabstop = 4; /* pick your tab width */
+                                    int advance = tabstop - ((yycolumn - 1) % tabstop);
+                                    yycolumn += advance;
+                                    break;
+                                }
+                                case '\n': yycolumn = 1; break;
+                                default: yycolumn += 1; break;
+                            }
+                         }
+                        }
 .					    { /* discard bad characters */ }
 
 %%

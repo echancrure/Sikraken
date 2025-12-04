@@ -1,8 +1,10 @@
-int x0 = ({ //statement expression in GCC
-    int a = 5;
-    int b = 10;
-    a + b;   // last expression → value returned
-});
+void f() {
+   int x0 = ({ //statement expression in GCC
+      int a = 5;
+      int b = 10;
+      a + b;   // last expression → value returned
+   });
+}
 struct device {//struct device_private   *p;
 };
 struct A {
@@ -16,7 +18,10 @@ struct my_data {
 };
 struct device *my_dev;
 struct my_data *data;
-data = ({ const typeof( ((struct my_data *)0)->dev ) *__mptr = (my_dev); (struct my_data *)( (char *)__mptr - __builtin_offsetof (struct my_data, dev) );});
+int oso = __builtin_offsetof (struct my_data, dev); //builtin function call
+void g() {
+   data = ({ const typeof( ((struct my_data *)0)->dev ) *__mptr = (my_dev); (struct my_data *)( (char *)__mptr - __builtin_offsetof (struct my_data, dev) );});
+}
 typedef void *PVOID;
 typedef void *PVOID2;
 void (*NormalRoutine)(PVOID NormalContext , PVOID SystemArgument1 , PVOID SystemArgument2 ) ;
