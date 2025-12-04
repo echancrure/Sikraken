@@ -115,7 +115,7 @@ enum ParserExitCodes {
 %token	CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
 %token ALIGNAS ALIGNOF ATOMIC_SPECIFIER ATOMIC GENERIC NORETURN STATIC_ASSERT THREAD_LOCAL
-%token INT128 FLOAT128 VA_LIST BUILTIN_VA_ARG TYPEOF TYPEOF_UNQUAL
+%token INT128 FLOAT128 VA_LIST OFFSETOF BUILTIN_VA_ARG TYPEOF TYPEOF_UNQUAL
 
 %type <id> init_declarator initializer pointer pointer_star init_declarator_list 
 %type <id> abstract_declarator_opt
@@ -170,8 +170,14 @@ primary_expression
 		}
 	| generic_selection		{simple_str_lit_copy(&$$, "generic_selection");}
 	| builtin_va_arg_expr	{$$ = $1;}
+	| OFFSETOF '(' type_name ',' IDENTIFIER ')'			//GCC builtin function requiring non expression argument
+	  {size_t const size = strlen("offsetof(, )") + strlen($3) + strlen($5) + 1;
+	   $$ = (char*)malloc(size);
+	   sprintf_safe($$, size, "offsetof(%s, %s)", $3, $5);
+	   free($3);
+	   free($5);
+	  }
 	;
-
 
 builtin_va_arg_expr
     : BUILTIN_VA_ARG '(' assignment_expression ',' type_name ')'
@@ -182,7 +188,6 @@ builtin_va_arg_expr
 	   free($5);
 	  }
     ;
-
 
 constant
 	: I_CONSTANT		/* includes character_constant */

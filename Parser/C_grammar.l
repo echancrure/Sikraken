@@ -156,8 +156,9 @@ WS  [ \t\v\n\f]
 "_Float64"              { if (!peeking) fsm_from_none_to_spec(); return(DOUBLE); }     //GCC builtin 64-bit floating-point type
 "__float128"            { if (!peeking) fsm_from_none_to_spec(); return(FLOAT128); }   //GCC builtin 128-bit floating-point type
 "_Float128"             { if (!peeking) fsm_from_none_to_spec(); return(FLOAT128); }   //GCC builtin 128-bit floating-point type
-"__builtin_va_arg"      { if (!peeking) return(BUILTIN_VA_ARG); }                      //GCC builtin variable argument retrieval
-"__builtin_va_list"     { if (!peeking) fsm_from_none_to_spec(); return(VA_LIST); }    //GCC builtin variable argument list type
+"__builtin_offsetof"    { if (!peeking) fsm_from_none_to_spec(); return(OFFSETOF);}    //GCC builtin function: first argument is a type_name second a member/identifier
+"__builtin_va_arg"      { if (!peeking) return(BUILTIN_VA_ARG); }                      //GCC builtin function: requires-types/member/identifier as arguments
+"__builtin_va_list"     { if (!peeking) fsm_from_none_to_spec(); return(VA_LIST); }    //GCC builtin type: variable argument list
 "_Alignas"              { if (!peeking) fsm_from_none_to_spec(); return ALIGNAS; }
 "_Alignof"              { if (!peeking) fsm_from_none_to_spec(); return ALIGNOF; }
 "__alignof__"           { if (!peeking) fsm_from_none_to_spec(); return ALIGNOF; }      //GCC version of ALIGNOF
