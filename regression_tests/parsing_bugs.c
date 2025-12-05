@@ -1,3 +1,12 @@
+struct table;
+typedef struct table table;
+struct table {
+    const char *name;
+    int type;
+    int value;
+};
+static int *inSpecMode(int table);  //table is wrongly identified as a TYPEDEF_NAME here
+static int *allocate_entry_120489(int *table);  //table is wrongly identified as a TYPEDEF_NAME here
 struct inpcb *in_pcbffffffffffhashlookup(struct inpcbtable *, struct in_addr, int,
                                  struct in_addr, int , int, int);                               
 typedef unsigned int __uint32_t;

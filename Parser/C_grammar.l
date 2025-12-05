@@ -208,7 +208,7 @@ WS  [ \t\v\n\f]
                                     return IDENTIFIER;
                                 case 1:         // a typedef name
                                     if (decl_mode == DM_SPECS) {                        //In type specifier mode
-                                        // Predict whether THIS occurrence is in fact a declarator name (i.e. an actual SHADOWING IDENTIFIER deand switch to DM_DECLS mode) or not (a true TYPEDEF_NAME and stay in DM_SPECS)
+                                        // Predict whether THIS occurrence is in fact a declarator name (i.e. an actual SHADOWING IDENTIFIER and switch to DM_DECLS mode) or not (a true TYPEDEF_NAME and stay in DM_SPECS)
                                         int nxt = peek_and_push_token();
                                         if (debugMode) {printf("Lexer Debug: peek found: %s\n", token_name(nxt)); fflush(stdout);}
                                         if (nxt == ')') {   // e.g. cast, parenthesized type like (Type name), or function declaration — definitely a TYPEDEF_NAME here : cannot be a declaration
@@ -231,7 +231,7 @@ WS  [ \t\v\n\f]
                                         if (debugMode) printf("Lexer Debug: a real typedef_name in DECLS mode found in member namespce is an IDENTIFIER: %s on line %d\n", yylval.id, yylineno);
                                         return IDENTIFIER;   //in member name space an id cannot be typedef names except in DM_SPECS mode (handled above) sometimes, and in DM_NONE
                                     }
-                                    if (decl_mode == DM_DECLS) decl_mode = DM_DECLS;    //useless but for completeness
+                                    if (decl_mode == DM_DECLS) decl_mode = DM_DECLS;    //useless but for symmetry
                                     return TYPEDEF_NAME;
                                 case 0:         //am ordinary identifier
                                 default:
