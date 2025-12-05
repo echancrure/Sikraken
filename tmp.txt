@@ -2,36 +2,193 @@ Sikraken ./bin/call_parser.sh says: SIKRAKEN_INSTALL_DIR is /home/chris/Sikraken
 Sikraken parser in debug mode: parsing the file /home/chris/Sikraken/bin/../sikraken_output/parsing_bugs/parsing_bugs.i using 32 bits data model.
 Pushed scope 0
 add_typedef_id: Added __gnuc_va_list as a TYPEDEF_NAME to typedef list
+Lexer FSM: bypassing typedef_name check in mode DM_SPECS: id: inpcb is a tag
+is_typedef_name: Looking for in_pcbffffffffffhashlookup in typedef list
+Scope 0:
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found in_pcbffffffffffhashlookup is a basic IDENTIFIER
+Lexer FSM: checking id: in_pcbffffffffffhashlookup with status 0 in mode DM_SPECS 
+Lexer FSM: bypassing typedef_name check in mode DM_DECLS: id: inpcbtable is a tag
+Debug: create_declaration_specifiers returned: spec([], struct(Inpcbtable))
+Lexer FSM: bypassing typedef_name check in mode DM_DECLS: id: in_addr is a tag
+Debug: create_declaration_specifiers returned: spec([], struct(In_addr))
+Debug: create_declaration_specifiers returned: spec([], int)
+Lexer FSM: bypassing typedef_name check in mode DM_DECLS: id: in_addr is a tag
+Debug: create_declaration_specifiers returned: spec([], struct(In_addr))
+Debug: create_declaration_specifiers returned: spec([], int)
+Debug: create_declaration_specifiers returned: spec([], int)
+Debug: create_declaration_specifiers returned: spec([], int)
+Trying to Pop scope 1 when scope_stack scope_nb is 0
+DEBUG: typedef_flag=0, ptr_declarator=In_pcbffffffffffhashlookup
+Debug: create_declaration_specifiers returned: spec([], struct(Inpcb))
+Debug: typedef switched to 1
+is_typedef_name: Looking for __uint32_t in typedef list
+Scope 0:
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found __uint32_t is a basic IDENTIFIER
+Lexer FSM: checking id: __uint32_t with status 0 in mode DM_SPECS 
+DEBUG: typedef_flag=1, ptr_declarator=UC___uint32_t
+add_typedef_id: Added __uint32_t as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], unsigned(int))
+Debug: typedef switched to 1
+is_typedef_name: Looking for __uint32_t in typedef list
+Scope 0:
+	__uint32_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: __uint32_t with status 1 in mode DM_NONE 
+is_typedef_name: Looking for u_int32_t in typedef list
+Scope 0:
+	__uint32_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found u_int32_t is a basic IDENTIFIER
+Lexer FSM: checking id: u_int32_t with status 0 in mode DM_SPECS 
+DEBUG: typedef_flag=1, ptr_declarator=U_int32_t
+add_typedef_id: Added u_int32_t as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], UC___uint32_t)
+Lexer FSM: bypassing typedef_name check in mode DM_SPECS: id: baddynamicports is a tag
+is_typedef_name: Looking for u_int32_t in typedef list
+Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: u_int32_t with status 1 in mode DM_NONE (in member namespace)
+is_typedef_name: Looking for tcp in typedef list
+Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found tcp is a basic IDENTIFIER
+Lexer FSM: checking id: tcp with status 0 in mode DM_SPECS (in member namespace)
+direct_declarator: in member namespace: tcp on line 6
+is_typedef_name: Looking for u_int32_t in typedef list
+Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: u_int32_t with status 1 in mode DM_DECLS 
+Debug: create_declaration_specifiers returned: spec([], U_int32_t)
+is_typedef_name: Looking for u_int32_t in typedef list
+Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: u_int32_t with status 1 in mode DM_DECLS 
+Debug: create_declaration_specifiers returned: spec([], U_int32_t)
+Debug: create_declaration_specifiers returned: spec([], U_int32_t)
+is_typedef_name: Looking for u_int32_t in typedef list
+Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: u_int32_t with status 1 in mode DM_NONE (in member namespace)
+is_typedef_name: Looking for udp in typedef list
+Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found udp is a basic IDENTIFIER
+Lexer FSM: checking id: udp with status 0 in mode DM_SPECS (in member namespace)
+direct_declarator: in member namespace: udp on line 8
+is_typedef_name: Looking for u_int32_t in typedef list
+Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: u_int32_t with status 1 in mode DM_DECLS 
+Debug: create_declaration_specifiers returned: spec([], U_int32_t)
+is_typedef_name: Looking for u_int32_t in typedef list
+Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: u_int32_t with status 1 in mode DM_DECLS 
+Debug: create_declaration_specifiers returned: spec([], U_int32_t)
+Debug: create_declaration_specifiers returned: spec([], U_int32_t)
+end of stand alone declaration specifier as a declaration on line 10
+Debug: create_declaration_specifiers returned: spec([], struct(Baddynamicports, [struct_decl(spec([], U_int32_t), [array_decl(tcp, ((div_op((plus_op((int(65536)), (minus_op(((multiply_op(size_of_type(spec([], U_int32_t)), int(8)))), int(1))))), ((multiply_op(size_of_type(spec([], U_int32_t)), int(8))))))))]), struct_decl(spec([], U_int32_t), [array_decl(udp, ((div_op((plus_op((int(65536)), (minus_op(((multiply_op(size_of_type(spec([], U_int32_t)), int(8)))), int(1))))), ((multiply_op(size_of_type(spec([], U_int32_t)), int(8))))))))])]))
+Lexer FSM: bypassing typedef_name check in mode DM_SPECS: id: baddynamicports is a tag
+is_typedef_name: Looking for baddynamicports in typedef list
+Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found baddynamicports is a basic IDENTIFIER
+Lexer FSM: checking id: baddynamicports with status 0 in mode DM_NONE (in member namespace)
+DEBUG: typedef_flag=0, ptr_declarator=Baddynamicports
+Debug: create_declaration_specifiers returned: spec([extern], struct(Baddynamicports))
+Lexer FSM: bypassing typedef_name check in mode DM_SPECS: id: baddynamicports is a tag
+is_typedef_name: Looking for rootonlyports in typedef list
+Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found rootonlyports is a basic IDENTIFIER
+Lexer FSM: checking id: rootonlyports with status 0 in mode DM_NONE (in member namespace)
+DEBUG: typedef_flag=0, ptr_declarator=Rootonlyports
+Debug: create_declaration_specifiers returned: spec([extern], struct(Baddynamicports))
+is_typedef_name: Looking for in_losing in typedef list
+Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found in_losing is a basic IDENTIFIER
+Lexer FSM: checking id: in_losing with status 0 in mode DM_SPECS 
+Lexer FSM: bypassing typedef_name check in mode DM_DECLS: id: inpcb is a tag
+Debug: create_declaration_specifiers returned: spec([], struct(Inpcb))
+Trying to Pop scope 1 when scope_stack scope_nb is 0
+DEBUG: typedef_flag=0, ptr_declarator=In_losing
+Debug: create_declaration_specifiers returned: spec([], void)
 is_typedef_name: Looking for f in typedef list
 Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found f is a basic IDENTIFIER
 Lexer FSM: checking id: f with status 0 in mode DM_SPECS 
 Trying to Pop scope 1 when scope_stack scope_nb is 0
 is_typedef_name: Looking for x0 in typedef list
 Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found x0 is a basic IDENTIFIER
 Lexer FSM: checking id: x0 with status 0 in mode DM_SPECS 
 is_typedef_name: Looking for a in typedef list
 Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found a is a basic IDENTIFIER
 Lexer FSM: checking id: a with status 0 in mode DM_SPECS 
 Debug: create_declaration_specifiers returned: spec([], int)
 is_typedef_name: Looking for b in typedef list
 Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found b is a basic IDENTIFIER
 Lexer FSM: checking id: b with status 0 in mode DM_SPECS 
 Debug: create_declaration_specifiers returned: spec([], int)
 is_typedef_name: Looking for a in typedef list
 Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found a is a basic IDENTIFIER
 Lexer FSM: checking id: a with status 0 in mode DM_NONE 
 is_typedef_name: Looking for b in typedef list
 Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found b is a basic IDENTIFIER
 Lexer FSM: checking id: b with status 0 in mode DM_NONE 
@@ -40,54 +197,66 @@ Debug: create_declaration_specifiers returned: spec([], int)
 Debug: create_declaration_specifiers returned: spec([], void)
 function parsed
 Lexer FSM: bypassing typedef_name check in mode DM_SPECS: id: device is a tag
-end of stand alone declaration specifier as a declaration on line 9
+end of stand alone declaration specifier as a declaration on line 22
 Debug: create_declaration_specifiers returned: spec([], struct(Device, []))
 Lexer FSM: bypassing typedef_name check in mode DM_SPECS: id: A is a tag
 is_typedef_name: Looking for a in typedef list
 Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found a is a basic IDENTIFIER
 Lexer FSM: checking id: a with status 0 in mode DM_SPECS (in member namespace)
-direct_declarator: in member namespace: a on line 11
+direct_declarator: in member namespace: a on line 24
 Debug: create_declaration_specifiers returned: spec([], int)
 is_typedef_name: Looking for b in typedef list
 Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found b is a basic IDENTIFIER
 Lexer FSM: checking id: b with status 0 in mode DM_SPECS (in member namespace)
-direct_declarator: in member namespace: b on line 12
+direct_declarator: in member namespace: b on line 25
 Debug: create_declaration_specifiers returned: spec([], int)
-end of stand alone declaration specifier as a declaration on line 13
+end of stand alone declaration specifier as a declaration on line 26
 Debug: create_declaration_specifiers returned: spec([], struct(UC_A, [struct_decl(spec([], int), [a]), struct_decl(spec([], int), [b])]))
 Lexer FSM: bypassing typedef_name check in mode DM_SPECS: id: my_data is a tag
 is_typedef_name: Looking for lock in typedef list
 Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found lock is a basic IDENTIFIER
 Lexer FSM: checking id: lock with status 0 in mode DM_SPECS (in member namespace)
-direct_declarator: in member namespace: lock on line 15
+direct_declarator: in member namespace: lock on line 28
 Debug: create_declaration_specifiers returned: spec([], int)
 Lexer FSM: bypassing typedef_name check in mode DM_SPECS: id: device is a tag
 is_typedef_name: Looking for dev in typedef list
 Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found dev is a basic IDENTIFIER
 Lexer FSM: checking id: dev with status 0 in mode DM_NONE (in member namespace)
-direct_declarator: in member namespace: dev on line 16
+direct_declarator: in member namespace: dev on line 29
 Debug: create_declaration_specifiers returned: spec([], struct(Device))
 Lexer FSM: bypassing typedef_name check in mode DM_SPECS: id: A is a tag
 is_typedef_name: Looking for shared in typedef list
 Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found shared is a basic IDENTIFIER
 Lexer FSM: checking id: shared with status 0 in mode DM_NONE (in member namespace)
-direct_declarator: in member namespace: shared on line 17
+direct_declarator: in member namespace: shared on line 30
 Debug: create_declaration_specifiers returned: spec([], struct(UC_A))
-end of stand alone declaration specifier as a declaration on line 18
+end of stand alone declaration specifier as a declaration on line 31
 Debug: create_declaration_specifiers returned: spec([], struct(My_data, [struct_decl(spec([], int), [lock]), struct_decl(spec([], struct(Device)), [dev]), struct_decl(spec([], struct(UC_A)), [shared])]))
 Lexer FSM: bypassing typedef_name check in mode DM_SPECS: id: device is a tag
 is_typedef_name: Looking for my_dev in typedef list
 Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found my_dev is a basic IDENTIFIER
 Lexer FSM: checking id: my_dev with status 0 in mode DM_SPECS 
@@ -96,6 +265,8 @@ Debug: create_declaration_specifiers returned: spec([], struct(Device))
 Lexer FSM: bypassing typedef_name check in mode DM_SPECS: id: my_data is a tag
 is_typedef_name: Looking for data in typedef list
 Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found data is a basic IDENTIFIER
 Lexer FSM: checking id: data with status 0 in mode DM_SPECS 
@@ -103,6 +274,8 @@ DEBUG: typedef_flag=0, ptr_declarator=Data
 Debug: create_declaration_specifiers returned: spec([], struct(My_data))
 is_typedef_name: Looking for oso in typedef list
 Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found oso is a basic IDENTIFIER
 Lexer FSM: checking id: oso with status 0 in mode DM_SPECS 
@@ -110,34 +283,46 @@ Lexer FSM: bypassing typedef_name check in mode DM_DECLS: id: my_data is a tag
 Debug: create_declaration_specifiers returned: spec([], struct(My_data))
 is_typedef_name: Looking for dev in typedef list
 Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found dev is a basic IDENTIFIER
 Lexer FSM: checking id: dev with status 0 in mode DM_SPECS 
 Debug: create_declaration_specifiers returned: spec([], int)
 is_typedef_name: Looking for g in typedef list
 Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found g is a basic IDENTIFIER
 Lexer FSM: checking id: g with status 0 in mode DM_SPECS 
 Trying to Pop scope 1 when scope_stack scope_nb is 0
 is_typedef_name: Looking for data in typedef list
 Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found data is a basic IDENTIFIER
 Lexer FSM: checking id: data with status 0 in mode DM_NONE 
 Lexer FSM: bypassing typedef_name check in mode DM_DECLS: id: my_data is a tag
 is_typedef_name: Looking for dev in typedef list
 Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found dev is a basic IDENTIFIER
 Lexer FSM: checking id: dev with status 0 in mode DM_SPECS (in member namespace)
 is_typedef_name: Looking for __mptr in typedef list
 Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found __mptr is a basic IDENTIFIER
 Lexer FSM: checking id: __mptr with status 0 in mode DM_DECLS 
 is_typedef_name: Looking for my_dev in typedef list
 Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found my_dev is a basic IDENTIFIER
 Lexer FSM: checking id: my_dev with status 0 in mode DM_DECLS 
@@ -146,6 +331,8 @@ Debug: create_declaration_specifiers returned: spec([], int)
 Lexer FSM: bypassing typedef_name check in mode DM_SPECS: id: my_data is a tag
 is_typedef_name: Looking for __mptr in typedef list
 Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found __mptr is a basic IDENTIFIER
 Lexer FSM: checking id: __mptr with status 0 in mode DM_DECLS 
@@ -153,6 +340,8 @@ Lexer FSM: bypassing typedef_name check in mode DM_DECLS: id: my_data is a tag
 Debug: create_declaration_specifiers returned: spec([], struct(My_data))
 is_typedef_name: Looking for dev in typedef list
 Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found dev is a basic IDENTIFIER
 Lexer FSM: checking id: dev with status 0 in mode DM_SPECS 
@@ -162,6 +351,8 @@ function parsed
 Debug: typedef switched to 1
 is_typedef_name: Looking for PVOID in typedef list
 Scope 0:
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found PVOID is a basic IDENTIFIER
 Lexer FSM: checking id: PVOID with status 0 in mode DM_DECLS 
@@ -173,6 +364,8 @@ Debug: typedef switched to 1
 is_typedef_name: Looking for PVOID2 in typedef list
 Scope 0:
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found PVOID2 is a basic IDENTIFIER
 Lexer FSM: checking id: PVOID2 with status 0 in mode DM_DECLS 
@@ -184,6 +377,8 @@ is_typedef_name: Looking for NormalRoutine in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found NormalRoutine is a basic IDENTIFIER
 Lexer FSM: checking id: NormalRoutine with status 0 in mode DM_DECLS 
@@ -191,6 +386,8 @@ is_typedef_name: Looking for PVOID in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: PVOID with status 1 in mode DM_DECLS 
@@ -198,6 +395,8 @@ is_typedef_name: Looking for NormalContext in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found NormalContext is a basic IDENTIFIER
 Lexer FSM: checking id: NormalContext with status 0 in mode DM_DECLS 
@@ -206,6 +405,8 @@ is_typedef_name: Looking for PVOID in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: PVOID with status 1 in mode DM_DECLS 
@@ -213,6 +414,8 @@ is_typedef_name: Looking for SystemArgument1 in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found SystemArgument1 is a basic IDENTIFIER
 Lexer FSM: checking id: SystemArgument1 with status 0 in mode DM_DECLS 
@@ -221,6 +424,8 @@ is_typedef_name: Looking for PVOID in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: PVOID with status 1 in mode DM_DECLS 
@@ -228,6 +433,8 @@ is_typedef_name: Looking for SystemArgument2 in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found SystemArgument2 is a basic IDENTIFIER
 Lexer FSM: checking id: SystemArgument2 with status 0 in mode DM_DECLS 
@@ -240,14 +447,18 @@ is_typedef_name: Looking for RundownRoutine in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found RundownRoutine is a basic IDENTIFIER
 Lexer FSM: checking id: RundownRoutine with status 0 in mode DM_DECLS (in member namespace)
-direct_declarator: in member namespace: RundownRoutine on line 29
+direct_declarator: in member namespace: RundownRoutine on line 42
 is_typedef_name: Looking for x in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found x is a basic IDENTIFIER
 Lexer FSM: checking id: x with status 0 in mode DM_DECLS 
@@ -258,14 +469,18 @@ is_typedef_name: Looking for NormalRoutine in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found NormalRoutine is a basic IDENTIFIER
 Lexer FSM: checking id: NormalRoutine with status 0 in mode DM_DECLS (in member namespace)
-direct_declarator: in member namespace: NormalRoutine on line 30
+direct_declarator: in member namespace: NormalRoutine on line 43
 is_typedef_name: Looking for PVOID in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: PVOID with status 1 in mode DM_DECLS 
@@ -273,6 +488,8 @@ is_typedef_name: Looking for NormalContext2 in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found NormalContext2 is a basic IDENTIFIER
 Lexer FSM: checking id: NormalContext2 with status 0 in mode DM_DECLS 
@@ -281,6 +498,8 @@ is_typedef_name: Looking for PVOID in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: PVOID with status 1 in mode DM_DECLS 
@@ -288,6 +507,8 @@ is_typedef_name: Looking for SystemArgument1 in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found SystemArgument1 is a basic IDENTIFIER
 Lexer FSM: checking id: SystemArgument1 with status 0 in mode DM_DECLS 
@@ -296,6 +517,8 @@ is_typedef_name: Looking for PVOID in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: PVOID with status 1 in mode DM_DECLS 
@@ -303,6 +526,8 @@ is_typedef_name: Looking for SystemArgument2 in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found SystemArgument2 is a basic IDENTIFIER
 Lexer FSM: checking id: SystemArgument2 with status 0 in mode DM_DECLS 
@@ -313,14 +538,18 @@ is_typedef_name: Looking for chris2 in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found chris2 is a basic IDENTIFIER
 Lexer FSM: checking id: chris2 with status 0 in mode DM_SPECS (in member namespace)
-direct_declarator: in member namespace: chris2 on line 31
+direct_declarator: in member namespace: chris2 on line 44
 is_typedef_name: Looking for PVOID2 in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: PVOID2 with status 1 in mode DM_DECLS 
@@ -330,6 +559,8 @@ is_typedef_name: Looking for PVOID in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: PVOID with status 1 in mode DM_NONE (in member namespace)
@@ -337,17 +568,21 @@ is_typedef_name: Looking for NormalContext3 in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found NormalContext3 is a basic IDENTIFIER
 Lexer FSM: checking id: NormalContext3 with status 0 in mode DM_SPECS (in member namespace)
-direct_declarator: in member namespace: NormalContext3 on line 32
+direct_declarator: in member namespace: NormalContext3 on line 45
 Debug: create_declaration_specifiers returned: spec([], UC_PVOID)
-end of stand alone declaration specifier as a declaration on line 33
+end of stand alone declaration specifier as a declaration on line 46
 Debug: create_declaration_specifiers returned: spec([], struct(UC__KAPC, [struct_decl(spec([], void), [function(ptr_decl(pointer, RundownRoutine), [param(spec([], int), X)])]), struct_decl(spec([], void), [function(ptr_decl(pointer, NormalRoutine), [param(spec([], UC_PVOID), UC_NormalContext2), param(spec([], UC_PVOID), UC_SystemArgument1), param(spec([], UC_PVOID), UC_SystemArgument2)])]), struct_decl(spec([], int), [array_decl(chris2, size_of_type(spec([], UC_PVOID2)))]), struct_decl(spec([], UC_PVOID), [NormalContext3])]))
 is_typedef_name: Looking for tl_last_error in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found tl_last_error is a basic IDENTIFIER
 Lexer FSM: checking id: tl_last_error with status 0 in mode DM_SPECS 
@@ -357,6 +592,8 @@ is_typedef_name: Looking for aws_raise_error_private in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found aws_raise_error_private is a basic IDENTIFIER
 Lexer FSM: checking id: aws_raise_error_private with status 0 in mode DM_SPECS 
@@ -364,6 +601,8 @@ is_typedef_name: Looking for err in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found err is a basic IDENTIFIER
 Lexer FSM: checking id: err with status 0 in mode DM_DECLS 
@@ -373,6 +612,8 @@ is_typedef_name: Looking for tl_last_error in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found tl_last_error is a basic IDENTIFIER
 Lexer FSM: checking id: tl_last_error with status 0 in mode DM_NONE 
@@ -380,6 +621,8 @@ is_typedef_name: Looking for err in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found err is a basic IDENTIFIER
 Lexer FSM: checking id: err with status 0 in mode DM_NONE 
@@ -389,6 +632,8 @@ is_typedef_name: Looking for x in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found x is a basic IDENTIFIER
 Lexer FSM: checking id: x with status 0 in mode DM_SPECS 
@@ -397,6 +642,8 @@ is_typedef_name: Looking for p in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found p is a basic IDENTIFIER
 Lexer FSM: checking id: p with status 0 in mode DM_DECLS 
@@ -404,6 +651,8 @@ is_typedef_name: Looking for x in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found x is a basic IDENTIFIER
 Lexer FSM: checking id: x with status 0 in mode DM_DECLS 
@@ -412,6 +661,8 @@ is_typedef_name: Looking for pp in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found pp is a basic IDENTIFIER
 Lexer FSM: checking id: pp with status 0 in mode DM_DECLS 
@@ -419,6 +670,8 @@ is_typedef_name: Looking for p in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found p is a basic IDENTIFIER
 Lexer FSM: checking id: p with status 0 in mode DM_DECLS 
@@ -427,6 +680,8 @@ is_typedef_name: Looking for __VERIFIER_nondet_int in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found __VERIFIER_nondet_int is a basic IDENTIFIER
 Lexer FSM: checking id: __VERIFIER_nondet_int with status 0 in mode DM_SPECS 
@@ -438,6 +693,8 @@ is_typedef_name: Looking for my_int56 in typedef list
 Scope 0:
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found my_int56 is a basic IDENTIFIER
 Lexer FSM: checking id: my_int56 with status 0 in mode DM_SPECS 
@@ -450,6 +707,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found my_f is a basic IDENTIFIER
 Lexer FSM: checking id: my_f with status 0 in mode DM_SPECS 
@@ -461,6 +720,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: my_int56 with status 1 in mode DM_NONE 
@@ -469,6 +730,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found MyFuncPtr is a basic IDENTIFIER
 Lexer FSM: checking id: MyFuncPtr with status 0 in mode DM_DECLS 
@@ -486,6 +749,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: my_int56 with status 1 in mode DM_NONE 
@@ -495,6 +760,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found MyFuncPtr_Pointer is a basic IDENTIFIER
 Lexer FSM: checking id: MyFuncPtr_Pointer with status 0 in mode DM_DECLS 
@@ -512,6 +779,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: my_int56 with status 1 in mode DM_NONE 
@@ -522,6 +791,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found my_callback_ptr is a basic IDENTIFIER
 Lexer FSM: checking id: my_callback_ptr with status 0 in mode DM_DECLS 
@@ -536,12 +807,14 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: my_int56 with status 1 in mode DM_SPECS 
 Lexer Debug: peek found: (
 add_typedef_id: Added my_int56 as a shadow IDENTIFIER to typedef list
-Lexer Debug: SHADOWING of a typedef_name found: my_int56 on line 47
+Lexer Debug: SHADOWING of a typedef_name found: my_int56 on line 60
 is_typedef_name: Looking for x in typedef list
 Scope 0:
 	my_int56 is a shadow IDENTIFIER
@@ -550,6 +823,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found x is a basic IDENTIFIER
 Lexer FSM: checking id: x with status 0 in mode DM_DECLS 
@@ -568,6 +843,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found umode_t is a basic IDENTIFIER
 Lexer FSM: checking id: umode_t with status 0 in mode DM_SPECS 
@@ -576,7 +853,7 @@ add_typedef_id: Added umode_t as a TYPEDEF_NAME to typedef list
 Debug: typedef switched to 0
 Debug: create_declaration_specifiers returned: spec([typedef], unsigned(short))
 Lexer FSM: bypassing typedef_name check in mode DM_SPECS: id: kobject is a tag
-end of stand alone declaration specifier as a declaration on line 50
+end of stand alone declaration specifier as a declaration on line 63
 Debug: create_declaration_specifiers returned: spec([], struct(Kobject))
 Lexer FSM: bypassing typedef_name check in mode DM_SPECS: id: attribute is a tag
 is_typedef_name: Looking for name in typedef list
@@ -588,10 +865,12 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found name is a basic IDENTIFIER
 Lexer FSM: checking id: name with status 0 in mode DM_DECLS (in member namespace)
-direct_declarator: in member namespace: name on line 52
+direct_declarator: in member namespace: name on line 65
 Warning: the 'const' qualifier is always ignored by the parser because it has no impact on symbolic execution
 Debug: create_declaration_specifiers returned: spec([], char)
 is_typedef_name: Looking for umode_t in typedef list
@@ -603,6 +882,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: umode_t with status 1 in mode DM_NONE (in member namespace)
@@ -615,12 +896,14 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found mode is a basic IDENTIFIER
 Lexer FSM: checking id: mode with status 0 in mode DM_SPECS (in member namespace)
-direct_declarator: in member namespace: mode on line 53
+direct_declarator: in member namespace: mode on line 66
 Debug: create_declaration_specifiers returned: spec([], Umode_t)
-end of stand alone declaration specifier as a declaration on line 54
+end of stand alone declaration specifier as a declaration on line 67
 Debug: create_declaration_specifiers returned: spec([], struct(Attribute, [struct_decl(spec([], char), [ptr_decl(pointer, name)]), struct_decl(spec([], Umode_t), [mode])]))
 is_typedef_name: Looking for umode_t in typedef list
 Scope 0:
@@ -631,6 +914,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: umode_t with status 1 in mode DM_NONE 
@@ -643,6 +928,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found is_visible is a basic IDENTIFIER
 Lexer FSM: checking id: is_visible with status 0 in mode DM_DECLS 
@@ -664,10 +951,12 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found name is a basic IDENTIFIER
 Lexer FSM: checking id: name with status 0 in mode DM_DECLS (in member namespace)
-direct_declarator: in member namespace: name on line 57
+direct_declarator: in member namespace: name on line 70
 Warning: the 'const' qualifier is always ignored by the parser because it has no impact on symbolic execution
 Debug: create_declaration_specifiers returned: spec([], char)
 is_typedef_name: Looking for umode_t in typedef list
@@ -679,6 +968,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: umode_t with status 1 in mode DM_NONE (in member namespace)
@@ -691,10 +982,12 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found is_visible is a basic IDENTIFIER
 Lexer FSM: checking id: is_visible with status 0 in mode DM_DECLS (in member namespace)
-direct_declarator: in member namespace: is_visible on line 58
+direct_declarator: in member namespace: is_visible on line 71
 Lexer FSM: bypassing typedef_name check in mode DM_DECLS: id: kobject is a tag
 Debug: create_declaration_specifiers returned: spec([], struct(Kobject))
 Lexer FSM: bypassing typedef_name check in mode DM_DECLS: id: attribute is a tag
@@ -712,12 +1005,14 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found attrs is a basic IDENTIFIER
 Lexer FSM: checking id: attrs with status 0 in mode DM_DECLS (in member namespace)
-direct_declarator: in member namespace: attrs on line 59
+direct_declarator: in member namespace: attrs on line 72
 Debug: create_declaration_specifiers returned: spec([], struct(Attribute))
-end of stand alone declaration specifier as a declaration on line 60
+end of stand alone declaration specifier as a declaration on line 73
 Debug: create_declaration_specifiers returned: spec([], struct(Attribute_group, [struct_decl(spec([], char), [ptr_decl(pointer, name)]), struct_decl(spec([], Umode_t), [function(ptr_decl(pointer, is_visible), [unnamed_param(spec([], struct(Kobject)), dummy_abstract_declarator), unnamed_param(spec([], struct(Attribute)), dummy_abstract_declarator), unnamed_param(spec([], int), [])])]), struct_decl(spec([], struct(Attribute)), [ptr_decl(pointer(pointer, pointer), attrs)])]))
 Debug: typedef switched to 1
 is_typedef_name: Looking for size_t in typedef list
@@ -729,6 +1024,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found size_t is a basic IDENTIFIER
 Lexer FSM: checking id: size_t with status 0 in mode DM_SPECS 
@@ -747,6 +1044,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found ssize_t is a basic IDENTIFIER
 Lexer FSM: checking id: ssize_t with status 0 in mode DM_SPECS 
@@ -766,6 +1065,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: ssize_t with status 1 in mode DM_NONE (in member namespace)
@@ -780,10 +1081,12 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found show is a basic IDENTIFIER
 Lexer FSM: checking id: show with status 0 in mode DM_DECLS (in member namespace)
-direct_declarator: in member namespace: show on line 64
+direct_declarator: in member namespace: show on line 77
 Lexer FSM: bypassing typedef_name check in mode DM_DECLS: id: kobject is a tag
 Debug: create_declaration_specifiers returned: spec([], struct(Kobject))
 Lexer FSM: bypassing typedef_name check in mode DM_DECLS: id: attribute is a tag
@@ -802,6 +1105,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: ssize_t with status 1 in mode DM_NONE (in member namespace)
@@ -816,10 +1121,12 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found store is a basic IDENTIFIER
 Lexer FSM: checking id: store with status 0 in mode DM_DECLS (in member namespace)
-direct_declarator: in member namespace: store on line 65
+direct_declarator: in member namespace: store on line 78
 Lexer FSM: bypassing typedef_name check in mode DM_DECLS: id: kobject is a tag
 Debug: create_declaration_specifiers returned: spec([], struct(Kobject))
 Lexer FSM: bypassing typedef_name check in mode DM_DECLS: id: attribute is a tag
@@ -837,6 +1144,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: size_t with status 1 in mode DM_DECLS 
@@ -854,10 +1163,12 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found namespace is a basic IDENTIFIER
 Lexer FSM: checking id: namespace with status 0 in mode DM_DECLS (in member namespace)
-direct_declarator: in member namespace: namespace on line 66
+direct_declarator: in member namespace: namespace on line 79
 Lexer FSM: bypassing typedef_name check in mode DM_DECLS: id: kobject is a tag
 Debug: create_declaration_specifiers returned: spec([], struct(Kobject))
 Lexer FSM: bypassing typedef_name check in mode DM_DECLS: id: attribute is a tag
@@ -866,10 +1177,10 @@ Debug: create_declaration_specifiers returned: spec([], struct(Attribute))
 Trying to Pop scope 1 when scope_stack scope_nb is 0
 Warning: the 'const' qualifier is always ignored by the parser because it has no impact on symbolic execution
 Debug: create_declaration_specifiers returned: spec([], void)
-end of stand alone declaration specifier as a declaration on line 67
+end of stand alone declaration specifier as a declaration on line 80
 Debug: create_declaration_specifiers returned: spec([], struct(Sysfs_ops, [struct_decl(spec([], Ssize_t), [function(ptr_decl(pointer, show), [unnamed_param(spec([], struct(Kobject)), dummy_abstract_declarator), unnamed_param(spec([], struct(Attribute)), dummy_abstract_declarator), unnamed_param(spec([], char), dummy_abstract_declarator)])]), struct_decl(spec([], Ssize_t), [function(ptr_decl(pointer, store), [unnamed_param(spec([], struct(Kobject)), dummy_abstract_declarator), unnamed_param(spec([], struct(Attribute)), dummy_abstract_declarator), unnamed_param(spec([], char), dummy_abstract_declarator), unnamed_param(spec([], Size_t), [])])]), struct_decl(spec([], void), [ptr_decl(pointer, function(ptr_decl(pointer, namespace), [unnamed_param(spec([], struct(Kobject)), dummy_abstract_declarator), unnamed_param(spec([], struct(Attribute)), dummy_abstract_declarator)]))])]))
 Lexer FSM: bypassing typedef_name check in mode DM_SPECS: id: ctl_table is a tag
-end of stand alone declaration specifier as a declaration on line 68
+end of stand alone declaration specifier as a declaration on line 81
 Debug: create_declaration_specifiers returned: spec([], struct(Ctl_table))
 Debug: typedef switched to 1
 Lexer FSM: bypassing typedef_name check in mode DM_SPECS: id: ctl_table is a tag
@@ -884,6 +1195,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found ctl_table is a basic IDENTIFIER
 Lexer FSM: checking id: ctl_table with status 0 in mode DM_NONE (in member namespace)
@@ -904,6 +1217,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found loff_t is a basic IDENTIFIER
 Lexer FSM: checking id: loff_t with status 0 in mode DM_SPECS 
@@ -925,6 +1240,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found proc_handler is a basic IDENTIFIER
 Lexer FSM: checking id: proc_handler with status 0 in mode DM_SPECS 
@@ -942,6 +1259,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found ctl is a basic IDENTIFIER
 Lexer FSM: checking id: ctl with status 0 in mode DM_SPECS 
@@ -959,6 +1278,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found write is a basic IDENTIFIER
 Lexer FSM: checking id: write with status 0 in mode DM_DECLS 
@@ -976,6 +1297,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found buffer is a basic IDENTIFIER
 Lexer FSM: checking id: buffer with status 0 in mode DM_DECLS 
@@ -993,6 +1316,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: size_t with status 1 in mode DM_DECLS 
@@ -1009,6 +1334,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found lenp is a basic IDENTIFIER
 Lexer FSM: checking id: lenp with status 0 in mode DM_DECLS 
@@ -1026,6 +1353,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: loff_t with status 1 in mode DM_DECLS 
@@ -1042,6 +1371,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found ppos is a basic IDENTIFIER
 Lexer FSM: checking id: ppos with status 0 in mode DM_DECLS 
@@ -1066,10 +1397,12 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found procname is a basic IDENTIFIER
 Lexer FSM: checking id: procname with status 0 in mode DM_DECLS (in member namespace)
-direct_declarator: in member namespace: procname on line 73
+direct_declarator: in member namespace: procname on line 86
 Warning: the 'const' qualifier is always ignored by the parser because it has no impact on symbolic execution
 Debug: create_declaration_specifiers returned: spec([], char)
 is_typedef_name: Looking for data in typedef list
@@ -1086,10 +1419,12 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found data is a basic IDENTIFIER
 Lexer FSM: checking id: data with status 0 in mode DM_DECLS (in member namespace)
-direct_declarator: in member namespace: data on line 74
+direct_declarator: in member namespace: data on line 87
 Debug: create_declaration_specifiers returned: spec([], void)
 is_typedef_name: Looking for maxlen in typedef list
 Scope 0:
@@ -1105,10 +1440,12 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found maxlen is a basic IDENTIFIER
 Lexer FSM: checking id: maxlen with status 0 in mode DM_SPECS (in member namespace)
-direct_declarator: in member namespace: maxlen on line 75
+direct_declarator: in member namespace: maxlen on line 88
 Debug: create_declaration_specifiers returned: spec([], int)
 is_typedef_name: Looking for umode_t in typedef list
 Scope 0:
@@ -1124,6 +1461,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: umode_t with status 1 in mode DM_NONE (in member namespace)
@@ -1141,10 +1480,12 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found mode is a basic IDENTIFIER
 Lexer FSM: checking id: mode with status 0 in mode DM_SPECS (in member namespace)
-direct_declarator: in member namespace: mode on line 76
+direct_declarator: in member namespace: mode on line 89
 Debug: create_declaration_specifiers returned: spec([], Umode_t)
 Lexer FSM: bypassing typedef_name check in mode DM_SPECS: id: ctl_table is a tag
 is_typedef_name: Looking for child in typedef list
@@ -1161,10 +1502,12 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found child is a basic IDENTIFIER
 Lexer FSM: checking id: child with status 0 in mode DM_SPECS (in member namespace)
-direct_declarator: in member namespace: child on line 77
+direct_declarator: in member namespace: child on line 90
 Debug: create_declaration_specifiers returned: spec([], struct(Ctl_table))
 is_typedef_name: Looking for proc_handler in typedef list
 Scope 0:
@@ -1180,6 +1523,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: proc_handler with status 1 in mode DM_NONE (in member namespace)
@@ -1197,11 +1542,13 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: proc_handler with status 1 in mode DM_DECLS (in member namespace)
-Lexer Debug: a real typedef_name in DECLS mode found in member namespce is an IDENTIFIER: proc_handler on line 78
-direct_declarator: in member namespace: proc_handler on line 78
+Lexer Debug: a real typedef_name in DECLS mode found in member namespce is an IDENTIFIER: proc_handler on line 91
+direct_declarator: in member namespace: proc_handler on line 91
 Debug: create_declaration_specifiers returned: spec([], Proc_handler)
 Lexer FSM: bypassing typedef_name check in mode DM_SPECS: id: ctl_table_poll is a tag
 is_typedef_name: Looking for poll in typedef list
@@ -1218,10 +1565,12 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found poll is a basic IDENTIFIER
 Lexer FSM: checking id: poll with status 0 in mode DM_SPECS (in member namespace)
-direct_declarator: in member namespace: poll on line 79
+direct_declarator: in member namespace: poll on line 92
 Debug: create_declaration_specifiers returned: spec([], struct(Ctl_table_poll))
 is_typedef_name: Looking for extra1 in typedef list
 Scope 0:
@@ -1237,10 +1586,12 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found extra1 is a basic IDENTIFIER
 Lexer FSM: checking id: extra1 with status 0 in mode DM_DECLS (in member namespace)
-direct_declarator: in member namespace: extra1 on line 80
+direct_declarator: in member namespace: extra1 on line 93
 Debug: create_declaration_specifiers returned: spec([], void)
 is_typedef_name: Looking for extra2 in typedef list
 Scope 0:
@@ -1256,12 +1607,14 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found extra2 is a basic IDENTIFIER
 Lexer FSM: checking id: extra2 with status 0 in mode DM_DECLS (in member namespace)
-direct_declarator: in member namespace: extra2 on line 81
+direct_declarator: in member namespace: extra2 on line 94
 Debug: create_declaration_specifiers returned: spec([], void)
-end of stand alone declaration specifier as a declaration on line 82
+end of stand alone declaration specifier as a declaration on line 95
 Debug: create_declaration_specifiers returned: spec([], struct(Ctl_table, [struct_decl(spec([], char), [ptr_decl(pointer, procname)]), struct_decl(spec([], void), [ptr_decl(pointer, data)]), struct_decl(spec([], int), [maxlen]), struct_decl(spec([], Umode_t), [mode]), struct_decl(spec([], struct(Ctl_table)), [ptr_decl(pointer, child)]), struct_decl(spec([], Proc_handler), [ptr_decl(pointer, proc_handler)]), struct_decl(spec([], struct(Ctl_table_poll)), [ptr_decl(pointer, poll)]), struct_decl(spec([], void), [ptr_decl(pointer, extra1)]), struct_decl(spec([], void), [ptr_decl(pointer, extra2)])]))
 Lexer FSM: bypassing typedef_name check in mode DM_SPECS: id: __anonstruct____missing_field_name_212 is a tag
 Lexer FSM: bypassing typedef_name check in mode DM_SPECS: id: ctl_table is a tag
@@ -1279,11 +1632,13 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: ctl_table with status 1 in mode DM_SPECS (in member namespace)
 Lexer Debug: peek found: ;
-direct_declarator: in member namespace: ctl_table on line 84
+direct_declarator: in member namespace: ctl_table on line 97
 Debug: create_declaration_specifiers returned: spec([], struct(Ctl_table))
 is_typedef_name: Looking for used in typedef list
 Scope 0:
@@ -1299,10 +1654,12 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found used is a basic IDENTIFIER
 Lexer FSM: checking id: used with status 0 in mode DM_SPECS (in member namespace)
-direct_declarator: in member namespace: used on line 85
+direct_declarator: in member namespace: used on line 98
 Debug: create_declaration_specifiers returned: spec([], int)
 is_typedef_name: Looking for count in typedef list
 Scope 0:
@@ -1318,10 +1675,12 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found count is a basic IDENTIFIER
 Lexer FSM: checking id: count with status 0 in mode DM_SPECS (in member namespace)
-direct_declarator: in member namespace: count on line 86
+direct_declarator: in member namespace: count on line 99
 Debug: create_declaration_specifiers returned: spec([], int)
 is_typedef_name: Looking for nreg in typedef list
 Scope 0:
@@ -1337,12 +1696,14 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found nreg is a basic IDENTIFIER
 Lexer FSM: checking id: nreg with status 0 in mode DM_SPECS (in member namespace)
-direct_declarator: in member namespace: nreg on line 87
+direct_declarator: in member namespace: nreg on line 100
 Debug: create_declaration_specifiers returned: spec([], int)
-end of stand alone declaration specifier as a declaration on line 88
+end of stand alone declaration specifier as a declaration on line 101
 Debug: create_declaration_specifiers returned: spec([], struct(UC___anonstruct____missing_field_name_212, [struct_decl(spec([], struct(Ctl_table)), [ptr_decl(pointer, ctl_table)]), struct_decl(spec([], int), [used]), struct_decl(spec([], int), [count]), struct_decl(spec([], int), [nreg])]))
 Debug: typedef switched to 1
 is_typedef_name: Looking for __gnuc_va_list in typedef list
@@ -1359,12 +1720,14 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: __gnuc_va_list with status 1 in mode DM_SPECS 
 Lexer Debug: peek found: [
 add_typedef_id: Added __gnuc_va_list as a shadow IDENTIFIER to typedef list
-Lexer Debug: SHADOWING of a typedef_name found: __gnuc_va_list on line 89
+Lexer Debug: SHADOWING of a typedef_name found: __gnuc_va_list on line 102
 DEBUG: typedef_flag=1, ptr_declarator=UC___gnuc_va_list
 add_typedef_id: Added __gnuc_va_list as a TYPEDEF_NAME to typedef list
 Debug: typedef switched to 0
@@ -1387,6 +1750,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found __uint64_t is a basic IDENTIFIER
 Lexer FSM: checking id: __uint64_t with status 0 in mode DM_SPECS 
@@ -1412,6 +1777,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: __uint64_t with status 1 in mode DM_NONE 
@@ -1432,6 +1799,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found uint64_t is a basic IDENTIFIER
 Lexer FSM: checking id: uint64_t with status 0 in mode DM_SPECS 
@@ -1458,6 +1827,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: uint64_t with status 1 in mode DM_NONE 
@@ -1479,6 +1850,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found aws_hash_fn is a basic IDENTIFIER
 Lexer FSM: checking id: aws_hash_fn with status 0 in mode DM_DECLS 
@@ -1500,6 +1873,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found key is a basic IDENTIFIER
 Lexer FSM: checking id: key with status 0 in mode DM_DECLS 
@@ -1529,6 +1904,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found my_func is a basic IDENTIFIER
 Lexer FSM: checking id: my_func with status 0 in mode DM_SPECS 
@@ -1554,6 +1931,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found main is a basic IDENTIFIER
 Lexer FSM: checking id: main with status 0 in mode DM_SPECS 
@@ -1577,6 +1956,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found v is a basic IDENTIFIER
 Lexer FSM: checking id: v with status 0 in mode DM_SPECS 
@@ -1599,6 +1980,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found __VERIFIER_nondet_int is a basic IDENTIFIER
 Lexer FSM: checking id: __VERIFIER_nondet_int with status 0 in mode DM_DECLS 
@@ -1622,6 +2005,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found x is a basic IDENTIFIER
 Lexer FSM: checking id: x with status 0 in mode DM_SPECS 
@@ -1645,6 +2030,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found v is a basic IDENTIFIER
 Lexer FSM: checking id: v with status 0 in mode DM_NONE 
@@ -1667,6 +2054,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found x is a basic IDENTIFIER
 Lexer FSM: checking id: x with status 0 in mode DM_NONE 
@@ -1689,6 +2078,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found x is a basic IDENTIFIER
 Lexer FSM: checking id: x with status 0 in mode DM_NONE 
@@ -1712,6 +2103,8 @@ Scope 0:
 	my_int56 is a TYPEDEF_NAME
 	PVOID2 is a TYPEDEF_NAME
 	PVOID is a TYPEDEF_NAME
+	u_int32_t is a TYPEDEF_NAME
+	__uint32_t is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found x is a basic IDENTIFIER
 Lexer FSM: checking id: x with status 0 in mode DM_NONE 

@@ -49,10 +49,12 @@ const char* token_name(int);
 int yycolumn = 1;
 
 #define YY_USER_ACTION \
+    if (!peeking) { \
     yylloc.first_line = yylloc.last_line = yylineno; \
     yylloc.first_column = yycolumn; \
     yylloc.last_column = yycolumn + yyleng - 1; \
-    yycolumn += yyleng;
+    yycolumn += yyleng; \
+    }
 %}
 
 %x ASM_QUALIFIER
@@ -156,8 +158,9 @@ WS  [ \t\v\n\f]
 "_Float64"              { if (!peeking) fsm_from_none_to_spec(); return(DOUBLE); }     //GCC builtin 64-bit floating-point type
 "__float128"            { if (!peeking) fsm_from_none_to_spec(); return(FLOAT128); }   //GCC builtin 128-bit floating-point type
 "_Float128"             { if (!peeking) fsm_from_none_to_spec(); return(FLOAT128); }   //GCC builtin 128-bit floating-point type
-"__builtin_offsetof"    { if (!peeking) fsm_from_none_to_spec(); return(OFFSETOF);}    //GCC builtin function: first argument is a type_name second a member/identifier
-"__builtin_va_arg"      { if (!peeking) return(BUILTIN_VA_ARG); }                      //GCC builtin function: requires-types/member/identifier as arguments
+"__builtin_offsetof"    { return(OFFSETOF);}    //GCC builtin function: first argument is a type_name second a member/identifier
+"__builtin_types_compatible_p"    { return(TYPESCOMPATIBLEP);}    //GCC builtin function: int __builtin_types_compatible_p(type1, type2)
+"__builtin_va_arg"      { return(BUILTIN_VA_ARG); }                      //GCC builtin function: requires-types/member/identifier as arguments
 "__builtin_va_list"     { if (!peeking) fsm_from_none_to_spec(); return(VA_LIST); }    //GCC builtin type: variable argument list
 "_Alignas"              { if (!peeking) fsm_from_none_to_spec(); return ALIGNAS; }
 "_Alignof"              { if (!peeking) fsm_from_none_to_spec(); return ALIGNOF; }
@@ -363,7 +366,7 @@ WS  [ \t\v\n\f]
                                 case '\v': /* treat like a single column advance */
                                 case '\f': yycolumn += 1; break;
                                 case '\t': {
-                                    const int tabstop = 4; /* pick your tab width */
+                                    const int tabstop = 2; /* pick your tab width */
                                     int advance = tabstop - ((yycolumn - 1) % tabstop);
                                     yycolumn += advance;
                                     break;

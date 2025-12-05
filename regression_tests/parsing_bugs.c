@@ -1,3 +1,16 @@
+struct inpcb *in_pcbffffffffffhashlookup(struct inpcbtable *, struct in_addr, int,
+                                 struct in_addr, int , int, int);                               
+typedef unsigned int __uint32_t;
+typedef __uint32_t u_int32_t;
+struct baddynamicports {
+  u_int32_t tcp[((((65536) + (((sizeof(u_int32_t) * 8)) - 1)) /
+                  ((sizeof(u_int32_t) * 8))))];
+  u_int32_t udp[((((65536) + (((sizeof(u_int32_t) * 8)) - 1)) /
+                  ((sizeof(u_int32_t) * 8))))];
+};
+extern struct baddynamicports baddynamicports;
+extern struct baddynamicports rootonlyports;
+void in_losing(struct inpcb *);
 void f() {
    int x0 = ({ //statement expression in GCC
       int a = 5;

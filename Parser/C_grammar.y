@@ -115,7 +115,7 @@ enum ParserExitCodes {
 %token	CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
 %token ALIGNAS ALIGNOF ATOMIC_SPECIFIER ATOMIC GENERIC NORETURN STATIC_ASSERT THREAD_LOCAL
-%token INT128 FLOAT128 VA_LIST OFFSETOF BUILTIN_VA_ARG TYPEOF TYPEOF_UNQUAL
+%token INT128 FLOAT128 VA_LIST OFFSETOF TYPESCOMPATIBLEP BUILTIN_VA_ARG TYPEOF TYPEOF_UNQUAL
 
 %type <id> init_declarator initializer pointer pointer_star init_declarator_list 
 %type <id> abstract_declarator_opt
@@ -136,7 +136,6 @@ enum ParserExitCodes {
 %type <id> declaration declaration_list_opt old_style_declaration_list 
 %type <id> function_definition rest_function_definition
 %type <id> rest_direct_declarator
-%type <id> builtin_va_arg_expr
 %type <for_stmt_type> for_stmt_type
 %type <declarator_type> declarator direct_declarator 
 
@@ -169,7 +168,13 @@ primary_expression
 		 free($2);
 		}
 	| generic_selection		{simple_str_lit_copy(&$$, "generic_selection");}
-	| builtin_va_arg_expr	{$$ = $1;}
+	| BUILTIN_VA_ARG '(' assignment_expression ',' type_name ')'
+	  {size_t const size = strlen("builtin_va_arg_expr(, )") + strlen($3) + strlen($5) + 1;
+	   $$ = (char*)malloc(size);
+	   sprintf_safe($$, size, "builtin_va_arg_expr(%s, %s)", $3, $5);
+	   free($3);
+	   free($5);
+	  }
 	| OFFSETOF '(' type_name ',' IDENTIFIER ')'			//GCC builtin function requiring non expression argument
 	  {size_t const size = strlen("offsetof(, )") + strlen($3) + strlen($5) + 1;
 	   $$ = (char*)malloc(size);
@@ -177,17 +182,14 @@ primary_expression
 	   free($3);
 	   free($5);
 	  }
-	;
-
-builtin_va_arg_expr
-    : BUILTIN_VA_ARG '(' assignment_expression ',' type_name ')'
-	  {size_t const size = strlen("builtin_va_arg_expr(, )") + strlen($3) + strlen($5) + 1;
+	| TYPESCOMPATIBLEP '(' type_name ',' type_name ')'
+	  {size_t const size = strlen("types_compatible_p(, )") + strlen($3) + strlen($5) + 1;
 	   $$ = (char*)malloc(size);
-	   sprintf_safe($$, size, "builtin_va_arg_expr(%s, %s)", $3, $5);
+	   sprintf_safe($$, size, "types_compatible_p(%s, %s)", $3, $5);
 	   free($3);
 	   free($5);
 	  }
-    ;
+	;
 
 constant
 	: I_CONSTANT		/* includes character_constant */
@@ -1594,13 +1596,13 @@ int main(int argc, char *argv[]) {
 //handles parsing errors: since the C input file is the output of a C pre-processor it will only be called if
 //  the syntax rules are wrong due to GCC extensions 
 //  or if the .i file has been badly generated manually: i.e. during development
-/*void yyerror(const char* s) {
+void yyerror_old(const char* s) {
 	extern char* yytext;  	// Points to the text of the current token
     extern int yyleng;    	// Length of the current token
     fflush(stdout);			//to ensure all previous information messages are printed out of buffer before the error message
     fprintf(stderr, "Sikraken Parsing error: %s, at line %d, near token '%s' (token code: %d)\n", s, yylineno, yytext, yychar);
 	fprintf(stderr, "Unexpected token: %s\n", token_name(yychar)); 
-}*/
+}
 
 /* Non-reentrant yyerror: uses global yylloc and yylineno */
 void yyerror(const char* s) {
@@ -1615,11 +1617,7 @@ void yyerror(const char* s) {
     const char *tokname = token_name(tok); /* you already have token_name(int) */
 
     /* Print precise location using yylloc (line:column span) */
-    fprintf(stderr,
-            "Sikraken Parsing error: %s at %d:%d–%d:%d\n",
-            s,
-            yylloc.first_line, yylloc.first_column,
-            yylloc.last_line,  yylloc.last_column);
+    fprintf(stderr, "Sikraken Parsing error: %s at %d:%d–%d:%d\n", s, yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column);
 
     /* Nice “near token …” line; fall back if no yytext */
     if (yytext && yyleng > 0) {
@@ -1634,7 +1632,6 @@ void yyerror(const char* s) {
         fprintf(stderr, "Token: <no lookahead>\n");
     }
 }
-
 
 const char *token_name(int token) {
     if (token >= 0 && token <= 255) {  // a char token
