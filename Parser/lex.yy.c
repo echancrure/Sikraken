@@ -1723,14 +1723,14 @@ YY_RULE_SETUP
                                     return IDENTIFIER;
                                 case 1:         // a typedef name
                                     if (decl_mode == DM_SPECS) {                        //In type specifier mode
-                                        // Predict whether THIS occurrence is in fact a declarator name (i.e. an actual SHADOWING IDENTIFIER deand switch to DM_DECLS mode) or not (a true TYPEDEF_NAME and stay in DM_SPECS)
+                                        // Predict whether THIS occurrence is in fact a declarator name (i.e. an actual SHADOWING IDENTIFIER and switch to DM_DECLS mode) or not (a true TYPEDEF_NAME and stay in DM_SPECS)
                                         int nxt = peek_and_push_token();
                                         if (debugMode) {printf("Lexer Debug: peek found: %s\n", token_name(nxt)); fflush(stdout);}
-                                        if (nxt == ')') {   // e.g. cast, parenthesized type like (Type name), or function declaration — definitely a TYPEDEF_NAME here : cannot be a declaration
+                                        /*if (nxt == ')') {   // e.g. cast, parenthesized type like (Type name), or function declaration — definitely a TYPEDEF_NAME here : cannot be a declaration
                                             if (debugMode) printf("Lexer Debug: a real typedef_name in SPECS mode found: %s on line %d\n", yylval.id, yylineno);
                                             //stay in SPECS mode
                                             return TYPEDEF_NAME;
-                                        }
+                                        }*/
                                         if (is_declarator_follower(nxt)) {  /* Right after THIS typedef_name comes (, [, ',', '=', ';' → it's acting as a DECLARATOR NAME */
                                             if (!in_member_namespace) {
                                                 add_typedef_id(current_scope, yylval.id, 2);   //2 indicates that it is a SHADOWING IDENTIFIER
@@ -1746,9 +1746,9 @@ YY_RULE_SETUP
                                         if (debugMode) printf("Lexer Debug: a real typedef_name in DECLS mode found in member namespce is an IDENTIFIER: %s on line %d\n", yylval.id, yylineno);
                                         return IDENTIFIER;   //in member name space an id cannot be typedef names except in DM_SPECS mode (handled above) sometimes, and in DM_NONE
                                     }
-                                    if (decl_mode == DM_DECLS) decl_mode = DM_DECLS;    //useless but for completeness
+                                    if (decl_mode == DM_DECLS) decl_mode = DM_DECLS;    //useless but for symmetry
                                     return TYPEDEF_NAME;
-                                case 0:         //am ordinary identifier
+                                case 0:         //not a typedef, just an ordinary identifier
                                 default:
                                     if (decl_mode == DM_SPECS) decl_mode = DM_DECLS;
                                     return IDENTIFIER;
@@ -2063,7 +2063,7 @@ YY_RULE_SETUP
 case 130:
 YY_RULE_SETUP
 #line 356 "C_grammar.l"
-{ if (!peeking) {if (decl_mode != DM_NONE) decl_mode = DM_DECLS;} return '*'; }
+{ return '*'; }
 	YY_BREAK
 case 131:
 YY_RULE_SETUP

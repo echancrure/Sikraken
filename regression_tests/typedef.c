@@ -1,3 +1,8 @@
+struct tabletop;
+typedef struct tabletop tabletop;
+typedef int entier;
+static int *inSpecMode(int tabletop, int x);  //tabletop is wrongly identified as a TYPEDEF_NAME here
+static int *allocate_entry_120489(int entier);  //entier is wrongly identified as a TYPEDEF_NAME here
 extern int __VERIFIER_nondet_int();
 //21 Nov
 typedef int my_int44, my_int45, my_int46;

@@ -1,3 +1,5 @@
+typedef int MYINT;
+MYINT myint;
 struct table;
 typedef struct table table;
 struct table {
