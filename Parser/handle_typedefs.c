@@ -81,8 +81,10 @@ void add_typedef_id(int scope, char* id, int is_typedef_name) {
 		if (debugMode) fprintf(stderr, "add_typedef_id: Creating a new scope in because current scope is %d but incoming scope is %d\n", scope_stack->scope_nb, scope);
 		push_scope(scope);
 	}
-	if (!strncmp(id, "UC_", 3)) id = &id[3];	//removing the "UC_"  prefix before adding to collection of typedef
-	else id[0] = tolower(id[0]);	//lowering the first letter before adding to collection of typedef
+	if (is_typedef_name == 1) { //we remove the UC_ or the uppercase for typedef_name only because shadow identifiers are not transformed as prolog vars when this is called
+		if (!strncmp(id, "UC_", 3)) id = &id[3];	//removing the "UC_"  prefix before adding to collection of typedef
+		else id[0] = tolower(id[0]);	//lowering the first letter before adding to collection of typedef
+	}
 	list_node* new_node = (list_node *)safe_malloc(sizeof(list_node));	
 	new_node->is_typedef_name = is_typedef_name;
 	new_node->name = (char*)safe_malloc(strlen(id) + 1);

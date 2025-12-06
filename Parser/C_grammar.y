@@ -63,17 +63,20 @@ int in_tag_declaration = 0;		//indicates to the lexer that we are in the tag nam
 int in_member_namespace = 0;	//indicates to the lexer that we are in the member namespace (for members of structs and unions) and that identifier should not be checked for typedef
 int in_label_namespace = 0;		//used in lexer
 
+int function_declaration_flag = 0; //indicates that we are potentially within a function declaration (to manage typedef scope correctly)
+
 int current_scope = 0;
 
 char *current_function;			//we keep track of the function being parsed so that we can add it to goto statements
 
+int FSM_off;
+int FSM_in_PD_mode;
+void FSM_reset(void);
+void FSM_basic_type_read(void);
+void FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(void);  
+
 void yyerror(const char*);
 void my_exit(int);				//attempts to close handles and delete generated files prior to caling exit(int);
-
-void fsm_reset(void);
-void fsm_set_to_specs(void);
-void fsm_from_none_to_spec(void);
-
 
 enum ParserExitCodes {
     SUCCESS = 0,
@@ -154,7 +157,7 @@ primary_expression
 		}
 	| constant
 	| string
-	| '(' {current_scope++; fsm_reset();} compound_statement ')'	//GCC statement-expression
+	| '(' {current_scope++; FSM_reset();} compound_statement ')'	//GCC statement-expression
 		{pop_scope(&current_scope);
 		 size_t const size = strlen("\nstmt_exp()") + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
@@ -568,7 +571,7 @@ constant_expression
 	;
 
 declaration
-	: type_declaration_specifiers {fsm_reset();} ';'
+	: type_declaration_specifiers {FSM_reset();} ';'
 		{if (debugMode) printf("end of stand alone declaration specifier as a declaration on line %d\n", yylineno);
 		 char *decl_specifier = create_declaration_specifiers();
 		 size_t const size = strlen("\ndeclaration()") + strlen(decl_specifier) + 1;
@@ -576,10 +579,14 @@ declaration
 		 sprintf_safe($$, size, "\ndeclaration(%s)", decl_specifier);
 		 free(decl_specifier);
 		}
-	| type_declaration_specifiers init_declarator_list {fsm_reset();} ';' 
+	| type_declaration_specifiers init_declarator_list {FSM_reset();} ';' 
 	  	{if (typedef_flag == 1) {	//we were processing typedef declarations [why not done above?]
 	    	typedef_flag = 0; 
 			if (debugMode) printf("Debug: typedef switched to 0\n");
+	   	 }
+		 if (function_declaration_flag == 1) {	//we were processing a function declaration
+	    	function_declaration_flag = 0;
+			pop_scope(&current_scope); 
 	   	 }
 		 char *decl_specifier = create_declaration_specifiers();
 		 size_t const size = strlen("\ndeclaration(, [])") + strlen(decl_specifier) + strlen($2) + 1;
@@ -625,13 +632,13 @@ init_declarator_list
 	;
 
 init_declarator
-	: declarator '=' initializer	
-		{size_t const size = strlen("initialised(, )") + strlen($1.full) + strlen($3) + 1;
+	: declarator {FSM_off = 1;} '=' initializer	
+		{size_t const size = strlen("initialised(, )") + strlen($1.full) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
-	   	 sprintf_safe($$, size, "initialised(%s, %s)", $1.full, $3);
+	   	 sprintf_safe($$, size, "initialised(%s, %s)", $1.full, $4);
 	   	 free($1.full);
 		 free($1.ptr_declarator);
-	   	 free($3);
+	   	 free($4);
 	  	}
 	| declarator	// at the global level always add the empty initialiser: initializer([]) to trigger initialisation to 0, otherwise add 'no_initializer'
 		{if (debugMode) printf("DEBUG: typedef_flag=%d, ptr_declarator=%s\n", typedef_flag, $1.ptr_declarator);
@@ -689,13 +696,21 @@ typeof_specifier
     | TYPEOF_UNQUAL rest_typeof_specifier
     ;
 rest_typeof_specifier
-	: '(' expression ')'
+	: '(' expression ')' 
+		{FSM_off = 0;
+		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
+		}
 	| '(' type_name ')'
+		{FSM_off = 0;
+		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
+		}
 	;
 
 struct_or_union_specifier
 	: struct_or_union set_tag0 '}'		//anonymous EMPTY struct or union (GNU extension)
 		{in_member_namespace = 0;
+		 FSM_off = 0;
+		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
 		 size_t const size = strlen("('anonymous', [])") + strlen($1) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "%s('anonymous', [])", $1);
@@ -703,6 +718,8 @@ struct_or_union_specifier
 	    }
 	| struct_or_union set_tag0 struct_declaration_list '}'		//anonymous struct or union
 		{in_member_namespace = 0;
+		 FSM_off = 0;
+		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
 		 size_t const size = strlen("('anonymous', [])") + strlen($1) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "%s('anonymous', [%s])", $1, $3);
@@ -711,6 +728,8 @@ struct_or_union_specifier
 	    }
 	| struct_or_union tag_name  '{' '}'	//Tag namespace Id declaration (EMPTY, GNU extension)
 		{in_member_namespace = 0;
+		 FSM_off = 0;
+		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
 		 size_t const size = strlen("(, [])") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "%s(%s, [])", $1, $2);
@@ -719,6 +738,8 @@ struct_or_union_specifier
 	    }
 	| struct_or_union tag_name '{' struct_declaration_list '}'	//Tag namespace Id declaration
 		{in_member_namespace = 0;
+		 FSM_off = 0;
+		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
 		 size_t const size = strlen("(, [])") + strlen($1) + strlen($2) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "%s(%s, [%s])", $1, $2, $4);
@@ -727,8 +748,9 @@ struct_or_union_specifier
 		 free($4);
 	    }
 	| struct_or_union tag_name	//forward declaration Tag namespace Id declaration or as part of a variable or member declaration
-		{fsm_from_none_to_spec();
-		 in_member_namespace = 0;
+		{in_member_namespace = 0;
+		 FSM_off = 0;
+		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
 		 size_t const size = strlen("%s(%s)") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "%s(%s)", $1, $2);
@@ -741,7 +763,6 @@ set_tag0 :
 	'{' 
 		{in_tag_declaration = 0;
 		 in_member_namespace = 1;
-		 fsm_reset();
 		}
 	;	
 
@@ -749,7 +770,6 @@ tag_name :
 	IDENTIFIER
 		{in_tag_declaration = 0;
 		 in_member_namespace = 1;
-		 fsm_reset();
 		 $$ = to_prolog_var($1);
 		 free($1);
 		}
@@ -780,23 +800,23 @@ struct_declaration_list
 // in_member_namespace cannot be set to 1 in the grammar: same problem with shadow identifiers, a token needs to be read ahead 
 struct_declaration
 	: specifier_qualifier_list ';'	//for inner "Anonymous Members in Structs" C11
-		{fsm_reset();
+		{FSM_reset();
 		 char *decl_specifier = create_declaration_specifiers();
 		 size_t const size = strlen("anonymous_member()") + strlen(decl_specifier) + 1;
        	 $$ = (char*)malloc(size);
          sprintf_safe($$, size, "anonymous_member(%s)", decl_specifier);
 	   	 free(decl_specifier);
         }
-	| specifier_qualifier_list {in_member_namespace = 1;} struct_declarator_list {fsm_reset();} ';'
+	| specifier_qualifier_list struct_declarator_list {FSM_reset();} ';'	//cannot set in_member_namespace = 1; in between: it is too late: the declarator token has already been read
 		{char *decl_specifier = create_declaration_specifiers();
-		 size_t const size = strlen("struct_decl(, [])") + strlen(decl_specifier) + strlen($3) + 1;
+		 size_t const size = strlen("struct_decl(, [])") + strlen(decl_specifier) + strlen($2) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_safe($$, size, "struct_decl(%s, [%s])", decl_specifier, $3);
+         sprintf_safe($$, size, "struct_decl(%s, [%s])", decl_specifier, $2);
 	   	 free(decl_specifier);
-		 free($3);
+		 free($2);
         }
 	| static_assert_declaration		//somehow the ; is in that rule
-		{fsm_reset();
+		{FSM_reset();
 		 $$ = $1;
 		 pop_decl_spec_stack(); 
 		}
@@ -850,7 +870,8 @@ struct_declarator		//added to avoid reduce-reduce conflict
 
 enum_specifier
 	: ENUM '{' enumerator_list comma_opt '}'
-		{if (!strcmp($4, ",")) {
+		{FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
+		 if (!strcmp($4, ",")) {
 			size_t const size = strlen("trailing_comma_anonymous_enum([])") + strlen($3) + 1;
        	 	$$ = (char*)malloc(size);
          	sprintf_safe($$, size, "trailing_comma_anonymous_enum([%s])", $3);
@@ -863,7 +884,8 @@ enum_specifier
 		 free($4);
         }
 	| ENUM {in_tag_declaration = 1;} enum_tag_name enum_specifier_rest 	//Tag namespace Id declaration ; 
-		{size_t const size = strlen("enum(, [])") + strlen($3) + strlen($4) + 1;
+		{FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
+		 size_t const size = strlen("enum(, [])") + strlen($3) + strlen($4) + 1;
        	 $$ = (char*)malloc(size);
          sprintf_safe($$, size, "enum(%s, [%s])", $3, $4);
 	     free($3);
@@ -995,8 +1017,9 @@ direct_declarator
 		 free($3);
 		 $$.ptr_declarator = $1.ptr_declarator;
 		}
-	| direct_declarator {if (in_member_namespace) in_member_namespace=0; current_scope++; } '(' rest_function_definition ')'
-		{pop_scope(&current_scope);
+	| direct_declarator {if (in_member_namespace) in_member_namespace=0; current_scope++; FSM_in_PD_mode = 1;} '(' rest_function_definition ')'
+		{FSM_in_PD_mode = 0;
+		 function_declaration_flag = 1;	//we are potentially in a function declaration
 		 size_t const size = strlen("function(, )") + strlen($1.full) + strlen($4) + 1;
 	     $$.full = (char*)malloc(size);
 	     sprintf_safe($$.full, size, "function(%s, %s)", $1.full, $4);
@@ -1265,7 +1288,7 @@ designator
 	;
 
 static_assert_declaration
-	: STATIC_ASSERT '(' constant_expression ',' STRING_LITERAL ')' {fsm_reset();} ';'
+	: STATIC_ASSERT '(' constant_expression ',' STRING_LITERAL ')' {FSM_reset();} ';'
 		{size_t const size = strlen("static_assert(, )") + strlen($3) + strlen($5) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "static_assert(%s, %s)", $3, $5);
@@ -1276,7 +1299,7 @@ static_assert_declaration
 
 statement
 	: labeled_statement
-	| {current_scope++; fsm_reset();} 
+	| {current_scope++; FSM_reset();} 
 	  compound_statement	
 	  {pop_scope(&current_scope);
 	   $$ = $2;
@@ -1322,7 +1345,7 @@ labeled_statement
 
 compound_statement	//aka a 'block'
 	: '{' '}'	{simple_str_lit_copy(&$$, "\ncmp_stmts([])");}
-	| '{' block_item_list '}' //too late to call fsm_reset(); after '{' : the next token has already been read: must call fsm_reset(); before every call to compound_statement
+	| '{' block_item_list '}' //too late to call FSM_reset(); after '{' : the next token has already been read: must call FSM_reset(); before every call to compound_statement
 	  {size_t const size = strlen("\ncmp_stmts([\n])") + strlen($2) + 1;
 	   $$ = (char*)malloc(size);
 	   sprintf_safe($$, size, "\ncmp_stmts([%s\n])", $2);
@@ -1331,9 +1354,9 @@ compound_statement	//aka a 'block'
 	;
 
 block_item_list
-	: {push_decl_spec_stack();} block_item {fsm_reset(); $$ = $2;}
+	: {push_decl_spec_stack();} block_item {FSM_reset(); $$ = $2;}
 	| block_item_list {push_decl_spec_stack();} block_item
-	  {fsm_reset();
+	  {FSM_reset();
 	   size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
 	   $$ = (char*)malloc(size);
 	   sprintf_safe($$, size, "%s, %s", $1, $3);
@@ -1483,8 +1506,10 @@ external_declaration		//printed out
 		}
 	;
 function_definition
-	: type_declaration_specifiers declarator declaration_list_opt {fsm_reset();} compound_statement
-		{char *decl_specifier = create_declaration_specifiers();
+	: type_declaration_specifiers declarator declaration_list_opt {FSM_reset();} compound_statement
+		{pop_scope(&current_scope);
+		 function_declaration_flag = 0;	//this was not a function declaration
+		 char *decl_specifier = create_declaration_specifiers();
 		 size_t const size = strlen("function(, , [], )") + strlen(decl_specifier) + strlen($2.full) + strlen($3) + strlen($5) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "function(%s, %s, [%s], %s)", decl_specifier, $2.full, $3, $5);
