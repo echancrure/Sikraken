@@ -7,8 +7,8 @@ struct table {
     int type;
     int value;
 };
-static int *inSpecMode(int table);  //table is wrongly identified as a TYPEDEF_NAME here
-static int *allocate_entry_120489(int *table);  //table is wrongly identified as a TYPEDEF_NAME here
+static int *inSpecMode(int table);  //table is declared as shadow identifier
+static int *allocate_entry_120489(int *table);  //table is declared as shadow identifier
 struct inpcb *in_pcbffffffffffhashlookup(struct inpcbtable *, struct in_addr, int,
                                  struct in_addr, int , int, int);                               
 typedef unsigned int __uint32_t;
@@ -92,7 +92,7 @@ struct sysfs_ops {
 struct ctl_table;          //forward declaration
 typedef struct ctl_table ctl_table;    //typedef
 typedef long long loff_t;
-typedef int proc_handler(struct ctl_table *ctl , int write , void *buffer , size_t *lenp , loff_t *ppos );
+typedef int proc_handler(struct ctl_table *ctl , int write , void *buffer , size_t *lenp , loff_t *ppos );  //typedef proc_handler is a function type
 struct ctl_table {
    char const *procname ;
    void *data ;

@@ -580,11 +580,10 @@ declaration
 		 free(decl_specifier);
 		}
 	| type_declaration_specifiers init_declarator_list {FSM_reset();} ';' 
-	  	{if (typedef_flag == 1) {	//we were processing typedef declarations [why not done above?]
+	  	{if (typedef_flag) {	//we were processing typedef declarations [why not done above?]
 	    	typedef_flag = 0; 
 			if (debugMode) printf("Debug: typedef switched to 0\n");
-	   	 }
-		 if (function_declaration_flag == 1) {	//we were processing a function declaration
+	   	 } else if (function_declaration_flag) {	//we were processing a function declaration, but not as a typedef function type
 	    	function_declaration_flag = 0;
 			pop_scope(&current_scope); 
 	   	 }
@@ -632,8 +631,9 @@ init_declarator_list
 	;
 
 init_declarator
-	: declarator {FSM_off = 1;} '=' initializer	
-		{size_t const size = strlen("initialised(, )") + strlen($1.full) + strlen($4) + 1;
+	: declarator {FSM_off = 1;} '=' initializer
+		{FSM_off = 0;
+		 size_t const size = strlen("initialised(, )") + strlen($1.full) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
 	   	 sprintf_safe($$, size, "initialised(%s, %s)", $1.full, $4);
 	   	 free($1.full);
@@ -642,7 +642,7 @@ init_declarator
 	  	}
 	| declarator	// at the global level always add the empty initialiser: initializer([]) to trigger initialisation to 0, otherwise add 'no_initializer'
 		{if (debugMode) printf("DEBUG: typedef_flag=%d, ptr_declarator=%s\n", typedef_flag, $1.ptr_declarator);
-			if (typedef_flag == 1) {	// we are parsing a typedef declaration
+		 if (typedef_flag == 1) {	// we are parsing a typedef declaration
 			add_typedef_id(current_scope, $1.ptr_declarator, 1);	//the id as a TYPEDEF_NAME is added to the data structures keeping track of typedef_names (and ids shadowing)
 	   	 }
 		 free($1.ptr_declarator);
@@ -697,11 +697,11 @@ typeof_specifier
     ;
 rest_typeof_specifier
 	: '(' expression ')' 
-		{FSM_off = 0;
+		{FSM_off = 0;	//switched on in lexer on seeing TYPEOF or TYPEOF_UNQUAL 
 		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
 		}
 	| '(' type_name ')'
-		{FSM_off = 0;
+		{FSM_off = 0;	//switched on in lexer on seeing TYPEOF or TYPEOF_UNQUAL 
 		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
 		}
 	;
@@ -709,7 +709,6 @@ rest_typeof_specifier
 struct_or_union_specifier
 	: struct_or_union set_tag0 '}'		//anonymous EMPTY struct or union (GNU extension)
 		{in_member_namespace = 0;
-		 FSM_off = 0;
 		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
 		 size_t const size = strlen("('anonymous', [])") + strlen($1) + 1;
 	     $$ = (char*)malloc(size);
@@ -718,7 +717,6 @@ struct_or_union_specifier
 	    }
 	| struct_or_union set_tag0 struct_declaration_list '}'		//anonymous struct or union
 		{in_member_namespace = 0;
-		 FSM_off = 0;
 		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
 		 size_t const size = strlen("('anonymous', [])") + strlen($1) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
@@ -728,7 +726,6 @@ struct_or_union_specifier
 	    }
 	| struct_or_union tag_name  '{' '}'	//Tag namespace Id declaration (EMPTY, GNU extension)
 		{in_member_namespace = 0;
-		 FSM_off = 0;
 		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
 		 size_t const size = strlen("(, [])") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
@@ -738,7 +735,6 @@ struct_or_union_specifier
 	    }
 	| struct_or_union tag_name '{' struct_declaration_list '}'	//Tag namespace Id declaration
 		{in_member_namespace = 0;
-		 FSM_off = 0;
 		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
 		 size_t const size = strlen("(, [])") + strlen($1) + strlen($2) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
@@ -831,11 +827,19 @@ specifier_qualifier_list
 
 struct_declarator_list
 	: struct_declarator 
-		{in_member_namespace = 1;
+		{if (function_declaration_flag == 1) {	//we were processing a function declaration
+	    	function_declaration_flag = 0;
+			pop_scope(&current_scope); 
+	   	 }
+		 in_member_namespace = 1;
 		 $$= $1;
 		}
 	| struct_declarator_list ',' struct_declarator
-		{in_member_namespace = 1; 
+		{if (function_declaration_flag == 1) {	//we were processing a function declaration
+	    	function_declaration_flag = 0;
+			pop_scope(&current_scope); 
+	   	 }
+		 in_member_namespace = 1; 
 		 size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
          sprintf_safe($$, size, "%s, %s", $1, $3);
@@ -1009,17 +1013,26 @@ direct_declarator
 		//many need in_member_namespace = 0; in case we are within a union or struct to indicate that we just processed the member and the rest my involve typedefs see diary 12/11/24
 		{$$ = $2;
 		}
-	| direct_declarator {if (in_member_namespace) in_member_namespace=0; } rest_direct_declarator
-		{size_t const size = strlen("array_decl(, )") + strlen($1.full) + strlen($3) + 1;
+	| direct_declarator {if (in_member_namespace) in_member_namespace=0; FSM_off = 1;} rest_direct_declarator
+		{FSM_off = 0;
+		 size_t const size = strlen("array_decl(, )") + strlen($1.full) + strlen($3) + 1;
          $$.full = (char*)malloc(size);
          sprintf_safe($$.full, size, "array_decl(%s, %s)", $1.full, $3);
 		 free($1.full);
 		 free($3);
 		 $$.ptr_declarator = $1.ptr_declarator;
 		}
-	| direct_declarator {if (in_member_namespace) in_member_namespace=0; current_scope++; FSM_in_PD_mode = 1;} '(' rest_function_definition ')'
+	| direct_declarator 
+		{if (in_member_namespace) in_member_namespace=0; 
+		if (!typedef_flag) {
+			current_scope++; 
+			function_declaration_flag = 1;	//we are potentially in a function declaration
+			if (debugMode) printf("the current_scope has just been increased to %d before a list of parameters\n", current_scope);
+		}
+		FSM_in_PD_mode = 1;
+		} 
+	  '(' rest_function_definition ')'
 		{FSM_in_PD_mode = 0;
-		 function_declaration_flag = 1;	//we are potentially in a function declaration
 		 size_t const size = strlen("function(, )") + strlen($1.full) + strlen($4) + 1;
 	     $$.full = (char*)malloc(size);
 	     sprintf_safe($$.full, size, "function(%s, %s)", $1.full, $4);
@@ -1506,9 +1519,8 @@ external_declaration		//printed out
 		}
 	;
 function_definition
-	: type_declaration_specifiers declarator declaration_list_opt {FSM_reset();} compound_statement
+	: type_declaration_specifiers declarator declaration_list_opt {FSM_reset(); function_declaration_flag = 0;} compound_statement
 		{pop_scope(&current_scope);
-		 function_declaration_flag = 0;	//this was not a function declaration
 		 char *decl_specifier = create_declaration_specifiers();
 		 size_t const size = strlen("function(, , [], )") + strlen(decl_specifier) + strlen($2.full) + strlen($3) + strlen($5) + 1;
 	     $$ = (char*)malloc(size);
