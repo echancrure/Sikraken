@@ -364,7 +364,7 @@ unary_operator
 
 cast_expression
 	: unary_expression
-	| '('  type_name ')' cast_expression
+	| '(' type_name ')' cast_expression
 		{size_t const size = strlen("cast(, )") + strlen($2) + strlen($4) + 1;
 		 $$ = (char*)malloc(size);
 		 sprintf_safe($$, size, "cast(%s, %s)", $2, $4);

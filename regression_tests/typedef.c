@@ -1,7 +1,7 @@
 typedef int MY_INT, MY_INT2, MY_INT3, MY_INT4;
 void fn42(void) {
     int MY_INT; //shadowing declaration
-    MY_INT = 56;
+    MY_INT = (MY_INT2) 56;  //MY_INT2 may trigger a shadow declaration, if you do not differentiate between statements and declarations
     typeof(MY_INT) MY_INT2; //MY_INT2 shadows the typedef//enum {MY_INT3} MY_INT4; //MY_INT3 shadows the typedef, so does MY_INT4
 }
 int v1, v2, v3;
