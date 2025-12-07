@@ -73,7 +73,8 @@ int FSM_off;
 int FSM_in_PD_mode;
 void FSM_reset(void);
 void FSM_basic_type_read(void);
-void FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(void);  
+enum yytokentype; 
+void FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(enum yytokentype);  
 
 void yyerror(const char*);
 void my_exit(int);				//attempts to close handles and delete generated files prior to caling exit(int);
@@ -698,18 +699,18 @@ typeof_specifier
 rest_typeof_specifier
 	: '(' expression ')' 
 		{FSM_off = 0;	//switched on in lexer on seeing TYPEOF or TYPEOF_UNQUAL 
-		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
+		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
 		}
 	| '(' type_name ')'
 		{FSM_off = 0;	//switched on in lexer on seeing TYPEOF or TYPEOF_UNQUAL 
-		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
+		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
 		}
 	;
 
 struct_or_union_specifier
 	: struct_or_union set_tag0 '}'		//anonymous EMPTY struct or union (GNU extension)
 		{in_member_namespace = 0;
-		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
+		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
 		 size_t const size = strlen("('anonymous', [])") + strlen($1) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "%s('anonymous', [])", $1);
@@ -717,7 +718,7 @@ struct_or_union_specifier
 	    }
 	| struct_or_union set_tag0 struct_declaration_list '}'		//anonymous struct or union
 		{in_member_namespace = 0;
-		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
+		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
 		 size_t const size = strlen("('anonymous', [])") + strlen($1) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "%s('anonymous', [%s])", $1, $3);
@@ -726,7 +727,7 @@ struct_or_union_specifier
 	    }
 	| struct_or_union tag_name  '{' '}'	//Tag namespace Id declaration (EMPTY, GNU extension)
 		{in_member_namespace = 0;
-		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
+		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
 		 size_t const size = strlen("(, [])") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "%s(%s, [])", $1, $2);
@@ -735,7 +736,7 @@ struct_or_union_specifier
 	    }
 	| struct_or_union tag_name '{' struct_declaration_list '}'	//Tag namespace Id declaration
 		{in_member_namespace = 0;
-		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
+		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
 		 size_t const size = strlen("(, [])") + strlen($1) + strlen($2) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "%s(%s, [%s])", $1, $2, $4);
@@ -746,7 +747,7 @@ struct_or_union_specifier
 	| struct_or_union tag_name	//forward declaration Tag namespace Id declaration or as part of a variable or member declaration
 		{in_member_namespace = 0;
 		 FSM_off = 0;
-		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
+		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
 		 size_t const size = strlen("%s(%s)") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "%s(%s)", $1, $2);
@@ -874,7 +875,7 @@ struct_declarator		//added to avoid reduce-reduce conflict
 
 enum_specifier
 	: ENUM '{' enumerator_list comma_opt '}'
-		{FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
+		{FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
 		 if (!strcmp($4, ",")) {
 			size_t const size = strlen("trailing_comma_anonymous_enum([])") + strlen($3) + 1;
        	 	$$ = (char*)malloc(size);
@@ -888,7 +889,7 @@ enum_specifier
 		 free($4);
         }
 	| ENUM {in_tag_declaration = 1;} enum_tag_name enum_specifier_rest 	//Tag namespace Id declaration ; 
-		{FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
+		{FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
 		 size_t const size = strlen("enum(, [])") + strlen($3) + strlen($4) + 1;
        	 $$ = (char*)malloc(size);
          sprintf_safe($$, size, "enum(%s, [%s])", $3, $4);
@@ -1331,16 +1332,6 @@ labeled_statement
 	   free($1);
 	   free($3);
 	  }
-	  /*
-	| //fake rule in case a label is wrongly identified as a TYPEDEF_NAME
-	  TYPEDEF_NAME ':' statement 	//Label Id declaration
-	  {size_t const size = strlen("label_stmt(, )") + strlen($1) + strlen($3) + 1;
-	   $$ = (char*)malloc(size);
-	   sprintf_safe($$, size, "label_stmt(%s, %s)", $1, $3);
-	   free($1);
-	   free($3);
-	  }
-	  */
 	| CASE constant_expression ':' statement
 	  {size_t const size = strlen("case_stmt(branch(, ), )") + MAX_BRANCH_STR + strlen($2) + strlen($4) + 1;
 	   $$ = (char*)malloc(size);

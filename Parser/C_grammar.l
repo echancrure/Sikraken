@@ -32,23 +32,25 @@ char *add_missing_zero_before_decimal_point(const char *, int);
 int open_parens = 0;        //Declaration in the definitions section
 
 //FSM Section
-int FSM_in_PD_mode = 0;              //1 if we are in the Parameter Declaration FSM mode, 0 if we are in the Variable Declaration FSM mode
+int FSM_in_PD_mode = 0;             //1 if we are in the Parameter Declaration FSM mode, 0 if we are in the Variable Declaration FSM mode
 int FSM_off = 0;                    //do not trigger any transactions when lexing IDENTIFIERS because we are in an expression context or a different name space
                                     //but still lookup for typedef_names and shadowing identifiers to return IDENTIFIER or TYPEDEF_NAME correctly
                                     // called for struct, union declaration, typeof, typeof_unqual, 
 static const char* FSM_mode_str(void);            // return a string representing the current FSM mode for debugging
 void FSM_reset(void);               // reset the 2 FSMs to initial state
+void FSM_start_statement(void);     // execute the transition in the 2 FSMs, triggered a token that can start a statement is read: in wait states the FSMs go to sink
+void FSM_start_type_read(void);     // execute the transition in the 2 FSMs, triggered when a type specifier is read
 void FSM_basic_type_read(void);     // execute the transition in the 2 FSMs, triggered when a basic type keyword is read
-void FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(void);     // execute the transition in the 2 FSMs, triggered when a TYPEDEF_NAME, typeof(...), STRUCT, UNIUN or ENUM or IDENTIFIER is read
+void FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(enum yytokentype);     // execute the transition in the 2 FSMs, triggered when a TYPEDEF_NAME, typeof(...), STRUCT, UNIUN or ENUM or IDENTIFIER is read
 void FSM_COMMA_read(void);          // only when in state PD_DECIDE_PARAM_KIND and a comma is read, we transition to PD_UNNAMED_PARAMETERS
 
 //FSM for Shadow Var Declarations
-typedef enum {VD_WAIT_VAR_TYPE, VD_VAR_DECL} VD_state_t;
-VD_state_t VD_state = VD_WAIT_VAR_TYPE;
+typedef enum {VD_NONE, VD_WAIT_VAR_TYPE, VD_NOT_VAR_DECL, VD_VAR_DECL} VD_state_t;
+VD_state_t VD_state = VD_NONE;
 
 //FSM to Shadow Parameter Declarations
-typedef enum { PD_WAIT_PARAM_TYPE, PD_DECIDE_PARAM_KIND, PD_UNNAMED_PARAMETERS, PD_WAIT_NAMED_PARAM_TYPE, PD_PARAM_DECL } PD_state_t;
-PD_state_t PD_state = PD_WAIT_PARAM_TYPE;
+typedef enum {PD_NONE, PD_WAIT_PARAM_TYPE, PD_NOT_PARAM_DECL, PD_DECIDE_PARAM_KIND, PD_UNNAMED_PARAMETERS, PD_WAIT_NAMED_PARAM_TYPE, PD_PARAM_DECL} PD_state_t;
+PD_state_t PD_state = PD_NONE;
 
 extern const char *const yytname[];  // to access token names
 const char* token_name(int);
@@ -120,72 +122,72 @@ WS  [ \t\v\n\f]
     exit(LEXING_FAILURE);
 }
 "auto"					{ FSM_basic_type_read(); return(AUTO); }
-"break"					{ return(BREAK); }
-"case"					{ return(CASE); }
+"break"					{ FSM_start_statement(); return(BREAK); }
+"case"					{ FSM_start_statement(); return(CASE); }
 "char"					{ FSM_basic_type_read(); return(CHAR); }
-"const"					{ return(CONST); }
-"__const"				{ return(CONST); }       //GCC version of CONST
-"continue"				{ return(CONTINUE); }
-"default"				{ return(DEFAULT); }
-"do"					{ return(DO); }
+"const"					{ FSM_start_type_read(); return(CONST); }
+"__const"				{ FSM_start_type_read(); return(CONST); }       //GCC version of CONST
+"continue"				{ FSM_start_statement(); return(CONTINUE); }
+"default"				{ FSM_start_statement(); return(DEFAULT); }
+"do"					{ FSM_start_statement(); return(DO); }
 "double"				{ FSM_basic_type_read(); return(DOUBLE); }
 "else"					{ return(ELSE); }
-"enum"					{ return(ENUM); }
-"extern"				{ return(EXTERN); }
+"enum"					{ FSM_start_type_read(); return(ENUM); }
+"extern"				{ FSM_start_type_read(); return(EXTERN); }
 "float"					{ FSM_basic_type_read(); return(FLOAT); }
-"for"					{ return(FOR); }
-"goto"					{ in_label_namespace = 1; return(GOTO); } //special namespace for labels GOTO
-"if"					{ return(IF); }
-"inline"				{ return(INLINE); }
-"__inline"				{ return(INLINE); }     //GCC version of INLINE
+"for"					{ FSM_start_statement(); return(FOR); }
+"goto"					{ FSM_start_statement(); in_label_namespace = 1; return(GOTO); } //special namespace for labels GOTO
+"if"					{ FSM_start_statement(); return(IF); }
+"inline"				{ FSM_start_type_read(); return(INLINE); }
+"__inline"				{ FSM_start_type_read(); return(INLINE); }     //GCC version of INLINE
 "int"					{ FSM_basic_type_read(); return(INT); }
 "long"					{ FSM_basic_type_read(); return(LONG); }
 "register"				{ FSM_basic_type_read(); return(REGISTER); }
-"restrict"				{ return(RESTRICT); }
-"__restrict"            { return(RESTRICT); }   //GCC version of RESTRICT
-"return"				{ return(RETURN); }
+"restrict"				{ FSM_start_type_read(); return(RESTRICT); }
+"__restrict"            { FSM_start_type_read(); return(RESTRICT); }   //GCC version of RESTRICT
+"return"				{ FSM_start_statement(); return(RETURN); }
 "short"					{ FSM_basic_type_read(); return(SHORT); }
 "signed"				{ FSM_basic_type_read(); return(SIGNED); }  //signed on its own is allowed, so it is a basic type
 "__signed__"			{ FSM_basic_type_read(); return(SIGNED); }  //GCC version of SIGNED
-"sizeof"				{ return(SIZEOF); }
-"static"				{ return(STATIC); }
-"struct"				{ return(STRUCT); }
-"switch"				{ return(SWITCH); }
-"typedef"				{ return(TYPEDEF); }
-"union"					{ return(UNION); }
+"sizeof"				{ FSM_start_statement(); return(SIZEOF); }
+"static"				{ FSM_start_type_read(); return(STATIC); }
+"struct"				{ FSM_start_type_read(); return(STRUCT); }
+"switch"				{ FSM_start_statement(); return(SWITCH); }
+"typedef"				{ FSM_start_type_read(); return(TYPEDEF); }
+"union"					{ FSM_start_type_read(); return(UNION); }
 "unsigned"				{ FSM_basic_type_read(); return(UNSIGNED); }    //unsigned on its own is allowed, so it is a basic type
 "void"					{ FSM_basic_type_read(); return(VOID); }
-"volatile"				{ return(VOLATILE); }
-"__volatile__"			{ return(VOLATILE); }   //GCC version of VOLATILE
-"while"					{ return(WHILE); }
+"volatile"				{ FSM_start_type_read(); return(VOLATILE); }
+"__volatile__"			{ FSM_start_type_read(); return(VOLATILE); }   //GCC version of VOLATILE
+"while"					{ FSM_start_statement(); return(WHILE); }
 "__int128"              { FSM_basic_type_read(); return(INT128); }     //GCC builtin 128-bit integer type
 "_Float32"              { FSM_basic_type_read(); return(FLOAT); }      //GCC builtin 32-bit floating-point type
 "_Float64"              { FSM_basic_type_read(); return(DOUBLE); }     //GCC builtin 64-bit floating-point type
 "__float128"            { FSM_basic_type_read(); return(FLOAT128); }   //GCC builtin 128-bit floating-point type
 "_Float128"             { FSM_basic_type_read(); return(FLOAT128); }   //GCC builtin 128-bit floating-point type
-"__builtin_offsetof"    { return(OFFSETOF);}    //GCC builtin function: first argument is a type_name second a member/identifier
-"__builtin_types_compatible_p"    { return(TYPESCOMPATIBLEP);}    //GCC builtin function: int __builtin_types_compatible_p(type1, type2)
-"__builtin_va_arg"      { return(BUILTIN_VA_ARG); }                      //GCC builtin function: requires-types/member/identifier as arguments
+"__builtin_offsetof"    { FSM_start_statement(); return(OFFSETOF);}                            //GCC builtin function: first argument is a type_name second a member/identifier
+"__builtin_types_compatible_p"    { FSM_start_statement(); return(TYPESCOMPATIBLEP);}    //GCC builtin function: int __builtin_types_compatible_p(type1, type2)
+"__builtin_va_arg"      { FSM_start_statement(); return(BUILTIN_VA_ARG); }                      //GCC builtin function: requires-types/member/identifier as arguments
 "__builtin_va_list"     { FSM_basic_type_read(); return(VA_LIST); }    //GCC builtin type: variable argument list
-"_Alignas"              { return ALIGNAS; }
-"_Alignof"              { return ALIGNOF; }
-"__alignof__"           { return ALIGNOF; }      //GCC version of ALIGNOF
-"_Atomic"{WS}*"("       { return ATOMIC_SPECIFIER; }
-"_Atomic"               { return ATOMIC; }
+"_Alignas"              { FSM_start_type_read(); return ALIGNAS; }     //a type specifier e.g.: _Alignas(type) or _Alignas(constant-expression)
+"_Alignof"              { FSM_start_statement(); return ALIGNOF; }
+"__alignof__"           { FSM_start_statement(); return ALIGNOF; }      //GCC version of ALIGNOF e.g.: __alignof__(type)
+"_Atomic"{WS}*"("       { FSM_start_type_read(); return ATOMIC_SPECIFIER; } //a type specifier
+"_Atomic"               { FSM_start_type_read(); return ATOMIC; }  
 "_Bool"                 { FSM_basic_type_read(); return BOOL; }
 "_Complex"              { FSM_basic_type_read(); return COMPLEX; }
-"_Generic"              { return GENERIC; }
+"_Generic"              { FSM_start_type_read(); return GENERIC; }
 "_Imaginary"            { FSM_basic_type_read(); return IMAGINARY; }
-"_Noreturn"             { return NORETURN; }
-"_Static_assert"        { return STATIC_ASSERT; }
-"_Thread_local"         { return THREAD_LOCAL; }
-"__thread"              { return THREAD_LOCAL; }
-"__PRETTY_FUNCTION__"   { return FUNC_NAME; }   //__PRETTY_FUNCTION__ is a GCC extension: an enhanced version of __func__; which we ignore 
-"__func__"              { return FUNC_NAME; }
-"typeof_unqual"         { FSM_off = 1; return TYPEOF_UNQUAL; }   //C23 and GCC extension
-"__typeof_unqual__"     { FSM_off = 1; return TYPEOF_UNQUAL; }   //C23 and GCC extension
-"typeof"                { FSM_off = 1; return TYPEOF; }   //C23 and GCC extension
-"__typeof__"            { FSM_off = 1; return TYPEOF; }   //GCC extension
+"_Noreturn"             { FSM_start_type_read(); return NORETURN; }
+"_Static_assert"        { FSM_start_statement(); return STATIC_ASSERT; }
+"_Thread_local"         { FSM_start_type_read(); return THREAD_LOCAL; }
+"__thread"              { FSM_start_type_read(); return THREAD_LOCAL; }
+"__PRETTY_FUNCTION__"   { FSM_start_statement(); return FUNC_NAME; }   //__PRETTY_FUNCTION__ is a GCC extension: an enhanced version of __func__; which we ignore 
+"__func__"              { FSM_start_statement(); return FUNC_NAME; }
+"typeof_unqual"         { FSM_start_type_read(); FSM_off = 1; return TYPEOF_UNQUAL; }   //C23 and GCC extension
+"__typeof_unqual__"     { FSM_start_type_read(); FSM_off = 1; return TYPEOF_UNQUAL; }   //C23 and GCC extension
+"typeof"                { FSM_start_type_read(); FSM_off = 1; return TYPEOF; }   //C23 and GCC extension
+"__typeof__"            { FSM_start_type_read(); FSM_off = 1; return TYPEOF; }   //GCC extension
 
 {L}{A}*                     {size_t const size = strlen(yytext) + 1;
                              yylval.id = (char*)malloc(size);
@@ -213,15 +215,15 @@ WS  [ \t\v\n\f]
                                     if (PD_state == PD_DECIDE_PARAM_KIND || PD_state == PD_PARAM_DECL) {
                                         add_typedef_id(current_scope, yylval.id, 2);   //2 indicates that it is a SHADOWING IDENTIFIER
                                         if (debugMode) printf("Lexer Debug: declared the SHADOWING PARAMETER of a typedef_name: %s on line %d\n", yylval.id, yylineno);
-                                        FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
+                                        FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(IDENTIFIER);
                                         return IDENTIFIER;                    
                                     } else {
-                                        FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
+                                        FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
                                         return TYPEDEF_NAME;
                                     }
                                 } else {    
                                     if (VD_state == VD_VAR_DECL) {
-                                        FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
+                                        FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(IDENTIFIER);
                                         if (in_member_namespace) return IDENTIFIER;     //members cannot shadow typedef names: they are in a different namespace
                                         else {add_typedef_id(current_scope, yylval.id, 2);    //2 indicates that it is a SHADOWING IDENTIFIER
                                             if (debugMode) printf("Lexer Debug: declared the SHADOWING IDENTIFIER of a typedef_name: %s on line %d\n", yylval.id, yylineno);
@@ -229,23 +231,26 @@ WS  [ \t\v\n\f]
                                         }
                                     }
                                     else {
-                                        FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
+                                        FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
                                         return TYPEDEF_NAME;
                                     }
                                 }
                              }
-                             FSM_COMPLETE_TYPE_OR_IDENTIFIER_read();
+                             FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(IDENTIFIER);
                              return IDENTIFIER;
                             }
 
-{HP}{H}+{IS}?				{wrap_integer_constants("16'", &yytext[2], &yylval.id);     //hexadecimal integer
+{HP}{H}+{IS}?				{FSM_start_statement();
+                             wrap_integer_constants("16'", &yytext[2], &yylval.id);     //hexadecimal integer
                              return I_CONSTANT;
                             }
-{NZ}{D}*{IS}?				{wrap_integer_constants("", yytext, &yylval.id);            //decimal integer
+{NZ}{D}*{IS}?				{FSM_start_statement();
+                             wrap_integer_constants("", yytext, &yylval.id);            //decimal integer
                              return I_CONSTANT;
                             }
                             
-"0"{O}*{IS}?				{if (isdigit(yytext[1])) wrap_integer_constants("8'", &yytext[1], &yylval.id);  //octal integer 
+"0"{O}*{IS}?				{FSM_start_statement();
+                             if (isdigit(yytext[1])) wrap_integer_constants("8'", &yytext[1], &yylval.id);  //octal integer 
                              else {     //the second char after 0 is not a digit (it's /0, ofr an IS (u|U)(l|L|ll|LL) char), so it's just the constant 0, rather than a true octal 
                                     yylval.id = (char*)malloc(7);
                                     strcpy(yylval.id, "int(0)");    
@@ -253,6 +258,7 @@ WS  [ \t\v\n\f]
                              return I_CONSTANT;
                             }
 {CP}?"'"([^'\\\n]|{ES})+"'"	{//single char 
+                             FSM_start_statement();
                              char *content = yytext + (yytext[0] == '\'' ? 1 : 2);  //Skip prefix and opening quote
                              content[strlen(content) - 1] = '\0';                   //Remove closing quote
                              int ascii;
@@ -265,31 +271,38 @@ WS  [ \t\v\n\f]
                              sprintf(yylval.id, "int(%d)", ascii);
                              return I_CONSTANT;
                             }       
-{D}+{E}{FS}?				{wrap_floating_point_constants(0, yytext, &yylval.id);     //Decimal floating-point constants with an exponent.
+{D}+{E}{FS}?				{FSM_start_statement();
+                             wrap_floating_point_constants(0, yytext, &yylval.id);     //Decimal floating-point constants with an exponent.
                              return F_CONSTANT;
                             }
-{D}*"."{D}+{E}?{FS}?		{char *modified_float_literal = add_missing_zero_before_decimal_point(yytext, yyleng);
+{D}*"."{D}+{E}?{FS}?		{FSM_start_statement();
+                             char *modified_float_literal = add_missing_zero_before_decimal_point(yytext, yyleng);
                              wrap_floating_point_constants(0, modified_float_literal, &yylval.id);     //Decimal floating-point constants with a fractional part.
                              return F_CONSTANT;
                             }
-{D}+"."{E}?{FS}?			{char* added_0;
+{D}+"."{E}?{FS}?			{FSM_start_statement();
+                             char* added_0;
                              add_missing_zero_after_decimal_point(yytext, &added_0);
                              wrap_floating_point_constants(0, added_0, &yylval.id);            //Decimal floating-point constants with a fractional part.
                              return F_CONSTANT;
                             }
-{HP}{H}+{P}{FS}?			{wrap_floating_point_constants(1, yytext, &yylval.id);  //Hexadecimal floating-point constants: will fail parser in ECLiPSe
+{HP}{H}+{P}{FS}?			{FSM_start_statement();
+                             wrap_floating_point_constants(1, yytext, &yylval.id);  //Hexadecimal floating-point constants: will fail parser in ECLiPSe
                              return F_CONSTANT;
                             }
-{HP}{H}*"."{H}+{P}{FS}?		{wrap_floating_point_constants(1, yytext, &yylval.id);  //Hexadecimal floating-point constants with a fractional part.: will fail parser in ECLiPSe
+{HP}{H}*"."{H}+{P}{FS}?		{FSM_start_statement();
+                             wrap_floating_point_constants(1, yytext, &yylval.id);  //Hexadecimal floating-point constants with a fractional part.: will fail parser in ECLiPSe
                              return F_CONSTANT;
                             }
-{HP}{H}+"."{P}{FS}?			{char* added_0;
+{HP}{H}+"."{P}{FS}?			{FSM_start_statement();
+                             char* added_0;
                              add_missing_zero_after_decimal_point(yytext, &added_0);
                              wrap_floating_point_constants(1, added_0, &yylval.id); //Hexadecimal floating-point constants with digits before the decimal point, but none after. : will fail parser in ECLiPSe
                              return F_CONSTANT;
                             }
 
-({SP}?\"([^"\\\n]|{ES})*\"{WS}*)+	{if (yytext[0] == 'L') { //a wide string constant
+({SP}?\"([^"\\\n]|{ES})*\"{WS}*)+	{FSM_start_statement();
+                                     if (yytext[0] == 'L') { //a wide string constant
                                             size_t const size = strlen("wide_string()") + strlen(yytext) - 1 + 1;
                                             yylval.id = (char*)malloc(size);
                                             sprintf_safe(yylval.id, size, "wide_string(%s)", &yytext[1]);      //copy from yytext[1] to remove 'L' prefix 
@@ -312,8 +325,8 @@ WS  [ \t\v\n\f]
 "|="					{ return OR_ASSIGN; }
 ">>"					{ return RIGHT_OP; }
 "<<"					{ return LEFT_OP; }
-"++"					{ return INC_OP; }
-"--"					{ return DEC_OP; }
+"++"					{ FSM_start_statement(); return INC_OP; }
+"--"					{ FSM_start_statement(); return DEC_OP; }
 "->"					{ return PTR_OP; }
 "&&"					{ return AND_OP; }
 "||"					{ return OR_OP; }
@@ -327,17 +340,17 @@ WS  [ \t\v\n\f]
 ","					    { FSM_COMMA_read(); return ','; }
 ":"					    { return ':'; }
 "="					    { return '='; }
-"("					    { return '('; }
+"("					    { FSM_start_statement(); return '('; }
 ")"					    { return ')'; }
 ("["|"<:")				{ return '['; }
 ("]"|":>")				{ return ']'; }
 "."					    { return '.'; }
-"&"					    { return '&'; }
-"!"					    { return '!'; }
-"~"					    { return '~'; }
-"-"					    { return '-'; }
-"+"					    { return '+'; }
-"*"					    { return '*'; }
+"&"					    { FSM_start_statement(); return '&'; }
+"!"					    { FSM_start_statement(); return '!'; }
+"~"					    { FSM_start_statement(); return '~'; }
+"-"					    { FSM_start_statement(); return '-'; }
+"+"					    { FSM_start_statement(); return '+'; }
+"*"					    { FSM_start_statement(); return '*'; }
 "/"					    { return '/'; }
 "%"					    { return '%'; }
 "<"					    { return '<'; }
@@ -368,6 +381,7 @@ WS  [ \t\v\n\f]
 static const char *FSM_mode_str(void) {
     if (FSM_in_PD_mode) {
         if (PD_state == PD_WAIT_PARAM_TYPE) return "PD_WAIT_PARAM_TYPE";
+        else if (PD_state == PD_NOT_PARAM_DECL) return "PD_NOT_PARAM_DECL";
         else if (PD_state == PD_DECIDE_PARAM_KIND) return "PD_DECIDE_PARAM_KIND";
         else if (PD_state == PD_UNNAMED_PARAMETERS) return "PD_UNNAMED_PARAMETERS";
         else if (PD_state == PD_WAIT_NAMED_PARAM_TYPE) return "PD_WAIT_NAMED_PARAM_TYPE";
@@ -375,29 +389,50 @@ static const char *FSM_mode_str(void) {
         else return "UNKNOWN_PD_STATE";
     } else {
         if (VD_state == VD_WAIT_VAR_TYPE) return "VD_WAIT_VAR_TYPE";
+        else if (VD_state == VD_NOT_VAR_DECL) return "VD_NOT_VAR_DECL";
         else if (VD_state == VD_VAR_DECL) return "VD_VAR_DECL";
         else return "UNKNOWN_VD_STATE";
     }
 }
 void FSM_reset(void) {
-    PD_state = PD_WAIT_PARAM_TYPE;
-    VD_state = VD_WAIT_VAR_TYPE;
+    PD_state = PD_NONE;
+    VD_state = VD_NONE;
+}
+void FSM_start_statement(void) {
+    if (FSM_in_PD_mode) {
+        if (PD_state == PD_NONE) PD_state = PD_NOT_PARAM_DECL;
+    } else if (VD_state == VD_NONE) VD_state = VD_NOT_VAR_DECL;
+}
+void FSM_start_type_read(void) {
+    if (FSM_in_PD_mode) {
+        if (PD_state == PD_NONE) PD_state = PD_WAIT_PARAM_TYPE;
+    } else if (VD_state == VD_NONE) VD_state = VD_WAIT_VAR_TYPE;
 }
 void FSM_basic_type_read(void) {
     if (FSM_off) return;
     if (FSM_in_PD_mode) {
-        if (PD_state == PD_WAIT_PARAM_TYPE) PD_state = PD_DECIDE_PARAM_KIND;
+        if (PD_state == PD_WAIT_PARAM_TYPE || PD_state == PD_NONE) PD_state = PD_DECIDE_PARAM_KIND;
         else if (PD_state == PD_WAIT_NAMED_PARAM_TYPE) PD_state = PD_PARAM_DECL;
-    } else if (VD_state == VD_WAIT_VAR_TYPE) VD_state = VD_VAR_DECL;
+    } else if (VD_state == VD_WAIT_VAR_TYPE || VD_state == VD_NONE) VD_state = VD_VAR_DECL;
 }
-void FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(void) {
+
+//Called above when a TYPEDEF_NAME or IDENTIFIER is read, also called in the grammar when STRUCT, UNION, ENUM, TYPEOF or TYPEOF_UNQUAL is read
+void FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(enum yytokentype token) {
     if (FSM_off) return;
     if (FSM_in_PD_mode) {
-        if (PD_state == PD_WAIT_PARAM_TYPE) PD_state = PD_DECIDE_PARAM_KIND;
+        if (PD_state == PD_NONE) {
+            if (token == IDENTIFIER) PD_state = PD_NOT_PARAM_DECL;
+            else PD_state = PD_DECIDE_PARAM_KIND;
+        }
+        else if (PD_state == PD_WAIT_PARAM_TYPE) PD_state = PD_DECIDE_PARAM_KIND;
         else if (PD_state == PD_DECIDE_PARAM_KIND) PD_state = PD_WAIT_NAMED_PARAM_TYPE;
         else if (PD_state == PD_WAIT_NAMED_PARAM_TYPE) PD_state = PD_PARAM_DECL;
         else if (PD_state == PD_PARAM_DECL) PD_state = PD_WAIT_NAMED_PARAM_TYPE;
-    } else if (VD_state == VD_WAIT_VAR_TYPE) VD_state = VD_VAR_DECL;
+    } else if (VD_state == VD_NONE) {
+        if (token == IDENTIFIER) VD_state = VD_NOT_VAR_DECL;
+            else VD_state = VD_VAR_DECL;
+        }
+      else if (VD_state == VD_WAIT_VAR_TYPE) VD_state = VD_VAR_DECL;   
 }
 void FSM_COMMA_read(void) {
     if (FSM_off) return;
