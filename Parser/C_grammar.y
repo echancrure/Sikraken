@@ -71,6 +71,7 @@ char *current_function;			//we keep track of the function being parsed so that w
 
 int FSM_off;
 int FSM_in_PD_mode;
+const char* FSM_mode_str(void);
 void FSM_reset(void);
 void FSM_basic_type_read(void);
 enum yytokentype; 
@@ -100,6 +101,7 @@ enum ParserExitCodes {
 		char *full;				//the full declarator
 		char *ptr_declarator;	//only the declarator after pointer declarations
 	} declarator_type;
+	int flag;
 }
 
 %token <id> IDENTIFIER TYPEDEF_NAME I_CONSTANT F_CONSTANT ENUMERATION_CONSTANT STRING_LITERAL
@@ -139,9 +141,10 @@ enum ParserExitCodes {
 %type <id> block_item_list block_item
 %type <id> declaration declaration_list_opt old_style_declaration_list 
 %type <id> function_definition rest_function_definition
-%type <id> rest_direct_declarator
+%type <id> array_dimensions_specifier
 %type <for_stmt_type> for_stmt_type
-%type <declarator_type> declarator direct_declarator 
+%type <declarator_type> declarator direct_declarator
+%type <id> typeof_specifier rest_typeof_specifier 
 
 %start translation_unit 
 
@@ -158,7 +161,7 @@ primary_expression
 		}
 	| constant
 	| string
-	| '(' {current_scope++; FSM_reset();} compound_statement ')'	//GCC statement-expression
+	| '(' {current_scope++; FSM_reset(); $<flag>$ = FSM_off;} compound_statement {FSM_off = $<flag>2;} ')'	//GCC statement_expression, can appear in expressions, FSM_off is saved and restored locally as these can be nested
 		{pop_scope(&current_scope);
 		 size_t const size = strlen("\nstmt_exp()") + strlen($3) + 1;
 		 $$ = (char*)malloc(size);
@@ -631,7 +634,7 @@ init_declarator_list
 		}
 	;
 
-init_declarator
+init_declarator								//can only be followed by ',' or ';' at the global level so the look ahead can only be ',' or ';' and not an IDENTIFIER
 	: declarator {FSM_off = 1;} '=' initializer
 		{FSM_off = 0;
 		 size_t const size = strlen("initialised(, )") + strlen($1.full) + strlen($4) + 1;
@@ -679,31 +682,47 @@ type_specifier
 	| BOOL					{ simple_str_lit_copy(&(decl_spec_stack->decl_spec.atomic.typeName), "bool");}
 	| COMPLEX				{ simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "complex");}
 	| IMAGINARY				{ simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "imaginary");}	
-	| atomic_type_specifier	{ simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "atomic_type_specifier");}
-	| struct_or_union_specifier { decl_spec_stack->decl_spec.non_atomic = $1;}
-	| enum_specifier		{ decl_spec_stack->decl_spec.non_atomic = $1;}
-	| typeof_specifier		{;}	//totally ignored for now
+	| atomic_type_specifier	{simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "atomic_type_specifier");}
+	| struct_or_union_specifier {decl_spec_stack->decl_spec.non_atomic = $1;}
+	| enum_specifier		{decl_spec_stack->decl_spec.non_atomic = $1;}
+	| typeof_specifier		{decl_spec_stack->decl_spec.non_atomic = $1;}
 	| TYPEDEF_NAME			
 		{decl_spec_stack->decl_spec.non_atomic = to_prolog_var($1);
 		 free($1);
 		}
-	| INT128				{ simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "int128");}		//gcc extension: builtin type
-	| FLOAT128				{ simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "float128");}	//gcc extension: builtin type
-	| VA_LIST				{ simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "va_list");}		//gcc extension: builtin type
+	| INT128				{simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "int128");}		//gcc extension: builtin type
+	| FLOAT128				{simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "float128");}	//gcc extension: builtin type
+	| VA_LIST				{simple_str_lit_copy(&decl_spec_stack->decl_spec.atomic.typeName, "va_list");}		//gcc extension: builtin type
 	;
 
 typeof_specifier
     : TYPEOF rest_typeof_specifier
-    | TYPEOF_UNQUAL rest_typeof_specifier
+		{size_t const size = strlen("typeof") + strlen($2) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_safe($$, size, "typeof%s", $2);
+	     free($2); 
+	    } 
+    | TYPEOF_UNQUAL rest_typeof_specifier 
+	    {size_t const size = strlen("typeof_unqual()") + strlen($2) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_safe($$, size, "typeof_unqual(%s)", $2);
+	     free($2); 
+		}
     ;
 rest_typeof_specifier
 	: '(' expression ')' 
-		{FSM_off = 0;	//switched on in lexer on seeing TYPEOF or TYPEOF_UNQUAL 
-		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
-		}
+		{FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
+		 size_t const size = strlen("_expression()") + strlen($2) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_safe($$, size, "_expression(%s)", $2);
+	     free($2);
+		} 
 	| '(' type_name ')'
-		{FSM_off = 0;	//switched on in lexer on seeing TYPEOF or TYPEOF_UNQUAL 
-		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
+		{FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
+		 size_t const size = strlen("_type_name()") + strlen($2) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_safe($$, size, "_type_name(%s)", $2);
+	     free($2);
 		}
 	;
 
@@ -746,7 +765,6 @@ struct_or_union_specifier
 	    }
 	| struct_or_union tag_name	//forward declaration Tag namespace Id declaration or as part of a variable or member declaration
 		{in_member_namespace = 0;
-		 FSM_off = 0;
 		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
 		 size_t const size = strlen("%s(%s)") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
@@ -849,16 +867,18 @@ struct_declarator_list
         }
 	;
 
-struct_declarator		//added to avoid reduce-reduce conflict
-	: ':' {in_member_namespace = 0;} constant_expression		//bit field
-		{in_member_namespace = 1;
+struct_declarator		//for FSM_off: can only be followed by ',' or ';' at the global level so the look ahead can only be ',' or ';' and not an IDENTIFIER
+	: ':' {in_member_namespace = 0; FSM_off = 1;} constant_expression		//bit field
+		{FSM_off = 0;
+		 in_member_namespace = 1;
 		 size_t const size = strlen("anonymous_bit_field()") + strlen($3) + 1;
        	 $$ = (char*)malloc(size);
          sprintf_safe($$, size, "anonymous_bit_field(%s)", $3);
 	   	 free($3);
         } 
-	| declarator ':' {in_member_namespace = 0;} constant_expression 	//bit field
-		{in_member_namespace = 1;
+	| declarator ':' {in_member_namespace = 0; FSM_off = 1;} constant_expression 	//bit field
+		{FSM_off = 0;
+		 in_member_namespace = 1;
 		 size_t const size = strlen("bit_field(, )") + strlen($1.full) + strlen($4) + 1;
        	 $$ = (char*)malloc(size);
          sprintf_safe($$, size, "bit_field(%s, %s)", $1.full, $4);
@@ -920,7 +940,7 @@ enum_specifier_rest
 		}
 	;
 
-enumerator_list
+enumerator_list	
 	: enumerator
 	| enumerator_list ',' enumerator
 		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
@@ -931,13 +951,15 @@ enumerator_list
         }
 	;
 
-enumerator	/* identifiers must be flagged as ENUMERATION_CONSTANT */
-	: enumeration_constant '=' constant_expression
-		{size_t const size = strlen("init_enum(, )") + strlen($1) + strlen($3) + 1;
+/* identifiers must be flagged as ENUMERATION_CONSTANT */
+enumerator					//for FSM_off: can only be followed by ',' or '}' at the global level so the look ahead can only be ',' or '}' and not an IDENTIFIER
+	: enumeration_constant {FSM_off = 1;} '=' constant_expression
+		{FSM_off = 0;
+		 size_t const size = strlen("init_enum(, )") + strlen($1) + strlen($4) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_safe($$, size, "init_enum(%s, %s)", $1, $3);
+         sprintf_safe($$, size, "init_enum(%s, %s)", $1, $4);
 	   	 free($1);
-	     free($3);
+	     free($4);
         }
 	| enumeration_constant
 	;
@@ -1014,9 +1036,8 @@ direct_declarator
 		//many need in_member_namespace = 0; in case we are within a union or struct to indicate that we just processed the member and the rest my involve typedefs see diary 12/11/24
 		{$$ = $2;
 		}
-	| direct_declarator {if (in_member_namespace) in_member_namespace=0; FSM_off = 1;} rest_direct_declarator
-		{FSM_off = 0;
-		 size_t const size = strlen("array_decl(, )") + strlen($1.full) + strlen($3) + 1;
+	| direct_declarator {if (in_member_namespace) in_member_namespace=0; FSM_off = 1;} array_dimensions_specifier	//FSM_off is set back to 0 within array_dimensions_specifier
+		{size_t const size = strlen("array_decl(, )") + strlen($1.full) + strlen($3) + 1;
          $$.full = (char*)malloc(size);
          sprintf_safe($$.full, size, "array_decl(%s, %s)", $1.full, $3);
 		 free($1.full);
@@ -1044,32 +1065,32 @@ direct_declarator
 		}
 	;
 
-rest_direct_declarator
-	: '[' ']'
+array_dimensions_specifier
+	: '[' {FSM_off = 0;} ']'
 		{simple_str_lit_copy(&$$, "int(0)"); 
 		}
-	| '[' assignment_expression ']'
+	| '[' assignment_expression {FSM_off = 0;} ']'
 		{$$ = $2;
 		}
-	| '[' '*' ']'
+	| '[' '*' {FSM_off = 0;}']'
 		{simple_str_lit_copy(&$$, "D3"); 
 		}
-	| '[' STATIC type_qualifier_list assignment_expression ']' 
+	| '[' STATIC type_qualifier_list assignment_expression {FSM_off = 0;} ']' 
 		{simple_str_lit_copy(&$$, "D4");
 		}
-	| '[' STATIC assignment_expression ']'
+	| '[' STATIC assignment_expression {FSM_off = 0;} ']'
 		{simple_str_lit_copy(&$$, "D5");
 		}
-	| '[' type_qualifier_list '*' ']'
+	| '[' type_qualifier_list '*' {FSM_off = 0;} ']'
 		{simple_str_lit_copy(&$$, "D6");
 		}
-	| '[' type_qualifier_list STATIC assignment_expression ']'
+	| '[' type_qualifier_list STATIC assignment_expression {FSM_off = 0;} ']'
 		{simple_str_lit_copy(&$$, "D7");
 		}
-	| '[' type_qualifier_list assignment_expression ']'
+	| '[' type_qualifier_list assignment_expression {FSM_off = 0;} ']'
 		{simple_str_lit_copy(&$$, "D8");
 		}
-	| '[' type_qualifier_list ']'
+	| '[' type_qualifier_list {FSM_off = 0;} ']'
 		{simple_str_lit_copy(&$$, "D9");
 		}
 	;
@@ -1241,17 +1262,17 @@ initializer
 
 initializer_list
 	: designation initializer
-		{size_t const size = strlen("init(, )") + strlen($1) + strlen($2) + 1;
+		{size_t const size = strlen("designation_init(, )") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "init(%s, %s)", $1, $2);
+	     sprintf_safe($$, size, "designation_init(%s, %s)", $1, $2);
 	     free($1);
 		 free($2);
 		}
 	| initializer
 	| initializer_list ',' designation initializer
-		{size_t const size = strlen(", init(, )") + strlen($1) + strlen($3) + strlen($4) + 1;
+		{size_t const size = strlen(", designation_init(, )") + strlen($1) + strlen($3) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "%s, init(%s, %s)", $1, $3, $4);
+	     sprintf_safe($$, size, "%s, designation_init(%s, %s)", $1, $3, $4);
 	     free($1);
 		 free($3);
 		 free($4);
@@ -1265,7 +1286,7 @@ initializer_list
 		}
 	;
 
-designation	//C99 this is for named-initializer as opposed to positional-initializer
+designation					//C99 this is for named-initializer as opposed to positional-initializer
 	: designator_list '='
 		{size_t const size = strlen("designation([])") + strlen($1) + 1;
 	     $$ = (char*)malloc(size);
@@ -1274,7 +1295,7 @@ designation	//C99 this is for named-initializer as opposed to positional-initial
 		}
 	;
 
-designator_list
+designator_list 			//C99 positional initializers
 	: designator
 	| designator_list designator
 		{size_t const size = strlen(", ") + strlen($1) + strlen($2) + 1;
@@ -1292,7 +1313,7 @@ designator
 	     sprintf_safe($$, size, "index(%s)", $2);
 		 free($2);
 		}
-	| {in_member_namespace = 1;}'.' IDENTIFIER					//for named struct field
+	| {in_member_namespace = 1;} '.' IDENTIFIER					//for named struct field
 		{in_member_namespace = 0;
 		 size_t const size = strlen("select()") + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
@@ -1621,17 +1642,6 @@ int main(int argc, char *argv[]) {
 	my_exit(SUCCESS);
 }
 
-//handles parsing errors: since the C input file is the output of a C pre-processor it will only be called if
-//  the syntax rules are wrong due to GCC extensions 
-//  or if the .i file has been badly generated manually: i.e. during development
-void yyerror_old(const char* s) {
-	extern char* yytext;  	// Points to the text of the current token
-    extern int yyleng;    	// Length of the current token
-    fflush(stdout);			//to ensure all previous information messages are printed out of buffer before the error message
-    fprintf(stderr, "Sikraken Parsing error: %s, at line %d, near token '%s' (token code: %d)\n", s, yylineno, yytext, yychar);
-	fprintf(stderr, "Unexpected token: %s\n", token_name(yychar)); 
-}
-
 /* Non-reentrant yyerror: uses global yylloc and yylineno */
 void yyerror(const char* s) {
     extern char* yytext; /* current token lexeme (from Flex) */
@@ -1659,6 +1669,7 @@ void yyerror(const char* s) {
     } else {
         fprintf(stderr, "Token: <no lookahead>\n");
     }
+	fprintf(stderr, "FSM is %s, mode is %s\n", (FSM_off ? "OFF" : "ON"), FSM_mode_str());
 }
 
 const char *token_name(int token) {

@@ -7,7 +7,7 @@ declare_declarators([Declarator|R], Type_name) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 declare_single_declarator(Declarator, Type_name, Type_name_ptr_opt, Casted, Clean_var) :-
     %mytrace,
-    getval('execution_mode', Execution_mode),
+    ((getval('execution_mode', Execution_mode),
     (nonvar(Declarator), Declarator = initialised(Direct_declarator, Initialiser) ->
         true
     ;
@@ -21,7 +21,6 @@ declare_single_declarator(Declarator, Type_name, Type_name_ptr_opt, Casted, Clea
     ),
     %C pointers variables are not ptc_solver variable: they are handled syntactically e.g. seav(pointer(integer), not_needed, addr(Y_2{se_seav_atts : seav(integer, not_needed, 42)}))
     extract_pointers(Direct_declarator, Type_name, Type_name_ptr_opt, Clean_var), %e.g. extract_pointers(ptr_decl(pointer, Pi_3{c_id(pi)}), integer, pointer(integer), Pi_3)
-
     (nonvar(Type_name_ptr_opt), Type_name_ptr_opt = array(Element_type, Size_expr) ->    %array variable creation required
         (symbolically_interpret(Size_expr, symb(_, Size)),
          (Initialiser == 'uninitialised' ->
@@ -47,7 +46,12 @@ declare_single_declarator(Declarator, Type_name, Type_name_ptr_opt, Casted, Clea
         ;
             symbolically_interpret(cast(Type_name_ptr_opt, Initialiser), symb(_Type, Casted))
         )
+    ))
+    *-> true
+    ; 
+        common_util__error(9, "Declaration failed", "We skip it", [('Declarator', Declarator), ('Type_name', Type_name)], '9_081225', 'se_handle_declarations', 'declare_single_declarator', no_localisation, no_extra_info)
     ).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %should be done in the solver
 create_struct_type(struct(Tag, Struct_declaration_list), Struct_type) :-

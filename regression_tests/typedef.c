@@ -1,3 +1,13 @@
+register n = 5;
+typedef int INT99;
+int arr[] = {   //not hanlded at all in symbolic executor
+        [0] = sizeof(typeof(int)),
+        [1] = (INT99)30,
+        [2] = arr[0] + 5 
+    };
+struct {
+  int a, b, c;
+} var44 = {sizeof(struct ddddd), (INT99)30};
 typedef int MY_INT, MY_INT2, MY_INT3, MY_INT4;
 void fn42(void) {
     int MY_INT; //shadowing declaration

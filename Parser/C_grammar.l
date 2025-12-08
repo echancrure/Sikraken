@@ -32,11 +32,14 @@ char *add_missing_zero_before_decimal_point(const char *, int);
 int open_parens = 0;        //Declaration in the definitions section
 
 //FSM Section
-int FSM_in_PD_mode = 0;             //1 if we are in the Parameter Declaration FSM mode, 0 if we are in the Variable Declaration FSM mode
-int FSM_off = 0;                    //do not trigger any transactions when lexing IDENTIFIERS because we are in an expression context or a different name space
-                                    //but still lookup for typedef_names and shadowing identifiers to return IDENTIFIER or TYPEDEF_NAME correctly
-                                    // called for struct, union declaration, typeof, typeof_unqual, 
-static const char* FSM_mode_str(void);            // return a string representing the current FSM mode for debugging
+int FSM_in_PD_mode = 0;             // 1 if we are in the Parameter Declaration FSM mode, 0 if we are in the Variable Declaration FSM mode
+int FSM_off = 0;                    // Do not trigger any transactions when lexing IDENTIFIERS because we are in an expression context 
+                                    // and do not think that an IDENTIFIER is being declared and perhaps shadow a TYPEDEF_NAME (and wrongly return an IDENTIFIER where it is trule a TYPEDEF_NAME) 
+                                    // but still lookup for typedef_names and shadowing identifiers to return IDENTIFIER or TYPEDEF_NAME correctly
+                                    // switched off in grammar in only 4 contexts: array dimensions expressions, bit fields, initialisers, enumerator values
+                                    // special consideration for GCC statement expressions can can appear within these contexts
+                                    // leave the current FSM state unchanged
+const char* FSM_mode_str(void);            // return a string representing the current FSM mode for debugging
 void FSM_reset(void);               // reset the 2 FSMs to initial state
 void FSM_start_statement(void);     // execute the transition in the 2 FSMs, triggered a token that can start a statement is read: in wait states the FSMs go to sink
 void FSM_start_type_read(void);     // execute the transition in the 2 FSMs, triggered when a type specifier is read
@@ -142,7 +145,7 @@ WS  [ \t\v\n\f]
 "__inline"				{ FSM_start_type_read(); return(INLINE); }     //GCC version of INLINE
 "int"					{ FSM_basic_type_read(); return(INT); }
 "long"					{ FSM_basic_type_read(); return(LONG); }
-"register"				{ FSM_basic_type_read(); return(REGISTER); }
+"register"				{ FSM_start_type_read(); return(REGISTER); }
 "restrict"				{ FSM_start_type_read(); return(RESTRICT); }
 "__restrict"            { FSM_start_type_read(); return(RESTRICT); }   //GCC version of RESTRICT
 "return"				{ FSM_start_statement(); return(RETURN); }
@@ -184,10 +187,10 @@ WS  [ \t\v\n\f]
 "__thread"              { FSM_start_type_read(); return THREAD_LOCAL; }
 "__PRETTY_FUNCTION__"   { FSM_start_statement(); return FUNC_NAME; }   //__PRETTY_FUNCTION__ is a GCC extension: an enhanced version of __func__; which we ignore 
 "__func__"              { FSM_start_statement(); return FUNC_NAME; }
-"typeof_unqual"         { FSM_start_type_read(); FSM_off = 1; return TYPEOF_UNQUAL; }   //C23 and GCC extension
-"__typeof_unqual__"     { FSM_start_type_read(); FSM_off = 1; return TYPEOF_UNQUAL; }   //C23 and GCC extension
-"typeof"                { FSM_start_type_read(); FSM_off = 1; return TYPEOF; }   //C23 and GCC extension
-"__typeof__"            { FSM_start_type_read(); FSM_off = 1; return TYPEOF; }   //GCC extension
+"typeof_unqual"         { FSM_start_type_read(); return TYPEOF_UNQUAL; }   //C23 and GCC extension
+"__typeof_unqual__"     { FSM_start_type_read(); return TYPEOF_UNQUAL; }   //C23 and GCC extension
+"typeof"                { FSM_start_type_read(); return TYPEOF; }   //C23 and GCC extension
+"__typeof__"            { FSM_start_type_read(); return TYPEOF; }   //GCC extension
 
 {L}{A}*                     {size_t const size = strlen(yytext) + 1;
                              yylval.id = (char*)malloc(size);
@@ -209,7 +212,7 @@ WS  [ \t\v\n\f]
                                 printf("Lexer FSM: checking id: %s with status %d with FSM %s in mode %s %s\n", yylval.id, id_status, (FSM_off ? "OFF" : "ON"), FSM_mode_str(), (in_member_namespace ? "(in member namespace)" : ""));
                                 fflush(stdout);
                              }
-                             if (FSM_off) return (id_status == 1 ? TYPEDEF_NAME : IDENTIFIER);   //when FSM is off, we do not track declaration contexts, but we still need to differentiate typedef names from identifiers
+                             if (FSM_off) return (id_status == 1 ? TYPEDEF_NAME : IDENTIFIER);   //when FSM is off, we do not track declaration contexts, but we still differentiate typedef names from identifiers
                              if (id_status == 1) {  // a typedef name
                                 if (FSM_in_PD_mode) {
                                     if (PD_state == PD_DECIDE_PARAM_KIND || PD_state == PD_PARAM_DECL) {
@@ -378,7 +381,7 @@ WS  [ \t\v\n\f]
 
 %%
 /* user code section */
-static const char *FSM_mode_str(void) {
+const char *FSM_mode_str(void) {
     if (FSM_in_PD_mode) {
         if (PD_state == PD_WAIT_PARAM_TYPE) return "PD_WAIT_PARAM_TYPE";
         else if (PD_state == PD_NOT_PARAM_DECL) return "PD_NOT_PARAM_DECL";
@@ -399,11 +402,13 @@ void FSM_reset(void) {
     VD_state = VD_NONE;
 }
 void FSM_start_statement(void) {
+    if (FSM_off) return;
     if (FSM_in_PD_mode) {
         if (PD_state == PD_NONE) PD_state = PD_NOT_PARAM_DECL;
     } else if (VD_state == VD_NONE) VD_state = VD_NOT_VAR_DECL;
 }
 void FSM_start_type_read(void) {
+    if (FSM_off) return;
     if (FSM_in_PD_mode) {
         if (PD_state == PD_NONE) PD_state = PD_WAIT_PARAM_TYPE;
     } else if (VD_state == VD_NONE) VD_state = VD_WAIT_VAR_TYPE;
