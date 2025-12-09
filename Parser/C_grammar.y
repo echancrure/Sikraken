@@ -786,21 +786,10 @@ tag_name :
 		 parsed_tag_name1 = 1;
 		 $$ = to_prolog_var($1);
 		 free($1);
-		 if (debugMode) { printf("Parser: struct/union/enum tag name: %s\n", $$); }
+		 if (debugMode) { printf("Parser: struct/union tag name: %s\n", $$); }
 		}
 	;	
-/*
-tag_name1 :
-	IDENTIFIER
-		{in_tag_declaration = 0;
-		 in_member_namespace = 1;
-		 parsed_tag_name1 = 1;
-		 $$ = to_prolog_var($1);
-		 free($1);
-		 if (debugMode) { printf("Parser: parsed tag_name1 : %s\n", $$); }
-		}
-	;	
-*/
+
 struct_or_union
 	: STRUCT	
 		{simple_str_lit_copy(&$$, "struct");
@@ -905,9 +894,8 @@ struct_declarator		//for FSM_off: can only be followed by ',' or ';' at the glob
 	;
 
 enum_specifier
-	: ENUM '{' enumerator_list comma_opt '}'
-		{FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
-		 if (!strcmp($4, ",")) {
+	: ENUM '{' enumerator_list comma_opt {FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);} '}'
+		{if (!strcmp($4, ",")) {
 			size_t const size = strlen("trailing_comma_anonymous_enum([])") + strlen($3) + 1;
        	 	$$ = (char*)malloc(size);
          	sprintf_safe($$, size, "trailing_comma_anonymous_enum([%s])", $3);
@@ -920,8 +908,7 @@ enum_specifier
 		 free($4);
         }
 	| ENUM {in_tag_declaration = 1;} enum_tag_name enum_specifier_rest 	//Tag namespace Id declaration ; 
-		{FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
-		 size_t const size = strlen("enum(, [])") + strlen($3) + strlen($4) + 1;
+		{size_t const size = strlen("enum(, [])") + strlen($3) + strlen($4) + 1;
        	 $$ = (char*)malloc(size);
          sprintf_safe($$, size, "enum(%s, [%s])", $3, $4);
 	     free($3);
@@ -932,6 +919,7 @@ enum_specifier
 enum_tag_name :
 	IDENTIFIER
 		{in_tag_declaration = 0;
+		 parsed_tag_name1 = 1;
 		 $$ = to_prolog_var($1);
 		 free($1);
 		}
@@ -940,10 +928,12 @@ enum_tag_name :
 //new rule to avoid reduce-reduce conflict when introducing in_tag_declaration in enum_specifier rule just above
 enum_specifier_rest
 	: /* empty */	
-		{simple_str_lit_copy(&$$, "forward_enum");}
-	| '{' enumerator_list '}'
+		{FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
+		 simple_str_lit_copy(&$$, "forward_enum");
+	   }
+	| '{' enumerator_list {FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);}'}'
 		{$$ = $2;}
-	| '{' enumerator_list ',' '}'
+	| '{' enumerator_list ',' {FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);} '}'
 		{size_t const size = strlen("trailing_comma_enum([])") + strlen($2) + 1;
        	 $$ = (char*)malloc(size);
          sprintf_safe($$, size, "trailing_comma_enum([%s])", $2);

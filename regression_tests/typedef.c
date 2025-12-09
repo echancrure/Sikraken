@@ -1,3 +1,42 @@
+typedef unsigned int size_t;
+int _obstack_begin(struct obstack_186180 *h, size_t size, size_t alignment, void *(*chunkfun)(size_t), void (*freefun)(void*));
+int _obstack_begin_1(void *(*chunkfun)(void*, size_t));
+enum stv090x_modcod {
+    STV090x_DUMMY_PLF = 0,
+    STV090x_QPSK_14 = 1,
+    STV090x_QPSK_13 = 2,
+    STV090x_QPSK_25 = 3,
+    STV090x_QPSK_12 = 4,
+    STV090x_QPSK_35 = 5,
+    STV090x_QPSK_23 = 6,
+    STV090x_QPSK_34 = 7,
+    STV090x_QPSK_45 = 8,
+    STV090x_QPSK_56 = 9,
+    STV090x_QPSK_89 = 10,
+    STV090x_QPSK_910 = 11,
+    STV090x_8PSK_35 = 12,
+    STV090x_8PSK_23 = 13,
+    STV090x_8PSK_34 = 14,
+    STV090x_8PSK_56 = 15,
+    STV090x_8PSK_89 = 16,
+    STV090x_8PSK_910 = 17,
+    STV090x_16APSK_23 = 18,
+    STV090x_16APSK_34 = 19,
+    STV090x_16APSK_45 = 20,
+    STV090x_16APSK_56 = 21,
+    STV090x_16APSK_89 = 22,
+    STV090x_16APSK_910 = 23,
+    STV090x_32APSK_34 = 24,
+    STV090x_32APSK_45 = 25,
+    STV090x_32APSK_56 = 26,
+    STV090x_32APSK_89 = 27,
+    STV090x_32APSK_910 = 28,
+    STV090x_MODCODE_UNKNOWN = 29
+} ;
+typedef int s32;
+typedef unsigned char u8;
+static u8 stv090x_optimize_carloop(struct stv090x_state *state , enum stv090x_modcod modcod ,
+                                   s32 pilots ) {;}
 struct tm
 {
   int tm_sec;
