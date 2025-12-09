@@ -105,7 +105,7 @@ struct ctl_table {
    void *extra2 ;
 };
 struct __anonstruct____missing_field_name_212 {
-   struct ctl_table *ctl_table ;                //FIXED: Sikraken Parsing error: syntax error, unexpected TYPEDEF_NAME, expecting IDENTIFIER or '(', at line 1237, near token 'ctl_table' (token code: 259)
+   struct ctl_table ctl_table ;                //FIXED: Sikraken Parsing error: syntax error, unexpected TYPEDEF_NAME, expecting IDENTIFIER or '(', at line 1237, near token 'ctl_table' (token code: 259)
    int used ;
    int count ;
    int nreg ;

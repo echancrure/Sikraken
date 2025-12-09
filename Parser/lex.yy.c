@@ -3165,7 +3165,8 @@ void yyfree (void * ptr )
 /* user code section */
 const char *FSM_mode_str(void) {
     if (FSM_in_PD_mode) {
-        if (PD_state == PD_WAIT_PARAM_TYPE) return "PD_WAIT_PARAM_TYPE";
+        if (PD_state == PD_NONE) return "PD_NONE";
+        else if (PD_state == PD_WAIT_PARAM_TYPE) return "PD_WAIT_PARAM_TYPE";
         else if (PD_state == PD_NOT_PARAM_DECL) return "PD_NOT_PARAM_DECL";
         else if (PD_state == PD_DECIDE_PARAM_KIND) return "PD_DECIDE_PARAM_KIND";
         else if (PD_state == PD_UNNAMED_PARAMETERS) return "PD_UNNAMED_PARAMETERS";
@@ -3173,7 +3174,8 @@ const char *FSM_mode_str(void) {
         else if (PD_state == PD_PARAM_DECL) return "PD_PARAM_DECL";
         else return "UNKNOWN_PD_STATE";
     } else {
-        if (VD_state == VD_WAIT_VAR_TYPE) return "VD_WAIT_VAR_TYPE";
+        if (VD_state == VD_NONE) return "VD_NONE";
+        else if (VD_state == VD_WAIT_VAR_TYPE) return "VD_WAIT_VAR_TYPE";
         else if (VD_state == VD_NOT_VAR_DECL) return "VD_NOT_VAR_DECL";
         else if (VD_state == VD_VAR_DECL) return "VD_VAR_DECL";
         else return "UNKNOWN_VD_STATE";
@@ -3223,7 +3225,15 @@ void FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(enum yytokentype token) {
 }
 void FSM_COMMA_read(void) {
     if (FSM_off) return;
-    if (FSM_in_PD_mode && PD_state == PD_DECIDE_PARAM_KIND) PD_state = PD_UNNAMED_PARAMETERS;
+    if (debugMode) printf("Lexer Debug: read a COMMA in mode %s\n", FSM_mode_str());
+    if (parsed_tag_name1) {
+        FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME); // a struct_or_union with a tag folowed by a comma is a full type specifier
+        if (debugMode) printf("Lexer Debug: read a COMMA in tag declaration, transitioned to new mode is: %s\n", FSM_mode_str());
+    }
+    if (FSM_in_PD_mode && PD_state == PD_DECIDE_PARAM_KIND) {
+        PD_state = PD_UNNAMED_PARAMETERS;       
+        if (debugMode) printf("Lexer Debug: COMMA read new mode %s\n", FSM_mode_str());
+    }
 }
 
 int yywrap(void) {     /* called at end of input */

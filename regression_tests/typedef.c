@@ -1,3 +1,23 @@
+struct tm
+{
+  int tm_sec;
+  int tm_min;
+  int tm_hour;
+  int tm_mday;
+  int tm_mon;
+  int tm_year;
+  int tm_wday;
+  int tm_yday;
+  int tm_isdst;
+  long int tm_gmtoff;
+  const char *tm_zone;
+};
+typedef unsigned int size_t;
+typedef int locale_t;
+extern size_t strftime_l (char *__restrict __s, size_t __maxsize,
+     const char *__restrict __format,
+     const struct tm *__restrict __tp,
+     locale_t __loc) __attribute__ ((__nothrow__ , __leaf__));
 register n = 5;
 typedef int INT99;
 int arr[] = {   //not hanlded at all in symbolic executor

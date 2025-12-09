@@ -64,7 +64,7 @@ int in_member_namespace = 0;	//indicates to the lexer that we are in the member 
 int in_label_namespace = 0;		//used in lexer
 
 int function_declaration_flag = 0; //indicates that we are potentially within a function declaration (to manage typedef scope correctly)
-
+int parsed_tag_name1 = 0;		//indicates that we have just parsed a struct_or_union/enum tag_name1 production
 int current_scope = 0;
 
 char *current_function;			//we keep track of the function being parsed so that we can add it to goto statements
@@ -144,7 +144,7 @@ enum ParserExitCodes {
 %type <id> array_dimensions_specifier
 %type <for_stmt_type> for_stmt_type
 %type <declarator_type> declarator direct_declarator
-%type <id> typeof_specifier rest_typeof_specifier 
+%type <id> typeof_specifier rest_typeof_specifier /*tag_name1*/
 
 %start translation_unit 
 
@@ -727,45 +727,43 @@ rest_typeof_specifier
 	;
 
 struct_or_union_specifier
-	: struct_or_union set_tag0 '}'		//anonymous EMPTY struct or union (GNU extension)
+	: struct_or_union set_tag0 {FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);} '}'		//anonymous EMPTY struct or union (GNU extension)
 		{in_member_namespace = 0;
-		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
 		 size_t const size = strlen("('anonymous', [])") + strlen($1) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "%s('anonymous', [])", $1);
 	     free($1);
 	    }
-	| struct_or_union set_tag0 struct_declaration_list '}'		//anonymous struct or union
+	| struct_or_union set_tag0 struct_declaration_list {FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);} '}'		//anonymous struct or union
 		{in_member_namespace = 0;
-		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
 		 size_t const size = strlen("('anonymous', [])") + strlen($1) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "%s('anonymous', [%s])", $1, $3);
 	     free($1);
 	     free($3);
 	    }
-	| struct_or_union tag_name  '{' '}'	//Tag namespace Id declaration (EMPTY, GNU extension)
+	| struct_or_union tag_name  '{' {parsed_tag_name1 = 0; FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);} '}'	//Tag namespace Id declaration (EMPTY, GNU extension)
 		{in_member_namespace = 0;
-		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
 		 size_t const size = strlen("(, [])") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "%s(%s, [])", $1, $2);
 	     free($1);
 	     free($2);
 	    }
-	| struct_or_union tag_name '{' struct_declaration_list '}'	//Tag namespace Id declaration
+	| struct_or_union tag_name '{' {parsed_tag_name1 = 0; } struct_declaration_list {FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);} '}'	//Tag namespace Id declaration
 		{in_member_namespace = 0;
-		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
-		 size_t const size = strlen("(, [])") + strlen($1) + strlen($2) + strlen($4) + 1;
+		 size_t const size = strlen("(, [])") + strlen($1) + strlen($2) + strlen($5) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "%s(%s, [%s])", $1, $2, $4);
+	     sprintf_safe($$, size, "%s(%s, [%s])", $1, $2, $5);
 	     free($1);
 	     free($2);
-		 free($4);
+		 free($5);
 	    }
 	| struct_or_union tag_name	//forward declaration Tag namespace Id declaration or as part of a variable or member declaration
-		{in_member_namespace = 0;
-		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
+		{printf("Parser: parsed struct_or_union tag_name %s\n", $2);
+		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);	//already done if followed by a comma so will be done in twice but we should then be in PD_NOT_PARAM_DECL in that case so no harm done 
+		 parsed_tag_name1 = 0;
+		 in_member_namespace = 0;
 		 size_t const size = strlen("%s(%s)") + strlen($1) + strlen($2) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "%s(%s)", $1, $2);
@@ -785,11 +783,24 @@ tag_name :
 	IDENTIFIER
 		{in_tag_declaration = 0;
 		 in_member_namespace = 1;
+		 parsed_tag_name1 = 1;
 		 $$ = to_prolog_var($1);
 		 free($1);
+		 if (debugMode) { printf("Parser: struct/union/enum tag name: %s\n", $$); }
 		}
 	;	
-
+/*
+tag_name1 :
+	IDENTIFIER
+		{in_tag_declaration = 0;
+		 in_member_namespace = 1;
+		 parsed_tag_name1 = 1;
+		 $$ = to_prolog_var($1);
+		 free($1);
+		 if (debugMode) { printf("Parser: parsed tag_name1 : %s\n", $$); }
+		}
+	;	
+*/
 struct_or_union
 	: STRUCT	
 		{simple_str_lit_copy(&$$, "struct");
@@ -1046,12 +1057,12 @@ direct_declarator
 		}
 	| direct_declarator 
 		{if (in_member_namespace) in_member_namespace=0; 
-		if (!typedef_flag) {
+		 if (!typedef_flag) {
 			current_scope++; 
 			function_declaration_flag = 1;	//we are potentially in a function declaration
 			if (debugMode) printf("the current_scope has just been increased to %d before a list of parameters\n", current_scope);
-		}
-		FSM_in_PD_mode = 1;
+		 }
+		 FSM_in_PD_mode = 1;
 		} 
 	  '(' rest_function_definition ')'
 		{FSM_in_PD_mode = 0;
