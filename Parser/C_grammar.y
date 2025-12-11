@@ -140,7 +140,7 @@ enum ParserExitCodes {
 %type <id> else_opt selection_statement iteration_statement
 %type <id> block_item_list block_item
 %type <id> declaration declaration_list_opt old_style_declaration_list 
-%type <id> function_definition rest_function_definition
+%type <id> function_definition function_parameters_opt
 %type <id> array_dimensions_specifier
 %type <for_stmt_type> for_stmt_type
 %type <declarator_type> declarator direct_declarator
@@ -1035,8 +1035,7 @@ direct_declarator
 		} 
 	| '(' declarator ')'			//function pointer e.g. in "int (*func_ptr)(int, int);" declarator is "*func_ptr"
 		//many need in_member_namespace = 0; in case we are within a union or struct to indicate that we just processed the member and the rest my involve typedefs see diary 12/11/24
-		{$$ = $2;
-		}
+		{$$ = $2;}
 	| direct_declarator {if (in_member_namespace) in_member_namespace=0; FSM_off = 1;} array_dimensions_specifier	//FSM_off is set back to 0 within array_dimensions_specifier
 		{size_t const size = strlen("array_decl(, )") + strlen($1.full) + strlen($3) + 1;
          $$.full = (char*)malloc(size);
@@ -1052,11 +1051,17 @@ direct_declarator
 			function_declaration_flag = 1;	//we are potentially in a function declaration
 			if (debugMode) printf("the current_scope has just been increased to %d before a list of parameters\n", current_scope);
 		 }
+		 $<flag>$ = FSM_in_PD_mode;		//can be nested (e.g. function pointer with paramters within a list of parameters)
 		 FSM_in_PD_mode = 1;
+		 const char *substring = "ptr_decl(pointer, "; 
+		 int substring_length = strlen(substring);
+		 if (strncmp($1.full, substring, substring_length) == 0) { //function pointer declarator e.g. the (*func_ptr) in int (*func_ptr)(int, int);
+			FSM_off = 1;	// FSM can be turned off because no shadowing IDENTIFIER can occur in subsequent parameter_list for pointer to function_specifier
+			if (debugMode) printf("Parser: function pointer: %s, FSM_off set to 1\n", $1.ptr_declarator);
+		 } 
 		} 
-	  '(' rest_function_definition ')'
-		{FSM_in_PD_mode = 0;
-		 size_t const size = strlen("function(, )") + strlen($1.full) + strlen($4) + 1;
+	  '(' function_parameters_opt {FSM_off = 0; FSM_in_PD_mode = $<flag>2;} ')'
+		{size_t const size = strlen("function(, )") + strlen($1.full) + strlen($4) + 1;
 	     $$.full = (char*)malloc(size);
 	     sprintf_safe($$.full, size, "function(%s, %s)", $1.full, $4);
 		 current_function = strdup($1.full);
@@ -1097,7 +1102,7 @@ array_dimensions_specifier
 	;
 
 /*** Start Function Parameters Section ***/
-rest_function_definition
+function_parameters_opt
 	: /* nothing */ {simple_str_lit_copy(&$$, "[]");}
 	| parameter_type_list 
 	| old_style_parameter_list {simple_str_lit_copy(&$$, "dummy_identifier_list");}
@@ -1239,8 +1244,8 @@ direct_abstract_declarator
 	| direct_abstract_declarator '[' assignment_expression ']'
 	| '(' ')'
 	| '(' parameter_type_list ')'
-	| direct_abstract_declarator '(' ')'
-	| direct_abstract_declarator '(' parameter_type_list ')'
+	| direct_abstract_declarator '(' ')'						//for anonymous function pointer with no parameters
+	| direct_abstract_declarator '(' parameter_type_list ')'	//for anonymous function pointer
 	;
 
 initializer

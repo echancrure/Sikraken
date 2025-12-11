@@ -3,112 +3,5546 @@ Sikraken parser in debug mode: parsing the file /home/chris/Sikraken/bin/../sikr
 Pushed scope 0
 add_typedef_id: Added __gnuc_va_list as a TYPEDEF_NAME to typedef list
 Debug: typedef switched to 1
+is_typedef_name: Looking for FILE in typedef list
+Scope 0:
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found FILE is a basic IDENTIFIER
+Lexer FSM: checking id: FILE with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=1, ptr_declarator=UC_FILE
+add_typedef_id: Added FILE as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], int)
+is_typedef_name: Looking for add_exclude_fp in typedef list
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found add_exclude_fp is a basic IDENTIFIER
+Lexer FSM: checking id: add_exclude_fp with status 0 with FSM ON in mode VD_VAR_DECL 
+the current_scope has just been increased to 1 before a list of parameters
+is_typedef_name: Looking for add_func in typedef list
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found add_func is a basic IDENTIFIER
+Lexer FSM: checking id: add_func with status 0 with FSM ON in mode PD_DECIDE_PARAM_KIND 
+the current_scope has just been increased to 2 before a list of parameters
+Parser: function pointer: Add_func, FSM_off set to 1
+Lexer FSM: bypassing typedef_name check in mode PD_WAIT_NAMED_PARAM_TYPE: id: exclude_62137 is a tag
+Parser: struct/union tag name: Exclude_62137
+Parser: parsed struct_or_union tag_name Exclude_62137
+Debug: create_declaration_specifiers returned: spec([], struct(Exclude_62137))
+Warning: the 'const' qualifier is always ignored by the parser because it has no impact on symbolic execution
+Debug: create_declaration_specifiers returned: spec([], char)
+Debug: create_declaration_specifiers returned: spec([], int)
+Debug: create_declaration_specifiers returned: spec([], void)
+Lexer Debug: read a COMMA in mode PD_WAIT_NAMED_PARAM_TYPE
+Debug: create_declaration_specifiers returned: spec([], void)
+Lexer FSM: bypassing typedef_name check in mode PD_WAIT_NAMED_PARAM_TYPE: id: exclude_62137 is a tag
+Parser: struct/union tag name: Exclude_62137
+Parser: parsed struct_or_union tag_name Exclude_62137
+is_typedef_name: Looking for ex in typedef list
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found ex is a basic IDENTIFIER
+Lexer FSM: checking id: ex with status 0 with FSM ON in mode PD_PARAM_DECL 
+Lexer Debug: read a COMMA in mode PD_WAIT_NAMED_PARAM_TYPE
+Debug: create_declaration_specifiers returned: spec([], struct(Exclude_62137))
+is_typedef_name: Looking for FILE in typedef list
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: FILE with status 1 with FSM ON in mode PD_WAIT_NAMED_PARAM_TYPE 
+is_typedef_name: Looking for fp in typedef list
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found fp is a basic IDENTIFIER
+Lexer FSM: checking id: fp with status 0 with FSM ON in mode PD_PARAM_DECL 
+Lexer Debug: read a COMMA in mode PD_WAIT_NAMED_PARAM_TYPE
+Debug: create_declaration_specifiers returned: spec([], UC_FILE)
+is_typedef_name: Looking for options in typedef list
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found options is a basic IDENTIFIER
+Lexer FSM: checking id: options with status 0 with FSM ON in mode PD_PARAM_DECL 
+Lexer Debug: read a COMMA in mode PD_WAIT_NAMED_PARAM_TYPE
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for line_end in typedef list
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found line_end is a basic IDENTIFIER
+Lexer FSM: checking id: line_end with status 0 with FSM ON in mode PD_PARAM_DECL 
+Lexer Debug: read a COMMA in mode PD_WAIT_NAMED_PARAM_TYPE
+Debug: create_declaration_specifiers returned: spec([], char)
+is_typedef_name: Looking for data in typedef list
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found data is a basic IDENTIFIER
+Lexer FSM: checking id: data with status 0 with FSM ON in mode PD_PARAM_DECL 
+Debug: create_declaration_specifiers returned: spec([], void)
+DEBUG: typedef_flag=0, ptr_declarator=Add_exclude_fp
+Trying to Pop scope 2 when scope_stack scope_nb is 0
+Debug: create_declaration_specifiers returned: spec([], int)
+Debug: typedef switched to 1
 is_typedef_name: Looking for size_t in typedef list
 Scope 0:
+	FILE is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found size_t is a basic IDENTIFIER
 Lexer FSM: checking id: size_t with status 0 with FSM ON in mode VD_VAR_DECL 
 DEBUG: typedef_flag=1, ptr_declarator=Size_t
+Pushed scope 1
 add_typedef_id: Added size_t as a TYPEDEF_NAME to typedef list
 Debug: typedef switched to 0
 Debug: create_declaration_specifiers returned: spec([typedef], unsigned(int))
 is_typedef_name: Looking for _obstack_begin in typedef list
-Scope 0:
+Scope 1:
 	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found _obstack_begin is a basic IDENTIFIER
 Lexer FSM: checking id: _obstack_begin with status 0 with FSM ON in mode VD_VAR_DECL 
-the current_scope has just been increased to 1 before a list of parameters
+the current_scope has just been increased to 2 before a list of parameters
 Lexer FSM: bypassing typedef_name check in mode PD_WAIT_PARAM_TYPE: id: obstack_186180 is a tag
 Parser: struct/union tag name: Obstack_186180
 Parser: parsed struct_or_union tag_name Obstack_186180
 is_typedef_name: Looking for h in typedef list
-Scope 0:
+Scope 1:
 	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found h is a basic IDENTIFIER
 Lexer FSM: checking id: h with status 0 with FSM ON in mode PD_DECIDE_PARAM_KIND 
 Lexer Debug: read a COMMA in mode PD_WAIT_NAMED_PARAM_TYPE
 Debug: create_declaration_specifiers returned: spec([], struct(Obstack_186180))
 is_typedef_name: Looking for size_t in typedef list
-Scope 0:
+Scope 1:
 	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: size_t with status 1 with FSM ON in mode PD_WAIT_NAMED_PARAM_TYPE 
 is_typedef_name: Looking for size in typedef list
-Scope 0:
+Scope 1:
 	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found size is a basic IDENTIFIER
 Lexer FSM: checking id: size with status 0 with FSM ON in mode PD_PARAM_DECL 
 Lexer Debug: read a COMMA in mode PD_WAIT_NAMED_PARAM_TYPE
 Debug: create_declaration_specifiers returned: spec([], Size_t)
 is_typedef_name: Looking for size_t in typedef list
-Scope 0:
+Scope 1:
 	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
 Lexer FSM: checking id: size_t with status 1 with FSM ON in mode PD_WAIT_NAMED_PARAM_TYPE 
 is_typedef_name: Looking for alignment in typedef list
-Scope 0:
+Scope 1:
 	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found alignment is a basic IDENTIFIER
 Lexer FSM: checking id: alignment with status 0 with FSM ON in mode PD_PARAM_DECL 
 Lexer Debug: read a COMMA in mode PD_WAIT_NAMED_PARAM_TYPE
 Debug: create_declaration_specifiers returned: spec([], Size_t)
 is_typedef_name: Looking for chunkfun in typedef list
-Scope 0:
+Scope 1:
 	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found chunkfun is a basic IDENTIFIER
 Lexer FSM: checking id: chunkfun with status 0 with FSM ON in mode PD_PARAM_DECL 
-the current_scope has just been increased to 2 before a list of parameters
+the current_scope has just been increased to 3 before a list of parameters
+Parser: function pointer: Chunkfun, FSM_off set to 1
 is_typedef_name: Looking for size_t in typedef list
-Scope 0:
+Scope 1:
 	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
-Lexer FSM: checking id: size_t with status 1 with FSM ON in mode PD_WAIT_NAMED_PARAM_TYPE 
+Lexer FSM: checking id: size_t with status 1 with FSM OFF in mode PD_WAIT_NAMED_PARAM_TYPE 
 Debug: create_declaration_specifiers returned: spec([], Size_t)
-Lexer Debug: read a COMMA in mode VD_VAR_DECL
+Lexer Debug: read a COMMA in mode PD_WAIT_NAMED_PARAM_TYPE
 Debug: create_declaration_specifiers returned: spec([], void)
 is_typedef_name: Looking for freefun in typedef list
-Scope 0:
+Scope 1:
 	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found freefun is a basic IDENTIFIER
-Lexer FSM: checking id: freefun with status 0 with FSM ON in mode VD_VAR_DECL 
-the current_scope has just been increased to 3 before a list of parameters
+Lexer FSM: checking id: freefun with status 0 with FSM ON in mode PD_PARAM_DECL 
+the current_scope has just been increased to 4 before a list of parameters
+Parser: function pointer: Freefun, FSM_off set to 1
 Debug: create_declaration_specifiers returned: spec([], void)
 Debug: create_declaration_specifiers returned: spec([], void)
 DEBUG: typedef_flag=0, ptr_declarator=UC__obstack_begin
-Trying to Pop scope 3 when scope_stack scope_nb is 0
+Trying to Pop scope 4 when scope_stack scope_nb is 1
 Debug: create_declaration_specifiers returned: spec([], int)
 is_typedef_name: Looking for _obstack_begin_1 in typedef list
-Scope 0:
+Scope 1:
 	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found _obstack_begin_1 is a basic IDENTIFIER
 Lexer FSM: checking id: _obstack_begin_1 with status 0 with FSM ON in mode VD_VAR_DECL 
-the current_scope has just been increased to 3 before a list of parameters
+the current_scope has just been increased to 4 before a list of parameters
 is_typedef_name: Looking for chunkfun in typedef list
-Scope 0:
+Scope 1:
 	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: not found chunkfun is a basic IDENTIFIER
 Lexer FSM: checking id: chunkfun with status 0 with FSM ON in mode PD_DECIDE_PARAM_KIND 
-the current_scope has just been increased to 4 before a list of parameters
-Lexer Debug: read a COMMA in mode PD_PARAM_DECL
+the current_scope has just been increased to 5 before a list of parameters
+Parser: function pointer: Chunkfun, FSM_off set to 1
 Debug: create_declaration_specifiers returned: spec([], void)
 is_typedef_name: Looking for size_t in typedef list
-Scope 0:
+Scope 1:
 	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
 	__gnuc_va_list is a TYPEDEF_NAME
 is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
-Lexer FSM: checking id: size_t with status 1 with FSM ON in mode PD_PARAM_DECL 
+Lexer FSM: checking id: size_t with status 1 with FSM OFF in mode PD_WAIT_NAMED_PARAM_TYPE 
+Debug: create_declaration_specifiers returned: spec([], Size_t)
+Debug: create_declaration_specifiers returned: spec([], void)
+DEBUG: typedef_flag=0, ptr_declarator=UC__obstack_begin_1
+Trying to Pop scope 5 when scope_stack scope_nb is 1
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for stv090x_modcod in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found stv090x_modcod is a basic IDENTIFIER
+Lexer FSM: checking id: stv090x_modcod with status 0 with FSM ON in mode VD_WAIT_VAR_TYPE 
+is_typedef_name: Looking for STV090x_DUMMY_PLF in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_DUMMY_PLF is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_DUMMY_PLF with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_QPSK_14 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_QPSK_14 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_QPSK_14 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_QPSK_13 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_QPSK_13 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_QPSK_13 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_QPSK_25 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_QPSK_25 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_QPSK_25 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_QPSK_12 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_QPSK_12 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_QPSK_12 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_QPSK_35 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_QPSK_35 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_QPSK_35 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_QPSK_23 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_QPSK_23 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_QPSK_23 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_QPSK_34 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_QPSK_34 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_QPSK_34 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_QPSK_45 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_QPSK_45 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_QPSK_45 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_QPSK_56 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_QPSK_56 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_QPSK_56 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_QPSK_89 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_QPSK_89 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_QPSK_89 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_QPSK_910 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_QPSK_910 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_QPSK_910 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_8PSK_35 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_8PSK_35 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_8PSK_35 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_8PSK_23 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_8PSK_23 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_8PSK_23 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_8PSK_34 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_8PSK_34 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_8PSK_34 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_8PSK_56 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_8PSK_56 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_8PSK_56 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_8PSK_89 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_8PSK_89 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_8PSK_89 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_8PSK_910 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_8PSK_910 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_8PSK_910 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_16APSK_23 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_16APSK_23 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_16APSK_23 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_16APSK_34 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_16APSK_34 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_16APSK_34 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_16APSK_45 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_16APSK_45 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_16APSK_45 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_16APSK_56 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_16APSK_56 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_16APSK_56 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_16APSK_89 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_16APSK_89 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_16APSK_89 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_16APSK_910 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_16APSK_910 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_16APSK_910 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_32APSK_34 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_32APSK_34 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_32APSK_34 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_32APSK_45 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_32APSK_45 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_32APSK_45 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_32APSK_56 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_32APSK_56 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_32APSK_56 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_32APSK_89 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_32APSK_89 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_32APSK_89 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_32APSK_910 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_32APSK_910 is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_32APSK_910 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for STV090x_MODCODE_UNKNOWN in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found STV090x_MODCODE_UNKNOWN is a basic IDENTIFIER
+Lexer FSM: checking id: STV090x_MODCODE_UNKNOWN with status 0 with FSM ON in mode VD_VAR_DECL 
+end of stand alone declaration specifier as a declaration on line 37
+Debug: create_declaration_specifiers returned: spec([], enum(Stv090x_modcod, [init_enum(STV090x_DUMMY_PLF, int(0)), init_enum(STV090x_QPSK_14, int(1)), init_enum(STV090x_QPSK_13, int(2)), init_enum(STV090x_QPSK_25, int(3)), init_enum(STV090x_QPSK_12, int(4)), init_enum(STV090x_QPSK_35, int(5)), init_enum(STV090x_QPSK_23, int(6)), init_enum(STV090x_QPSK_34, int(7)), init_enum(STV090x_QPSK_45, int(8)), init_enum(STV090x_QPSK_56, int(9)), init_enum(STV090x_QPSK_89, int(10)), init_enum(STV090x_QPSK_910, int(11)), init_enum(STV090x_8PSK_35, int(12)), init_enum(STV090x_8PSK_23, int(13)), init_enum(STV090x_8PSK_34, int(14)), init_enum(STV090x_8PSK_56, int(15)), init_enum(STV090x_8PSK_89, int(16)), init_enum(STV090x_8PSK_910, int(17)), init_enum(STV090x_16APSK_23, int(18)), init_enum(STV090x_16APSK_34, int(19)), init_enum(STV090x_16APSK_45, int(20)), init_enum(STV090x_16APSK_56, int(21)), init_enum(STV090x_16APSK_89, int(22)), init_enum(STV090x_16APSK_910, int(23)), init_enum(STV090x_32APSK_34, int(24)), init_enum(STV090x_32APSK_45, int(25)), init_enum(STV090x_32APSK_56, int(26)), init_enum(STV090x_32APSK_89, int(27)), init_enum(STV090x_32APSK_910, int(28)), init_enum(STV090x_MODCODE_UNKNOWN, int(29))]))
+Debug: typedef switched to 1
+is_typedef_name: Looking for s32 in typedef list
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found s32 is a basic IDENTIFIER
+Lexer FSM: checking id: s32 with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=1, ptr_declarator=S32
 Pushed scope 4
+add_typedef_id: Added s32 as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], int)
+Debug: typedef switched to 1
+is_typedef_name: Looking for u8 in typedef list
+Scope 4:
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found u8 is a basic IDENTIFIER
+Lexer FSM: checking id: u8 with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=1, ptr_declarator=U8
+add_typedef_id: Added u8 as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], unsigned(char))
+is_typedef_name: Looking for u8 in typedef list
+Scope 4:
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: u8 with status 1 with FSM ON in mode VD_WAIT_VAR_TYPE 
+is_typedef_name: Looking for stv090x_optimize_carloop in typedef list
+Scope 4:
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found stv090x_optimize_carloop is a basic IDENTIFIER
+Lexer FSM: checking id: stv090x_optimize_carloop with status 0 with FSM ON in mode VD_VAR_DECL 
+the current_scope has just been increased to 5 before a list of parameters
+Lexer FSM: bypassing typedef_name check in mode PD_WAIT_PARAM_TYPE: id: stv090x_state is a tag
+Parser: struct/union tag name: Stv090x_state
+Parser: parsed struct_or_union tag_name Stv090x_state
+is_typedef_name: Looking for state in typedef list
+Scope 4:
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found state is a basic IDENTIFIER
+Lexer FSM: checking id: state with status 0 with FSM ON in mode PD_DECIDE_PARAM_KIND 
+Lexer Debug: read a COMMA in mode PD_WAIT_NAMED_PARAM_TYPE
+Debug: create_declaration_specifiers returned: spec([], struct(Stv090x_state))
+is_typedef_name: Looking for stv090x_modcod in typedef list
+Scope 4:
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found stv090x_modcod is a basic IDENTIFIER
+Lexer FSM: checking id: stv090x_modcod with status 0 with FSM ON in mode PD_WAIT_NAMED_PARAM_TYPE 
+is_typedef_name: Looking for modcod in typedef list
+Scope 4:
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found modcod is a basic IDENTIFIER
+Lexer FSM: checking id: modcod with status 0 with FSM ON in mode PD_PARAM_DECL 
+Lexer Debug: read a COMMA in mode PD_PARAM_DECL
+Lexer Debug: read a COMMA in tag declaration, transitioned to new mode is: PD_WAIT_NAMED_PARAM_TYPE
+Debug: create_declaration_specifiers returned: spec([], enum(Stv090x_modcod, [forward_enum]))
+is_typedef_name: Looking for s32 in typedef list
+Scope 4:
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: s32 with status 1 with FSM ON in mode PD_WAIT_NAMED_PARAM_TYPE 
+is_typedef_name: Looking for pilots in typedef list
+Scope 4:
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found pilots is a basic IDENTIFIER
+Lexer FSM: checking id: pilots with status 0 with FSM ON in mode PD_PARAM_DECL 
+Debug: create_declaration_specifiers returned: spec([], S32)
+Trying to Pop scope 5 when scope_stack scope_nb is 4
+Warning: the 'static' storage specifier is always ignored by the parser because Sikraken does not support it yet
+Debug: create_declaration_specifiers returned: spec([], U8)
+function parsed
+Lexer FSM: bypassing typedef_name check in mode VD_WAIT_VAR_TYPE: id: tm is a tag
+Parser: struct/union tag name: Tm
+is_typedef_name: Looking for tm_sec in typedef list
+Scope 4:
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found tm_sec is a basic IDENTIFIER
+Lexer FSM: checking id: tm_sec with status 0 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: tm_sec on line 44
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for tm_min in typedef list
+Scope 4:
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found tm_min is a basic IDENTIFIER
+Lexer FSM: checking id: tm_min with status 0 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: tm_min on line 45
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for tm_hour in typedef list
+Scope 4:
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found tm_hour is a basic IDENTIFIER
+Lexer FSM: checking id: tm_hour with status 0 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: tm_hour on line 46
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for tm_mday in typedef list
+Scope 4:
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found tm_mday is a basic IDENTIFIER
+Lexer FSM: checking id: tm_mday with status 0 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: tm_mday on line 47
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for tm_mon in typedef list
+Scope 4:
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found tm_mon is a basic IDENTIFIER
+Lexer FSM: checking id: tm_mon with status 0 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: tm_mon on line 48
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for tm_year in typedef list
+Scope 4:
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found tm_year is a basic IDENTIFIER
+Lexer FSM: checking id: tm_year with status 0 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: tm_year on line 49
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for tm_wday in typedef list
+Scope 4:
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found tm_wday is a basic IDENTIFIER
+Lexer FSM: checking id: tm_wday with status 0 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: tm_wday on line 50
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for tm_yday in typedef list
+Scope 4:
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found tm_yday is a basic IDENTIFIER
+Lexer FSM: checking id: tm_yday with status 0 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: tm_yday on line 51
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for tm_isdst in typedef list
+Scope 4:
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found tm_isdst is a basic IDENTIFIER
+Lexer FSM: checking id: tm_isdst with status 0 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: tm_isdst on line 52
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for tm_gmtoff in typedef list
+Scope 4:
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found tm_gmtoff is a basic IDENTIFIER
+Lexer FSM: checking id: tm_gmtoff with status 0 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: tm_gmtoff on line 53
+Debug: create_declaration_specifiers returned: spec([], long)
+is_typedef_name: Looking for tm_zone in typedef list
+Scope 4:
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found tm_zone is a basic IDENTIFIER
+Lexer FSM: checking id: tm_zone with status 0 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: tm_zone on line 54
+Warning: the 'const' qualifier is always ignored by the parser because it has no impact on symbolic execution
+Debug: create_declaration_specifiers returned: spec([], char)
+end of stand alone declaration specifier as a declaration on line 55
+Debug: create_declaration_specifiers returned: spec([], struct(Tm, [struct_decl(spec([], int), [tm_sec]), struct_decl(spec([], int), [tm_min]), struct_decl(spec([], int), [tm_hour]), struct_decl(spec([], int), [tm_mday]), struct_decl(spec([], int), [tm_mon]), struct_decl(spec([], int), [tm_year]), struct_decl(spec([], int), [tm_wday]), struct_decl(spec([], int), [tm_yday]), struct_decl(spec([], int), [tm_isdst]), struct_decl(spec([], long), [tm_gmtoff]), struct_decl(spec([], char), [ptr_decl(pointer, tm_zone)])]))
+Debug: typedef switched to 1
+is_typedef_name: Looking for size_t in typedef list
+Scope 4:
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: size_t with status 1 with FSM ON in mode VD_VAR_DECL 
 add_typedef_id: Added size_t as a shadow IDENTIFIER to typedef list
-Lexer Debug: declared the SHADOWING PARAMETER of a typedef_name: size_t on line 3
-Sikraken ERROR from ./bin/call_parser.sh: error code 2, sikraken_parser failed on /home/chris/Sikraken/bin/../bin/sikraken_parser.exe -d -m32 -p/home/chris/Sikraken/bin/../sikraken_output/typedef typedef
+Lexer Debug: declared the SHADOWING IDENTIFIER of a typedef_name: size_t on line 56
+DEBUG: typedef_flag=1, ptr_declarator=Size_t
+add_typedef_id: Added size_t as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], unsigned(int))
+Debug: typedef switched to 1
+is_typedef_name: Looking for locale_t in typedef list
+Scope 4:
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found locale_t is a basic IDENTIFIER
+Lexer FSM: checking id: locale_t with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=1, ptr_declarator=Locale_t
+add_typedef_id: Added locale_t as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], int)
+is_typedef_name: Looking for size_t in typedef list
+Scope 4:
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: size_t with status 1 with FSM ON in mode VD_WAIT_VAR_TYPE 
+is_typedef_name: Looking for strftime_l in typedef list
+Scope 4:
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found strftime_l is a basic IDENTIFIER
+Lexer FSM: checking id: strftime_l with status 0 with FSM ON in mode VD_VAR_DECL 
+the current_scope has just been increased to 5 before a list of parameters
+is_typedef_name: Looking for __s in typedef list
+Scope 4:
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found __s is a basic IDENTIFIER
+Lexer FSM: checking id: __s with status 0 with FSM ON in mode PD_DECIDE_PARAM_KIND 
+Warning: the 'restrict' pointer qualifier is always ignored by the parser because it has no impact on symbolic execution
+Debug: create_declaration_specifiers returned: spec([], int)
+Lexer Debug: read a COMMA in mode PD_WAIT_NAMED_PARAM_TYPE
+Debug: create_declaration_specifiers returned: spec([], char)
+is_typedef_name: Looking for size_t in typedef list
+Scope 4:
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: size_t with status 1 with FSM ON in mode PD_WAIT_NAMED_PARAM_TYPE 
+is_typedef_name: Looking for __maxsize in typedef list
+Scope 4:
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found __maxsize is a basic IDENTIFIER
+Lexer FSM: checking id: __maxsize with status 0 with FSM ON in mode PD_PARAM_DECL 
+Lexer Debug: read a COMMA in mode PD_WAIT_NAMED_PARAM_TYPE
+Debug: create_declaration_specifiers returned: spec([], Size_t)
+is_typedef_name: Looking for __format in typedef list
+Scope 4:
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found __format is a basic IDENTIFIER
+Lexer FSM: checking id: __format with status 0 with FSM ON in mode PD_PARAM_DECL 
+Warning: the 'restrict' pointer qualifier is always ignored by the parser because it has no impact on symbolic execution
+Debug: create_declaration_specifiers returned: spec([], int)
+Lexer Debug: read a COMMA in mode PD_WAIT_NAMED_PARAM_TYPE
+Warning: the 'const' qualifier is always ignored by the parser because it has no impact on symbolic execution
+Debug: create_declaration_specifiers returned: spec([], char)
+Lexer FSM: bypassing typedef_name check in mode PD_WAIT_NAMED_PARAM_TYPE: id: tm is a tag
+Parser: struct/union tag name: Tm
+Parser: parsed struct_or_union tag_name Tm
+is_typedef_name: Looking for __tp in typedef list
+Scope 4:
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found __tp is a basic IDENTIFIER
+Lexer FSM: checking id: __tp with status 0 with FSM ON in mode PD_PARAM_DECL 
+Warning: the 'restrict' pointer qualifier is always ignored by the parser because it has no impact on symbolic execution
+Debug: create_declaration_specifiers returned: spec([], int)
+Lexer Debug: read a COMMA in mode PD_WAIT_NAMED_PARAM_TYPE
+Warning: the 'const' qualifier is always ignored by the parser because it has no impact on symbolic execution
+Debug: create_declaration_specifiers returned: spec([], struct(Tm))
+is_typedef_name: Looking for locale_t in typedef list
+Scope 4:
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: locale_t with status 1 with FSM ON in mode PD_WAIT_NAMED_PARAM_TYPE 
+is_typedef_name: Looking for __loc in typedef list
+Scope 4:
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found __loc is a basic IDENTIFIER
+Lexer FSM: checking id: __loc with status 0 with FSM ON in mode PD_PARAM_DECL 
+Debug: create_declaration_specifiers returned: spec([], Locale_t)
+DEBUG: typedef_flag=0, ptr_declarator=Strftime_l
+Trying to Pop scope 5 when scope_stack scope_nb is 4
+Debug: create_declaration_specifiers returned: spec([extern], Size_t)
+is_typedef_name: Looking for n in typedef list
+Scope 4:
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found n is a basic IDENTIFIER
+Lexer FSM: checking id: n with status 0 with FSM ON in mode VD_WAIT_VAR_TYPE 
+Warning: the 'register' storage specifier is always ignored by the parser because it has no impact on symbolic execution
+Debug: create_declaration_specifiers returned: spec([], int)
+Debug: typedef switched to 1
+is_typedef_name: Looking for INT99 in typedef list
+Scope 4:
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found INT99 is a basic IDENTIFIER
+Lexer FSM: checking id: INT99 with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=1, ptr_declarator=UC_INT99
+add_typedef_id: Added INT99 as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], int)
+is_typedef_name: Looking for arr in typedef list
+Scope 4:
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found arr is a basic IDENTIFIER
+Lexer FSM: checking id: arr with status 0 with FSM ON in mode VD_VAR_DECL 
+Debug: create_declaration_specifiers returned: spec([], int)
+Debug: create_declaration_specifiers returned: spec([], typeof_type_name(spec([], int)))
+is_typedef_name: Looking for INT99 in typedef list
+Scope 4:
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: INT99 with status 1 with FSM OFF in mode VD_VAR_DECL 
+Debug: create_declaration_specifiers returned: spec([], UC_INT99)
+is_typedef_name: Looking for arr in typedef list
+Scope 4:
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found arr is a basic IDENTIFIER
+Lexer FSM: checking id: arr with status 0 with FSM OFF in mode VD_VAR_DECL 
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for a in typedef list
+Scope 4:
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found a is a basic IDENTIFIER
+Lexer FSM: checking id: a with status 0 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: a on line 70
+Lexer Debug: read a COMMA in mode VD_VAR_DECL
+is_typedef_name: Looking for b in typedef list
+Scope 4:
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found b is a basic IDENTIFIER
+Lexer FSM: checking id: b with status 0 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: b on line 70
+Lexer Debug: read a COMMA in mode VD_VAR_DECL
+is_typedef_name: Looking for c in typedef list
+Scope 4:
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found c is a basic IDENTIFIER
+Lexer FSM: checking id: c with status 0 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: c on line 70
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for var44 in typedef list
+Scope 4:
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found var44 is a basic IDENTIFIER
+Lexer FSM: checking id: var44 with status 0 with FSM ON in mode VD_VAR_DECL 
+Lexer FSM: bypassing typedef_name check in mode VD_VAR_DECL: id: ddddd is a tag
+Parser: struct/union tag name: Ddddd
+Parser: parsed struct_or_union tag_name Ddddd
+Debug: create_declaration_specifiers returned: spec([], struct(Ddddd))
+is_typedef_name: Looking for INT99 in typedef list
+Scope 4:
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: INT99 with status 1 with FSM OFF in mode VD_VAR_DECL 
+Debug: create_declaration_specifiers returned: spec([], UC_INT99)
+Debug: create_declaration_specifiers returned: spec([], struct('anonymous', [struct_decl(spec([], int), [a, b, c])]))
+Debug: typedef switched to 1
+is_typedef_name: Looking for MY_INT in typedef list
+Scope 4:
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found MY_INT is a basic IDENTIFIER
+Lexer FSM: checking id: MY_INT with status 0 with FSM ON in mode VD_VAR_DECL 
+Lexer Debug: read a COMMA in mode VD_VAR_DECL
+DEBUG: typedef_flag=1, ptr_declarator=UC_MY_INT
+add_typedef_id: Added MY_INT as a TYPEDEF_NAME to typedef list
+is_typedef_name: Looking for MY_INT2 in typedef list
+Scope 4:
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found MY_INT2 is a basic IDENTIFIER
+Lexer FSM: checking id: MY_INT2 with status 0 with FSM ON in mode VD_VAR_DECL 
+Lexer Debug: read a COMMA in mode VD_VAR_DECL
+DEBUG: typedef_flag=1, ptr_declarator=UC_MY_INT2
+add_typedef_id: Added MY_INT2 as a TYPEDEF_NAME to typedef list
+is_typedef_name: Looking for MY_INT3 in typedef list
+Scope 4:
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found MY_INT3 is a basic IDENTIFIER
+Lexer FSM: checking id: MY_INT3 with status 0 with FSM ON in mode VD_VAR_DECL 
+Lexer Debug: read a COMMA in mode VD_VAR_DECL
+DEBUG: typedef_flag=1, ptr_declarator=UC_MY_INT3
+add_typedef_id: Added MY_INT3 as a TYPEDEF_NAME to typedef list
+is_typedef_name: Looking for MY_INT4 in typedef list
+Scope 4:
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found MY_INT4 is a basic IDENTIFIER
+Lexer FSM: checking id: MY_INT4 with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=1, ptr_declarator=UC_MY_INT4
+add_typedef_id: Added MY_INT4 as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], int)
+is_typedef_name: Looking for fn42 in typedef list
+Scope 4:
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found fn42 is a basic IDENTIFIER
+Lexer FSM: checking id: fn42 with status 0 with FSM ON in mode VD_VAR_DECL 
+the current_scope has just been increased to 5 before a list of parameters
+Debug: create_declaration_specifiers returned: spec([], void)
+is_typedef_name: Looking for MY_INT in typedef list
+Scope 4:
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: MY_INT with status 1 with FSM ON in mode VD_VAR_DECL 
+Pushed scope 5
+add_typedef_id: Added MY_INT as a shadow IDENTIFIER to typedef list
+Lexer Debug: declared the SHADOWING IDENTIFIER of a typedef_name: MY_INT on line 74
+DEBUG: typedef_flag=0, ptr_declarator=UC_MY_INT
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for MY_INT in typedef list
+Scope 5:
+	MY_INT is a shadow IDENTIFIER
+Scope 4:
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a shadow IDENTIFIER
+Lexer FSM: checking id: MY_INT with status 2 with FSM ON in mode VD_NONE 
+is_typedef_name: Looking for MY_INT2 in typedef list
+Scope 5:
+	MY_INT is a shadow IDENTIFIER
+Scope 4:
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: MY_INT2 with status 1 with FSM ON in mode VD_NOT_VAR_DECL 
+Debug: create_declaration_specifiers returned: spec([], UC_MY_INT2)
+is_typedef_name: Looking for MY_INT in typedef list
+Scope 5:
+	MY_INT is a shadow IDENTIFIER
+Scope 4:
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a shadow IDENTIFIER
+Lexer FSM: checking id: MY_INT with status 2 with FSM ON in mode VD_WAIT_VAR_TYPE 
+is_typedef_name: Looking for MY_INT2 in typedef list
+Scope 5:
+	MY_INT is a shadow IDENTIFIER
+Scope 4:
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: MY_INT2 with status 1 with FSM ON in mode VD_VAR_DECL 
+add_typedef_id: Added MY_INT2 as a shadow IDENTIFIER to typedef list
+Lexer Debug: declared the SHADOWING IDENTIFIER of a typedef_name: MY_INT2 on line 76
+DEBUG: typedef_flag=0, ptr_declarator=UC_MY_INT2
+Debug: create_declaration_specifiers returned: spec([], typeof_expression(UC_MY_INT))
+Trying to Pop scope 5 when scope_stack scope_nb is 5
+Popped scope 5
+Debug: create_declaration_specifiers returned: spec([], void)
+function parsed
+is_typedef_name: Looking for v1 in typedef list
+Scope 4:
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found v1 is a basic IDENTIFIER
+Lexer FSM: checking id: v1 with status 0 with FSM ON in mode VD_VAR_DECL 
+Lexer Debug: read a COMMA in mode VD_VAR_DECL
+DEBUG: typedef_flag=0, ptr_declarator=V1
+is_typedef_name: Looking for v2 in typedef list
+Scope 4:
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found v2 is a basic IDENTIFIER
+Lexer FSM: checking id: v2 with status 0 with FSM ON in mode VD_VAR_DECL 
+Lexer Debug: read a COMMA in mode VD_VAR_DECL
+DEBUG: typedef_flag=0, ptr_declarator=V2
+is_typedef_name: Looking for v3 in typedef list
+Scope 4:
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found v3 is a basic IDENTIFIER
+Lexer FSM: checking id: v3 with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=0, ptr_declarator=V3
+Debug: create_declaration_specifiers returned: spec([], int)
+Lexer FSM: bypassing typedef_name check in mode VD_WAIT_VAR_TYPE: id: tabletop is a tag
+Parser: struct/union tag name: Tabletop
+Parser: parsed struct_or_union tag_name Tabletop
+end of stand alone declaration specifier as a declaration on line 79
+Debug: create_declaration_specifiers returned: spec([], struct(Tabletop))
+Debug: typedef switched to 1
+Lexer FSM: bypassing typedef_name check in mode VD_WAIT_VAR_TYPE: id: tabletop is a tag
+Parser: struct/union tag name: Tabletop
+is_typedef_name: Looking for tabletop in typedef list
+Scope 4:
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found tabletop is a basic IDENTIFIER
+Lexer FSM: checking id: tabletop with status 0 with FSM ON in mode VD_WAIT_VAR_TYPE (in member namespace)
+Parser: parsed struct_or_union tag_name Tabletop
+DEBUG: typedef_flag=1, ptr_declarator=Tabletop
+add_typedef_id: Added tabletop as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], struct(Tabletop))
+Debug: typedef switched to 1
+is_typedef_name: Looking for entier in typedef list
+Scope 4:
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found entier is a basic IDENTIFIER
+Lexer FSM: checking id: entier with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=1, ptr_declarator=Entier
+add_typedef_id: Added entier as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], int)
+is_typedef_name: Looking for inSpecMode in typedef list
+Scope 4:
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found inSpecMode is a basic IDENTIFIER
+Lexer FSM: checking id: inSpecMode with status 0 with FSM ON in mode VD_VAR_DECL 
+the current_scope has just been increased to 5 before a list of parameters
+is_typedef_name: Looking for tabletop in typedef list
+Scope 4:
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: tabletop with status 1 with FSM ON in mode PD_DECIDE_PARAM_KIND 
+Pushed scope 5
+add_typedef_id: Added tabletop as a shadow IDENTIFIER to typedef list
+Lexer Debug: declared the SHADOWING PARAMETER of a typedef_name: tabletop on line 82
+Lexer Debug: read a COMMA in mode PD_WAIT_NAMED_PARAM_TYPE
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for x in typedef list
+Scope 5:
+	tabletop is a shadow IDENTIFIER
+Scope 4:
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found x is a basic IDENTIFIER
+Lexer FSM: checking id: x with status 0 with FSM ON in mode PD_PARAM_DECL 
+Debug: create_declaration_specifiers returned: spec([], int)
+DEBUG: typedef_flag=0, ptr_declarator=InSpecMode
+Trying to Pop scope 5 when scope_stack scope_nb is 5
+Popped scope 5
+Warning: the 'static' storage specifier is always ignored by the parser because Sikraken does not support it yet
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for allocate_entry_120489 in typedef list
+Scope 4:
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found allocate_entry_120489 is a basic IDENTIFIER
+Lexer FSM: checking id: allocate_entry_120489 with status 0 with FSM ON in mode VD_VAR_DECL 
+the current_scope has just been increased to 5 before a list of parameters
+is_typedef_name: Looking for entier in typedef list
+Scope 4:
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: entier with status 1 with FSM ON in mode PD_DECIDE_PARAM_KIND 
+Pushed scope 5
+add_typedef_id: Added entier as a shadow IDENTIFIER to typedef list
+Lexer Debug: declared the SHADOWING PARAMETER of a typedef_name: entier on line 83
+Debug: create_declaration_specifiers returned: spec([], int)
+DEBUG: typedef_flag=0, ptr_declarator=Allocate_entry_120489
+Trying to Pop scope 5 when scope_stack scope_nb is 5
+Popped scope 5
+Warning: the 'static' storage specifier is always ignored by the parser because Sikraken does not support it yet
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for __VERIFIER_nondet_int in typedef list
+Scope 4:
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found __VERIFIER_nondet_int is a basic IDENTIFIER
+Lexer FSM: checking id: __VERIFIER_nondet_int with status 0 with FSM ON in mode VD_VAR_DECL 
+the current_scope has just been increased to 5 before a list of parameters
+DEBUG: typedef_flag=0, ptr_declarator=UC___VERIFIER_nondet_int
+Trying to Pop scope 5 when scope_stack scope_nb is 4
+Debug: create_declaration_specifiers returned: spec([extern], int)
+Debug: typedef switched to 1
+is_typedef_name: Looking for my_int44 in typedef list
+Scope 4:
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found my_int44 is a basic IDENTIFIER
+Lexer FSM: checking id: my_int44 with status 0 with FSM ON in mode VD_VAR_DECL 
+Lexer Debug: read a COMMA in mode VD_VAR_DECL
+DEBUG: typedef_flag=1, ptr_declarator=My_int44
+add_typedef_id: Added my_int44 as a TYPEDEF_NAME to typedef list
+is_typedef_name: Looking for my_int45 in typedef list
+Scope 4:
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found my_int45 is a basic IDENTIFIER
+Lexer FSM: checking id: my_int45 with status 0 with FSM ON in mode VD_VAR_DECL 
+Lexer Debug: read a COMMA in mode VD_VAR_DECL
+DEBUG: typedef_flag=1, ptr_declarator=My_int45
+add_typedef_id: Added my_int45 as a TYPEDEF_NAME to typedef list
+is_typedef_name: Looking for my_int46 in typedef list
+Scope 4:
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found my_int46 is a basic IDENTIFIER
+Lexer FSM: checking id: my_int46 with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=1, ptr_declarator=My_int46
+add_typedef_id: Added my_int46 as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], int)
+is_typedef_name: Looking for my_int44 in typedef list
+Scope 4:
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: my_int44 with status 1 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: my_int44 on line 87
+Lexer Debug: read a COMMA in mode VD_VAR_DECL
+is_typedef_name: Looking for my_int45 in typedef list
+Scope 4:
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: my_int45 with status 1 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: my_int45 on line 87
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for my_int46 in typedef list
+Scope 4:
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: my_int46 with status 1 with FSM ON in mode VD_NONE (in member namespace)
+is_typedef_name: Looking for my_int99 in typedef list
+Scope 4:
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found my_int99 is a basic IDENTIFIER
+Lexer FSM: checking id: my_int99 with status 0 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: my_int99 on line 88
+Debug: create_declaration_specifiers returned: spec([], My_int46)
+is_typedef_name: Looking for var44 in typedef list
+Scope 4:
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found var44 is a basic IDENTIFIER
+Lexer FSM: checking id: var44 with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=0, ptr_declarator=Var44
+Debug: create_declaration_specifiers returned: spec([], struct('anonymous', [struct_decl(spec([], int), [my_int44, my_int45]), struct_decl(spec([], My_int46), [my_int99])]))
+Debug: typedef switched to 1
+is_typedef_name: Looking for my_int42 in typedef list
+Scope 4:
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found my_int42 is a basic IDENTIFIER
+Lexer FSM: checking id: my_int42 with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=1, ptr_declarator=My_int42
+add_typedef_id: Added my_int42 as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], int)
+Debug: typedef switched to 1
+is_typedef_name: Looking for my_int42 in typedef list
+Scope 4:
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: my_int42 with status 1 with FSM ON in mode VD_WAIT_VAR_TYPE 
+is_typedef_name: Looking for my_int43 in typedef list
+Scope 4:
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found my_int43 is a basic IDENTIFIER
+Lexer FSM: checking id: my_int43 with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=1, ptr_declarator=My_int43
+add_typedef_id: Added my_int43 as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], My_int42)
+Debug: typedef switched to 1
+is_typedef_name: Looking for __time_t in typedef list
+Scope 4:
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found __time_t is a basic IDENTIFIER
+Lexer FSM: checking id: __time_t with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=1, ptr_declarator=UC___time_t
+add_typedef_id: Added __time_t as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], long)
+Debug: typedef switched to 1
+is_typedef_name: Looking for __syscall_slong_t in typedef list
+Scope 4:
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found __syscall_slong_t is a basic IDENTIFIER
+Lexer FSM: checking id: __syscall_slong_t with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=1, ptr_declarator=UC___syscall_slong_t
+add_typedef_id: Added __syscall_slong_t as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], long)
+Debug: typedef switched to 1
+is_typedef_name: Looking for __time_t in typedef list
+Scope 4:
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: __time_t with status 1 with FSM ON in mode VD_WAIT_VAR_TYPE 
+is_typedef_name: Looking for time_t in typedef list
+Scope 4:
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found time_t is a basic IDENTIFIER
+Lexer FSM: checking id: time_t with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=1, ptr_declarator=Time_t
+add_typedef_id: Added time_t as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], UC___time_t)
+Lexer FSM: bypassing typedef_name check in mode VD_WAIT_VAR_TYPE: id: timespec is a tag
+Parser: struct/union tag name: Timespec
+is_typedef_name: Looking for __time_t in typedef list
+Scope 4:
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: __time_t with status 1 with FSM ON in mode VD_WAIT_VAR_TYPE (in member namespace)
+is_typedef_name: Looking for tv_sec in typedef list
+Scope 4:
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found tv_sec is a basic IDENTIFIER
+Lexer FSM: checking id: tv_sec with status 0 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: tv_sec on line 96
+Debug: create_declaration_specifiers returned: spec([], UC___time_t)
+is_typedef_name: Looking for __syscall_slong_t in typedef list
+Scope 4:
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: __syscall_slong_t with status 1 with FSM ON in mode VD_NONE (in member namespace)
+is_typedef_name: Looking for tv_nsec in typedef list
+Scope 4:
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found tv_nsec is a basic IDENTIFIER
+Lexer FSM: checking id: tv_nsec with status 0 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: tv_nsec on line 97
+Debug: create_declaration_specifiers returned: spec([], UC___syscall_slong_t)
+end of stand alone declaration specifier as a declaration on line 98
+Debug: create_declaration_specifiers returned: spec([], struct(Timespec, [struct_decl(spec([], UC___time_t), [tv_sec]), struct_decl(spec([], UC___syscall_slong_t), [tv_nsec])]))
+Lexer FSM: bypassing typedef_name check in mode VD_WAIT_VAR_TYPE: id: lock_class_key is a tag
+Parser: struct/union tag name: Lock_class_key
+end of stand alone declaration specifier as a declaration on line 100
+Debug: create_declaration_specifiers returned: spec([], struct(Lock_class_key, []))
+is_typedef_name: Looking for abort in typedef list
+Scope 4:
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found abort is a basic IDENTIFIER
+Lexer FSM: checking id: abort with status 0 with FSM ON in mode VD_VAR_DECL 
+the current_scope has just been increased to 5 before a list of parameters
+Debug: create_declaration_specifiers returned: spec([], void)
+DEBUG: typedef_flag=0, ptr_declarator=Abort
+Trying to Pop scope 5 when scope_stack scope_nb is 4
+Debug: create_declaration_specifiers returned: spec([extern], void)
+Debug: typedef switched to 1
+is_typedef_name: Looking for claude1 in typedef list
+Scope 4:
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found claude1 is a basic IDENTIFIER
+Lexer FSM: checking id: claude1 with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=1, ptr_declarator=Claude1
+add_typedef_id: Added claude1 as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], int)
+is_typedef_name: Looking for main_claude1 in typedef list
+Scope 4:
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found main_claude1 is a basic IDENTIFIER
+Lexer FSM: checking id: main_claude1 with status 0 with FSM ON in mode VD_VAR_DECL 
+the current_scope has just been increased to 5 before a list of parameters
+is_typedef_name: Looking for claude1 in typedef list
+Scope 4:
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: claude1 with status 1 with FSM ON in mode VD_VAR_DECL 
+Pushed scope 5
+add_typedef_id: Added claude1 as a shadow IDENTIFIER to typedef list
+Lexer Debug: declared the SHADOWING IDENTIFIER of a typedef_name: claude1 on line 104
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for x in typedef list
+Scope 5:
+	claude1 is a shadow IDENTIFIER
+Scope 4:
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found x is a basic IDENTIFIER
+Lexer FSM: checking id: x with status 0 with FSM ON in mode VD_VAR_DECL 
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for claude1 in typedef list
+Scope 5:
+	claude1 is a shadow IDENTIFIER
+Scope 4:
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a shadow IDENTIFIER
+Lexer FSM: checking id: claude1 with status 2 with FSM OFF in mode VD_VAR_DECL 
+Debug: create_declaration_specifiers returned: spec([], int)
+Trying to Pop scope 5 when scope_stack scope_nb is 5
+Popped scope 5
+Debug: create_declaration_specifiers returned: spec([], int)
+function parsed
+Debug: typedef switched to 1
+is_typedef_name: Looking for claude in typedef list
+Scope 4:
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found claude is a basic IDENTIFIER
+Lexer FSM: checking id: claude with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=1, ptr_declarator=Claude
+add_typedef_id: Added claude as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], long)
+is_typedef_name: Looking for main_claude in typedef list
+Scope 4:
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found main_claude is a basic IDENTIFIER
+Lexer FSM: checking id: main_claude with status 0 with FSM ON in mode VD_VAR_DECL 
+the current_scope has just been increased to 5 before a list of parameters
+is_typedef_name: Looking for claude in typedef list
+Scope 4:
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: claude with status 1 with FSM ON in mode VD_VAR_DECL 
+Pushed scope 5
+add_typedef_id: Added claude as a shadow IDENTIFIER to typedef list
+Lexer Debug: declared the SHADOWING IDENTIFIER of a typedef_name: claude on line 109
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for x in typedef list
+Scope 5:
+	claude is a shadow IDENTIFIER
+Scope 4:
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found x is a basic IDENTIFIER
+Lexer FSM: checking id: x with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for claude in typedef list
+Scope 5:
+	claude is a shadow IDENTIFIER
+Scope 4:
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a shadow IDENTIFIER
+Lexer FSM: checking id: claude with status 2 with FSM OFF in mode VD_VAR_DECL 
+Debug: create_declaration_specifiers returned: spec([], int)
+Trying to Pop scope 5 when scope_stack scope_nb is 5
+Popped scope 5
+Debug: create_declaration_specifiers returned: spec([], int)
+function parsed
+is_typedef_name: Looking for __assert_fail in typedef list
+Scope 4:
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found __assert_fail is a basic IDENTIFIER
+Lexer FSM: checking id: __assert_fail with status 0 with FSM ON in mode VD_VAR_DECL 
+the current_scope has just been increased to 5 before a list of parameters
+is_typedef_name: Looking for __assertion in typedef list
+Scope 4:
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found __assertion is a basic IDENTIFIER
+Lexer FSM: checking id: __assertion with status 0 with FSM ON in mode PD_DECIDE_PARAM_KIND 
+Lexer Debug: read a COMMA in mode PD_WAIT_NAMED_PARAM_TYPE
+Warning: the 'const' qualifier is always ignored by the parser because it has no impact on symbolic execution
+Debug: create_declaration_specifiers returned: spec([], char)
+is_typedef_name: Looking for __file in typedef list
+Scope 4:
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found __file is a basic IDENTIFIER
+Lexer FSM: checking id: __file with status 0 with FSM ON in mode PD_PARAM_DECL 
+Lexer Debug: read a COMMA in mode PD_WAIT_NAMED_PARAM_TYPE
+Warning: the 'const' qualifier is always ignored by the parser because it has no impact on symbolic execution
+Debug: create_declaration_specifiers returned: spec([], char)
+is_typedef_name: Looking for __line in typedef list
+Scope 4:
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found __line is a basic IDENTIFIER
+Lexer FSM: checking id: __line with status 0 with FSM ON in mode PD_PARAM_DECL 
+Lexer Debug: read a COMMA in mode PD_WAIT_NAMED_PARAM_TYPE
+Debug: create_declaration_specifiers returned: spec([], unsigned(int))
+is_typedef_name: Looking for __function in typedef list
+Scope 4:
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found __function is a basic IDENTIFIER
+Lexer FSM: checking id: __function with status 0 with FSM ON in mode PD_PARAM_DECL 
+Warning: the 'const' qualifier is always ignored by the parser because it has no impact on symbolic execution
+Debug: create_declaration_specifiers returned: spec([], char)
+DEBUG: typedef_flag=0, ptr_declarator=UC___assert_fail
+Trying to Pop scope 5 when scope_stack scope_nb is 4
+Debug: create_declaration_specifiers returned: spec([extern], void)
+Debug: typedef switched to 1
+is_typedef_name: Looking for __kernel_ulong_t in typedef list
+Scope 4:
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found __kernel_ulong_t is a basic IDENTIFIER
+Lexer FSM: checking id: __kernel_ulong_t with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=1, ptr_declarator=UC___kernel_ulong_t
+add_typedef_id: Added __kernel_ulong_t as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], unsigned(long))
+Debug: typedef switched to 1
+is_typedef_name: Looking for __kernel_ulong_t in typedef list
+Scope 4:
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: __kernel_ulong_t with status 1 with FSM ON in mode VD_WAIT_VAR_TYPE 
+is_typedef_name: Looking for __kernel_size_t in typedef list
+Scope 4:
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found __kernel_size_t is a basic IDENTIFIER
+Lexer FSM: checking id: __kernel_size_t with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=1, ptr_declarator=UC___kernel_size_t
+add_typedef_id: Added __kernel_size_t as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], UC___kernel_ulong_t)
+Lexer FSM: bypassing typedef_name check in mode VD_WAIT_VAR_TYPE: id: tabX is a tag
+Parser: struct/union tag name: TabX
+is_typedef_name: Looking for name in typedef list
+Scope 4:
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found name is a basic IDENTIFIER
+Lexer FSM: checking id: name with status 0 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: name on line 118
+Warning: the 'const' qualifier is always ignored by the parser because it has no impact on symbolic execution
+Debug: create_declaration_specifiers returned: spec([], char)
+is_typedef_name: Looking for type in typedef list
+Scope 4:
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found type is a basic IDENTIFIER
+Lexer FSM: checking id: type with status 0 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: type on line 119
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for value in typedef list
+Scope 4:
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found value is a basic IDENTIFIER
+Lexer FSM: checking id: value with status 0 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: value on line 120
+Debug: create_declaration_specifiers returned: spec([], int)
+end of stand alone declaration specifier as a declaration on line 121
+Debug: create_declaration_specifiers returned: spec([], struct(TabX, [struct_decl(spec([], char), [ptr_decl(pointer, name)]), struct_decl(spec([], int), [type]), struct_decl(spec([], int), [value])]))
+Debug: typedef switched to 1
+Lexer FSM: bypassing typedef_name check in mode VD_WAIT_VAR_TYPE: id: tabX is a tag
+Parser: struct/union tag name: TabX
+is_typedef_name: Looking for tableX in typedef list
+Scope 4:
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found tableX is a basic IDENTIFIER
+Lexer FSM: checking id: tableX with status 0 with FSM ON in mode VD_WAIT_VAR_TYPE (in member namespace)
+Parser: parsed struct_or_union tag_name TabX
+DEBUG: typedef_flag=1, ptr_declarator=TableX
+add_typedef_id: Added tableX as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], struct(TabX))
+Lexer FSM: bypassing typedef_name check in mode VD_WAIT_VAR_TYPE: id: table is a tag
+Parser: struct/union tag name: Table
+Parser: parsed struct_or_union tag_name Table
+end of stand alone declaration specifier as a declaration on line 123
+Debug: create_declaration_specifiers returned: spec([], struct(Table))
+Debug: typedef switched to 1
+Lexer FSM: bypassing typedef_name check in mode VD_WAIT_VAR_TYPE: id: table is a tag
+Parser: struct/union tag name: Table
+is_typedef_name: Looking for table in typedef list
+Scope 4:
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found table is a basic IDENTIFIER
+Lexer FSM: checking id: table with status 0 with FSM ON in mode VD_WAIT_VAR_TYPE (in member namespace)
+Parser: parsed struct_or_union tag_name Table
+DEBUG: typedef_flag=1, ptr_declarator=Table
+add_typedef_id: Added table as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], struct(Table))
+Lexer FSM: bypassing typedef_name check in mode VD_WAIT_VAR_TYPE: id: anonymous_62146 is a tag
+Parser: struct/union tag name: Anonymous_62146
+is_typedef_name: Looking for table in typedef list
+Scope 4:
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: table with status 1 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: table on line 126
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for pat in typedef list
+Scope 4:
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found pat is a basic IDENTIFIER
+Lexer FSM: checking id: pat with status 0 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: pat on line 127
+Debug: create_declaration_specifiers returned: spec([], int)
+end of stand alone declaration specifier as a declaration on line 128
+Debug: create_declaration_specifiers returned: spec([], union(Anonymous_62146, [struct_decl(spec([], int), [ptr_decl(pointer, table)]), struct_decl(spec([], int), [pat])]))
+Lexer FSM: bypassing typedef_name check in mode VD_WAIT_VAR_TYPE: id: table is a tag
+Parser: struct/union tag name: Table
+is_typedef_name: Looking for name in typedef list
+Scope 4:
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found name is a basic IDENTIFIER
+Lexer FSM: checking id: name with status 0 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: name on line 130
+Warning: the 'const' qualifier is always ignored by the parser because it has no impact on symbolic execution
+Debug: create_declaration_specifiers returned: spec([], char)
+is_typedef_name: Looking for type in typedef list
+Scope 4:
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found type is a basic IDENTIFIER
+Lexer FSM: checking id: type with status 0 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: type on line 131
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for value in typedef list
+Scope 4:
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found value is a basic IDENTIFIER
+Lexer FSM: checking id: value with status 0 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: value on line 132
+Debug: create_declaration_specifiers returned: spec([], int)
+end of stand alone declaration specifier as a declaration on line 133
+Debug: create_declaration_specifiers returned: spec([], struct(Table, [struct_decl(spec([], char), [ptr_decl(pointer, name)]), struct_decl(spec([], int), [type]), struct_decl(spec([], int), [value])]))
+is_typedef_name: Looking for my_array in typedef list
+Scope 4:
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found my_array is a basic IDENTIFIER
+Lexer FSM: checking id: my_array with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=0, ptr_declarator=My_array
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for table in typedef list
+Scope 4:
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: table with status 1 with FSM ON in mode VD_WAIT_VAR_TYPE 
+is_typedef_name: Looking for universal_time_zone_table_200015 in typedef list
+Scope 4:
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found universal_time_zone_table_200015 is a basic IDENTIFIER
+Lexer FSM: checking id: universal_time_zone_table_200015 with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=0, ptr_declarator=Universal_time_zone_table_200015
+Warning: the 'static' storage specifier is always ignored by the parser because Sikraken does not support it yet
+Warning: the 'const' qualifier is always ignored by the parser because it has no impact on symbolic execution
+Debug: create_declaration_specifiers returned: spec([], Table)
+is_typedef_name: Looking for table in typedef list
+Scope 4:
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: table with status 1 with FSM ON in mode VD_WAIT_VAR_TYPE 
+is_typedef_name: Looking for tt in typedef list
+Scope 4:
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found tt is a basic IDENTIFIER
+Lexer FSM: checking id: tt with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=0, ptr_declarator=Tt
+Warning: the 'static' storage specifier is always ignored by the parser because Sikraken does not support it yet
+Debug: create_declaration_specifiers returned: spec([], Table)
+is_typedef_name: Looking for table in typedef list
+Scope 4:
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: table with status 1 with FSM ON in mode VD_NONE 
+is_typedef_name: Looking for t3 in typedef list
+Scope 4:
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found t3 is a basic IDENTIFIER
+Lexer FSM: checking id: t3 with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=0, ptr_declarator=T3
+Debug: create_declaration_specifiers returned: spec([], Table)
+is_typedef_name: Looking for table in typedef list
+Scope 4:
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: table with status 1 with FSM ON in mode VD_WAIT_VAR_TYPE 
+is_typedef_name: Looking for ttt in typedef list
+Scope 4:
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found ttt is a basic IDENTIFIER
+Lexer FSM: checking id: ttt with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=0, ptr_declarator=Ttt
+Warning: the 'static' storage specifier is always ignored by the parser because Sikraken does not support it yet
+Debug: create_declaration_specifiers returned: spec([], Table)
+Debug: typedef switched to 1
+is_typedef_name: Looking for my_int in typedef list
+Scope 4:
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found my_int is a basic IDENTIFIER
+Lexer FSM: checking id: my_int with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=1, ptr_declarator=My_int
+add_typedef_id: Added my_int as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], int)
+is_typedef_name: Looking for a in typedef list
+Scope 4:
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found a is a basic IDENTIFIER
+Lexer FSM: checking id: a with status 0 with FSM ON in mode VD_VAR_DECL 
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for y in typedef list
+Scope 4:
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found y is a basic IDENTIFIER
+Lexer FSM: checking id: y with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for my_int in typedef list
+Scope 4:
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: my_int with status 1 with FSM OFF in mode VD_VAR_DECL 
+Debug: create_declaration_specifiers returned: spec([], My_int)
+Debug: create_declaration_specifiers returned: spec([], int)
+Debug: typedef switched to 1
+Lexer FSM: bypassing typedef_name check in mode VD_WAIT_VAR_TYPE: id: node is a tag
+Parser: struct/union tag name: Node
+is_typedef_name: Looking for is_typedef_name in typedef list
+Scope 4:
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found is_typedef_name is a basic IDENTIFIER
+Lexer FSM: checking id: is_typedef_name with status 0 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: is_typedef_name on line 143
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for name in typedef list
+Scope 4:
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found name is a basic IDENTIFIER
+Lexer FSM: checking id: name with status 0 with FSM ON in mode VD_VAR_DECL (in member namespace)
+direct_declarator: in member namespace: name on line 144
+Debug: create_declaration_specifiers returned: spec([], char)
+Lexer FSM: bypassing typedef_name check in mode VD_WAIT_VAR_TYPE: id: node is a tag
+Parser: struct/union tag name: Node
+Parser: parsed struct_or_union tag_name Node
+is_typedef_name: Looking for next in typedef list
+Scope 4:
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found next is a basic IDENTIFIER
+Lexer FSM: checking id: next with status 0 with FSM ON in mode VD_VAR_DECL 
+Debug: create_declaration_specifiers returned: spec([], struct(Node))
+is_typedef_name: Looking for list_node in typedef list
+Scope 4:
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found list_node is a basic IDENTIFIER
+Lexer FSM: checking id: list_node with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=1, ptr_declarator=List_node
+add_typedef_id: Added list_node as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], struct(Node, [struct_decl(spec([], int), [is_typedef_name]), struct_decl(spec([], char), [ptr_decl(pointer, name)]), struct_decl(spec([], struct(Node)), [ptr_decl(pointer, Next)])]))
+is_typedef_name: Looking for free_list_node in typedef list
+Scope 4:
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found free_list_node is a basic IDENTIFIER
+Lexer FSM: checking id: free_list_node with status 0 with FSM ON in mode VD_VAR_DECL 
+the current_scope has just been increased to 5 before a list of parameters
+is_typedef_name: Looking for list_node in typedef list
+Scope 4:
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: list_node with status 1 with FSM ON in mode PD_NONE 
+is_typedef_name: Looking for node in typedef list
+Scope 4:
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found node is a basic IDENTIFIER
+Lexer FSM: checking id: node with status 0 with FSM ON in mode PD_DECIDE_PARAM_KIND 
+Debug: create_declaration_specifiers returned: spec([], List_node)
+is_typedef_name: Looking for node in typedef list
+Scope 4:
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found node is a basic IDENTIFIER
+Lexer FSM: checking id: node with status 0 with FSM ON in mode VD_NOT_VAR_DECL 
+is_typedef_name: Looking for list_node in typedef list
+Scope 4:
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: list_node with status 1 with FSM ON in mode VD_NONE 
+is_typedef_name: Looking for temp in typedef list
+Scope 4:
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found temp is a basic IDENTIFIER
+Lexer FSM: checking id: temp with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for node in typedef list
+Scope 4:
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found node is a basic IDENTIFIER
+Lexer FSM: checking id: node with status 0 with FSM OFF in mode VD_VAR_DECL 
+Debug: create_declaration_specifiers returned: spec([], List_node)
+Trying to Pop scope 6 when scope_stack scope_nb is 4
+Trying to Pop scope 5 when scope_stack scope_nb is 4
+Debug: create_declaration_specifiers returned: spec([], void)
+function parsed
+Debug: typedef switched to 1
+is_typedef_name: Looking for my_int2 in typedef list
+Scope 4:
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found my_int2 is a basic IDENTIFIER
+Lexer FSM: checking id: my_int2 with status 0 with FSM ON in mode VD_VAR_DECL 
+DEBUG: typedef_flag=1, ptr_declarator=My_int2
+add_typedef_id: Added my_int2 as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], int)
+is_typedef_name: Looking for hello0 in typedef list
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found hello0 is a basic IDENTIFIER
+Lexer FSM: checking id: hello0 with status 0 with FSM ON in mode VD_VAR_DECL 
+the current_scope has just been increased to 5 before a list of parameters
+is_typedef_name: Looking for my_int2 in typedef list
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: my_int2 with status 1 with FSM ON in mode PD_DECIDE_PARAM_KIND 
+Pushed scope 5
+add_typedef_id: Added my_int2 as a shadow IDENTIFIER to typedef list
+Lexer Debug: declared the SHADOWING PARAMETER of a typedef_name: my_int2 on line 153
+Debug: create_declaration_specifiers returned: spec([], int)
+DEBUG: typedef_flag=0, ptr_declarator=Hello0
+Trying to Pop scope 5 when scope_stack scope_nb is 5
+Popped scope 5
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for hello1 in typedef list
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found hello1 is a basic IDENTIFIER
+Lexer FSM: checking id: hello1 with status 0 with FSM ON in mode VD_VAR_DECL 
+the current_scope has just been increased to 5 before a list of parameters
+is_typedef_name: Looking for my_int2 in typedef list
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: my_int2 with status 1 with FSM ON in mode PD_DECIDE_PARAM_KIND 
+Pushed scope 5
+add_typedef_id: Added my_int2 as a shadow IDENTIFIER to typedef list
+Lexer Debug: declared the SHADOWING PARAMETER of a typedef_name: my_int2 on line 154
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for my_int2 in typedef list
+Scope 5:
+	my_int2 is a shadow IDENTIFIER
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a shadow IDENTIFIER
+Lexer FSM: checking id: my_int2 with status 2 with FSM ON in mode VD_NONE 
+Trying to Pop scope 5 when scope_stack scope_nb is 5
+Popped scope 5
+Debug: create_declaration_specifiers returned: spec([], int)
+function parsed
+is_typedef_name: Looking for hello2 in typedef list
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found hello2 is a basic IDENTIFIER
+Lexer FSM: checking id: hello2 with status 0 with FSM ON in mode VD_VAR_DECL 
+the current_scope has just been increased to 5 before a list of parameters
+is_typedef_name: Looking for my_int3 in typedef list
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found my_int3 is a basic IDENTIFIER
+Lexer FSM: checking id: my_int3 with status 0 with FSM ON in mode PD_DECIDE_PARAM_KIND 
+Debug: create_declaration_specifiers returned: spec([], int)
+Trying to Pop scope 5 when scope_stack scope_nb is 4
+Debug: create_declaration_specifiers returned: spec([], int)
+function parsed
+is_typedef_name: Looking for hello3 in typedef list
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found hello3 is a basic IDENTIFIER
+Lexer FSM: checking id: hello3 with status 0 with FSM ON in mode VD_VAR_DECL 
+the current_scope has just been increased to 5 before a list of parameters
+is_typedef_name: Looking for my_int2 in typedef list
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: my_int2 with status 1 with FSM ON in mode PD_NONE 
+is_typedef_name: Looking for y in typedef list
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found y is a basic IDENTIFIER
+Lexer FSM: checking id: y with status 0 with FSM ON in mode PD_DECIDE_PARAM_KIND 
+Debug: create_declaration_specifiers returned: spec([], My_int2)
+is_typedef_name: Looking for y in typedef list
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found y is a basic IDENTIFIER
+Lexer FSM: checking id: y with status 0 with FSM ON in mode VD_NOT_VAR_DECL 
+is_typedef_name: Looking for my_int2 in typedef list
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: my_int2 with status 1 with FSM ON in mode VD_NONE 
+is_typedef_name: Looking for z in typedef list
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found z is a basic IDENTIFIER
+Lexer FSM: checking id: z with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for y in typedef list
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found y is a basic IDENTIFIER
+Lexer FSM: checking id: y with status 0 with FSM OFF in mode VD_VAR_DECL 
+Debug: create_declaration_specifiers returned: spec([], My_int2)
+is_typedef_name: Looking for a in typedef list
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found a is a basic IDENTIFIER
+Lexer FSM: checking id: a with status 0 with FSM ON in mode VD_VAR_DECL 
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for my_int in typedef list
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: my_int with status 1 with FSM ON in mode VD_VAR_DECL 
+Pushed scope 6
+add_typedef_id: Added my_int as a shadow IDENTIFIER to typedef list
+Lexer Debug: declared the SHADOWING IDENTIFIER of a typedef_name: my_int on line 164
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for hello3 in typedef list
+Scope 6:
+	my_int is a shadow IDENTIFIER
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found hello3 is a basic IDENTIFIER
+Lexer FSM: checking id: hello3 with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for my_int in typedef list
+Scope 6:
+	my_int is a shadow IDENTIFIER
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a shadow IDENTIFIER
+Lexer FSM: checking id: my_int with status 2 with FSM OFF in mode VD_VAR_DECL 
+Debug: create_declaration_specifiers returned: spec([], int)
+Trying to Pop scope 6 when scope_stack scope_nb is 6
+Popped scope 6
+Trying to Pop scope 5 when scope_stack scope_nb is 4
+Debug: create_declaration_specifiers returned: spec([], int)
+function parsed
+is_typedef_name: Looking for hello4 in typedef list
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found hello4 is a basic IDENTIFIER
+Lexer FSM: checking id: hello4 with status 0 with FSM ON in mode VD_VAR_DECL 
+the current_scope has just been increased to 5 before a list of parameters
+is_typedef_name: Looking for table in typedef list
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: table with status 1 with FSM ON in mode PD_NONE 
+is_typedef_name: Looking for tt in typedef list
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found tt is a basic IDENTIFIER
+Lexer FSM: checking id: tt with status 0 with FSM ON in mode PD_DECIDE_PARAM_KIND 
+Debug: create_declaration_specifiers returned: spec([], Table)
+Debug: typedef switched to 1
+is_typedef_name: Looking for my_int in typedef list
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: my_int with status 1 with FSM ON in mode VD_VAR_DECL 
+Pushed scope 5
+add_typedef_id: Added my_int as a shadow IDENTIFIER to typedef list
+Lexer Debug: declared the SHADOWING IDENTIFIER of a typedef_name: my_int on line 170
+DEBUG: typedef_flag=1, ptr_declarator=My_int
+add_typedef_id: Added my_int as a TYPEDEF_NAME to typedef list
+Debug: typedef switched to 0
+Debug: create_declaration_specifiers returned: spec([typedef], char)
+Trying to Pop scope 5 when scope_stack scope_nb is 5
+Popped scope 5
+Debug: create_declaration_specifiers returned: spec([], int)
+function parsed
+is_typedef_name: Looking for main in typedef list
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found main is a basic IDENTIFIER
+Lexer FSM: checking id: main with status 0 with FSM ON in mode VD_VAR_DECL 
+the current_scope has just been increased to 5 before a list of parameters
+is_typedef_name: Looking for table in typedef list
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a TYPEDEF_NAME
+Lexer FSM: checking id: table with status 1 with FSM ON in mode VD_VAR_DECL 
+Pushed scope 5
+add_typedef_id: Added table as a shadow IDENTIFIER to typedef list
+Lexer Debug: declared the SHADOWING IDENTIFIER of a typedef_name: table on line 174
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for x in typedef list
+Scope 5:
+	table is a shadow IDENTIFIER
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found x is a basic IDENTIFIER
+Lexer FSM: checking id: x with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for table in typedef list
+Scope 5:
+	table is a shadow IDENTIFIER
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a shadow IDENTIFIER
+Lexer FSM: checking id: table with status 2 with FSM OFF in mode VD_VAR_DECL 
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for table in typedef list
+Scope 5:
+	table is a shadow IDENTIFIER
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a shadow IDENTIFIER
+Lexer FSM: checking id: table with status 2 with FSM ON in mode VD_NONE 
+is_typedef_name: Looking for a in typedef list
+Scope 5:
+	table is a shadow IDENTIFIER
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found a is a basic IDENTIFIER
+Lexer FSM: checking id: a with status 0 with FSM ON in mode VD_NOT_VAR_DECL 
+is_typedef_name: Looking for table in typedef list
+Scope 5:
+	table is a shadow IDENTIFIER
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a shadow IDENTIFIER
+Lexer FSM: checking id: table with status 2 with FSM ON in mode VD_NOT_VAR_DECL 
+is_typedef_name: Looking for v in typedef list
+Scope 5:
+	table is a shadow IDENTIFIER
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found v is a basic IDENTIFIER
+Lexer FSM: checking id: v with status 0 with FSM ON in mode VD_VAR_DECL 
+is_typedef_name: Looking for __VERIFIER_nondet_int in typedef list
+Scope 5:
+	table is a shadow IDENTIFIER
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found __VERIFIER_nondet_int is a basic IDENTIFIER
+Lexer FSM: checking id: __VERIFIER_nondet_int with status 0 with FSM OFF in mode VD_VAR_DECL 
+Debug: create_declaration_specifiers returned: spec([], int)
+is_typedef_name: Looking for v in typedef list
+Scope 5:
+	table is a shadow IDENTIFIER
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found v is a basic IDENTIFIER
+Lexer FSM: checking id: v with status 0 with FSM ON in mode VD_NOT_VAR_DECL 
+is_typedef_name: Looking for x in typedef list
+Scope 5:
+	table is a shadow IDENTIFIER
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found x is a basic IDENTIFIER
+Lexer FSM: checking id: x with status 0 with FSM ON in mode VD_NOT_VAR_DECL 
+is_typedef_name: Looking for x in typedef list
+Scope 5:
+	table is a shadow IDENTIFIER
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: not found x is a basic IDENTIFIER
+Lexer FSM: checking id: x with status 0 with FSM ON in mode VD_NONE 
+Trying to Pop scope 6 when scope_stack scope_nb is 5
+is_typedef_name: Looking for table in typedef list
+Scope 5:
+	table is a shadow IDENTIFIER
+Scope 4:
+	my_int2 is a TYPEDEF_NAME
+	list_node is a TYPEDEF_NAME
+	my_int is a TYPEDEF_NAME
+	table is a TYPEDEF_NAME
+	tableX is a TYPEDEF_NAME
+	__kernel_size_t is a TYPEDEF_NAME
+	__kernel_ulong_t is a TYPEDEF_NAME
+	claude is a TYPEDEF_NAME
+	claude1 is a TYPEDEF_NAME
+	time_t is a TYPEDEF_NAME
+	__syscall_slong_t is a TYPEDEF_NAME
+	__time_t is a TYPEDEF_NAME
+	my_int43 is a TYPEDEF_NAME
+	my_int42 is a TYPEDEF_NAME
+	my_int46 is a TYPEDEF_NAME
+	my_int45 is a TYPEDEF_NAME
+	my_int44 is a TYPEDEF_NAME
+	entier is a TYPEDEF_NAME
+	tabletop is a TYPEDEF_NAME
+	MY_INT4 is a TYPEDEF_NAME
+	MY_INT3 is a TYPEDEF_NAME
+	MY_INT2 is a TYPEDEF_NAME
+	MY_INT is a TYPEDEF_NAME
+	INT99 is a TYPEDEF_NAME
+	locale_t is a TYPEDEF_NAME
+	size_t is a TYPEDEF_NAME
+	size_t is a shadow IDENTIFIER
+	u8 is a TYPEDEF_NAME
+	s32 is a TYPEDEF_NAME
+Scope 1:
+	size_t is a TYPEDEF_NAME
+Scope 0:
+	FILE is a TYPEDEF_NAME
+	__gnuc_va_list is a TYPEDEF_NAME
+is_typedef_name: a matching id has been found it is a shadow IDENTIFIER
+Lexer FSM: checking id: table with status 2 with FSM ON in mode VD_NONE 
+Trying to Pop scope 5 when scope_stack scope_nb is 5
+Popped scope 5
+Debug: create_declaration_specifiers returned: spec([], int)
+function parsed
+Sikraken from ./bin/call_parser.sh: successfully preprocessed typedef and ran sikraken_parser.
