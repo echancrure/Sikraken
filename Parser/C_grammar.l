@@ -197,14 +197,14 @@ WS  [ \t\v\n\f]
                              int i = 0;
                              for (; yytext[i] != '\0'; i++) {
                                 if (yytext[i] == '$') {
-                                    yylval.id[i] = 'Z';         //replace all '$' in C identifers (allowed extension) with the character 'Z' becuase $ is not allowed in C var names: this is unsound when another identifier already has this name e.g. $1 and Z1 will clash
+                                    yylval.id[i] = 'Z';         //replace all '$' in C identifers (allowed extension) with the character 'Z' because $ is not allowed in Prolog var names: this is unsound when another identifier already has this name e.g. $1 and Z1 will clash
                                 } else {
                                     yylval.id[i] = yytext[i];
                                 }
                              }
                              yylval.id[i] = '\0';
-                             if (in_tag_declaration || in_label_namespace) { // these contexts never treat ids as types: no point checking
-                                if (debugMode) printf("Lexer FSM: bypassing typedef_name check in mode %s: id: %s is a %s\n", FSM_mode_str(), yylval.id, (in_tag_declaration ? "tag" : "label"));
+                             if (in_tag_declaration || 0 || in_label_namespace) { // these contexts never treat ids as types: no point checking
+                                if (debugMode) printf("Lexer FSM: bypassing typedef_name check in mode %s: id: %s is a %s\n", FSM_mode_str(), yylval.id, (in_tag_declaration ? "tag" : (in_member_namespace ? "member" : "label")));
                                 return IDENTIFIER; 
                              }
                              int id_status = is_typedef_name(yylval.id);                            
@@ -232,6 +232,9 @@ WS  [ \t\v\n\f]
                                             if (debugMode) printf("Lexer Debug: declared the SHADOWING IDENTIFIER of a typedef_name: %s on line %d\n", yylval.id, yylineno);
                                             return IDENTIFIER;
                                         }
+                                    } else if (VD_state == VD_NOT_VAR_DECL) {
+                                        if (in_member_namespace) return IDENTIFIER;
+                                        return TYPEDEF_NAME;
                                     }
                                     else {
                                         FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);

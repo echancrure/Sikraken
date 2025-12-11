@@ -1,6 +1,14 @@
+typedef unsigned int size_t;
+enum strtol_error {
+    LONGINT_OK = 0,
+    LONGINT_OVERFLOW = 1,
+    LONGINT_INVALID_SUFFIX_CHAR = 2,
+    LONGINT_INVALID_SUFFIX_CHAR_WITH_OVERFLOW = 3,
+    LONGINT_INVALID = 4,
+};
+enum strtol_error human_options(const char *spec, int *opts, size_t *block_size);
 typedef int FILE;
 int add_exclude_fp(void (*add_func)(struct exclude_62137*, const char*, int, void*), struct exclude_62137 *ex, FILE *fp, int options, char line_end, void *data);
-typedef unsigned int size_t;
 int _obstack_begin(struct obstack_186180 *h, size_t size, size_t alignment, void *(*chunkfun)(size_t), void (*freefun)(void*));
 int _obstack_begin_1(void *(*chunkfun)(void*, size_t));
 enum stv090x_modcod {

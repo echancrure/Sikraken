@@ -127,7 +127,6 @@ enum ParserExitCodes {
 %type <id> abstract_declarator_opt
 %type <id> expression constant_expression assignment_expression conditional_expression assignment_operator
 %type <id> logical_or_expression logical_and_expression inclusive_or_expression exclusive_or_expression and_expression equality_expression equality_expression_op relational_expression relational_expression_operator shift_expression shift_expression_op additive_expression additive_expression_op
-%type <id> comma_opt
 %type <id> multiplicative_expression multiplicative_expression_op cast_expression unary_expression unary_operator unary_inc_dec postfix_expression 
 %type <id> type_name argument_expression_list primary_expression constant string enumeration_constant
 %type <id> initializer_list designation designator_list designator
@@ -278,24 +277,17 @@ postfix_expression
 		 free($1);
 		}
 	| '(' type_name ')' '{' initializer_list comma_opt '}'
-		{if (!strcmp($6, ",")) {
-			size_t const size = strlen("trailing_comma_compound_literal(, )") + strlen($2) + strlen($5) + 1;
-		 	$$ = (char*)malloc(size);
-		 	sprintf_safe($$, size, "trailing_comma_compound_literal(%s, %s)", $2, $5);
-		 } else {
-			size_t const size = strlen("compound_literal(, )") + strlen($2) + strlen($5) + 1;
-		 	$$ = (char*)malloc(size);
-		 	sprintf_safe($$, size, "compound_literal(%s, %s)", $2, $5);
-		 }		 	
+		{size_t const size = strlen("compound_literal(, )") + strlen($2) + strlen($5) + 1;
+		 $$ = (char*)malloc(size);
+		 sprintf_safe($$, size, "compound_literal(%s, %s)", $2, $5);	 	
 		 free($2);
 		 free($5);
-		 free($6);
 		}
 	;
 
 comma_opt 
-	: /* nothing */ {simple_str_lit_copy(&$$, "");}
-	| ',' {simple_str_lit_copy(&$$, ",");}	
+	: /* nothing */ 
+	| ',' //has no semantic effect
 	;
 
 
@@ -822,7 +814,7 @@ struct_declaration
          sprintf_safe($$, size, "anonymous_member(%s)", decl_specifier);
 	   	 free(decl_specifier);
         }
-	| specifier_qualifier_list struct_declarator_list {FSM_reset();} ';'	//cannot set in_member_namespace = 1; in between: it is too late: the declarator token has already been read
+	| specifier_qualifier_list struct_declarator_list {FSM_reset(); } ';'	//cannot set in_member_namespace = 1; in between: it is too late: the declarator token has already been read
 		{char *decl_specifier = create_declaration_specifiers();
 		 size_t const size = strlen("struct_decl(, [])") + strlen(decl_specifier) + strlen($2) + 1;
        	 $$ = (char*)malloc(size);
@@ -894,26 +886,24 @@ struct_declarator		//for FSM_off: can only be followed by ',' or ';' at the glob
 	;
 
 enum_specifier
-	: ENUM '{' enumerator_list comma_opt {FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);} '}'
-		{if (!strcmp($4, ",")) {
-			size_t const size = strlen("trailing_comma_anonymous_enum([])") + strlen($3) + 1;
-       	 	$$ = (char*)malloc(size);
-         	sprintf_safe($$, size, "trailing_comma_anonymous_enum([%s])", $3);
-		 } else {
-			size_t const size = strlen("anonymous_enum([])") + strlen($3) + 1;
-       	 	$$ = (char*)malloc(size);
-         	sprintf_safe($$, size, "anonymous_enum([%s])", $3);
-		 }
-	     free($3);
-		 free($4);
-        }
-	| ENUM {in_tag_declaration = 1;} enum_tag_name enum_specifier_rest 	//Tag namespace Id declaration ; 
-		{size_t const size = strlen("enum(, [])") + strlen($3) + strlen($4) + 1;
+	: enum_token {in_tag_declaration = 0;} '{' enumerator_list comma_opt {FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);} '}'
+		{size_t const size = strlen("anonymous_enum([])") + strlen($4) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_safe($$, size, "enum(%s, [%s])", $3, $4);
-	     free($3);
-		 free($4);
+         sprintf_safe($$, size, "anonymous_enum([%s])", $4);
+	     free($4);
         }
+	| enum_token enum_tag_name enum_specifier_rest 	//Tag namespace Id declaration ; 
+		{size_t const size = strlen("enum(, [])") + strlen($2) + strlen($3) + 1;
+       	 $$ = (char*)malloc(size);
+         sprintf_safe($$, size, "enum(%s, [%s])", $2, $3);
+	     free($2);
+		 free($3);
+        }
+	;
+
+enum_token
+	: ENUM 
+		{in_tag_declaration = 1;}
 	;
 
 enum_tag_name :
@@ -928,17 +918,12 @@ enum_tag_name :
 //new rule to avoid reduce-reduce conflict when introducing in_tag_declaration in enum_specifier rule just above
 enum_specifier_rest
 	: /* empty */	
-		{FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
+		{parsed_tag_name1 = 0;
+		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);	//already done if followed by a comma so will be done in twice but we should then be in PD_NOT_PARAM_DECL in that case so no harm done
 		 simple_str_lit_copy(&$$, "forward_enum");
-	   }
-	| '{' enumerator_list {FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);}'}'
-		{$$ = $2;}
-	| '{' enumerator_list ',' {FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);} '}'
-		{size_t const size = strlen("trailing_comma_enum([])") + strlen($2) + 1;
-       	 $$ = (char*)malloc(size);
-         sprintf_safe($$, size, "trailing_comma_enum([%s])", $2);
-	     free($2);
-		}
+	    }
+	| '{' {parsed_tag_name1 = 0;} enumerator_list comma_opt {FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);} '}'
+		{$$ = $3;}
 	;
 
 enumerator_list	
@@ -1046,11 +1031,6 @@ direct_declarator
 		}
 	| direct_declarator 
 		{if (in_member_namespace) in_member_namespace=0; 
-		 if (!typedef_flag) {
-			current_scope++; 
-			function_declaration_flag = 1;	//we are potentially in a function declaration
-			if (debugMode) printf("the current_scope has just been increased to %d before a list of parameters\n", current_scope);
-		 }
 		 $<flag>$ = FSM_in_PD_mode;		//can be nested (e.g. function pointer with paramters within a list of parameters)
 		 FSM_in_PD_mode = 1;
 		 const char *substring = "ptr_decl(pointer, "; 
@@ -1058,7 +1038,11 @@ direct_declarator
 		 if (strncmp($1.full, substring, substring_length) == 0) { //function pointer declarator e.g. the (*func_ptr) in int (*func_ptr)(int, int);
 			FSM_off = 1;	// FSM can be turned off because no shadowing IDENTIFIER can occur in subsequent parameter_list for pointer to function_specifier
 			if (debugMode) printf("Parser: function pointer: %s, FSM_off set to 1\n", $1.ptr_declarator);
-		 } 
+		 } else if (!typedef_flag) {
+			current_scope++; 
+			function_declaration_flag = 1;	//we are potentially in a function declaration
+			if (debugMode) printf("the current_scope has just been increased to %d before a list of parameters\n", current_scope);
+		 }
 		} 
 	  '(' function_parameters_opt {FSM_off = 0; FSM_in_PD_mode = $<flag>2;} ')'
 		{size_t const size = strlen("function(, )") + strlen($1.full) + strlen($4) + 1;
