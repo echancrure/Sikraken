@@ -95,22 +95,22 @@ char *create_declaration_specifiers() {
 	//storage specifier cannot be combined: it must be unique to be valid C
 	if (decl_spec_stack->decl_spec.storage.isTypeDef) strcat(result, "typedef, ");
 	else if (decl_spec_stack->decl_spec.storage.isExtern) strcat(result, "extern, ");
-	else if (decl_spec_stack->decl_spec.storage.isStatic) printf("Warning: the 'static' storage specifier is always ignored by the parser because Sikraken does not support it yet\n");
-	else if (decl_spec_stack->decl_spec.storage.isThreadLocal) printf("Warning: the '_Thread_local' storage specifier is always ignored by the parser because Sikraken does not support threads\n");
-	else if (decl_spec_stack->decl_spec.storage.isAuto) printf("Warning: the 'auto' storage specifier is always ignored by the parser because it is never used in 'modern' C\n");
+	else if (decl_spec_stack->decl_spec.storage.isStatic) if (debugMode) printf("Warning: the 'static' storage specifier is always ignored by the parser because Sikraken does not support it yet\n");
+	else if (decl_spec_stack->decl_spec.storage.isThreadLocal) if (debugMode) printf("Warning: the '_Thread_local' storage specifier is always ignored by the parser because Sikraken does not support threads\n");
+	else if (decl_spec_stack->decl_spec.storage.isAuto) if (debugMode) printf("Warning: the 'auto' storage specifier is always ignored by the parser because it is never used in 'modern' C\n");
 	else if (decl_spec_stack->decl_spec.storage.isRegister) if (debugMode) printf("Warning: the 'register' storage specifier is always ignored by the parser because it has no impact on symbolic execution\n");
 
 	//strcat(result, "func(["); //always ignored, only warnings issued: see below
 	if (decl_spec_stack->decl_spec.function.isInLine || decl_spec_stack->decl_spec.function.isNoReturn) { //only for functions: can be combined
-		if (decl_spec_stack->decl_spec.function.isInLine) printf("Warning: the 'inline' function specifier is always ignored by the parser because Sikraken does not support it and its implications for testing coverage is unclear\n");
+		if (decl_spec_stack->decl_spec.function.isInLine) if (debugMode) printf("Warning: the 'inline' function specifier is always ignored by the parser because Sikraken does not support it and its implications for testing coverage is unclear\n");
 		if (decl_spec_stack->decl_spec.function.isNoReturn) if (debugMode) printf("Warning: the 'noreturn' function specifier is always ignored by the parser because it has no impact on symbolic execution\n");
 	}
 
 	if (decl_spec_stack->decl_spec.qualifier.isConst || decl_spec_stack->decl_spec.qualifier.isRestrict || decl_spec_stack->decl_spec.qualifier.isVolatile || decl_spec_stack->decl_spec.qualifier.isAtomic) { //can be combined
 		if (decl_spec_stack->decl_spec.qualifier.isConst) if (debugMode) printf("Warning: the 'const' qualifier is always ignored by the parser because it has no impact on symbolic execution\n");
 		if (decl_spec_stack->decl_spec.qualifier.isRestrict) if (debugMode) printf("Warning: the 'restrict' pointer qualifier is always ignored by the parser because it has no impact on symbolic execution\n");
-		if (decl_spec_stack->decl_spec.qualifier.isVolatile) printf("Warning: the 'volatile' qualifier is always ignored by the parser because Sikraken does not support it yet\n");
-		if (decl_spec_stack->decl_spec.qualifier.isAtomic) printf("Warning: the 'atomic' qualifier is always ignored by the parser because Sikraken does not support it and its implications for symbolic execution is unclear\n");
+		if (decl_spec_stack->decl_spec.qualifier.isVolatile) if (debugMode) printf("Warning: the 'volatile' qualifier is always ignored by the parser because Sikraken does not support it yet\n");
+		if (decl_spec_stack->decl_spec.qualifier.isAtomic) if (debugMode) printf("Warning: the 'atomic' qualifier is always ignored by the parser because Sikraken does not support it and its implications for symbolic execution is unclear\n");
 	}
 	size_t len = strlen(result);
 	if (result[len - 2] == ',') result[len - 2] = '\0';		// Remove trailing comma and space if any

@@ -604,7 +604,7 @@ declaration
 type_declaration_specifiers
 	: storage_class_specifier type_declaration_specifiers	//storage_class_specifier e.g. typedef, extern etc.
 	| storage_class_specifier 
-	| type_specifier type_declaration_specifiers				//type_specifier e.g. built-in type, TYPEDEF_NAME, struct, union
+	| type_specifier type_declaration_specifiers				//type_specifier e.g. built-in type, void, TYPEDEF_NAME, struct, union
 	| type_specifier
 	| type_qualifier type_declaration_specifiers				//type_qualifier e.g. const, volatile
 	| type_qualifier
@@ -752,7 +752,7 @@ struct_or_union_specifier
 		 free($5);
 	    }
 	| struct_or_union tag_name	//forward declaration Tag namespace Id declaration or as part of a variable or member declaration
-		{printf("Parser: parsed struct_or_union tag_name %s\n", $2);
+		{if (debugMode) printf("Parser: parsed struct_or_union tag_name %s\n", $2);
 		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);	//already done if followed by a comma so will be done in twice but we should then be in PD_NOT_PARAM_DECL in that case so no harm done 
 		 parsed_tag_name1 = 0;
 		 in_member_namespace = 0;
@@ -1031,7 +1031,7 @@ direct_declarator
 		}
 	| direct_declarator 
 		{if (in_member_namespace) in_member_namespace=0; 
-		 $<flag>$ = FSM_in_PD_mode;		//can be nested (e.g. function pointer with paramters within a list of parameters)
+		 $<flag>$ = FSM_in_PD_mode;		//because can be nested (e.g. function pointer with parameters within a list of parameters)
 		 FSM_in_PD_mode = 1;
 		 const char *substring = "ptr_decl(pointer, "; 
 		 int substring_length = strlen(substring);
@@ -1044,7 +1044,11 @@ direct_declarator
 			if (debugMode) printf("the current_scope has just been increased to %d before a list of parameters\n", current_scope);
 		 }
 		} 
-	  '(' function_parameters_opt {FSM_off = 0; FSM_in_PD_mode = $<flag>2;} ')'
+	  '(' function_parameters_opt 
+	    {FSM_off = 0; 
+		 FSM_in_PD_mode = $<flag>2;
+		} 
+	  ')'
 		{size_t const size = strlen("function(, )") + strlen($1.full) + strlen($4) + 1;
 	     $$.full = (char*)malloc(size);
 	     sprintf_safe($$.full, size, "function(%s, %s)", $1.full, $4);
@@ -1228,9 +1232,13 @@ direct_abstract_declarator
 	| direct_abstract_declarator '[' assignment_expression ']'
 	| '(' ')'
 	| '(' parameter_type_list ')'
-	| direct_abstract_declarator '(' ')'						//for anonymous function pointer with no parameters
-	| direct_abstract_declarator '(' parameter_type_list ')'	//for anonymous function pointer
+	| direct_abstract_declarator {FSM_off = 1;} '(' abstract_function_parameters_opt {FSM_off = 0;} ')'	//for anonymous/abstract function pointer
 	;
+
+abstract_function_parameters_opt
+	: /* nothing */ 	//for anonymous function pointer with no parameters
+	| parameter_type_list 
+	;	
 
 initializer
 	: '{' initializer_list '}'
