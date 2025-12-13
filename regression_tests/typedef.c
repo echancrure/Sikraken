@@ -1,4 +1,6 @@
-typedef unsigned long kernel_ulong_t, u_int32_t, u_int8_t, size_t;
+typedef unsigned long kernel_ulong_t, u_int32_t, u_int8_t;
+typedef unsigned int size_t;
+int in_broadcast(struct in_addr, u_int32_t);
 u_int32_t ether_crc32_le_update(u_int32_t crc, const u_int8_t *, size_t);
 static struct input_device_id const mac_hid_emumouse_ids[1] = { {(kernel_ulong_t )16, (unsigned short)0, (unsigned short)0, (unsigned short)0,
       (unsigned short)0, {1UL << 1}, {0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL,
@@ -9,7 +11,7 @@ __alias__("mac_hid_emumouse_ids"))) ;
 typedef int u_int, caddr_t ;
 u_int mextfree_register(void (*)(caddr_t, u_int, void *));
 int x = (void (*)(int *handle , unsigned int type , unsigned int code , int value ))0;
-typedef unsigned int size_t;
+typedef int size_t;    //redefinition
 enum strtol_error {
     LONGINT_OK = 0,
     LONGINT_OVERFLOW = 1,

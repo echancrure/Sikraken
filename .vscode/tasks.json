@@ -87,6 +87,55 @@
             "problemMatcher": []
         },
         {
+            "label": "Run Parallel Regression Tests (GNOME Terminal)",
+            "type": "shell",
+            "command": "gnome-terminal",
+            "args": [
+                "--", "bash", "-lc",
+                "cd '${workspaceFolder}' && /usr/bin/time -v '${workspaceFolder}/bin/run_regression_par.sh' '${input:parallelJobs}' 'regression_tests' '${input:shortcutGen}'; exec bash"
+            ],
+            "group": { "kind": "build" },
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "never",        // don't pop open VS Code's integrated terminal
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": true
+            },
+            "runOptions": {
+                "runOn": "default"
+            }
+        },
+        {
+  "label": "Check Env",
+  "type": "shell",
+  "command": "echo 'DISPLAY=$DISPLAY' && echo 'DBUS=$DBUS_SESSION_BUS_ADDRESS'",
+  "presentation": { "reveal": "always" }
+},
+{
+    "label": "Smoke: Open Xterm (External Detached)",
+    "type": "shell",
+    // Use xterm, which is much simpler and less reliant on desktop libraries.
+    "command": "setsid xterm -e \"/bin/bash -lc 'echo VS Code spawned me; exec /bin/bash'\" &",
+    "presentation": { 
+        "reveal": "never" 
+    },
+    "options": {
+        "env": {
+            // Still need to clear the Snap's library paths
+            "LD_LIBRARY_PATH": "", 
+            "GTK_PATH": "",       
+            "GIO_MODULE_DIR": "",
+            // Still need the display
+            "DISPLAY": ":0" 
+        }
+    },
+    "problemMatcher": []
+}
+,
+        {
             "label": "Run Parallel Regression Tests",
             "type": "shell",
             "command": "/usr/bin/time",

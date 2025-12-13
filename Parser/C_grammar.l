@@ -32,6 +32,7 @@ char *add_missing_zero_before_decimal_point(const char *, int);
 int open_parens = 0;        //Declaration in the definitions section
 
 //FSM Section
+int read_a_comma_after_tag_name = 0; // set to 1 when a comma is read after a struct/union/enum tag name to avoid double processing in the parser
 int FSM_in_PD_mode = 0;             // 1 if we are in the Parameter Declaration FSM mode, 0 if we are in the Variable Declaration FSM mode
 int FSM_off = 0;                    // Do not trigger any transactions when lexing IDENTIFIERS because we are in an expression context 
                                     // and do not think that an IDENTIFIER is being declared and perhaps shadow a TYPEDEF_NAME (and wrongly return an IDENTIFIER where it is trule a TYPEDEF_NAME) 
@@ -449,11 +450,12 @@ void FSM_COMMA_read(void) {
     if (debugMode) printf("Lexer Debug: read a COMMA in mode %s\n", FSM_mode_str());
     if (parsed_tag_name1) {
         FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME); // a struct_or_union with a tag folowed by a comma is a full type specifier
+        read_a_comma_after_tag_name = 1;
         if (debugMode) printf("Lexer Debug: read a COMMA in tag declaration, transitioned to new mode is: %s\n", FSM_mode_str());
     }
-    if (FSM_in_PD_mode && PD_state == PD_DECIDE_PARAM_KIND) {
-        PD_state = PD_UNNAMED_PARAMETERS;       
-        if (debugMode) printf("Lexer Debug: COMMA read new mode %s\n", FSM_mode_str());
+    if (FSM_in_PD_mode && (PD_state == PD_DECIDE_PARAM_KIND || PD_state == PD_WAIT_NAMED_PARAM_TYPE)) {
+        PD_state = PD_NONE;       
+        if (debugMode) printf("Lexer Debug: COMMA read, new mode %s\n", FSM_mode_str());
     }
 }
 

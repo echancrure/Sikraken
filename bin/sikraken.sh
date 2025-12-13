@@ -148,7 +148,7 @@ fi
 eclipse_call="se_main(['$SIKRAKEN_INSTALL_DIR', '$output_dir', '$file_name_no_ext', main, '$debug_mode', testcomp, '$data_model', $algo])"
 $SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e "$eclipse_call" -g $stack_size_value -l 1G 
 ret_code=$?
-if [ ret_code? -ne 0 ]; then
+if [ $ret_code -ne 0 ]; then
     echo "Sikraken ERROR from $0: error code $ret_code, call to ECLiPSe failed on: $eclipse_call"
     exit $ret_code
 else

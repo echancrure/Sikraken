@@ -69,6 +69,7 @@ int current_scope = 0;
 
 char *current_function;			//we keep track of the function being parsed so that we can add it to goto statements
 
+extern int read_a_comma_after_tag_name; // defined in the lexer to avoid double processing in the parser
 int FSM_off;
 int FSM_in_PD_mode;
 const char* FSM_mode_str(void);
@@ -82,9 +83,9 @@ void my_exit(int);				//attempts to close handles and delete generated files pri
 
 enum ParserExitCodes {
     SUCCESS = 0,
-    COMMAND_LINE_FAILURE = 1,
-    PARSING_ERROR = 2,
-	LEXING_FAILURE = 3,
+    COMMAND_LINE_FAILURE = 2,
+    PARSING_ERROR = 3,
+	LEXING_FAILURE = 4,
     RENAME_ME = 9
 };
 
@@ -753,7 +754,8 @@ struct_or_union_specifier
 	    }
 	| struct_or_union tag_name	//forward declaration Tag namespace Id declaration or as part of a variable or member declaration
 		{if (debugMode) printf("Parser: parsed struct_or_union tag_name %s\n", $2);
-		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);	//already done if followed by a comma so will be done in twice but we should then be in PD_NOT_PARAM_DECL in that case so no harm done 
+		 if (read_a_comma_after_tag_name) read_a_comma_after_tag_name = 0; 
+		 else FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
 		 parsed_tag_name1 = 0;
 		 in_member_namespace = 0;
 		 size_t const size = strlen("%s(%s)") + strlen($1) + strlen($2) + 1;
@@ -919,7 +921,8 @@ enum_tag_name :
 enum_specifier_rest
 	: /* empty */	
 		{parsed_tag_name1 = 0;
-		 FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);	//already done if followed by a comma so will be done in twice but we should then be in PD_NOT_PARAM_DECL in that case so no harm done
+		 if (read_a_comma_after_tag_name) read_a_comma_after_tag_name = 0;
+		 else FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
 		 simple_str_lit_copy(&$$, "forward_enum");
 	    }
 	| '{' {parsed_tag_name1 = 0;} enumerator_list comma_opt {FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);} '}'
