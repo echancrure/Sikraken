@@ -183,7 +183,7 @@ primary_expression
 	   free($3);
 	   free($5);
 	  }
-	| OFFSETOF '(' type_name ',' IDENTIFIER ')'			//GCC builtin function requiring non expression argument
+	| OFFSETOF '(' type_name ',' postfix_expression ')'			//GCC builtin function requiring non expression argument
 	  {size_t const size = strlen("offsetof(, )") + strlen($3) + strlen($5) + 1;
 	   $$ = (char*)malloc(size);
 	   sprintf_safe($$, size, "offsetof(%s, %s)", $3, $5);
@@ -1528,16 +1528,18 @@ translation_unit 			//printed out
 	;
 
 external_declaration		//printed out
-	: function_definition opt_semi_colon	//gcc allow an option semi-colon after a function definition
+	: function_definition 	//gcc allow an option semi-colon after a function definition
 		{fprintf(pl_file, "%s", $1);
 		 free($1);
 		}
 	|  declaration
-		{
-		 fprintf(pl_file, "%s", $1); 
+		{fprintf(pl_file, "%s", $1); 
 		 free($1);
 		}
+	|  ';'	//gcc allow an option semi-colon at top-level
+		{fprintf(pl_file, "declaration(spec([], struct(Sikraken)))");}	//just a dummy declaration to keep the Prolog syntax valid
 	;
+
 function_definition
 	: type_declaration_specifiers declarator declaration_list_opt {FSM_reset(); function_declaration_flag = 0;} compound_statement
 		{pop_scope(&current_scope);
@@ -1553,10 +1555,7 @@ function_definition
 		 free($5);
 		}
 	;
-opt_semi_colon
-	: /* empty */
-	| ';'
-	;
+
 declaration_list_opt
 	: /* empty */		{simple_str_lit_copy(&$$, "");}
 	| old_style_declaration_list	//for old-style function declaration for the parameters see p. 226 K&R

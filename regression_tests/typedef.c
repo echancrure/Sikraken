@@ -1,4 +1,9 @@
+extern char _ctassert
+    [(__builtin_offsetof(struct cpu_info_full, cif_cpu.ci_dev) % (1 << 12) == 0)
+         ? 1
+         : -1] __attribute__((__unused__));
 typedef unsigned long uint64_t;
+;
 typedef _Bool bool;
 static struct input_handler mac_hid_emumouse_handler =
      {(void *)0, 
