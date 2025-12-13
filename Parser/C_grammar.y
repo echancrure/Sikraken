@@ -145,6 +145,7 @@ enum ParserExitCodes {
 %type <for_stmt_type> for_stmt_type
 %type <declarator_type> declarator direct_declarator
 %type <id> typeof_specifier rest_typeof_specifier /*tag_name1*/
+%type <flag> save_name_space
 
 %start translation_unit 
 
@@ -720,50 +721,55 @@ rest_typeof_specifier
 	;
 
 struct_or_union_specifier
-	: struct_or_union set_tag0 {FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);} '}'		//anonymous EMPTY struct or union (GNU extension)
-		{in_member_namespace = 0;
+	: struct_or_union save_name_space set_tag0 {FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);} '}'		//anonymous EMPTY struct or union (GNU extension)
+		{in_member_namespace = $2;
 		 size_t const size = strlen("('anonymous', [])") + strlen($1) + 1;
 	     $$ = (char*)malloc(size);
 	     sprintf_safe($$, size, "%s('anonymous', [])", $1);
 	     free($1);
 	    }
-	| struct_or_union set_tag0 struct_declaration_list {FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);} '}'		//anonymous struct or union
-		{in_member_namespace = 0;
-		 size_t const size = strlen("('anonymous', [])") + strlen($1) + strlen($3) + 1;
+	| struct_or_union save_name_space set_tag0 struct_declaration_list {FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);} '}'		//anonymous struct or union
+		{in_member_namespace = $2;
+		 size_t const size = strlen("('anonymous', [])") + strlen($1) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "%s('anonymous', [%s])", $1, $3);
+	     sprintf_safe($$, size, "%s('anonymous', [%s])", $1, $4);
+	     free($1);
+	     free($4);
+	    }
+	| struct_or_union save_name_space tag_name  '{' {parsed_tag_name1 = 0; FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);} '}'	//Tag namespace Id declaration (EMPTY, GNU extension)
+		{in_member_namespace = $2;
+		 size_t const size = strlen("(, [])") + strlen($1) + strlen($3) + 1;
+	     $$ = (char*)malloc(size);
+	     sprintf_safe($$, size, "%s(%s, [])", $1, $3);
 	     free($1);
 	     free($3);
 	    }
-	| struct_or_union tag_name  '{' {parsed_tag_name1 = 0; FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);} '}'	//Tag namespace Id declaration (EMPTY, GNU extension)
-		{in_member_namespace = 0;
-		 size_t const size = strlen("(, [])") + strlen($1) + strlen($2) + 1;
+	| struct_or_union save_name_space tag_name '{' {parsed_tag_name1 = 0; } struct_declaration_list {FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);} '}'	//Tag namespace Id declaration
+		{in_member_namespace = $2;
+		 size_t const size = strlen("(, [])") + strlen($1) + strlen($3) + strlen($6) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "%s(%s, [])", $1, $2);
+	     sprintf_safe($$, size, "%s(%s, [%s])", $1, $3, $6);
 	     free($1);
-	     free($2);
+	     free($3);
+		 free($6);
 	    }
-	| struct_or_union tag_name '{' {parsed_tag_name1 = 0; } struct_declaration_list {FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);} '}'	//Tag namespace Id declaration
-		{in_member_namespace = 0;
-		 size_t const size = strlen("(, [])") + strlen($1) + strlen($2) + strlen($5) + 1;
-	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "%s(%s, [%s])", $1, $2, $5);
-	     free($1);
-	     free($2);
-		 free($5);
-	    }
-	| struct_or_union tag_name	//forward declaration Tag namespace Id declaration or as part of a variable or member declaration
-		{if (debugMode) printf("Parser: parsed struct_or_union tag_name %s\n", $2);
+	| struct_or_union save_name_space tag_name	//forward declaration Tag namespace Id declaration or as part of a variable or member declaration
+		{if (debugMode) printf("Parser: parsed struct_or_union tag_name %s\n", $3);
 		 if (read_a_comma_after_tag_name) read_a_comma_after_tag_name = 0; 
 		 else FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
 		 parsed_tag_name1 = 0;
-		 in_member_namespace = 0;
-		 size_t const size = strlen("%s(%s)") + strlen($1) + strlen($2) + 1;
+		 in_member_namespace = $2;
+		 size_t const size = strlen("%s(%s)") + strlen($1) + strlen($3) + 1;
 	     $$ = (char*)malloc(size);
-	     sprintf_safe($$, size, "%s(%s)", $1, $2);
+	     sprintf_safe($$, size, "%s(%s)", $1, $3);
 	     free($1);
-	     free($2);
+	     free($3);
 	    }
+	;
+
+save_name_space :
+	/* empty */
+	 	{$$ = in_member_namespace;}
 	;
 
 set_tag0 :
