@@ -628,7 +628,7 @@ init_declarator_list
 	;
 
 init_declarator								//can only be followed by ',' or ';' at the global level so the look ahead can only be ',' or ';' and not an IDENTIFIER
-	: declarator {FSM_off = 1;} '=' initializer
+	: declarator {FSM_off = 1; if (debugMode) printf("Parser : turning FSM off for initialisation\n");} '=' initializer
 		{FSM_off = 0;
 		 size_t const size = strlen("initialised(, )") + strlen($1.full) + strlen($4) + 1;
 	     $$ = (char*)malloc(size);
@@ -1033,6 +1033,7 @@ direct_declarator
 		 $$.ptr_declarator = $1.ptr_declarator;
 		}
 	| direct_declarator 
+		{$<flag>$ = FSM_off;}
 		{if (in_member_namespace) in_member_namespace=0; 
 		 $<flag>$ = FSM_in_PD_mode;		//because can be nested (e.g. function pointer with parameters within a list of parameters)
 		 FSM_in_PD_mode = 1;
@@ -1048,17 +1049,17 @@ direct_declarator
 		 }
 		} 
 	  '(' function_parameters_opt 
-	    {FSM_off = 0; 
-		 FSM_in_PD_mode = $<flag>2;
+	    {FSM_off = $<flag>2; 
+		 FSM_in_PD_mode = $<flag>3;
 		} 
 	  ')'
-		{size_t const size = strlen("function(, )") + strlen($1.full) + strlen($4) + 1;
+		{size_t const size = strlen("function(, )") + strlen($1.full) + strlen($5) + 1;
 	     $$.full = (char*)malloc(size);
-	     sprintf_safe($$.full, size, "function(%s, %s)", $1.full, $4);
+	     sprintf_safe($$.full, size, "function(%s, %s)", $1.full, $5);
 		 current_function = strdup($1.full);
 	     free($1.full);
 		 $$.ptr_declarator = $1.ptr_declarator;
-		 free($4);
+		 free($5);
 		}
 	;
 
@@ -1235,7 +1236,7 @@ direct_abstract_declarator
 	| direct_abstract_declarator '[' assignment_expression ']'
 	| '(' ')'
 	| '(' parameter_type_list ')'
-	| direct_abstract_declarator {FSM_off = 1;} '(' abstract_function_parameters_opt {FSM_off = 0;} ')'	//for anonymous/abstract function pointer
+	| direct_abstract_declarator {$<flag>$ = FSM_off; FSM_off = 1;} '(' abstract_function_parameters_opt {FSM_off = $<flag>2;} ')'	//for anonymous/abstract function pointer
 	;
 
 abstract_function_parameters_opt

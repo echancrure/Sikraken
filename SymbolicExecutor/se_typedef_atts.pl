@@ -30,7 +30,7 @@ se_typedef_atts__is_typedef_atts(_{se_typedef_atts(Type)}) :-
     true.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 se_typedef_atts__create(Type, Typedef_atts) :-
-    add_attribute(Typedef_atts, se_typedef_atts(Type)).
+    add_attribute(Typedef_atts, se_typedef_atts(Type)).	%should never fail unless redefining a typedef with a different type which is a C error
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 se_typedef_atts__get(_{Attr}, 'type', Type) :-
     -?->

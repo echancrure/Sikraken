@@ -1,3 +1,43 @@
+typedef unsigned long uint64_t;
+typedef _Bool bool;
+static struct input_handler mac_hid_emumouse_handler =
+     {(void *)0, 
+      (void (*)(struct input_handle *handle , unsigned int type , unsigned int code , int value ))0, 
+      & mac_hid_emumouse_filter, 
+      (bool (*)(struct input_handler *handler , struct input_dev *dev ))0,
+      & mac_hid_emumouse_connect, 
+      & mac_hid_emumouse_disconnect, 
+      (void (*)(struct input_handle *handle ))0,
+      (struct file_operations const *)0, 
+      0, 
+      "mac-button-emul", 
+      mac_hid_emumouse_ids,
+      {(struct list_head *)0, 
+       (struct list_head *)0
+      }, 
+      {(struct list_head *)0, 
+       (struct list_head *)0
+      }
+     };
+struct cpu_info_full {
+  union {
+    struct x86_64_tss u_tss;
+    char u_align[(1 << 12)];
+  } cif_RO;
+  uint64_t cif_tramp_stack[((1 << 12) / 4 -
+                            __builtin_offsetof(struct cpu_info, ci_dev)) /
+                           sizeof(uint64_t)];
+  uint64_t cif_dblflt_stack[((1 << 12) / 4) / sizeof(uint64_t)];
+  uint64_t cif_nmi_stack[(2 * (1 << 12) / 4) / sizeof(uint64_t)];
+  struct cpu_info cif_cpu;
+} __attribute__((__aligned__((1 << 12))));
+extern char _ctassert[((((unsigned long)(sizeof(struct x86_64_tss)) +
+                         (sizeof(long) - 1)) &
+                        ~(sizeof(long) - 1)) +
+                           sizeof(struct mem_segment_descriptor) * (6 + 2 * 1) <
+                       (1 << 12))
+                          ? 1
+                          : -1] __attribute__((__unused__));
 typedef unsigned long kernel_ulong_t, u_int32_t, u_int8_t;
 typedef unsigned int size_t;
 int in_broadcast(struct in_addr, u_int32_t);
@@ -11,7 +51,7 @@ __alias__("mac_hid_emumouse_ids"))) ;
 typedef int u_int, caddr_t ;
 u_int mextfree_register(void (*)(caddr_t, u_int, void *));
 int x = (void (*)(int *handle , unsigned int type , unsigned int code , int value ))0;
-typedef int size_t;    //redefinition
+typedef unsigned int size_t;    //redefinition
 enum strtol_error {
     LONGINT_OK = 0,
     LONGINT_OVERFLOW = 1,
