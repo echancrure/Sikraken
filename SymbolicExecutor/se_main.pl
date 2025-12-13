@@ -119,10 +119,11 @@ se_main(ArgsL) :-
     ).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_overall_time_out_event :-
-        cancel_after_event(single_test_time_out_event, _), %to ensure none are left and triggered later on, especially in development mode
         throw(outatime).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_outer_exception(Exception) :-
+        cancel_after_event(overall_generation_time_out, _), %to make sure not triggered while writing out below
+        cancel_after_event(single_test_time_out_event, _),  %to make sure not triggered while writing out below
         (Exception == outatime ->
             easter_egg,
             print_test_run_log,
@@ -256,7 +257,7 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %this may be triggered at any time asynchronously during a "try" search
     handle_single_test_time_out_event :-       %single path exploration time is up
-        mytrace,
+        %mytrace,
         super_util__quick_dev_info("\nDev Info: Time out triggered.\n", []),
         cfg_main__bran_newly_covered(_Overall_covered, Newly_covered),
         (Newly_covered == [] ->
