@@ -29,7 +29,7 @@ void wrap_floating_point_constants(int, char *, char **);
 void add_missing_zero_after_decimal_point(char *, char **);
 char *add_missing_zero_before_decimal_point(const char *, int);
 
-int open_parens = 0;        //Declaration in the definitions section
+int open_parens = 0;                // used for attributes handling
 
 //FSM Section
 int read_a_comma_after_tag_name = 0; // set to 1 when a comma is read after a struct/union/enum tag name to avoid double processing in the parser
@@ -46,14 +46,13 @@ void FSM_start_statement(void);     // execute the transition in the 2 FSMs, tri
 void FSM_start_type_read(void);     // execute the transition in the 2 FSMs, triggered when a type specifier is read
 void FSM_basic_type_read(void);     // execute the transition in the 2 FSMs, triggered when a basic type keyword is read
 void FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(enum yytokentype);     // execute the transition in the 2 FSMs, triggered when a TYPEDEF_NAME, typeof(...), STRUCT, UNIUN or ENUM or IDENTIFIER is read
-void FSM_COMMA_read(void);          // only when in state PD_DECIDE_PARAM_KIND and a comma is read, we transition to PD_UNNAMED_PARAMETERS
-
+void FSM_COMMA_read(void);          // used to identify separate parameters
 //FSM for Shadow Var Declarations
 typedef enum {VD_NONE, VD_WAIT_VAR_TYPE, VD_NOT_VAR_DECL, VD_VAR_DECL} VD_state_t;
 VD_state_t VD_state = VD_NONE;
 
 //FSM to Shadow Parameter Declarations
-typedef enum {PD_NONE, PD_WAIT_PARAM_TYPE, PD_NOT_PARAM_DECL, PD_DECIDE_PARAM_KIND, PD_UNNAMED_PARAMETERS, PD_WAIT_NAMED_PARAM_TYPE, PD_PARAM_DECL} PD_state_t;
+typedef enum {PD_NONE, PD_WAIT_PARAM_TYPE, PD_NOT_PARAM_DECL, PD_DECIDE_PARAM_KIND, PD_WAIT_NAMED_PARAM_TYPE, PD_PARAM_DECL} PD_state_t;
 PD_state_t PD_state = PD_NONE;
 
 extern const char *const yytname[];  // to access token names
@@ -65,7 +64,7 @@ int yycolumn = 1;
     yylloc.first_line = yylloc.last_line = yylineno; \
     yylloc.first_column = yycolumn; \
     yylloc.last_column = yycolumn + yyleng - 1; \
-    yycolumn += yyleng;
+    yycolumn += yyleng;                 //perhaps does not work with attributes?
 %}
 
 %x ASM_QUALIFIER
@@ -217,7 +216,7 @@ WS  [ \t\v\n\f]
                              if (id_status == 1) {  // a typedef name
                                 if (FSM_in_PD_mode) {
                                     if (PD_state == PD_DECIDE_PARAM_KIND || PD_state == PD_PARAM_DECL) {
-                                        add_typedef_id(current_scope, yylval.id, 2);   //2 indicates that it is a SHADOWING IDENTIFIER
+                                        add_typedef_id(current_scope, yylval.id, 2);            //2 indicates that it is a SHADOWING IDENTIFIER
                                         if (debugMode) printf("Lexer Debug: declared the SHADOWING PARAMETER of a typedef_name: %s on line %d\n", yylval.id, yylineno);
                                         FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(IDENTIFIER);
                                         return IDENTIFIER;                    
@@ -228,8 +227,8 @@ WS  [ \t\v\n\f]
                                 } else {    
                                     if (VD_state == VD_VAR_DECL) {
                                         FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(IDENTIFIER);
-                                        if (in_member_namespace) return IDENTIFIER;     //members cannot shadow typedef names: they are in a different namespace
-                                        else {add_typedef_id(current_scope, yylval.id, 2);    //2 indicates that it is a SHADOWING IDENTIFIER
+                                        if (in_member_namespace) return IDENTIFIER;             //members cannot shadow typedef names: they are in a different namespace
+                                        else {add_typedef_id(current_scope, yylval.id, 2);      //2 indicates that it is a SHADOWING IDENTIFIER
                                             if (debugMode) printf("Lexer Debug: declared the SHADOWING IDENTIFIER of a typedef_name: %s on line %d\n", yylval.id, yylineno);
                                             return IDENTIFIER;
                                         }
@@ -264,7 +263,7 @@ WS  [ \t\v\n\f]
                              }
                              return I_CONSTANT;
                             }
-{CP}?"'"([^'\\\n]|{ES})+"'"	{//single char 
+{CP}?"'"([^'\\\n]|{ES})+"'"	{// single char 
                              FSM_start_statement();
                              char *content = yytext + (yytext[0] == '\'' ? 1 : 2);  //Skip prefix and opening quote
                              content[strlen(content) - 1] = '\0';                   //Remove closing quote
@@ -391,7 +390,6 @@ const char *FSM_mode_str(void) {
         else if (PD_state == PD_WAIT_PARAM_TYPE) return "PD_WAIT_PARAM_TYPE";
         else if (PD_state == PD_NOT_PARAM_DECL) return "PD_NOT_PARAM_DECL";
         else if (PD_state == PD_DECIDE_PARAM_KIND) return "PD_DECIDE_PARAM_KIND";
-        else if (PD_state == PD_UNNAMED_PARAMETERS) return "PD_UNNAMED_PARAMETERS";
         else if (PD_state == PD_WAIT_NAMED_PARAM_TYPE) return "PD_WAIT_NAMED_PARAM_TYPE";
         else if (PD_state == PD_PARAM_DECL) return "PD_PARAM_DECL";
         else return "UNKNOWN_PD_STATE";

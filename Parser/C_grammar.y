@@ -1536,7 +1536,7 @@ external_declaration		//printed out
 		{fprintf(pl_file, "%s", $1); 
 		 free($1);
 		}
-	|  ';'	//gcc allow an option semi-colon at top-level
+	|  ';'		//gcc allow an option semi-colon at top-level
 		{fprintf(pl_file, "declaration(spec([], struct(Sikraken)))");}	//just a dummy declaration to keep the Prolog syntax valid
 	;
 
@@ -1587,7 +1587,7 @@ int main(int argc, char *argv[]) {
 			case 'h':
 				printf("Usage: .\\sikraken_parser [OPTION]... FILE_NO_EXT\nParses the .i file of a C file pre-processsed by GCC to Prolog terms.\n\n-h\t Display help information\n-m32|-m64\t Specify the data model, -m32 is the default\n-p\t Path to the .c/.i file (DEFAULT: Current Directory ('.'))\n\nExamples:\n\t.\\sikraken_parser -p\".\" get_sign \n\t.\\sikraken_parser get_sign \n\t.\\sikraken_parser -m64 -p\"C:/Parser/\" sign \n");
 				my_exit(SUCCESS);
-			case 'p':	//path to the .i pre-processed input C file
+			case 'p':		//path to the .i pre-processed input C file
 				if (access_safe(&argv[i][2], 0) == -1) {    //checks if it is a valid directory
 					fprintf(stderr, "Sikraken parser error: the indicated source path (via -p switch): %s , cannot be accessed\n", &argv[i][2]);
 					my_exit(COMMAND_LINE_FAILURE);
@@ -1600,7 +1600,7 @@ int main(int argc, char *argv[]) {
 				break;
 			case 'm':
 				if (argv[i][2] == '6' && argv[i][3] == '4') {
-					dataModel = 64;		//anything else is assumed default i.e. 32 bit
+					dataModel = 64;			//anything else is assumed default i.e. 32 bit
 					TARGET_LONG_MAX = 9223372036854775807LL;	//i.e. LONG_MAX for 64 bits target (using LL in case compiler is running on a 32bit machine)
 				}
 				break;
@@ -1653,29 +1653,16 @@ int main(int argc, char *argv[]) {
 void yyerror(const char* s) {
     extern char* yytext; /* current token lexeme (from Flex) */
     extern int yyleng;   /* current token length (from Flex) */
-    /* yylloc is defined by Bison when you use %locations in non-reentrant mode */
 
     fflush(stdout);
-
-    /* yychar may be YYEMPTY (-2) when there is no current lookahead */
     int tok = yychar;
-    const char *tokname = token_name(tok); /* you already have token_name(int) */
+    const char *tokname = token_name(tok);
 
-    /* Print precise location using yylloc (line:column span) */
     fprintf(stderr, "Sikraken Parsing error: %s at %d:%d–%d:%d\n", s, yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column);
-
-    /* Nice “near token …” line; fall back if no yytext */
-    if (yytext && yyleng > 0) {
-        fprintf(stderr, "Near token: '%.*s'\n", yyleng, yytext);
-    } else {
-        fprintf(stderr, "Near token: <none>\n");
-    }
-
-    if (tok >= 0) {
-        fprintf(stderr, "Token code: %d (%s)\n", tok, tokname ? tokname : "unknown");
-    } else {
-        fprintf(stderr, "Token: <no lookahead>\n");
-    }
+    if (yytext && yyleng > 0) fprintf(stderr, "Near token: '%.*s'\n", yyleng, yytext);
+    else fprintf(stderr, "Near token: <none>\n");
+    if (tok >= 0) fprintf(stderr, "Token code: %d (%s)\n", tok, tokname ? tokname : "unknown");
+    else fprintf(stderr, "Token: <no lookahead>\n");
 	fprintf(stderr, "FSM is %s, mode is %s\n", (FSM_off ? "OFF" : "ON"), FSM_mode_str());
 }
 
@@ -1686,9 +1673,7 @@ const char *token_name(int token) {
         return buf;
     } else if (token >= 256 && token < 256 + YYNTOKENS) {// Token values start at 256 (after single chars and EOF/error)
         return yytname[token - 255];
-    } else {
-        return "unknown token";
-    }
+    } else return "unknown token";
 }
 
 void my_exit(int exit_code) {			//exits and performs some tidying up if not in debug mode
