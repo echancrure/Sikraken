@@ -105,7 +105,7 @@ enum ParserExitCodes {
 	int flag;
 }
 
-%token <id> IDENTIFIER TYPEDEF_NAME I_CONSTANT F_CONSTANT ENUMERATION_CONSTANT STRING_LITERAL
+%token <id> IDENTIFIER TYPEDEF_NAME I_CONSTANT F_CONSTANT STRING_LITERAL
 %token  FUNC_NAME SIZEOF
 %token	PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
 %token	AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
@@ -129,7 +129,7 @@ enum ParserExitCodes {
 %type <id> expression constant_expression assignment_expression conditional_expression assignment_operator
 %type <id> logical_or_expression logical_and_expression inclusive_or_expression exclusive_or_expression and_expression equality_expression equality_expression_op relational_expression relational_expression_operator shift_expression shift_expression_op additive_expression additive_expression_op
 %type <id> multiplicative_expression multiplicative_expression_op cast_expression unary_expression unary_operator unary_inc_dec postfix_expression 
-%type <id> type_name argument_expression_list primary_expression constant string enumeration_constant
+%type <id> type_name argument_expression_list primary_expression constant string 
 %type <id> initializer_list designation designator_list designator
 %type <id> struct_or_union_specifier struct_or_union struct_declaration_list struct_declaration  
 %type <id> struct_declarator_list struct_declarator
@@ -201,12 +201,7 @@ primary_expression
 
 constant
 	: I_CONSTANT		/* includes character_constant */
-	| F_CONSTANT	
-	| ENUMERATION_CONSTANT	/* after it has been defined as such */
-	;
-
-enumeration_constant		/* before it has been defined as such */
-	: IDENTIFIER			//Ordinary namespace Id declaration
+	| F_CONSTANT
 	;
 
 string
@@ -946,9 +941,8 @@ enumerator_list
         }
 	;
 
-/* identifiers must be flagged as ENUMERATION_CONSTANT */
-enumerator					//for FSM_off: can only be followed by ',' or '}' at the global level so the look ahead can only be ',' or '}' and not an IDENTIFIER
-	: enumeration_constant {FSM_off = 1;} '=' constant_expression
+enumerator
+	: IDENTIFIER {FSM_off = 1;} '=' constant_expression
 		{FSM_off = 0;
 		 size_t const size = strlen("init_enum(, )") + strlen($1) + strlen($4) + 1;
        	 $$ = (char*)malloc(size);
@@ -956,7 +950,7 @@ enumerator					//for FSM_off: can only be followed by ',' or '}' at the global l
 	   	 free($1);
 	     free($4);
         }
-	| enumeration_constant
+	| IDENTIFIER
 	;
 
 atomic_type_specifier		// new in C11 for atomic operation: used in concurrency
