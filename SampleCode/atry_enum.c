@@ -70,24 +70,25 @@ enum Outer {
     X = 1,
     Y = 2
 };
+typedef int Z;
 
 void shadow_demo(void) {
     int a = X; // refers to Outer::X (1)
 
     {
         // Inner enum defines an enumerator 'X' that shadows the outer one
-        enum Inner { X = 100, Z = 200, ColorTag };  //ColorTag shadows ColorTag int variable
+        enum Inner { X = 100, Z = 200, ColorTag };  //ColorTag shadows ColorTag int variable, X enum shadows outer enum X, Enum Z shadows Z typedef
         int b = X; // 100 (Inner::X)
         int c = Z; // 200
 
         {// Ordinary identifiers can also shadow enumerators
             int X = 999;  // shadows Inner::X within this block
             int d = X;    // 999
-            if (X+d+c+ColorTag == __VERIFIER_nondet_int()) ; else ; 
+            if (X + d + c + ColorTag + Z == __VERIFIER_nondet_int()) ; else ; 
         }
     }
     int e = X; // back to Outer::X (1)
-    if (a+e+ColorTag == __VERIFIER_nondet_int()) ; else ; 
+    if (a + e + ColorTag + Z == __VERIFIER_nondet_int()) ; else ; 
 }
 
 // ------------------------------------------------------
