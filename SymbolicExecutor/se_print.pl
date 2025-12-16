@@ -10,11 +10,13 @@ print_test_run_log__preamble(ArgsL) :-
     get_flag('max_global_trail', Max_global_trail), 
     Max_global_trail_in_MB is Max_global_trail div 1000000,
     get_flag('version', Version), 
+    get_flag(gc_interval, GC_interval),
+    GC_interval_MB is GC_interval div 1000000,
     printf(output, "ECLiPSe version:\t%w\n", [Version]),
     printf(output, "ECLiPSe Maximum allowed local/control user stack (-l option):\t%wMB\n", [Max_local_control_in_MB]),
     printf(output, "ECLiPSe Maximum allowed global/trail user stack (-g option):\t%wMB\n", [Max_global_trail_in_MB]),
-    printf(output, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
-    close(output).
+    printf(output, "ECLiPSe gc_interval:\t%wMB\n", [GC_interval_MB]),
+    printf(output, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []).
     %%%
     print_options([]).
     print_options([Option|R]) :-
@@ -28,10 +30,9 @@ print_test_run_log :-
     %open(Test_run_filename, 'append', Test_run_stream),
     printf(output, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
     printf(output, "Sikraken Session Results:\n", []),
-    statistics('cputime', Cputime),
-    Cputime_seconds is fix(Cputime),
+    getval(budget, Budget),
+    printf(output, "\tECLiPSe Budget: \t%w seconds\n", [Budget]),    
     se_globals__get_val('path_nb', Test_nb),
-    printf(output, "\tECLiPSe CPU time: \t%w seconds\n", [Cputime_seconds]),
     printf(output, "\tGenerated: \t\t%w tests\n", [Test_nb]),
     %mytrace,
     se_globals__get_val('covered_bran', Overall_covered),

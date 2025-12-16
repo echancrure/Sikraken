@@ -636,7 +636,7 @@ init_declarator								//can only be followed by ',' or ';' at the global level 
 	| declarator	// at the global level always add the empty initialiser: initializer([]) to trigger initialisation to 0, otherwise add 'no_initializer'
 		{if (debugMode) printf("DEBUG: typedef_flag=%d, ptr_declarator=%s\n", typedef_flag, $1.ptr_declarator);
 		 if (typedef_flag == 1) {	// we are parsing a typedef declaration
-			add_typedef_id(current_scope, $1.ptr_declarator, 1);	//the id as a TYPEDEF_NAME is added to the data structures keeping track of typedef_names (and ids shadowing)
+			add_symbol(current_scope, $1.ptr_declarator, SY_TYPEDEF_NAME);	//the id as a TYPEDEF_NAME is added to the data structures keeping track of typedef_names (and ids shadowing)
 	   	 }
 		 free($1.ptr_declarator);
 		 simple_str_copy(&$$, $1.full);
@@ -1627,7 +1627,7 @@ int main(int argc, char *argv[]) {
 
 	/* initialisations */
 	char *predefined_typedef = strdup("__gnuc_va_list");
-	add_typedef_id(current_scope, predefined_typedef, 1);		//predefined typedef in GCC
+	add_symbol(current_scope, predefined_typedef, SY_TYPEDEF_NAME);		//predefined typedef in GCC
 
 	/* call the parser */
 	fprintf(pl_file, "prolog_c([");			//opening top-level predicate

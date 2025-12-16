@@ -30,7 +30,8 @@ print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext)
     printf('metadata_stream', "\t<producer>Sikraken</producer>\n", []),
     printf('metadata_stream', "\t<specification>CHECK( init(main()), FQL(cover EDGES(@DECISIONEDGE)) )</specification>\n", []),
     printf('metadata_stream', "\t<programfile>%w</programfile>\n", [Target_C_file]),
-    get_hash(Install_dir, Target_C_file, Hash),
+    %get_hash(Install_dir, Target_C_file, Hash),    %removed: TestCov does not need this to run 
+    Hash = "Not Calculated",
     printf('metadata_stream', "\t<programhash>%w</programhash>\n", [Hash]),
     printf('metadata_stream', "\t<entryfunction>main</entryfunction>\n", []),
     se_globals__get_val('data_model', Data_model),
@@ -46,11 +47,27 @@ print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext)
     close('metadata_stream').
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     get_hash(Install_dir, Target_C_file, Hash) :-
-        %mytrace,
-        concat_atom([Install_dir, '/SymbolicExecutor/get_hash.sh ', Target_C_file], Hash_call),
-        exec(Hash_call, [_, 'hash_stream', _]),
-        read_string('hash_stream', end_of_line, "", _, Hash),
-        close('hash_stream').
+        (exists(Target_C_file) ->
+            concat_atom([Install_dir, '/SymbolicExecutor/get_hash.sh'], Script), % Build argv safely: script + arg (no shell needed)
+            exec([Script, Target_C_file], [null, HashStream, ErrStream], Pid),
+            (select([HashStream], _Ready, 2.0) ->   % Wait up to 2.0s for any output on stdout
+                read_string(HashStream, end_of_line, _, Hash0),    % one line
+                close(HashStream),
+                wait(Pid, Status),                                 % reap child
+                (Status =:= 0 ->
+                    Hash = Hash0
+                ;   
+                    close(ErrStream), % Non-zero exit: treat as unknown, optionally log stderr
+                    Hash = "unknown"
+                )
+            ;   % No output in time: kill & reap, don’t block
+                kill(Pid, 2), wait(Pid, _), close(HashStream), close(ErrStream),
+                Hash = "unknown"
+            )
+        ;
+            printf(output,"get_hash: missing file: %w\n", [Target_C_file]),
+            Hash = "missing"
+        ).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     get_Date_time(Date_time) :-
         get_flag(unix_time, T), 

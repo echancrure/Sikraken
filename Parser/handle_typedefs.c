@@ -3,25 +3,38 @@
 #include <string.h>
 
 extern void* safe_malloc(size_t);
+enum symbol { SY_TYPEDEF_NAME = 1, SY_IDENTIFIER, SY_ENUMERATOR };
+
+const char *symbol_str(enum symbol s) {
+	switch (s) {
+        case SY_TYPEDEF_NAME: return "TYPEDEF_NAME";
+        case SY_IDENTIFIER:   return "IDENTIFIER";
+        case SY_ENUMERATOR:   return "ENUMERATOR";
+		default: return "UNKNOWN symbol";
+	}
+}
 
 typedef struct node {
-	int is_typedef_name;	// 1 a pure typedef_name, 2 a shadowing identifier
-	char* name;				// the name of the id
+	enum symbol symbol_type;	// 1 a pure typedef_name, 2 a shadowing identifier, 3 an enumerator 
+	char* name;					// the name of the id
+	char* value_str;			// the transformed name for Prolog (or the string containing an enumerator expression e.g. 1 << 1  
+	int value_int;				// the value of an enumerator
 	struct node* next;
 } list_node;
 
-void free_list_node(list_node* node) {
+void free_list_nodes(list_node* node) {
 	while (node != NULL) {
 		list_node* temp = node;
 		node = node->next;
 		free(temp->name);
+		free(temp->value_str);
 		free(temp);
 	}
 }
 
 typedef struct scope_node {
 	int scope_nb;
-	list_node* typedef_list;
+	list_node* symbol_list;
 	struct scope_node* below;
 } scope_node;
 scope_node* scope_stack = NULL;
@@ -34,10 +47,10 @@ void print_scope_stack() {
 	}
 	while (current_scope != NULL) {
 		if (debugMode) {printf("Scope %d:\n", current_scope->scope_nb); fflush(stdout);}
-		list_node* current_typedef_node = current_scope->typedef_list;
-		while (current_typedef_node != NULL) {
-			if (debugMode) {printf("\t%s is a %s\n", current_typedef_node->name, (current_typedef_node->is_typedef_name==1 ? "TYPEDEF_NAME" : "shadow IDENTIFIER")); fflush(stdout);}
-			current_typedef_node = current_typedef_node->next;
+		list_node* current_symbol_node = current_scope->symbol_list;
+		while (current_symbol_node != NULL) {
+			if (debugMode) {printf("\t%s is a %s\n", current_symbol_node->name, symbol_str(current_symbol_node->symbol_type)); fflush(stdout);}
+			current_symbol_node = current_symbol_node->next;
 		}
 		current_scope = current_scope->below;
 	}
@@ -46,7 +59,7 @@ void print_scope_stack() {
 void push_scope(int scope_nb) {
 	scope_node* new_scope_node = (scope_node *)safe_malloc(sizeof(scope_node));
 	new_scope_node->scope_nb = scope_nb;
-	new_scope_node->typedef_list = NULL;
+	new_scope_node->symbol_list = NULL;
 	if (scope_stack != NULL) new_scope_node->below = scope_stack;
 	else new_scope_node->below = NULL;
 	scope_stack = new_scope_node;
@@ -63,61 +76,58 @@ void pop_scope(int *scope_nb) {
 	if (scope_stack != NULL && scope_stack->scope_nb == *scope_nb) {
 		scope_node* top_scope = scope_stack;
 		scope_stack = scope_stack->below;
-		free_list_node(top_scope->typedef_list);
+		free_list_nodes(top_scope->symbol_list);
 		free(top_scope);
 		if (debugMode) {printf("Popped scope %d\n", *scope_nb); fflush(stdout);}
 	}
 	(*scope_nb)--;
 }
 
-void add_typedef_id(int scope, char* id, int is_typedef_name) {
-	if (is_typedef_name != 1 && is_typedef_name != 2) {
-		printf("add_typedef_id: Illegal Arguments, invalid is_typedef_name value: %d\n", is_typedef_name);
-		fflush(stdout);
-		exit(1);
-	}
+void add_symbol(int scope, char* id, enum symbol symbol_type) {
 	if (scope_stack == NULL) push_scope(scope);
 	else if (scope_stack->scope_nb != scope) {	//a new scope is needed		
-		if (debugMode) fprintf(stderr, "add_typedef_id: Creating a new scope in because current scope is %d but incoming scope is %d\n", scope_stack->scope_nb, scope);
+		if (debugMode) fprintf(stderr, "add_symbol: Creating a new scope in because current scope is %d but incoming scope is %d\n", scope_stack->scope_nb, scope);
 		push_scope(scope);
 	}
-	if (is_typedef_name == 1) { //we remove the UC_ or the uppercase for typedef_name only because shadow identifiers are not transformed as prolog vars when this is called
+	if (symbol_type == SY_TYPEDEF_NAME) { //we remove the UC_ or the uppercase for typedef_name only because shadow identifiers are not transformed as prolog vars when this is called
 		if (!strncmp(id, "UC_", 3)) id = &id[3];	//removing the "UC_"  prefix before adding to collection of typedef
 		else id[0] = tolower(id[0]);	//lowering the first letter before adding to collection of typedef
 	}
 	list_node* new_node = (list_node *)safe_malloc(sizeof(list_node));	
-	new_node->is_typedef_name = is_typedef_name;
+	new_node->symbol_type = symbol_type;
 	new_node->name = (char*)safe_malloc(strlen(id) + 1);
 	strcpy_safe(new_node->name, strlen(id) + 1, id);
-	if (scope_stack->typedef_list != NULL) new_node->next = scope_stack->typedef_list;	//adding the new node to the front of the list
+	new_node->value_str = NULL;
+	new_node->value_int = 0;
+	if (scope_stack->symbol_list != NULL) new_node->next = scope_stack->symbol_list;	//adding the new node to the front of the list
 	else new_node->next = NULL;
-	scope_stack->typedef_list = new_node;
-	if (debugMode) {printf("add_typedef_id: Added %s as a %s to typedef list\n", id, (is_typedef_name==1 ? "TYPEDEF_NAME" : "shadow IDENTIFIER")); fflush(stdout);}
+	scope_stack->symbol_list = new_node;
+	if (debugMode) {printf("add_symbol: added %s as a %s\n", id, symbol_str(symbol_type)); fflush(stdout);}
 }
 
-//look for the id in the entire stack of scope of list of typedefs
+//look for the id in the entire stack of scope of list of symbols
 //called during lexical analysis: see grammar.l
-int is_typedef_name(char* id) {
+enum symbol lookup_symbol(char* id) {
 	if (debugMode) {
-		printf("is_typedef_name: Looking for %s in typedef list\n", id);
+		printf("lookup_symbol: Looking for %s\n", id);
 		fflush(stdout);
 		print_scope_stack();
 	}
 	scope_node* current_scope = scope_stack;
 	while (current_scope != NULL) {
-		list_node* current_typedef_node = current_scope->typedef_list;
+		list_node* current_typedef_node = current_scope->symbol_list;
 		while (current_typedef_node != NULL) {
 			if (!strcmp(current_typedef_node->name, id)) {	//a matching node matching the a typedef_name has been found 
-				int is_typedef_name = current_typedef_node->is_typedef_name;
-				if (debugMode) {printf("is_typedef_name: a matching id has been found it is a %s\n", (is_typedef_name==1 ? "TYPEDEF_NAME" : "shadow IDENTIFIER")); fflush(stdout);}
-				return is_typedef_name;
+				enum symbol symbol_type = current_typedef_node->symbol_type;
+				if (debugMode) {printf("lookup_symbol: a matching symbol has been found, it is a %s\n", symbol_str(symbol_type)); fflush(stdout);}
+				return symbol_type;
 			}
 			current_typedef_node = current_typedef_node->next;
 		}
 		current_scope = current_scope->below;
 	}
 	if (debugMode) {
-		printf("is_typedef_name: not found %s is a basic IDENTIFIER\n", id);
+		printf("lookup_symbol: not found %s\n", id);
 		fflush(stdout);
 	}
 	return 0;

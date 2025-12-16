@@ -1731,16 +1731,16 @@ YY_RULE_SETUP
                                 if (debugMode) printf("Lexer FSM: bypassing typedef_name check in mode %s: id: %s is a %s\n", FSM_mode_str(), yylval.id, (in_tag_declaration ? "tag" : (in_member_namespace ? "member" : "label")));
                                 return IDENTIFIER; 
                              }
-                             int id_status = is_typedef_name(yylval.id);                            
+                             int symbol_type = lookup_symbol(yylval.id);                            
                              if (debugMode) { 
-                                printf("Lexer FSM: checking id: %s with status %d with FSM %s in mode %s %s\n", yylval.id, id_status, (FSM_off ? "OFF" : "ON"), FSM_mode_str(), (in_member_namespace ? "(in member namespace)" : ""));
+                                printf("Lexer FSM: checking id: %s with status %d with FSM %s in mode %s %s\n", yylval.id, symbol_type, (FSM_off ? "OFF" : "ON"), FSM_mode_str(), (in_member_namespace ? "(in member namespace)" : ""));
                                 fflush(stdout);
                              }
-                             if (FSM_off) return (id_status == 1 ? TYPEDEF_NAME : IDENTIFIER);   //when FSM is off, we do not track declaration contexts, but we still differentiate typedef names from identifiers
-                             if (id_status == 1) {  // a typedef name
+                             if (FSM_off) return (symbol_type == 1 ? TYPEDEF_NAME : IDENTIFIER);   //when FSM is off, we do not track declaration contexts, but we still differentiate typedef names from identifiers
+                             if (symbol_type == SY_TYPEDEF_NAME) {  // a typedef name
                                 if (FSM_in_PD_mode) {
                                     if (PD_state == PD_DECIDE_PARAM_KIND || PD_state == PD_PARAM_DECL) {
-                                        add_typedef_id(current_scope, yylval.id, 2);            //2 indicates that it is a SHADOWING IDENTIFIER
+                                        add_symbol(current_scope, yylval.id, SY_IDENTIFIER);
                                         if (debugMode) printf("Lexer Debug: declared the SHADOWING PARAMETER of a typedef_name: %s on line %d\n", yylval.id, yylineno);
                                         FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(IDENTIFIER);
                                         return IDENTIFIER;                    
@@ -1752,7 +1752,7 @@ YY_RULE_SETUP
                                     if (VD_state == VD_VAR_DECL) {
                                         FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(IDENTIFIER);
                                         if (in_member_namespace) return IDENTIFIER;             //members cannot shadow typedef names: they are in a different namespace
-                                        else {add_typedef_id(current_scope, yylval.id, 2);      //2 indicates that it is a SHADOWING IDENTIFIER
+                                        else {add_symbol(current_scope, yylval.id, SY_IDENTIFIER);
                                             if (debugMode) printf("Lexer Debug: declared the SHADOWING IDENTIFIER of a typedef_name: %s on line %d\n", yylval.id, yylineno);
                                             return IDENTIFIER;
                                         }

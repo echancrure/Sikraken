@@ -4,7 +4,9 @@
 # Author: Chris Meudec
 # Date: Nov 2025
 # Description: Wrapper for Sikraken symbolic execution tool from C code.
-# Example: ./bin/sikraken.sh release budget[1] --ss=1 SampleCode/simple_if.c
+# Example: ./bin/sikraken.sh release budget[3] --ss=1 SampleCode/simple_if.c
+
+start_time=$(date +%s.%1N)
 
 # clear # don't: this breaks CI because it requires a TERMINAL environment, which does not exist in CI mode
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -110,7 +112,7 @@ if [ "$testcomp_flag" -eq 1 ]; then
     #algo="budget(800)"                  # for pre-runs to get the full stats at the end of Sikraken run 
     #stack_size_value="$((2 * 1024))M"   # for pre-runs so as not to hit the limit of 3 GB
     debug_mode="release"               # for Test-Comp final-run : less time wasted writing out messages
-    algo="budget(1000)"                # for Test-Comp final-run : to use up all the time available
+    algo="budget(900)"                # for Test-Comp final-run : to use up all the time available
     stack_size_value="$((12 * 1024))M" # for Test-Comp final-run : high enough GB to be of benefit, but below competition threshold of 15 GB to ensure Sikraken does not get killed
 fi
 # -------------------------------------------------------------
@@ -138,15 +140,35 @@ fi
 
 echo "Sikraken from $0 Successfully preprocessed $rel_path_c_file and ran sikraken_parser."
 if [[ $algo =~ ^budget\([0-9]+\)$ ]]; then
-  seconds="${algo//[!0-9]/}"
+  budget="${algo//[!0-9]/}"
   echo "Sikraken from $0 says: Please wait $seconds seconds for Sikraken to complete"
 else
+  budget=900
   echo "Sikraken from $0 says: Please wait for Sikraken to complete its $algo search strategy" 
 fi
 
 # Call the symbolic executor via ECLiPSe
-eclipse_call="se_main(['$SIKRAKEN_INSTALL_DIR', '$output_dir', '$file_name_no_ext', main, '$debug_mode', testcomp, '$data_model', $algo])"
-$SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e "$eclipse_call" -g $stack_size_value -l 1G 
+eclipse_call="$SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e \"se_main(['$SIKRAKEN_INSTALL_DIR', '${SIKRAKEN_INSTALL_DIR}/${rel_path_c_file}', '$file_name_no_ext', main, $debug_mode, testcomp, '$data_model', $algo])\" -g $stack_size_value -l 1G"
+echo -e "${BL}Calling Sikraken using: $eclipse_call${NC}"
+
+end_time=$(date +%s.%1N)
+
+cpu_spent_raw=$(echo "$end_time - $start_time" | bc)
+echo "DEBUG: Raw CPU spent: $cpu_spent_raw"
+cpu_spent=$(echo "$cpu_spent_raw" | awk '{print ($1 <= 0 ? 1 : int($1 + 0.999))}')
+
+echo "Sikraken: Preprocessing used ~${cpu_spent_raw}s (Rounded up to ${cpu_spent}s for safety)"
+
+budget=$((budget-cpu_spent))
+# Floor the budget so prlimit doesn't get negative values
+if [ "$budget" -lt 3 ]; then
+    budget=3
+fi
+echo "remaining budget is $budget"
+dump_time=$((budget - 2))
+kill_time=$((budget - 1))
+prlimit --cpu="${dump_time}:${kill_time}" bash -lc "$eclipse_call"
+ 
 ret_code=$?
 if [ $ret_code -ne 0 ]; then
     echo "Sikraken ERROR from $0: error code $ret_code, call to ECLiPSe failed on: $eclipse_call"

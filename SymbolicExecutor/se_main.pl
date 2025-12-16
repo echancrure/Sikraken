@@ -33,11 +33,29 @@ mytrace.            %call this to start debugging
 :- compile([se_print, 'se_write_tests_testcomp']).
 :- compile(['cfg_main']).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%  
+
+:- set_interrupt_handler(24, dump_stats_and_exit/0).    %SIGXCPU from external bash use of prlimit
+:- setval(xcpu_handled, false).
+
+dump_stats_and_exit :-
+    set_interrupt_handler(24, default/0),   %to prevent others to be triggered
+    (getval(xcpu_handled, false) ->         %to ensure printing only once
+        setval(xcpu_handled, true),
+        print_test_run_log,
+        easter_egg,
+        halt        %exit(0) seem to delay
+    ;
+        true
+    ).
+  
 se_main(ArgsL) :-
+    printf(output, "Inter-cov:0.00%%\n", []), flush(output),
     statistics(event_time, Session_time),
-    setval('start_session_time', Session_time),
-    %set_flag('gc_policy', 'fixed'),
+    setval(start_session_time, Session_time),
+    set_flag(gc_policy, fixed),                 %for better predictability
+    get_flag('max_global_trail', Max_global_trail),
+    GC_interval is Max_global_trail div 16,     %larger than default 1/32th to reduce gc time
+    set_flag(gc_interval, GC_interval),
     (ArgsL = [Install_dir, Source_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Search_algo|Options] ->
         true
     ;
@@ -81,12 +99,9 @@ se_main(ArgsL) :-
         )
     ;
         common_util__error(10, "Calling se_main/? with invalid search algo configuration", "Review search algo argument syntax", [('Search_algo', Search_algo)], '10_240926_2', 'se_main', 'se_main', no_localisation, no_extra_info)
-    ),         
-    se_globals__set_val('single_test_time_out', First_time_out),  
-    %very approximative timed event: based on wall clock, okish for single threaded
-    %see Joachim's email
-    set_event_handler(overall_generation_time_out, handle_overall_time_out_event/0),
-    event_after(overall_generation_time_out, Budget),
+    ),
+    setval(budget, Budget),
+    se_globals__set_val('single_test_time_out', First_time_out),
     catch(
         (
             print_test_run_log__preamble(ArgsL),
@@ -114,26 +129,17 @@ se_main(ArgsL) :-
             ),
             print_test_run_log   %only run once
         ),
-        Any_exception,
-        handle_outer_exception(Any_exception)
+        Exception,
+        handle_outer_exception(Exception)
     ).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    handle_overall_time_out_event :-
-        throw(outatime).
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_outer_exception(Exception) :-
-        cancel_after_event(overall_generation_time_out, _), %to make sure not triggered while writing out below
-        cancel_after_event(single_test_time_out_event, _),  %to make sure not triggered while writing out below
-        (Exception == outatime ->
-            easter_egg,
-            print_test_run_log,
-            exit(0)    %success : we just used up the global budget
-        ;
-         Exception == abort ->  %ECLiPSe abort
+        cancel_after_event(single_test_time_out_event, _),
+        (Exception == abort ->  %ECLiPSe abort
             print_test_run_log,
             exit(10)   %ends execution with error code
         ; 
-         Exception == my_abort ->   %Sikraken abort
+         Exception == my_abort ->   %Sikraken abort print_test_run_log has already been printed
             exit(11)   %ends execution with error code
         ;    
             common_util__error(10, "Unknown exception caught", "Review, investigate and catch it better next time", [('Exception', Exception)], '10_260924_2', 'se_main', 'se_main', no_localisation, no_extra_info)
@@ -198,9 +204,6 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
         handle_try_nb_path_budget_exception(Exception) :-
             (Exception == single_test_time_out_exception ->
                 fail                    %single path exploration fails : triggers a restart
-            ;
-             Exception == outatime ->   %global out of time
-                throw(outatime)
             ;
              Exception == 'global_trail_overflow' ->
                 (get_flag('max_global_trail', Max),
@@ -276,14 +279,13 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
                 ;
                     true
                 ),
-                setval(time_out_triggered, true),
 
                 %record_path_coverage(Test_nb),                  %but could cover more up to the next verifier call...
                 %print_test_inputs_testcomp(Labeled_inputs, Test_nb),     %banking a partial answer test vector as may be allowed    
-            statistics(event_time, Current_session_time),
-            getval(start_time, Current_start_time),
-            Last_test_duration is Current_session_time - Current_start_time,
-            reset_timer(Last_test_duration, Current_session_time) %and carry on with true
+                statistics(event_time, Current_session_time),
+                getval(start_time, Current_start_time),
+                Last_test_duration is Current_session_time - Current_start_time,
+                reset_timer(Last_test_duration, Current_session_time) %and carry on with true
                 %throw('single_test_time_out_exception')    %debug
                 %the handler succeeds: execution continues where the timeout was triggered: the subpath continues to be explored
                 %this may lead to may testvectors with the same prefix which should be filtered out to reduce the number of tests without reducing the amount of coverage achieved
@@ -414,7 +416,14 @@ find_one_path(_Output_mode, Main, _Target_subprogram_var, _Parsed_prolog_code) :
             se_globals__get_val('EdgeCount', EdgeCount),
             (EdgeCount == 0 -> Coverage_delta = 100.0 ; Coverage_delta is (Nb_new / EdgeCount) * 100),
             super_util__quick_dev_info("Dev Info: Test %d covers %d new branches increasing coverage by %.2f%%\n", [Test_nb, Nb_new, Coverage_delta]),
-            flush('output').
+            length(Overall_covered, Covered_nb),
+            (EdgeCount == 0 -> 
+                Coverage is 100.0     %Some tests generated but EdgeCount is 0: a C file with no branches
+            ; 
+                Coverage is (Covered_nb / EdgeCount) * 100
+            ),
+            printf(output, "Inter-cov:%.2f%%\n", [Coverage]),   %intermediate coverage should be in dev mode only
+            flush(output).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 initialise_ptc_solver :-
     ptc_solver__clean_up,
