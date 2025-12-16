@@ -160,9 +160,9 @@ cpu_spent=$(echo "$cpu_spent_raw" | awk '{print ($1 <= 0 ? 1 : int($1 + 0.999))}
 echo "Sikraken: Preprocessing used ~${cpu_spent_raw}s (Rounded up to ${cpu_spent}s for safety)"
 
 budget=$((budget-cpu_spent))
-# Floor the budget so prlimit doesn't get negative values
-if [ "$budget" -lt 3 ]; then
-    budget=3
+# Floor the budget so prlimit doesn't get negative values and the symbolic executor has the time to dump the results
+if [ "$budget" -lt 4 ]; then
+    budget=4
 fi
 echo "remaining budget is $budget"
 dump_time=$((budget - 2))

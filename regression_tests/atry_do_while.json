@@ -3,7 +3,7 @@
       {
         "id": "run1",
         "description": "do while",
-        "algo": "budget(5)",
+        "algo": "budget[5]",
         "expected_tests_number": 2,
         "expected_testcov_coverage": 66.67,
         "expected_sikraken_edges": 9

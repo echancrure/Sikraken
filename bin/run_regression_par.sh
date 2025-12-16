@@ -12,6 +12,12 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)" # Script directory
 SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."
 echo "SIKRAKEN_INSTALL_DIR is $SIKRAKEN_INSTALL_DIR"
 
+BL='\033[34m'    # blue
+YL="\033[38;5;226m"     # yellow
+GR='\033[32m'    # green
+RD='\033[31m'    # red
+NC='\033[0m'     # reset     
+
 script_name=$(basename "$0")
 
 # --- GLOBAL ERROR FLAG ---
@@ -104,42 +110,28 @@ generate_tests() {
         *) echo "Sikraken ERROR: Unsupported data model $data_model" >> "$PARALLEL_FAIL_FLAG"; return 1;;
     esac
 
-    # Call parser
-    call_parser="$SIKRAKEN_INSTALL_DIR/bin/call_parser.sh $rel_path_c_file/$base_name.c $gcc_flag"
-    $call_parser
-    if [ $? -ne 0 ]; then
-        echo "Sikraken ERROR: Parsing $regression_test_file failed" >> "$PARALLEL_FAIL_FLAG"
-        return 1
-    fi
-
     # Loop over configurations
     local config_count=$(jq '.configurations | length' "$config_file")
     for i in $(seq 0 $((config_count - 1))); do
         local config=$(jq ".configurations[$i]" "$config_file")
         local algo=$(echo "$config" | jq -r '.algo')
 
-        echo -e "\e[34mGenerating tests for $regression_test_file using algo: $algo\e[0m"
+        echo -e "${BL}Generating tests for $regression_test_file using algo: $algo${NC}"
         local log_file="$SIKRAKEN_INSTALL_DIR/sikraken_output/$base_name/sikraken.log"
-        local eclipse_call="se_main(['$SIKRAKEN_INSTALL_DIR', '$SIKRAKEN_INSTALL_DIR/$rel_path_c_file', '$base_name', main, $debug_mode, testcomp, '$gcc_flag', $algo $shortcutgen])"
-        $SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e "$eclipse_call" > $log_file 2>&1
+
+        $SIKRAKEN_INSTALL_DIR/bin/sikraken.sh $debug_mode $gcc_flag $algo $rel_path_c_file/$base_name.c > $log_file 2>&1
         [ $? -ne 0 ] && echo "Sikraken ERROR: ECLiPSe call failed for $regression_test_file" >> "$PARALLEL_FAIL_FLAG" && return 1
 
-        ###call Testcov with  
-        #local testcov_dir="$SIKRAKEN_INSTALL_DIR/sikraken_output/$base_name/testcov"
-        #mkdir -p "$testcov_dir"
-        #TMPDIR="$testcov_dir/tmp"
-        #mkdir -p "$TMPDIR"
-        #extract data model in testcov format
         local testcov_data_model
         case "$data_model" in
             ILP32) testcov_data_model="-32";;
             LP64) testcov_data_model="-64";;
         esac
         local testcov_call=(./bin/run_testcov.sh "$regression_test_file" "$testcov_data_model")
-        echo -e "\e[34mCalling Testcov for $regression_test_file\e[0m"
+        echo -e "${BL}Calling Testcov for $regression_test_file${NC}"
         # run it
         "${testcov_call[@]}" > "$SIKRAKEN_INSTALL_DIR/sikraken_output/$base_name/testcov_call.log" 2>&1
-        echo -e "\e[32mEnded Testcov for $regression_test_file\e[0m"
+        echo -e "${GR}Ended Testcov for $regression_test_file${NC}"
     done
 }
 

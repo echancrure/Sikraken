@@ -3,7 +3,7 @@
     {
       "id": "run2",
       "description": "Should reach the max 46.96% [also regression(1, 10) 7 tests for 16.55%]",
-      "algo": "budget(60)",
+      "algo": "budget[60]",
       "expected_tests_number": 64,
       "expected_testcov_coverage": 46.96,
       "expected_sikraken_edges": 297
