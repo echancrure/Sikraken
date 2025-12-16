@@ -109,12 +109,13 @@ fi
 # -------------------------------------------------------------
 if [ "$testcomp_flag" -eq 1 ]; then
     echo -e "${YL}Sikraken WARNING: --testcomp option detected. Overwriting settings for TestComp run.${NC}"
-    #debug_mode="debug"                  # for pre-runs to get all the debug messages
-    #algo="budget(800)"                  # for pre-runs to get the full stats at the end of Sikraken run 
+    #debug_mode="debug"                 # for pre-runs to get all the debug messages
+    #algo="budget(800)"                 # for pre-runs to get the full stats at the end of Sikraken run 
     #stack_size_value="$((2 * 953))M"   # for pre-runs so as not to hit the limit of 3 GB
-    debug_mode="release"               # for Test-Comp final-run : less time wasted writing out messages
-    algo="budget(900)"                # for Test-Comp final-run : to use up all the time available
-    stack_size_value="2382M" # 1 GB ==  953 MiB for Test-Comp final-run : high enough GB to be of benefit, but below competition threshold of 15 GB to ensure Sikraken does not get killed
+    debug_mode="release"                # for Test-Comp final-run : less time wasted writing out messages
+    algo="budget(900)"                  # for Test-Comp final-run : to use up all the time available
+    stack_size_value="2382M"
+    #stack_size_value="13342M"           # in MiB 1 GB ==  953 MiB for Test-Comp final-run : high enough GB to be of benefit, but below competition threshold of 15 GB to ensure Sikraken does not get killed
 fi
 # -------------------------------------------------------------
 
@@ -142,7 +143,7 @@ fi
 echo "Sikraken from $0 Successfully preprocessed $rel_path_c_file and ran sikraken_parser."
 if [[ $algo =~ ^budget\([0-9]+\)$ ]]; then
   budget="${algo//[!0-9]/}"
-  echo "Sikraken from $0 says: Please wait $seconds seconds for Sikraken to complete"
+  echo "Sikraken from $0 says: Please wait $budget seconds for Sikraken to complete"
 else
   budget=900
   echo "Sikraken from $0 says: Please wait for Sikraken to complete its $algo search strategy" 
@@ -154,11 +155,16 @@ echo -e "${BL}Calling Sikraken using: $eclipse_call${NC}"
 
 end_time=$(date +%s.%1N)
 
-cpu_spent_raw=$(echo "$end_time - $start_time" | bc)
-echo "DEBUG: Raw CPU spent: $cpu_spent_raw"
-cpu_spent=$(echo "$cpu_spent_raw" | awk '{print ($1 <= 0 ? 1 : int($1 + 0.999))}')
+cpu_spent=$(awk -v start="$start_time" -v end="$end_time" 'BEGIN {
+    diff = end - start;
+    if (diff <= 0) print 1;
+    else print int(diff + 0.999);
+}')
 
-echo "Sikraken: Preprocessing used ~${cpu_spent_raw}s (Rounded up to ${cpu_spent}s for safety)"
+# Optional: if you still want the raw decimal for your debug echo:
+cpu_spent_raw=$(awk -v start="$start_time" -v end="$end_time" 'BEGIN { print end - start }')
+
+echo "Sikraken: Preprocessing used ${cpu_spent_raw}s (Rounded up to ${cpu_spent}s for safety)"
 
 budget=$((budget-cpu_spent))
 #4 seconds is the minimum, to get stats info, prlimit only take integers
