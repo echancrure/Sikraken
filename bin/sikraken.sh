@@ -114,8 +114,8 @@ if [ "$testcomp_flag" -eq 1 ]; then
     #stack_size_value="$((2 * 953))M"   # for pre-runs so as not to hit the limit of 3 GB
     debug_mode="release"                # for Test-Comp final-run : less time wasted writing out messages
     algo="budget(900)"                  # for Test-Comp final-run : to use up all the time available
-    stack_size_value="2382M"
-    #stack_size_value="13342M"           # in MiB 1 GB ==  953 MiB for Test-Comp final-run : high enough GB to be of benefit, but below competition threshold of 15 GB to ensure Sikraken does not get killed
+    #stack_size_value="2382M"
+    stack_size_value="13342M"           # in MiB 1 GB ==  953 MiB for Test-Comp final-run : high enough GB to be of benefit, but below competition threshold of 15 GB to ensure Sikraken does not get killed
 fi
 # -------------------------------------------------------------
 
