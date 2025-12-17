@@ -24,8 +24,9 @@ print_test_run_log__preamble(ArgsL) :-
         print_options(R).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 print_test_run_log :-
-    statistics(event_time, Current_session_time),
-    super_util__quick_dev_info("Dev Info: Session time is %.2f seconds\n", [Current_session_time]),
+    %flush(output),
+    %statistics(event_time, Current_session_time),
+    %super_util__quick_dev_info("Dev Info: Session time is %.2f seconds\n", [Current_session_time]),
     printf(output, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
     printf(output, "Sikraken Session Results:\n", []),
     se_globals__get_val('path_nb', Test_nb),
@@ -49,15 +50,7 @@ print_test_run_log :-
     print_branches_list(Overall_covered),
     ord_subtract(All_pure_edges_sorted, Overall_covered, Uncovered_edges),
     printf(output, "\tMissing: \t\t", []),
-    print_branches_list(Uncovered_edges),
-    %printf(output, "Call Testcov: ./bin/run_testcov ... need the path to C file\n", []),
-    printf(output, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
-    printf(output, "ECLiPSe Statistics Dump:", []), 
-    get_stream('log_output', Log_output_stream),
-    set_stream('log_output', output),
-    statistics,     %printing out ECLiPSe internal statistics into redirected stream
-    set_stream('log_output', Log_output_stream),
-    printf(output, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []). 
+    print_branches_list(Uncovered_edges).
     %%%
     print_branches_list([]) :-
         printf(output, "\n", []).
@@ -94,4 +87,14 @@ easter_egg :-
     printf('output', "    `8 8888       ,8P  ` 8888     ,8P       8 8888  .8'   `8. `88888.   8 8888        8 8888   ,8'     `8.`'     `8.`8888.   8 8888         \n", []),
     printf('output', "     ` 8888     ,88'     8888   ,d8P        8 8888 .888888888. `88888.  8 8888        8 8888  ,8'       `8        `8.`8888.  8 8888         \n", []),
     printf('output', "        `8888888P'        `Y88888P'         8 8888.8'       `8. `88888. 8 8888        8 8888 ,8'         `         `8.`8888. 8 888888888888 \n\n", []).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+prints_stats :-
+    printf(output, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
+    printf(output, "ECLiPSe Statistics Dump:", []), 
+    get_stream('log_output', Log_output_stream),
+    set_stream('log_output', output),
+    statistics,     %printing out ECLiPSe internal statistics into redirected stream
+    set_stream('log_output', Log_output_stream),
+    printf(output, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
+    easter_egg.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

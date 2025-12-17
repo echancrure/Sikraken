@@ -172,15 +172,18 @@ if [ "$budget" -lt 4 ]; then
     budget=4
 fi
 echo "Remaining budget is $budget"
-dump_time=$((budget - 2))
-kill_time=$((budget - 1))
-prlimit --cpu="${dump_time}:${kill_time}" bash -lc "$eclipse_call"
+dump_time=$((budget - 1))
+prlimit --cpu="${dump_time}:${budget}" bash -lc "$eclipse_call"
  
 ret_code=$?
-if [ $ret_code -ne 0 ]; then
+if [ $ret_code -eq 137 ]; then  #sigkill
+    echo "Like tears in rain..."
+    exit 0
+elif [ $ret_code -ne 0 ]; then
     echo "Sikraken ERROR from $0: error code $ret_code, call to ECLiPSe failed on: $eclipse_call"
     exit $ret_code
 else
     echo "Sikraken from $0 generated test inputs for $file_name_no_ext in $SIKRAKEN_INSTALL_DIR/sikraken_output/$file_name_no_ext/"
     echo "Sikraken from $0 says, now run: ./bin/run_testcov.sh $rel_path_c_file $testcov_data_model"
+    exit 0
 fi

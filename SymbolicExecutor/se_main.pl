@@ -40,18 +40,21 @@ mytrace.            %call this to start debugging
 dump_stats_and_exit :-
     set_interrupt_handler(24, default/0),   %to prevent others to be triggered
     (getval(xcpu_handled, false) ->         %to ensure printing only once
-        setval(xcpu_handled, true),
+        setval(xcpu_handled, true),    
         print_test_run_log,
-        easter_egg,
-        halt        %exit(0) seem to delay
+        getval(main_engine, Main_engine),    
+        engine_post(Main_engine, prints_stats)  %so we get the statistics of the main engine, not the one handling interrupts...
     ;
         true
     ).
   
 se_main(ArgsL) :-
+    set_event_handler(prints_stats, prints_stats/0),
     printf(output, "Inter-cov:0.00%%\n", []), flush(output),
     statistics(event_time, Session_time),
     setval(start_session_time, Session_time),
+    engine_self(Engine),
+    setval(main_engine, Engine),
     set_flag(gc_policy, fixed),                 %for better predictability
     get_flag('max_global_trail', Max_global_trail),
     GC_interval is Max_global_trail div 16,     %larger than default 1/32th to reduce gc time
@@ -134,7 +137,11 @@ se_main(ArgsL) :-
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     handle_outer_exception(Exception) :-
         cancel_after_event(single_test_time_out_event, _),
-        (Exception == abort ->  %ECLiPSe abort
+        (Exception == prints_stats ->
+            prints_stats,
+            halt
+        ;    
+         Exception == abort ->  %ECLiPSe abort
             print_test_run_log,
             exit(10)   %ends execution with error code
         ; 
