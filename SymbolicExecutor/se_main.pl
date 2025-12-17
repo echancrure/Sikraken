@@ -100,7 +100,6 @@ se_main(ArgsL) :-
     ;
         common_util__error(10, "Calling se_main/? with invalid search algo configuration", "Review search algo argument syntax", [('Search_algo', Search_algo)], '10_240926_2', 'se_main', 'se_main', no_localisation, no_extra_info)
     ),
-    setval(budget, Budget),
     se_globals__set_val('single_test_time_out', First_time_out),
     catch(
         (
@@ -279,9 +278,6 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
                 ;
                     true
                 ),
-
-                %record_path_coverage(Test_nb),                  %but could cover more up to the next verifier call...
-                %print_test_inputs_testcomp(Labeled_inputs, Test_nb),     %banking a partial answer test vector as may be allowed    
                 statistics(event_time, Current_session_time),
                 getval(start_time, Current_start_time),
                 Last_test_duration is Current_session_time - Current_start_time,

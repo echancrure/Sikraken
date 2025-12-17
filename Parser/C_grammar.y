@@ -38,7 +38,7 @@ int debugMode = 0;					//flag to indicate if we are in debug mode set by -d comm
 #include <stdbool.h>
 #include "parser.h"
 #include "utils.c"
-#include "handle_typedefs.c"		//stack to keep track of typedef declared and shadowing by identifiers
+#include "handle_symbols.c"			//stack to keep track of all ordinary identifiers: variables, functions, typedef_names, enumerators
 #include "handle_decl_specs.c"		//
 
 extern int yylex();
@@ -62,6 +62,7 @@ int typedef_flag = 0; 			//indicates that we are within a typedef declaration
 int in_tag_declaration = 0;		//indicates to the lexer that we are in the tag namespace (for struct, union and enum tags) and that identifier should not be checked for typedef
 int in_member_namespace = 0;	//indicates to the lexer that we are in the member namespace (for members of structs and unions) and that identifier should not be checked for typedef
 int in_label_namespace = 0;		//used in lexer
+int in_enumerator_list = 0;		//indicates to the lexer that we are in an enumerator list (i.e. declaring enum constants) and that identifiers should not be checked for typedef
 
 int function_declaration_flag = 0; //indicates that we are potentially within a function declaration (to manage typedef scope correctly)
 int parsed_tag_name1 = 0;		//indicates that we have just parsed a struct_or_union/enum tag_name1 production
@@ -889,10 +890,12 @@ struct_declarator		//for FSM_off: can only be followed by ',' or ';' at the glob
 	;
 
 enum_specifier
-	: enum_token {in_tag_declaration = 0;} '{' enumerator_list comma_opt {FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);} '}'
+	: enum_token {in_tag_declaration = 0; in_enumerator_list = 1; symbol_start_enum();} '{' enumerator_list comma_opt 
+	    {FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME); in_enumerator_list = 0;} 
+	  '}'	//anonymous enums are basically just constants
 		{size_t const size = strlen("anonymous_enum([])") + strlen($4) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_safe($$, size, "anonymous_enum([%s])", $4);
+         sprintf_safe($$, size, "anonymous_enum([%s])", $4);	
 	     free($4);
         }
 	| enum_token enum_tag_name enum_specifier_rest 	//Tag namespace Id declaration ; 
@@ -911,7 +914,9 @@ enum_token
 
 enum_tag_name :
 	IDENTIFIER
-		{in_tag_declaration = 0;
+		{in_enumerator_list = 1;
+		 symbol_start_enum();
+		 in_tag_declaration = 0;
 		 parsed_tag_name1 = 1;
 		 $$ = to_prolog_var($1);
 		 free($1);
@@ -922,11 +927,12 @@ enum_tag_name :
 enum_specifier_rest
 	: /* empty */	
 		{parsed_tag_name1 = 0;
+		 in_enumerator_list = 0;
 		 if (read_a_comma_after_tag_name) read_a_comma_after_tag_name = 0;
 		 else FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
 		 simple_str_lit_copy(&$$, "forward_enum");
 	    }
-	| '{' {parsed_tag_name1 = 0;} enumerator_list comma_opt {FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);} '}'
+	| '{' {parsed_tag_name1 = 0;} enumerator_list comma_opt {FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME); in_enumerator_list = 0;} '}'
 		{$$ = $3;}
 	;
 
@@ -942,15 +948,23 @@ enumerator_list
 	;
 
 enumerator
-	: IDENTIFIER {FSM_off = 1;} '=' constant_expression
-		{FSM_off = 0;
+	: IDENTIFIER {FSM_off = 1; in_enumerator_list = 0;} '=' constant_expression
+		{in_enumerator_list = 1;
+		 FSM_off = 0;
+		 size_t const size0 = strlen("()") + strlen($4) + 1;
+		 char *enum_expression = (char*)malloc(size0);
+		 sprintf_safe(enum_expression, size0, "(%s)", $4);
+		 add_enum_symbol(current_scope, $1, enum_expression);
 		 size_t const size = strlen("init_enum(, )") + strlen($1) + strlen($4) + 1;
        	 $$ = (char*)malloc(size);
          sprintf_safe($$, size, "init_enum(%s, %s)", $1, $4);
 	   	 free($1);
 	     free($4);
         }
-	| IDENTIFIER
+	| IDENTIFIER 
+	  {add_enum_symbol(current_scope, $1, NULL);
+	   $$ = $1;
+	  }
 	;
 
 atomic_type_specifier		// new in C11 for atomic operation: used in concurrency

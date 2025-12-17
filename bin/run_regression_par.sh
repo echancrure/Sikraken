@@ -8,6 +8,7 @@
 
 clear
 echo "PARALLEL Regression Testing"
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)" # Script directory
 SIKRAKEN_INSTALL_DIR="$SCRIPT_DIR/.."
 echo "SIKRAKEN_INSTALL_DIR is $SIKRAKEN_INSTALL_DIR"
@@ -17,6 +18,12 @@ YL="\033[38;5;226m"     # yellow
 GR='\033[32m'    # green
 RD='\033[31m'    # red
 NC='\033[0m'     # reset     
+
+$SIKRAKEN_INSTALL_DIR/smoketest.sh > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+    echo "Smoketest failed"
+    exit 1
+fi
 
 script_name=$(basename "$0")
 

@@ -203,13 +203,13 @@ WS  [ \t\v\n\f]
                                 }
                              }
                              yylval.id[i] = '\0';
-                             if (in_tag_declaration || 0 || in_label_namespace) { // these contexts never treat ids as types: no point checking
+                             if (in_tag_declaration || in_enumerator_list || in_label_namespace) { // these contexts never treat ids as types: no point checking
                                 if (debugMode) printf("Lexer FSM: bypassing typedef_name check in mode %s: id: %s is a %s\n", FSM_mode_str(), yylval.id, (in_tag_declaration ? "tag" : (in_member_namespace ? "member" : "label")));
                                 return IDENTIFIER; 
                              }
                              int symbol_type = lookup_symbol(yylval.id);                            
                              if (debugMode) { 
-                                printf("Lexer FSM: checking id: %s with status %d with FSM %s in mode %s %s\n", yylval.id, symbol_type, (FSM_off ? "OFF" : "ON"), FSM_mode_str(), (in_member_namespace ? "(in member namespace)" : ""));
+                                printf("***Lexer FSM: checking id: %s with status %d with FSM %s in mode %s %s\n", yylval.id, symbol_type, (FSM_off ? "OFF" : "ON"), FSM_mode_str(), (in_member_namespace ? "(in member namespace)" : ""));
                                 fflush(stdout);
                              }
                              if (FSM_off) return (symbol_type == 1 ? TYPEDEF_NAME : IDENTIFIER);   //when FSM is off, we do not track declaration contexts, but we still differentiate typedef names from identifiers

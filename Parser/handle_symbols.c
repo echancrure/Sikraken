@@ -3,22 +3,34 @@
 #include <string.h>
 
 extern void* safe_malloc(size_t);
-enum symbol { SY_TYPEDEF_NAME = 1, SY_IDENTIFIER, SY_ENUMERATOR };
+enum symbol { SY_TYPEDEF_NAME = 1, SY_IDENTIFIER, SY_ENUM_CONSTANT };
 
 const char *symbol_str(enum symbol s) {
 	switch (s) {
         case SY_TYPEDEF_NAME: return "TYPEDEF_NAME";
         case SY_IDENTIFIER:   return "IDENTIFIER";
-        case SY_ENUMERATOR:   return "ENUMERATOR";
+        case SY_ENUM_CONSTANT:   return "ENUM CONSTANT";
 		default: return "UNKNOWN symbol";
 	}
 }
 
+int current_enum_value = 0;
+char *current_enum_expression = NULL;
+
+void symbol_start_enum(void) {
+	current_enum_value = 0;
+	current_enum_expression = NULL;
+}
+
+void set_enum_expression(char *enum_expression) {
+	current_enum_expression = enum_expression;
+}
+
 typedef struct node {
-	enum symbol symbol_type;	// 1 a pure typedef_name, 2 a shadowing identifier, 3 an enumerator 
+	enum symbol symbol_type;	// 1 a pure typedef_name, 2 a shadowing identifier, 3 an enum constant 
 	char* name;					// the name of the id
-	char* value_str;			// the transformed name for Prolog (or the string containing an enumerator expression e.g. 1 << 1  
-	int value_int;				// the value of an enumerator
+	char* value_str;			// the transformed name for Prolog (or the string containing an enum constant expression e.g. 1 << 1  
+	int value_int;				// the value of an enum constant
 	struct node* next;
 } list_node;
 
@@ -49,7 +61,15 @@ void print_scope_stack() {
 		if (debugMode) {printf("Scope %d:\n", current_scope->scope_nb); fflush(stdout);}
 		list_node* current_symbol_node = current_scope->symbol_list;
 		while (current_symbol_node != NULL) {
-			if (debugMode) {printf("\t%s is a %s\n", current_symbol_node->name, symbol_str(current_symbol_node->symbol_type)); fflush(stdout);}
+			if (debugMode) {
+				printf("\t%s is a %s", current_symbol_node->name, symbol_str(current_symbol_node->symbol_type)); 
+				if (current_symbol_node->symbol_type==SY_ENUM_CONSTANT) {
+					if (current_symbol_node->value_str) printf("%s\n", current_symbol_node->value_str);
+					else printf("(%d)\n", current_symbol_node->value_int);
+				} else printf("\n");
+				
+				fflush(stdout);
+			}
 			current_symbol_node = current_symbol_node->next;
 		}
 		current_scope = current_scope->below;
@@ -83,7 +103,7 @@ void pop_scope(int *scope_nb) {
 	(*scope_nb)--;
 }
 
-void add_symbol(int scope, char* id, enum symbol symbol_type) {
+list_node *add_symbol(int scope, char* id, enum symbol symbol_type) {
 	if (scope_stack == NULL) push_scope(scope);
 	else if (scope_stack->scope_nb != scope) {	//a new scope is needed		
 		if (debugMode) fprintf(stderr, "add_symbol: Creating a new scope in because current scope is %d but incoming scope is %d\n", scope_stack->scope_nb, scope);
@@ -103,6 +123,22 @@ void add_symbol(int scope, char* id, enum symbol symbol_type) {
 	else new_node->next = NULL;
 	scope_stack->symbol_list = new_node;
 	if (debugMode) {printf("add_symbol: added %s as a %s\n", id, symbol_str(symbol_type)); fflush(stdout);}
+	return new_node;
+}
+
+void add_enum_symbol(int scope, char* id, char* enum_expression) {
+	list_node *new_enum_symbol = add_symbol(scope, id, SY_ENUM_CONSTANT);
+	if (enum_expression) { 
+		current_enum_expression = enum_expression;
+		new_enum_symbol->value_str = current_enum_expression;
+	}
+	else if (current_enum_expression) {
+		size_t const size0 = strlen("(+1)") + strlen(current_enum_expression) + 1;
+		char *new_enum_expression = (char*)safe_malloc(size0);
+		sprintf_safe(new_enum_expression, size0, "(%s+1)", current_enum_expression);
+		current_enum_expression = new_enum_expression;
+		new_enum_symbol->value_str = current_enum_expression;
+	} else new_enum_symbol->value_int = current_enum_value++;
 }
 
 //look for the id in the entire stack of scope of list of symbols

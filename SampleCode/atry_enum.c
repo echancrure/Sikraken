@@ -1,26 +1,25 @@
 extern int __VERIFIER_nondet_int(); 
 #include <limits.h>
-// ------------------------------------------------------
-// 1) Basic enums: implicit and explicit values
-// ------------------------------------------------------
+typedef int Red;
+void f(void) {
+    enum Color {        // 1.1 Named enum with implicit values (0, 1, 2, ...)
+        Red,            // 0
+        Green,          // 1
+        Blue,           // 2
+        ColorCount      // 3
+    };
+    typedef int Reddish;
+}
 
-// 1.1 Named enum with implicit values (0, 1, 2, ...)
-enum Color {
-    Red,            // 0
-    Green,          // 1
-    Blue,           // 2
-    ColorCount      // 3
-};
 
-// 1.2 Explicit values, mixed with implicit
-enum Status {
+enum Status {       // 1.2 Explicit values, mixed with implicit
     Ok = 0,
     Warn = 2,
     Error,          // 3 (previous + 1)
     Fatal = -1,
     Unknown         // 0 (previous + 1 from -1 -> 0)
 };
-
+/*
 // 1.3 Expressions, negatives, char, hex, octal, bitwise, sizeof, INT_MAX
 enum Flags {
     F_None      = 0,
@@ -36,9 +35,7 @@ enum Flags {
     F_SizeLong  = (int)sizeof(long),
     F_Max       = INT_MAX
 };
-
-// 1.4 Trailing comma allowed (C99+)
-enum TrailingComma {
+enum TrailingComma {    // 1.4 Trailing comma allowed (C99+)
     TC_A = 1,
     TC_B = 2,
     TC_C = 3,
@@ -147,10 +144,10 @@ struct Reg {
 // 5.7 Switch/case with enum constants
 void switch_demo(enum Color c) {
     switch (c) {
-        case Red:   /* ... */ break;
-        case Green: /* ... */ break;
-        case Blue:  /* ... */ break;
-        default:    /* ... */ break;
+        case Red:    break;
+        case Green:  break;
+        case Blue:   break;
+        default:     break;
     }
 }
 
@@ -303,5 +300,9 @@ int main(void) {
     struct Reg r = {0};
     if ((int)sizeof r == __VERIFIER_nondet_int()) ; else ;
 
+    return 0;
+}
+*/
+int main(void) {
     return 0;
 }
