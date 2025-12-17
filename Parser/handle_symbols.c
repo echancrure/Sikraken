@@ -27,7 +27,7 @@ void set_enum_expression(char *enum_expression) {
 }
 
 typedef struct node {
-	enum symbol symbol_type;	// 1 a pure typedef_name, 2 a shadowing identifier, 3 an enum constant 
+	enum symbol type;	// 1 a pure typedef_name, 2 a shadowing identifier, 3 an enum constant 
 	char* name;					// the name of the id
 	char* value_str;			// the transformed name for Prolog (or the string containing an enum constant expression e.g. 1 << 1  
 	int value_int;				// the value of an enum constant
@@ -62,8 +62,8 @@ void print_scope_stack() {
 		list_node* current_symbol_node = current_scope->symbol_list;
 		while (current_symbol_node != NULL) {
 			if (debugMode) {
-				printf("\t%s is a %s", current_symbol_node->name, symbol_str(current_symbol_node->symbol_type)); 
-				if (current_symbol_node->symbol_type==SY_ENUM_CONSTANT) {
+				printf("\t%s is a %s", current_symbol_node->name, symbol_str(current_symbol_node->type)); 
+				if (current_symbol_node->type==SY_ENUM_CONSTANT) {
 					if (current_symbol_node->value_str) printf("%s\n", current_symbol_node->value_str);
 					else printf("(%d)\n", current_symbol_node->value_int);
 				} else printf("\n");
@@ -103,18 +103,18 @@ void pop_scope(int *scope_nb) {
 	(*scope_nb)--;
 }
 
-list_node *add_symbol(int scope, char* id, enum symbol symbol_type) {
+list_node *add_symbol(int scope, char* id, enum symbol type) {
 	if (scope_stack == NULL) push_scope(scope);
 	else if (scope_stack->scope_nb != scope) {	//a new scope is needed		
 		if (debugMode) fprintf(stderr, "add_symbol: Creating a new scope in because current scope is %d but incoming scope is %d\n", scope_stack->scope_nb, scope);
 		push_scope(scope);
 	}
-	if (symbol_type == SY_TYPEDEF_NAME) { //we remove the UC_ or the uppercase for typedef_name only because shadow identifiers are not transformed as prolog vars when this is called
+	if (type == SY_TYPEDEF_NAME) { //we remove the UC_ or the uppercase for typedef_name only because shadow identifiers are not transformed as prolog vars when this is called
 		if (!strncmp(id, "UC_", 3)) id = &id[3];	//removing the "UC_"  prefix before adding to collection of typedef
 		else id[0] = tolower(id[0]);	//lowering the first letter before adding to collection of typedef
 	}
 	list_node* new_node = (list_node *)safe_malloc(sizeof(list_node));	
-	new_node->symbol_type = symbol_type;
+	new_node->type = type;
 	new_node->name = (char*)safe_malloc(strlen(id) + 1);
 	strcpy_safe(new_node->name, strlen(id) + 1, id);
 	new_node->value_str = NULL;
@@ -122,7 +122,7 @@ list_node *add_symbol(int scope, char* id, enum symbol symbol_type) {
 	if (scope_stack->symbol_list != NULL) new_node->next = scope_stack->symbol_list;	//adding the new node to the front of the list
 	else new_node->next = NULL;
 	scope_stack->symbol_list = new_node;
-	if (debugMode) {printf("add_symbol: added %s as a %s\n", id, symbol_str(symbol_type)); fflush(stdout);}
+	if (debugMode) {printf("add_symbol: added %s as a %s\n", id, symbol_str(type)); fflush(stdout);}
 	return new_node;
 }
 
@@ -143,7 +143,7 @@ void add_enum_symbol(int scope, char* id, char* enum_expression) {
 
 //look for the id in the entire stack of scope of list of symbols
 //called during lexical analysis: see grammar.l
-enum symbol lookup_symbol(char* id) {
+list_node *lookup_symbol(char* id) {
 	if (debugMode) {
 		printf("lookup_symbol: Looking for %s\n", id);
 		fflush(stdout);
@@ -151,14 +151,13 @@ enum symbol lookup_symbol(char* id) {
 	}
 	scope_node* current_scope = scope_stack;
 	while (current_scope != NULL) {
-		list_node* current_typedef_node = current_scope->symbol_list;
-		while (current_typedef_node != NULL) {
-			if (!strcmp(current_typedef_node->name, id)) {	//a matching node matching the a typedef_name has been found 
-				enum symbol symbol_type = current_typedef_node->symbol_type;
-				if (debugMode) {printf("lookup_symbol: a matching symbol has been found, it is a %s\n", symbol_str(symbol_type)); fflush(stdout);}
-				return symbol_type;
+		list_node *current_symbol_node = current_scope->symbol_list;
+		while (current_symbol_node != NULL) {
+			if (!strcmp(current_symbol_node->name, id)) {	//a matching node matching the a typedef_name has been found 
+				if (debugMode) {printf("lookup_symbol: a matching symbol has been found, it is a %s\n", symbol_str(current_symbol_node->type)); fflush(stdout);}
+				return current_symbol_node;
 			}
-			current_typedef_node = current_typedef_node->next;
+			current_symbol_node = current_symbol_node->next;
 		}
 		current_scope = current_scope->below;
 	}
@@ -166,5 +165,5 @@ enum symbol lookup_symbol(char* id) {
 		printf("lookup_symbol: not found %s\n", id);
 		fflush(stdout);
 	}
-	return 0;
+	return NULL;
 }

@@ -584,8 +584,6 @@ implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, L
         !.
     apply_integral_promotion(unsigned(short), int) :-
         !.
-    apply_integral_promotion(enum, int) :-
-        !.
     apply_integral_promotion(Other_types_are_unchanged, Other_types_are_unchanged) :-   %in particular unsigned(int) remain unsigned(int)
         !.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -135,7 +135,7 @@ enum ParserExitCodes {
 %type <id> struct_or_union_specifier struct_or_union struct_declaration_list struct_declaration  
 %type <id> struct_declarator_list struct_declarator
 %type <id> static_assert_declaration enum_tag_name tag_name
-%type <id> enum_specifier enum_specifier_rest enumerator_list enumerator
+%type <id> enum_specifier
 %type <id> parameter_type_list parameter_list parameter_declaration
 %type <id> expression_statement expression_opt jump_statement statement labeled_statement compound_statement
 %type <id> else_opt selection_statement iteration_statement
@@ -893,17 +893,12 @@ enum_specifier
 	: enum_token {in_tag_declaration = 0; in_enumerator_list = 1; symbol_start_enum();} '{' enumerator_list comma_opt 
 	    {FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME); in_enumerator_list = 0;} 
 	  '}'	//anonymous enums are basically just constants
-		{size_t const size = strlen("anonymous_enum([])") + strlen($4) + 1;
-       	 $$ = (char*)malloc(size);
-         sprintf_safe($$, size, "anonymous_enum([%s])", $4);	
-	     free($4);
-        }
+		{simple_str_lit_copy(&$$, "anonymous_enum");}
 	| enum_token enum_tag_name enum_specifier_rest 	//Tag namespace Id declaration ; 
-		{size_t const size = strlen("enum(, [])") + strlen($2) + strlen($3) + 1;
+		{size_t const size = strlen("enum_type()") + strlen($2) + 1;
        	 $$ = (char*)malloc(size);
-         sprintf_safe($$, size, "enum(%s, [%s])", $2, $3);
+         sprintf_safe($$, size, "enum_type(%s)", $2);
 	     free($2);
-		 free($3);
         }
 	;
 
@@ -930,21 +925,13 @@ enum_specifier_rest
 		 in_enumerator_list = 0;
 		 if (read_a_comma_after_tag_name) read_a_comma_after_tag_name = 0;
 		 else FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME);
-		 simple_str_lit_copy(&$$, "forward_enum");
 	    }
 	| '{' {parsed_tag_name1 = 0;} enumerator_list comma_opt {FSM_COMPLETE_TYPE_OR_IDENTIFIER_read(TYPEDEF_NAME); in_enumerator_list = 0;} '}'
-		{$$ = $3;}
 	;
 
 enumerator_list	
 	: enumerator
 	| enumerator_list ',' enumerator
-		{size_t const size = strlen(", ") + strlen($1) + strlen($3) + 1;
-       	 $$ = (char*)malloc(size);
-         sprintf_safe($$, size, "%s, %s", $1, $3);
-	   	 free($1);
-	     free($3);
-        }
 	;
 
 enumerator
@@ -955,15 +942,12 @@ enumerator
 		 char *enum_expression = (char*)malloc(size0);
 		 sprintf_safe(enum_expression, size0, "(%s)", $4);
 		 add_enum_symbol(current_scope, $1, enum_expression);
-		 size_t const size = strlen("init_enum(, )") + strlen($1) + strlen($4) + 1;
-       	 $$ = (char*)malloc(size);
-         sprintf_safe($$, size, "init_enum(%s, %s)", $1, $4);
 	   	 free($1);
 	     free($4);
         }
 	| IDENTIFIER 
 	  {add_enum_symbol(current_scope, $1, NULL);
-	   $$ = $1;
+	   free($1);
 	  }
 	;
 

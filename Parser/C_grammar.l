@@ -204,15 +204,22 @@ WS  [ \t\v\n\f]
                              }
                              yylval.id[i] = '\0';
                              if (in_tag_declaration || in_enumerator_list || in_label_namespace) { // these contexts never treat ids as types: no point checking
-                                if (debugMode) printf("Lexer FSM: bypassing typedef_name check in mode %s: id: %s is a %s\n", FSM_mode_str(), yylval.id, (in_tag_declaration ? "tag" : (in_member_namespace ? "member" : "label")));
+                                if (debugMode) printf("Lexer FSM: bypassing typedef_name check in mode %s: id: %s is a %s\n", FSM_mode_str(), yylval.id, (in_tag_declaration ? "tag" : (in_enumerator_list ? "enumerator" : "label")));
                                 return IDENTIFIER; 
                              }
-                             int symbol_type = lookup_symbol(yylval.id);                            
+                             list_node *symbol_node = lookup_symbol(yylval.id);
+                             int symbol_type = (symbol_node ? symbol_node->type : 0);
                              if (debugMode) { 
                                 printf("***Lexer FSM: checking id: %s with status %d with FSM %s in mode %s %s\n", yylval.id, symbol_type, (FSM_off ? "OFF" : "ON"), FSM_mode_str(), (in_member_namespace ? "(in member namespace)" : ""));
                                 fflush(stdout);
                              }
-                             if (FSM_off) return (symbol_type == 1 ? TYPEDEF_NAME : IDENTIFIER);   //when FSM is off, we do not track declaration contexts, but we still differentiate typedef names from identifiers
+                             if (symbol_type == SY_ENUM_CONSTANT) {
+                                if (symbol_node->value_str) yylval.id = strdup(symbol_node->value_str);
+                                else asprintf(&yylval.id, "int(%d)", symbol_node->value_int);
+                                if (debugMode) printf("Lexer FSM: bypassing typedef_name check in mode %s: id: %s is a ENUM CONSTANT\n", FSM_mode_str(), yylval.id);
+                                return I_CONSTANT;
+                             }
+                             if (FSM_off) return (symbol_type == SY_TYPEDEF_NAME ? TYPEDEF_NAME : IDENTIFIER);   //when FSM is off, we do not track declaration contexts, but we still differentiate typedef names from identifiers
                              if (symbol_type == SY_TYPEDEF_NAME) {  // a typedef name
                                 if (FSM_in_PD_mode) {
                                     if (PD_state == PD_DECIDE_PARAM_KIND || PD_state == PD_PARAM_DECL) {

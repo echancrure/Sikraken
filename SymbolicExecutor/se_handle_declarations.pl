@@ -155,7 +155,7 @@ declare_return(Return_seav, Type_name) :-
     seav__create_var(Type_name_ptr_opt, 'not_needed', Output, Clean_return).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %extract_type handles the declaration_specifiers output from the C function create_declaration_specifiers() in the parser grammar
-%it return atomic types (e.g. int, unsigned(long_long)) and create non-atomic types (struct, union, enum)
+%it return atomic types (e.g. int, unsigned(long_long)) and create non-atomic types (struct, union)
 %the syntax of the input arg is spec([typedef, extern], Type_spec)
 extract_type(spec(_Qualifier_list, Type_spec), Type) :-
     !,
@@ -185,12 +185,10 @@ extract_type(spec(_Qualifier_list, Type_spec), Type) :-
     extract_type2(union(Tag), void) :-
         !,
         common_util__error(9, "Union forward types are not handled", "Sikraken needs expanding", [('Union', union(Tag))], '9_071224_1', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).
-    extract_type2(enum(Tag, Enum_decl_list), void) :-
-        !,
-        common_util__error(9, "Enum types are not handled", "Sikraken needs expanding", [('Enum', enum(Tag, Enum_decl_list))], '9_150525', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).
-    extract_type2(enum(Tag), void) :-
-        !,
-        common_util__error(9, "Enum forward types are not handled", "Sikraken needs expanding", [('Enum', enum(Tag))], '9_150525_1', 'se_handle_all_declarations', 'extract_type', no_localisation, no_extra_info).
+    extract_type2(anonymous_enum, int) :-   %basically will be totally ignored, the enum type has no name, can never be refered to 
+        !.
+    extract_type2(enum_type(_Tag), int) :-  %possibly unsound for sizeof if __attribute__((packed)) or special gcc switches are used
+        !.
     extract_type2(unsigned(Atomic_type), unsigned(Atomic_type)) :-  %e.g. unsigned(int), unsigned(char), unsigned(short), unsigned(long), unsigned(long_long)
         !,
         atomic(Atomic_type).

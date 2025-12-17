@@ -78,7 +78,7 @@ se_main(ArgsL) :-
         (setval('algo', 'time_budget'),
          setval('nb_restarts', 1e99),   %infinite restarts and tries allowed
          setval('nb_tries', 1e99),
-         (Args = [Budget] ->
+         (Args = [_Budget] ->
             (First_time_out = 0.2, %can be much too sort for program involving loops which take longer than this: not a problem itself as the budget will increase (but only slowly if the Increase_duration_multiplier is small)
              Max_time_out = 100,
              Multiplier = 1.05,
@@ -86,8 +86,8 @@ se_main(ArgsL) :-
              Margin = 10
             )
          ;
-          Args = [Budget, First_time_out, Max_time_out, Multiplier, Min_time_out, Margin] ->
-            true    %low level customisation todo
+          Args = [_Budget, First_time_out, Max_time_out, Multiplier, Min_time_out, Margin] ->   %low level customisation
+            true    
          ;
             common_util__error(10, "Calling se_main/? with invalid budget configuration", "Review budget algo argument syntax", [('Search_algo', Search_algo)], '10_240926_1', 'se_main', 'se_main', no_localisation, no_extra_info)
          ),

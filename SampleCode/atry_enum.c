@@ -1,7 +1,7 @@
 extern int __VERIFIER_nondet_int(); 
 #include <limits.h>
 typedef int Red;
-void f(void) {
+int f(void) {
     enum Color {        // 1.1 Named enum with implicit values (0, 1, 2, ...)
         Red,            // 0
         Green,          // 1
@@ -9,6 +9,7 @@ void f(void) {
         ColorCount      // 3
     };
     typedef int Reddish;
+    return Red + Green + Blue;
 }
 
 
@@ -19,7 +20,7 @@ enum Status {       // 1.2 Explicit values, mixed with implicit
     Fatal = -1,
     Unknown         // 0 (previous + 1 from -1 -> 0)
 };
-/*
+
 // 1.3 Expressions, negatives, char, hex, octal, bitwise, sizeof, INT_MAX
 enum Flags {
     F_None      = 0,
@@ -35,6 +36,7 @@ enum Flags {
     F_SizeLong  = (int)sizeof(long),
     F_Max       = INT_MAX
 };
+
 enum TrailingComma {    // 1.4 Trailing comma allowed (C99+)
     TC_A = 1,
     TC_B = 2,
@@ -57,6 +59,7 @@ enum {
 
 // Tags are a distinct namespace from variables/functions.
 enum ColorTag { CT_R, CT_G, CT_B };
+enum ColorTag ct = CT_B;
 int ColorTag = 42; // OK: ordinary identifier "ColorTag" coexists with tag "enum ColorTag"
 
 // ------------------------------------------------------
@@ -79,13 +82,13 @@ void shadow_demo(void) {
         int c = Z; // 200
 
         {// Ordinary identifiers can also shadow enumerators
-            int X = 999;  // shadows Inner::X within this block
+            //int X = 999;  // shadows inner enum constant X within this block
             int d = X;    // 999
             if (X + d + c + ColorTag + Z == __VERIFIER_nondet_int()) ; else ; 
         }
     }
     int e = X; // back to Outer::X (1)
-    if (a + e + ColorTag + Z == __VERIFIER_nondet_int()) ; else ; 
+    if (a + e + ColorTag + sizeof(Z) == __VERIFIER_nondet_int()) ; else ; 
 }
 
 // ------------------------------------------------------
@@ -95,7 +98,7 @@ void shadow_demo(void) {
 // 5.1 Global/static initialization
 static enum Color defaultColor;           // zero-initialized => Red
 static enum Status defaultStatus = Ok;    // explicit initializer
-
+/*
 // 5.2 Automatic/block initialization, brace-wrapped scalar allowed
 void init_demo(void) {
     enum Color c1 = Green;
@@ -304,5 +307,8 @@ int main(void) {
 }
 */
 int main(void) {
+    shadow_demo();
+    int F = f();
+    if (F == __VERIFIER_nondet_int()) ; else ;
     return 0;
 }
