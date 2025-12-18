@@ -273,32 +273,29 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
             super_util__quick_dev_info("Dev Info: time out handler: Nothing new in the current subpath.\n", []),
             throw(single_test_time_out_exception)       %will trigger a restart
         ;
-            (se_globals__get_ref(verifier_inputs, Verifier_inputs),
-             se_globals__get_val(single_test_time_out, Current_single_test_time_out),
-             (timeout(label_testcomp(Verifier_inputs, Labeled_inputs), Current_single_test_time_out, fail) ->    %timeout added to avoid very long / impossible labelling
+            (label_testcomp(_Labeled_inputs) ->
                 ((se_globals__get_val(debug_mode, debug) -> 
                     super_util__quick_dev_info("Dev Info: time out handler: This is an incomplete test vector\n", []),
-            %display_successful_test_stats(Last_test_duration, Current_session_time),
+                    %display_successful_test_stats(Last_test_duration, Current_session_time),
                     se_globals__get_ref(current_path_bran, Current_path_with_calls),
                     super_util__quick_dev_info("Dev Info: time out handler: current Path: ", []), 
                     print_branches_list(Current_path_with_calls)
-                ;
+                 ;
                     true
-                ),
-                statistics(event_time, Current_session_time),
-                getval(start_time, Current_start_time),
-                Last_test_duration is Current_session_time - Current_start_time,
-                reset_timer(Last_test_duration, Current_session_time) %and carry on with true
-                %throw('single_test_time_out_exception')    %debug
-                %the handler succeeds: execution continues where the timeout was triggered: the subpath continues to be explored
-                %this may lead to may testvectors with the same prefix which should be filtered out to reduce the number of tests without reducing the amount of coverage achieved
+                 ),
+                 statistics(event_time, Current_session_time),
+                 getval(start_time, Current_start_time),
+                 Last_test_duration is Current_session_time - Current_start_time,
+                 reset_timer(Last_test_duration, Current_session_time) %and carry on with true
+                 %throw('single_test_time_out_exception')    %debug
+                 %the handler succeeds: execution continues where the timeout was triggered: the subpath continues to be explored
+                 %this may lead to may testvectors with the same prefix which should be filtered out to reduce the number of tests without reducing the amount of coverage achieved
                 )
              ;
                 super_util__quick_dev_info("Dev Info: time out handler: Labelling failed after time out.\n", []),  %no test input vector could be generated
                 %should fail where the timeout was triggered: we are following a subpath that is 'infeasible' (or at least we cannot generate tests for e.g. because of non-linearity) 
                 %perhaps, but for now just fail the entire try
                 throw(single_test_time_out_exception)
-             )
             )
         ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -339,23 +336,17 @@ find_one_path(_Output_mode, Main, _Target_subprogram_var, _Parsed_prolog_code) :
             ;
                 (cancel_after_event(single_test_time_out_event, _CancelledEvents),  %stop timer: reach the end and something new is in the path
                  (se_globals__get_val(output_mode, testcomp)->
-                    (se_globals__get_ref(verifier_inputs, Verifier_inputs),
-                     se_globals__get_val(single_test_time_out, Current_single_test_time_out),
-                     %mytrace,
-                     (%timeout added to labeling avoid very long / impossible labelling
-                      %this is done while the timer is cancelled: very wastful to interrupt labeling while it is running
-                      timeout(label_testcomp(Verifier_inputs, Labeled_inputs), Current_single_test_time_out, fail) ->   
+                    (label_testcomp(Labeled_inputs) ->   
                         (display_successful_test_stats(Last_test_duration, Current_session_time),
                          record_path_coverage(Test_nb),
                          %common_util__error(1, "End of path", 'no_error_consequences', [('Path Nb', Inc_test_nb), ('Newly_covered', Newly_covered), ('Current_path', Current_path)], '0_190824_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info),
                          print_test_inputs_testcomp(Labeled_inputs, Test_nb),       %but don't print predicted outputs
                          reset_timer(Last_test_duration, Current_session_time)      %timer restarts, possibly on reduced time
                         )
-                     ;
+                    ;
                         statistics(event_time, Current_session_time),
                         getval(start_time, Current_start_time),
                         Last_test_duration is Current_session_time - Current_start_time,
-                        super_util__quick_dev_info("Dev Info: Labelling failed or timed out.\n", []),    %labeling failed (perhaps floating points could not be labeled or there was no solution to integer non-linear constraints, who knows), we succeed to count it as a valid attempt
                         se_globals__get_val(single_test_time_out, Current_single_test_time_out),
                         Remaining_time is Current_single_test_time_out - Last_test_duration,
                         (Remaining_time > 0 ->
@@ -363,7 +354,6 @@ find_one_path(_Output_mode, Main, _Target_subprogram_var, _Parsed_prolog_code) :
                         ;
                             throw(single_test_time_out_exception) %time is up and labeling failed: no hope
                         )
-                     )
                     )
                  ;
                     common_util__error(10, "Unexpected output mode", "Only testcomp format is supported for now", [], '10_100924_1', 'se_main', 'end_of_path_predicate', no_localisation, no_extra_info)
@@ -498,23 +488,36 @@ label_all :-
         ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Verifier_inputs is of the form [verif(Type, Input)|...] 
-label_testcomp(Verifier_inputs, Labeled_inputs) :- 
-    %mytrace,
-    partition(Verifier_inputs, Integers, Floats, Grounded_floats, Labeled_inputs),
-    (ptc_solver__label_integers(Integers) ->
-        (ptc_solver__label_reals(Floats, Grounded_floats) ->    %integers and floats labeling kept separate for now
-            true
-        ;
-            (common_util__error(1, "Floating point numbers labeling failed", "Perhaps worth investigating", [], '0_100924', 'se_main', 'label_testcomp', no_localisation, no_extra_info),
-             fail
-            )
-        )
-    ;
-        (common_util__error(1, "Integer labeling failed", "Should be rare: e.g. non-linear, out of bounds", [], '0_200824', 'se_main', 'label_testcomp', no_localisation, no_extra_info),
+label_testcomp(Labeled_inputs) :- 
+    se_globals__get_ref(verifier_inputs, Verifier_inputs),
+    se_globals__get_val(single_test_time_out, Current_single_test_time_out),
+    length(Verifier_inputs, Nb_inputs),
+    Labeling_timeout is Current_single_test_time_out + Nb_inputs * 0.005, % adding 5 thousandths of a second per input: will only make an impact if number of inputs is large e.g. 1000 inputs add 5 seconds
+    %timeout added to labeling avoid very long / impossible labelling
+    %this is done while the timer is cancelled: very wastful to interrupt labeling while it is running
+    timeout(
+        (
+            partition(Verifier_inputs, Integers, Floats, Grounded_floats, Labeled_inputs),
+            (ptc_solver__label_integers(Integers) ->
+                (ptc_solver__label_reals(Floats, Grounded_floats) ->    %integers and floats labeling kept separate for now
+                    true
+                ;
+                    (common_util__error(1, "Floating point numbers labeling failed", "Perhaps worth investigating", [], '0_100924', 'se_main', 'label_testcomp', no_localisation, no_extra_info),
+                    fail
+                    )
+                )
+            ;
+                (common_util__error(1, "Integer labeling failed", "Should be rare: e.g. non-linear, out of bounds", [], '0_200824', 'se_main', 'label_testcomp', no_localisation, no_extra_info),
+                 fail
+                )
+            ),
+            !
+        ),
+        Labeling_timeout,
+        (super_util__quick_dev_info("Dev Info: Labelling timed out after %.2f seconds.\n", [Labeling_timeout]),
          fail
         )
-    ),
-    !.
+    ).
     %%%
     partition([], [], [], [], []).
     partition([verif(Type, Input)|R], Integers_out, Floats_out, Grounded_floats, [Labeled_input|R_Labeled]) :-

@@ -80,18 +80,24 @@ extern int __VERIFIER_nondet_int();
 # 8 "/usr/lib/gcc/x86_64-linux-gnu/13/include/syslimits.h" 2 3 4
 # 35 "/usr/lib/gcc/x86_64-linux-gnu/13/include/limits.h" 2 3 4
 # 3 "/home/chris/Sikraken/SampleCode/atry_enum.c" 2
-typedef int Red;
+typedef int Redo;
 int f(void) {
-    enum Color {
-        Red,
+    enum Color_inner {
+        Redo,
         Green,
         Blue,
         ColorCount
     };
     typedef int Reddish;
-    return Red + Green + Blue;
+    return Redo + Green + Blue;
 }
 
+enum Color {
+        Red,
+        Green,
+        Blue,
+        ColorCount
+    };
 
 enum Status {
     Ok = 0,
@@ -116,7 +122,7 @@ enum Flags {
     F_SizeLong = (int)sizeof(long),
     F_Max = 0x7fffffff
 
-# 38 "/home/chris/Sikraken/SampleCode/atry_enum.c"
+# 44 "/home/chris/Sikraken/SampleCode/atry_enum.c"
 };
 
 enum TrailingComma {
@@ -180,9 +186,19 @@ void shadow_demo(void) {
 
 static enum Flags defaultFlag;
 static enum Status defaultStatus = Ok;
-# 309 "/home/chris/Sikraken/SampleCode/atry_enum.c"
+
+
+void init_demo(void) {
+    enum Color c1 = Green;
+    enum Color c2 = (enum Color){ Blue };
+    enum Status s1 = Fatal;
+    enum Status s2 = (enum Status)3;
+    if (c1 + c2 + s1 + s2 + defaultStatus + defaultFlag == __VERIFIER_nondet_int()) ; else ;
+}
+# 315 "/home/chris/Sikraken/SampleCode/atry_enum.c"
 int main(void) {
     shadow_demo();
+    init_demo();
     int F = f();
     if (F == __VERIFIER_nondet_int()) ; else ;
     return 0;
