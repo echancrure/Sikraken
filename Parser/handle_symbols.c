@@ -128,17 +128,27 @@ list_node *add_symbol(int scope, char* id, enum symbol type) {
 
 void add_enum_symbol(int scope, char* id, char* enum_expression) {
 	list_node *new_enum_symbol = add_symbol(scope, id, SY_ENUM_CONSTANT);
-	if (enum_expression) { 
+	if (enum_expression) { if (debugMode) {printf("in add_enum_symbol the enum_expression is %s", enum_expression); fflush(stdout);}
+		if (strncmp(enum_expression, "(int(", 5) == 0 && enum_expression[strlen(enum_expression) - 1] == ')' && enum_expression[strlen(enum_expression) - 2] == ')' ) {		// Check if enum_expression matches "(int(number))" because we prefer integers
+			char *number_str = strndup(enum_expression + 5, strlen(enum_expression) - 7); // Extract the number
+			if (number_str) {
+				current_enum_value = atoi(number_str); // Convert to int
+				new_enum_symbol->value_int = current_enum_value++;
+				free(number_str);
+				return;
+			}	
+		}
 		current_enum_expression = enum_expression;
 		new_enum_symbol->value_str = current_enum_expression;
-	}
-	else if (current_enum_expression) {
-		size_t const size0 = strlen("(+1)") + strlen(current_enum_expression) + 1;
+	} else if (current_enum_expression) {
+		size_t const size0 = strlen("plus_op(, int(1))") + strlen(current_enum_expression) + 1;
 		char *new_enum_expression = (char*)safe_malloc(size0);
-		sprintf_safe(new_enum_expression, size0, "(%s+1)", current_enum_expression);
+		sprintf_safe(new_enum_expression, size0, "plus_op(%s, int(1))", current_enum_expression);
 		current_enum_expression = new_enum_expression;
 		new_enum_symbol->value_str = current_enum_expression;
-	} else new_enum_symbol->value_int = current_enum_value++;
+	} else {
+		new_enum_symbol->value_int = current_enum_value++;
+	}
 }
 
 //look for the id in the entire stack of scope of list of symbols

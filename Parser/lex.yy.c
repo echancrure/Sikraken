@@ -1739,7 +1739,7 @@ YY_RULE_SETUP
                              }
                              if (symbol_type == SY_ENUM_CONSTANT) {
                                 if (symbol_node->value_str) yylval.id = strdup(symbol_node->value_str);
-                                else asprintf(&yylval.id, "int(%d)", symbol_node->value_int);
+                                else asprintf(&yylval.id, "int(%d)", symbol_node->value_int);   //wrap with int() to be consistent with other integer constants
                                 if (debugMode) printf("Lexer FSM: bypassing typedef_name check in mode %s: id: %s is a ENUM CONSTANT\n", FSM_mode_str(), yylval.id);
                                 return I_CONSTANT;
                              }

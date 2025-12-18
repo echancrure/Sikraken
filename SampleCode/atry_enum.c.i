@@ -172,8 +172,17 @@ void shadow_demo(void) {
     int e = X;
     if (a + e + ColorTag + sizeof(Z) == __VERIFIER_nondet_int()) ; else ;
 }
+
+
+
+
+
+
+static enum Flags defaultFlag;
+static enum Status defaultStatus = Ok;
 # 309 "/home/chris/Sikraken/SampleCode/atry_enum.c"
 int main(void) {
+    shadow_demo();
     int F = f();
     if (F == __VERIFIER_nondet_int()) ; else ;
     return 0;

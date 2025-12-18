@@ -9,7 +9,7 @@ int f(void) {
         ColorCount      // 3
     };
     typedef int Reddish;
-    return Red + Green + Blue;
+    return Red + Green + Blue;  //3
 }
 
 
@@ -84,11 +84,11 @@ void shadow_demo(void) {
         {// Ordinary identifiers can also shadow enumerators
             //int X = 999;  // shadows inner enum constant X within this block
             int d = X;    // 999
-            if (X + d + c + ColorTag + Z == __VERIFIER_nondet_int()) ; else ; 
+            if (X + d + c + ColorTag + Z == __VERIFIER_nondet_int()) ; else ; //801
         }
     }
     int e = X; // back to Outer::X (1)
-    if (a + e + ColorTag + sizeof(Z) == __VERIFIER_nondet_int()) ; else ; 
+    if (a + e + ColorTag + sizeof(Z) == __VERIFIER_nondet_int()) ; else ; //48 
 }
 
 // ------------------------------------------------------
@@ -96,7 +96,7 @@ void shadow_demo(void) {
 // ------------------------------------------------------
 
 // 5.1 Global/static initialization
-static enum Color defaultColor;           // zero-initialized => Red
+static enum Flags defaultFlag;           // zero-initialized => F_None 
 static enum Status defaultStatus = Ok;    // explicit initializer
 /*
 // 5.2 Automatic/block initialization, brace-wrapped scalar allowed
