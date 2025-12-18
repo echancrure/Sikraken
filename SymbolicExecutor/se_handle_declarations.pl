@@ -131,29 +131,6 @@ extract_pointers(Var, Type_name, Type_name_ptr_opt, Clean_var) :-
             common_util__error(9, "pointer cannot be extracted", "Pointer expression is malformed", [('Ptr_exp', Ptr_exp)], '9_211125', 'se_handle_all_declarations', 'extract_pointers', no_localisation, no_extra_info)
         ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-declare_params([], []).
-declare_params([param(Specifiers, Param)|R], [Clean_param|R_params]) :-
-    extract_type(Specifiers, Type_name),
-    extract_pointers(Param, Type_name, Type_name_ptr_opt, Clean_param),
-    ptc_solver__create_variable(Type_name, Input_var),
-    (Type_name_ptr_opt = pointer(_) ->
-        Input = addr(Input_var)         %C pointers variables are not ptc_solver variable: they are handled syntactically e.g. seav(pointer(integer), not_needed, addr(Y_2{se_seav_atts : seav(integer, not_needed, 42)}))
-    ;
-        Input = Input_var
-    ),
-    seav__create_var(Type_name_ptr_opt, Input, Input, Clean_param), %todo only needed for target function
-    declare_params(R, R_params).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-declare_return(Return_seav, Type_name) :-
-    extract_pointers(Return_seav, Type_name, Type_name_ptr_opt, Clean_return),
-    ptc_solver__create_variable(Type_name, Output_var),
-    (Type_name_ptr_opt = pointer(_) ->
-         Output = addr(Output_var)           %C pointers variables are not ptc_solver variable: they are handled syntactically e.g. seav(pointer(integer), not_needed, addr(Y_2{se_seav_atts : seav(integer, not_needed, 42)}))
-    ;
-         Output = Output_var
-    ),
-    seav__create_var(Type_name_ptr_opt, 'not_needed', Output, Clean_return).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %extract_type handles the declaration_specifiers output from the C function create_declaration_specifiers() in the parser grammar
 %it return atomic types (e.g. int, unsigned(long_long)) and create non-atomic types (struct, union)
 %the syntax of the input arg is spec([typedef, extern], Type_spec)
@@ -203,10 +180,27 @@ match_parameters_arguments([unnamed_param(spec([], void), [])], []) :-  %i.e. th
     !.
 match_parameters_arguments([], []) :-
     !.
-match_parameters_arguments([param(Declaration_specifiers, Parameter)|Rest_parameters], [Argument|Rest_arguments]) :-
+match_parameters_arguments([param(Parameter_specifiers, Parameter_Declarator)|Rest_parameters], [Argument|Rest_arguments]) :-
     !,
-    extract_type(Declaration_specifiers, Type_name),
-    declare_declarators([initialised(Parameter, Argument)], Type_name), %make a copy?
+    extract_type(Parameter_specifiers, Type_name),
+    %was declare_single_declarator(initialised(Parameter_Declarator, Argument), Type_name, Type_name_ptr_opt, Value, Clean_var),
+    extract_pointers(Parameter_Declarator, Type_name, Type_name_ptr_opt, Clean_var),
+    (nonvar(Type_name_ptr_opt), Type_name_ptr_opt = array(_Element_type, _Size_expr) ->    %array parameter: do not create a new SEAV 
+        Clean_var = Argument
+    ;
+        (ptc_solver__is_struct_type(Type_name_ptr_opt) ->
+            (symbolically_interpret(Argument, symb(_, Initialisation)),
+             ptc_solver__create_variable(struct(Type_name_ptr_opt, Initialisation), Value)
+            )
+        ;
+            (Type_name_ptr_opt = pointer(_), nonvar(Declarator), Declarator \= initialised(Parameter_Declarator, Argument) ->
+                Value = addr(Argument)  %save yourself the trouble: don't go through casting
+            ;
+                symbolically_interpret(cast(Type_name_ptr_opt, Argument), symb(_Type, Value))
+            )
+        ),
+        seav__create_var(Type_name_ptr_opt, 'not_needed', Value, Clean_var)
+    ),
     match_parameters_arguments(Rest_parameters, Rest_arguments).
 match_parameters_arguments([unnamed_param(_Declaration_specifiers, [])|Rest_parameters], [_Argument|Rest_arguments]) :-
     !,

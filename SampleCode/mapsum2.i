@@ -15,13 +15,13 @@ extern void __assert (const char *__assertion, const char *__file, int __line)
 void reach_error() { ((void) sizeof ((0) ? 1 : 0), __extension__ ({ if (0) ; else __assert_fail ("0", "mapsum2.c", 6, __extension__ __PRETTY_FUNCTION__); })); }
 extern int __VERIFIER_nondet_int();
 
-int mapsum (int x[])
+int mapsum (int x_arr[4242])
 {
   int i;
   long long ret;
   ret = 0;
   for (i = 0; i < 1000; i++) {
-    ret = ret+ i + x[i];
+    ret = ret+ i + x_arr[i];
   }
   return ret;
 }

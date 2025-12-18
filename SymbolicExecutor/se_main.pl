@@ -211,15 +211,15 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
             (Exception == single_test_time_out_exception ->
                 fail                    %single path exploration fails : triggers a restart
             ;
-             Exception == 'global_trail_overflow' ->
-                (get_flag('max_global_trail', Max),
+             Exception == global_trail_overflow ->
+                (get_flag(max_global_trail, Max),
                  MB is Max div 1000000,
                  common_util__error(9, "Global/Trail stack overflow during search caught", "Review symbolic execution and/or increase initial ECLiPSe stack using -g", [('Curent Max global/trail stack in MB is', MB)], '9_260924_1', 'se_main', 'se_main', no_localisation, no_extra_info),
                  fail %will trigger restart: current search is abandoned because it is too deep, stack will be reclaimed, a fresh path is started 
                 )
             ;
-             Exception == 'local_control_overflow ' ->
-                (get_flag('max_local_control', Max),
+             Exception == local_control_overflow ->
+                (get_flag(max_local_control, Max),
                  MB is Max div 1000000,
                  common_util__error(9, "!!!Local/Control stack overflow during search caught", "Review symbolic execution and/or increase initial ECLiPSe stack using -l", [('Curent Max local/control stack in MB is', MB)], '9_051024_1', 'se_main', 'se_main', no_localisation, no_extra_info),
                  fail %will trigger restart: current search is abandoned because it is too deep, stack will be reclaimed, a fresh path is started 
