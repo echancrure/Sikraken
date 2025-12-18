@@ -1,17 +1,23 @@
 extern int __VERIFIER_nondet_int(); 
 #include <limits.h>
-typedef int Red;
+typedef int Redo;
 int f(void) {
-    enum Color {        // 1.1 Named enum with implicit values (0, 1, 2, ...)
-        Red,            // 0
+    enum Color_inner {        // 1.1 Named enum with implicit values (0, 1, 2, ...)
+        Redo,            // 0
         Green,          // 1
         Blue,           // 2
         ColorCount      // 3
     };
     typedef int Reddish;
-    return Red + Green + Blue;  //3
+    return Redo + Green + Blue;  //3
 }
 
+enum Color {        // 1.1 Named enum with implicit values (0, 1, 2, ...)
+        Red,            // 0
+        Green,          // 1
+        Blue,           // 2
+        ColorCount      // 3
+    };
 
 enum Status {       // 1.2 Explicit values, mixed with implicit
     Ok = 0,
@@ -98,16 +104,16 @@ void shadow_demo(void) {
 // 5.1 Global/static initialization
 static enum Flags defaultFlag;           // zero-initialized => F_None 
 static enum Status defaultStatus = Ok;    // explicit initializer
-/*
+
 // 5.2 Automatic/block initialization, brace-wrapped scalar allowed
 void init_demo(void) {
     enum Color c1 = Green;
-    enum Color c2 = (enum Color){ Blue };  // brace-wrapped scalar initializer
+    enum Color c2 = (enum Color){ Blue };  // compound literal : not handled by Sikraken, unsound: coverage will be wrong
     enum Status s1 = Fatal;
-    enum Status s2 = (enum Status)3;       // value not declared; allowed (may warn)
-    if (c1 + c2 + s1 + s2 + defaultStatus + defaultColor == __VERIFIER_nondet_int()) ; else ; 
+    enum Status s2 = (enum Status)3;       // cast value not declared; allowed (may warn)
+    if (c1 + c2 + s1 + s2 + defaultStatus + defaultFlag == __VERIFIER_nondet_int()) ; else ; 
 }
-
+/*
 // 5.3 Arrays with designated initializers using enum constants as indices
 int colorWeights[ColorCount] = {    // 'ColorCount' is the count, not an enumerator used as index here.
     [Red]   = 100,
@@ -308,6 +314,7 @@ int main(void) {
 */
 int main(void) {
     shadow_demo();
+    init_demo();
     int F = f();
     if (F == __VERIFIER_nondet_int()) ; else ;
     return 0;

@@ -275,9 +275,9 @@ postfix_expression
 		 free($1);
 		}
 	| '(' type_name ')' '{' initializer_list comma_opt '}'
-		{size_t const size = strlen("compound_literal(, )") + strlen($2) + strlen($5) + 1;
+		{size_t const size = strlen("compound_literal(, initializer([]))") + strlen($2) + strlen($5) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "compound_literal(%s, %s)", $2, $5);	 	
+		 sprintf_safe($$, size, "compound_literal(%s, initializer([%s]))", $2, $5);
 		 free($2);
 		 free($5);
 		}

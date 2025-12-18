@@ -495,9 +495,13 @@ symbolically_interpret(stmt_exp(Compound_statement), symb(void, 0)) :-
     !,
     symbolic_execute(Compound_statement, _Flow). %not handled properly: if the last statement is an expression, that should be the symbolic value and type
 %%%
+symbolically_interpret(compound_literal(Type_spec, Initializer), symb(int, 0)) :-
+    !,
+    common_util__error(9, "Compound literals are not handled", "Expression is evaluated to int(0) leads to unsoundness", [print('Compound Literal', compound_literal(Type_spec, Initializer))], '9_181225', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
+%%%
 symbolically_interpret(Unhandled_expression, symb(int, 0)) :-
     !,
-    common_util__error(9, "Expression is not handled", "Cannot perform symbolic interpretation", [print('Unhandled_expression', Unhandled_expression)], '9_020824', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
+    common_util__error(9, "Expression is not handled", "Expression is evaluated to int(0)", [print('Unhandled_expression', Unhandled_expression)], '9_020824', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 implicit_type_casting(Same_type, Same_type, Le_symbolic, Ri_symbolic, Same_type, Le_symbolic, Ri_symbolic) :-   %Types are equal: no casting needed
     !.  %added a todo 18/10/2024 to check this rule
