@@ -1,0 +1,12 @@
+{
+  "configurations": [
+    {
+      "id": "run1",
+      "description": "statement expression in gcc",
+      "algo": "budget[1]",
+      "expected_tests_number": 2,
+      "expected_testcov_coverage": 100.00,
+      "expected_sikraken_edges": 2
+    }
+  ]
+}
