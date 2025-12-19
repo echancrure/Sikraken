@@ -108,9 +108,11 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls, Jumps) :-
     cover(cmp_stmts(Stmts), Flow) :-
         !,
         cover(Stmts, Flow).
-    cover(expr_stmt(Expression_statement), Flow) :-   %could be an assignment statement, comma_op positfix_inc_op, a function call etc. anything really
+    cover(expr_stmt(Expression_statement), 'carry_on') :-   %could be an assignment statement, comma_op positfix_inc_op, a function call etc. anything really
         !,
-        cover(Expression_statement, Flow).
+        cover_exp(Expression_statement).
+    cover(null_stmt, 'carry_on') :-
+        !.
     cover(assign(LValue, Expression), 'carry_on') :-
         !,
         cover_exp(LValue),
@@ -363,12 +365,16 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls, Jumps) :-
              cover_exp(False_expression)
             )
         ).
+    cover_exp(stmt_exp(cmp_stmts(StatementList))) :-
+        !,
+        cover(StatementList, 'carry_on').
     cover_exp(Bin_exp) :-   %any other binary expressions including lists of any lengths [...], comma_op, plus_op, minus_op, mult_op, div_op, mod_op, left_shift_op, right_shift_op, and_op, xor_op, or_op
         Bin_exp =.. [_Functor, L, R],
         !,
         cover_exp(L),
         cover_exp(R).
-    cover_exp(Una_exp) :-   %unary expressions including size_of_exp, size_of_type, stmt_exp, neg_op, plus_op, minus_op, not_op, deref_op, address_of_op
+
+    cover_exp(Una_exp) :-   %unary expressions including size_of_exp, size_of_type, neg_op, plus_op, minus_op, not_op, deref_op, address_of_op
         Una_exp =.. [_Functor, Operand],
         !,
         cover_exp(Operand).
