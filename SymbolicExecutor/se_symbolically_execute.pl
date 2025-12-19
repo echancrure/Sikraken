@@ -47,9 +47,11 @@ symbolic_execute(cmp_stmts(Stmts), Flow) :-
     se_globals__push_scope_stack,
     symbolic_execute(Stmts, Flow),
     se_globals__pop_scope_stack.
-symbolic_execute(stmt(Expression_statement), Flow) :-   %could be an assignment statement, comma_op positfix_inc_op etc. anything really
+symbolic_execute(expr_stmt(Expression_statement), Flow) :-   %could be an assignment statement, comma_op positfix_inc_op etc. anything really
     !,
     symbolic_execute(Expression_statement, Flow).
+symbolic_execute(null_stmt, 'carry_on') :-   
+    !.
 symbolic_execute(assign(LValue, Expression), Flow) :-
     !,
     (seav__is_seav(LValue) ->

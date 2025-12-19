@@ -108,7 +108,7 @@ cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls, Jumps) :-
     cover(cmp_stmts(Stmts), Flow) :-
         !,
         cover(Stmts, Flow).
-    cover(stmt(Expression_statement), Flow) :-   %could be an assignment statement, comma_op positfix_inc_op, a function call etc. anything really
+    cover(expr_stmt(Expression_statement), Flow) :-   %could be an assignment statement, comma_op positfix_inc_op, a function call etc. anything really
         !,
         cover(Expression_statement, Flow).
     cover(assign(LValue, Expression), 'carry_on') :-

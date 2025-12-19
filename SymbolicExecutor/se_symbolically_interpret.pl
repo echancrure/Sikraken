@@ -76,7 +76,7 @@ symbolically_interpret(function_call(Function, Arguments), Symbolic_expression) 
              match_parameters_arguments(Parameters, Arguments),
              symbolic_execute(Body, Flow),
              (Flow = return(symb(From_type, Return_expression)) ->
-                (ptc_solver__perform_cast(cast(Return_type, From_type), Return_expression, Casted),
+                (ptc_solver__perform_cast(Return_type, From_type, Return_expression, Casted),
                  Symbolic_expression = symb(Return_type, Casted)
                  %was%symbolically_interpret(cast(Return_type, Return_expression), Symbolic_expression)
                 )
@@ -105,7 +105,7 @@ symbolically_interpret(cast(Decl_spec, Expression), symb(To_type, Casted)) :-
     (To_type == 'void' ->    %casting to void: discard the expression, but evaluation above still has to happen
         Casted = addr(0)     %just to return something but hopefully will not be used
     ;    
-        ptc_solver__perform_cast(cast(To_type, From_type), Symbolic, Casted)
+        ptc_solver__perform_cast(To_type, From_type, Symbolic, Casted)
     ).
 symbolically_interpret(addr(Expression), symb(pointer(Type), addr(LValue))) :-
     !,
@@ -198,7 +198,7 @@ symbolically_interpret(plus_op(Expression), symb(Promoted_type, Checked_result))
     symbolically_interpret(Expression, symb(Type, Symbolic_expression)),
     apply_integral_promotion(Type, Promoted_type),
     Result $= Symbolic_expression,
-    ptc_solver__perform_cast(cast(Type, Promoted_type), Result, Checked_result).
+    ptc_solver__perform_cast(Type, Promoted_type, Result, Checked_result).
 symbolically_interpret(minus_op(Le_exp, Ri_exp), symb(Common_type, Casted_result)) :-
     !,
     symbolically_interpret(Le_exp, symb(Le_type, Le_symbolic)),
@@ -213,9 +213,9 @@ symbolically_interpret(minus_op(Expression), symb(Promoted_type, Checked_result)
     apply_integral_promotion(Type, Promoted_type),  %special case if Promoted_type is unsigned(int), unsigned(long) or unsigned(long_long)
     Result $= -Symbolic_expression,
     (Promoted_type = unsigned(Signed_type) ->
-        ptc_solver__perform_cast(cast(Promoted_type, Signed_type), Result, Casted_result)
+        ptc_solver__perform_cast(Promoted_type, Signed_type, Result, Casted_result)
     ;
-        ptc_solver__perform_cast(cast(Type, Promoted_type), Result, Casted_result)
+        ptc_solver__perform_cast(Type, Promoted_type, Result, Casted_result)
     ),
     ptc_solver__check_overflow(Promoted_type, Casted_result, Checked_result).
 
@@ -490,10 +490,33 @@ symbolically_interpret(size_of_type(Specifiers), symb(unsigned(int), Size)) :-
     !,
     extract_type(Specifiers, Type_name),
     ptc_solver__size(Type_name, Size).
-%%% GCC statement expression %%%
-symbolically_interpret(stmt_exp(Compound_statement), symb(void, 0)) :-    
+symbolically_interpret(stmt_exp(cmp_stmts(StatementList)), symb(Result_type, Result)) :-    %%% GCC statement expression %%%
     !,
-    symbolic_execute(Compound_statement, _Flow). %not handled properly: if the last statement is an expression, that should be the symbolic value and type
+    (StatementList == [] ->
+        Result_type = void,
+        Result = 0
+    ;
+        append(InitialStatements, [LastStatement], StatementList),
+        symbolic_execute(InitialStatements, Flow),        %all the initial statements are executed
+        (Flow \== 'carry_on' ->    %A jump occurred (break, continue, or return).
+            common_util__error(5, "Flow leak (%w) detected in stmt_exp! Result may be unsound.", [('Flow', Flow)], '5_191225_1', 'symbolically_interpret', 'symbolically_interpret.pl', no_localisation, no_extra_info),
+            Result_type = void,
+            Result = 0
+        ;
+            (LastStatement = expr_stmt(Expression) ->          %the last statement is an expression statement
+                symbolically_interpret(Expression, symb(Result_type, Result))   %then the overall result is its evaluation
+            ;
+                symbolic_execute(LastStatement, Flow2),        %e.g. it is an if statement, a loop etc
+                (Flow2 \== 'carry_on' ->
+                    common_util__error(5, "Flow leak (%w) detected in last stmt_exp! Result may be unsound.", [('Flow2', Flow2)], '5_191225_2', 'symbolically_interpret', 'symbolically_interpret.pl', no_localisation, no_extra_info)
+                ;
+                    true
+                ),
+                Result_type = void,
+                Result = 0
+            )
+        )
+    ).
 %%%
 symbolically_interpret(compound_literal(Type_spec, Initializer), symb(int, 0)) :-
     !,
@@ -526,34 +549,34 @@ implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, L
     %may need indexing, but order is important so be careful
     integer_conversion(unsigned(long_long), From_type, Le_symbolic, Ri_symbolic, unsigned(long_long), Le_symbolic, Ri_casted_exp) :-
         !,
-        ptc_solver__perform_cast(cast(unsigned(long_long), From_type), Ri_symbolic, Ri_casted_exp).
+        ptc_solver__perform_cast(unsigned(long_long), From_type, Ri_symbolic, Ri_casted_exp).
     integer_conversion(From_type, unsigned(long_long), Le_symbolic, Ri_symbolic, unsigned(long_long), Le_casted_exp, Ri_symbolic) :-
         !,
-        ptc_solver__perform_cast(cast(unsigned(long_long), From_type), Le_symbolic, Le_casted_exp).
+        ptc_solver__perform_cast(unsigned(long_long), From_type, Le_symbolic, Le_casted_exp).
     integer_conversion(long_long, From_type, Le_symbolic, Ri_symbolic, long_long, Le_symbolic, Ri_casted_exp) :-
         !,
-        ptc_solver__perform_cast(cast(long_long, From_type), Ri_symbolic, Ri_casted_exp).
+        ptc_solver__perform_cast(long_long, From_type, Ri_symbolic, Ri_casted_exp).
     integer_conversion(From_type, long_long, Le_symbolic, Ri_symbolic, long_long, Le_casted_exp, Ri_symbolic) :-
         !,
-        ptc_solver__perform_cast(cast(long_long, From_type), Le_symbolic, Le_casted_exp).
+        ptc_solver__perform_cast(long_long, From_type, Le_symbolic, Le_casted_exp).
     integer_conversion(unsigned(long), From_type, Le_symbolic, Ri_symbolic, unsigned(long), Le_symbolic, Ri_casted_exp) :-
         !,
-        ptc_solver__perform_cast(cast(unsigned(long), From_type), Ri_symbolic, Ri_casted_exp).
+        ptc_solver__perform_cast(unsigned(long), From_type, Ri_symbolic, Ri_casted_exp).
     integer_conversion(From_type, unsigned(long), Le_symbolic, Ri_symbolic, unsigned(long), Le_casted_exp, Ri_symbolic) :-
         !,
-        ptc_solver__perform_cast(cast(unsigned(long), From_type), Le_symbolic, Le_casted_exp).
+        ptc_solver__perform_cast(unsigned(long), From_type, Le_symbolic, Le_casted_exp).
     integer_conversion(long, From_type, Le_symbolic, Ri_symbolic, long, Le_symbolic, Ri_casted_exp) :-
         !,
-        ptc_solver__perform_cast(cast(long, From_type), Ri_symbolic, Ri_casted_exp).
+        ptc_solver__perform_cast(long, From_type, Ri_symbolic, Ri_casted_exp).
     integer_conversion(From_type, long, Le_symbolic, Ri_symbolic, long, Le_casted_exp, Ri_symbolic) :-
         !,
-        ptc_solver__perform_cast(cast(long, From_type), Le_symbolic, Le_casted_exp).
+        ptc_solver__perform_cast(long, From_type, Le_symbolic, Le_casted_exp).
     integer_conversion(unsigned(int), From_type, Le_symbolic, Ri_symbolic, unsigned(int), Le_symbolic, Ri_casted_exp) :-
         !,
-        ptc_solver__perform_cast(cast(unsigned(int), From_type), Ri_symbolic, Ri_casted_exp).
+        ptc_solver__perform_cast(unsigned(int), From_type, Ri_symbolic, Ri_casted_exp).
     integer_conversion(From_type, unsigned(int), Le_symbolic, Ri_symbolic, unsigned(int), Le_casted_exp, Ri_symbolic) :-
         !,
-        ptc_solver__perform_cast(cast(unsigned(int), From_type), Le_symbolic, Le_casted_exp).
+        ptc_solver__perform_cast(unsigned(int), From_type, Le_symbolic, Le_casted_exp).
     integer_conversion(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Le_type, Le_symbolic, Ri_symbolic) :-
         !,
         common_util__error(9, "Should not happen", "Cannot perform symbolic interpretation", [('Le_type', Le_type), ('Ri_type', Ri_type)], '9_040924_3', 'se_symbolically_interpret', 'integer_conversion', no_localisation, no_extra_info).
@@ -561,22 +584,22 @@ implicit_type_casting(Le_type, Ri_type, Le_symbolic, Ri_symbolic, Common_type, L
     %may need indexing, but order is important so be careful
     float_conversion(long_double, From_type, Le_symbolic, Ri_symbolic, long_double, Le_symbolic, Ri_casted_exp) :-
         !,
-        ptc_solver__perform_cast(cast(long_double, From_type), Ri_symbolic, Ri_casted_exp).
+        ptc_solver__perform_cast(long_double, From_type, Ri_symbolic, Ri_casted_exp).
     float_conversion(From_type, long_double, Le_symbolic, Ri_symbolic, long_double, Le_casted_exp, Ri_symbolic) :-
         !,
-        ptc_solver__perform_cast(cast(long_double, From_type), Le_symbolic, Le_casted_exp).
+        ptc_solver__perform_cast(long_double, From_type, Le_symbolic, Le_casted_exp).
     float_conversion(double, From_type, Le_symbolic, Ri_symbolic, double, Le_symbolic, Ri_casted_exp) :-
         !,
-        ptc_solver__perform_cast(cast(double, From_type), Ri_symbolic, Ri_casted_exp).
+        ptc_solver__perform_cast(double, From_type, Ri_symbolic, Ri_casted_exp).
     float_conversion(From_type, double, Le_symbolic, Ri_symbolic, double, Le_casted_exp, Ri_symbolic) :-
         !,
-        ptc_solver__perform_cast(cast(double, From_type), Le_symbolic, Le_casted_exp).
+        ptc_solver__perform_cast(double, From_type, Le_symbolic, Le_casted_exp).
     float_conversion(float, From_type, Le_symbolic, Ri_symbolic, float, Le_symbolic, Ri_casted_exp) :-
         !,
-        ptc_solver__perform_cast(cast(float, From_type), Ri_symbolic, Ri_casted_exp).
+        ptc_solver__perform_cast(float, From_type, Ri_symbolic, Ri_casted_exp).
     float_conversion(From_type, float, Le_symbolic, Ri_symbolic, float, Le_casted_exp, Ri_symbolic) :-
         !,
-        ptc_solver__perform_cast(cast(float, From_type), Le_symbolic, Le_casted_exp).
+        ptc_solver__perform_cast(float, From_type, Le_symbolic, Le_casted_exp).
     float_conversion(_, _, _, _, _, _, _) :-
         fail.
 %%%

@@ -1396,11 +1396,11 @@ block_item
 	;
 
 expression_statement
-	: ';'	{simple_str_lit_copy(&$$, "stmt([])");}
+	: ';'	{$$ = strdup("null_stmt");}
 	| expression ';'
-		{size_t const size = strlen("\nstmt()") + strlen($1) + 1;
+		{size_t const size = strlen("\nexpr_stmt()") + strlen($1) + 1;
 		 $$ = (char*)malloc(size);
-		 sprintf_safe($$, size, "\nstmt(%s)", $1);
+		 sprintf_safe($$, size, "\nexpr_stmt(%s)", $1);
 		 free($1);
 		}
 	;

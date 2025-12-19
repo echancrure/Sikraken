@@ -44,7 +44,7 @@ common_util__error(Error_severity, Error_message, Error_consequences, ArgumentsL
               (se_globals__get_val('errorMessageNb', ErrorNb),
                ErrorNb1 is ErrorNb + 1,
                %(ErrorNb1 == 34 -> mytrace ; true),
-               printf(output, "Error Nb: %w: ", [ErrorNb1]),
+               printf(output, "Sikraken Error Nb: %w: ", [ErrorNb1]),
                se_globals__set_val('errorMessageNb', ErrorNb1),
                se_globals__get_val(debug_mode, Debug_mode),
                common_util__error2(Error_severity, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Debug_mode)
@@ -109,7 +109,7 @@ common_util__error2(10, Error_message, Error_consequences, ArgumentsL, Error_cod
 common_util__error2(0, Error_message, Error_consequences, ArgumentsL, _Error_code, From_module, From_predicate, Localisation, Extra_info, Debug_mode) :-
     !,
     (Debug_mode == debug ->
-            (printf(output, "Debug_info: %s", [Error_message]),
+            (printf(output, "Sikraken warning level 0: %s", [Error_message]),
              (ArgumentsL == no_arguments ->
                     true
              ;
@@ -134,7 +134,7 @@ common_util__error2(0, Error_message, Error_consequences, ArgumentsL, _Error_cod
              flush(output)     %only in debug mode as costly
             )
     ;
-            printf(output, "%s%n", [Error_message])
+            printf(output, "Sikraken warning level 0 %s%n", [Error_message])
     ).
 
 common_util__error2(Error_severity, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Debug_mode) :-
@@ -165,7 +165,7 @@ common_util__error2(Error_severity, Error_message, Error_consequences, Arguments
             )
     ;
             ((Error_severity == 1 ->
-                    printf(output, "%s%n", [Error_message])
+                    printf(output, "Sikraken warning level 1 %s%n", [Error_message])
              ;
                     printf(output, "Sikraken warning level %w %w %s", [Error_severity, Error_code, Error_message])
              ),
