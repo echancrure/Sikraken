@@ -1396,7 +1396,7 @@ block_item
 	;
 
 expression_statement
-	: ';'	{simple_str_lit_copy(&$$, "stmt([])");}	//todo replace with int(1) ?
+	: ';'	{simple_str_lit_copy(&$$, "stmt([])");}
 	| expression ';'
 		{size_t const size = strlen("\nstmt()") + strlen($1) + 1;
 		 $$ = (char*)malloc(size);
