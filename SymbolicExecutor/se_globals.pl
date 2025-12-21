@@ -1,10 +1,6 @@
 :- module('se_globals').
 
-mytrace.            %call this to start debugging
-:- spy mytrace/0.
-
-:- export super_util__quick_dev_info/2.
-:- export se_globals__set_globals/6, se_globals__get_val/2, se_globals__set_val/2, se_globals__get_ref/2, se_globals__set_ref/2.
+:- export se_globals__set_globals/4, se_globals__get_val/2, se_globals__set_val/2, se_globals__get_ref/2, se_globals__set_ref/2.
 :- export se_globals__update_ref/2.
 :- export se_globals__push_scope_stack/0, se_globals__pop_scope_stack/0.
 
@@ -14,26 +10,16 @@ mytrace.            %call this to start debugging
 :- local reference('scope_stack', [scope(0, dummy)]).          %[scope(level_nb|Var)|Older] with Var only used for delaying and awakening, see SEAV module
 :- local reference('verifier_inputs', []).      %for testcomp: the chronogical list of verifier variables created in the form [verif(Type, Input)|...] 
 
-:- setval('debug_mode', 'debug').   %needed in case we need to write out an error message before globals are initiatilised... 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-super_util__quick_dev_info(Message, Arguments) :-
-    (se_globals__get_val(debug_mode, debug) ->
-        (printf(output, "Dev Info: ", []),
-         printf(output, Message, Arguments),
-         flush(output)        %systematically flushing ALL debug/development messages is important or they may get displayed in a wrong order when mixed with message from other streams and be out of sync with the ECLiPse tracer
-        )
-    ;
-        true
-    ).     
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+:- setval(already_printed, []).   %needed in case we need to write out an error message before globals are initiatilised... 
+:- setval('errorMessageNb', 0).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %declaring global non-logical variables: not undone on backtracking
-se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode, Data_model, Options) :-    
+se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Output_mode, Options) :-    
     setval('errorMessageNb', 0),	            %number of error messages generated: used to set trace_points in debug mode only
     setval('debug_info', 'pre_symbolic_execution'),    %used in debug mode only to hold the current processing position of the symbolic executor: a phase, file, or function being handled
     setval('phase', 'elaboration'),             %initially we are in the elaboration phase: used during cfg building and elaboration control
     setval('covered_bran', []),
     setval('path_nb', 0),
-    setval('number_restarts', 0),
     seed(1970),                                 %set for repeatable random behaviour between runs, 1970 is the default seed
     %random(My_seed), seed(My_seed), super_util__quick_dev_info("Random Seed: %w", My_seed),
     setval('to_cover', []),                     %list of branches remaining to cover
@@ -41,11 +27,8 @@ se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode,
     setval('install_dir', Install_dir),         %the install dir of the generator executable
     setval('target_source_file_name_no_ext', Target_source_file_name_no_ext),   %the name of target source file without extension
     setval('testcomp_test_suite_folder', ""),
-    setval('debug_mode', Debug_mode),           %'debug' or 'release'
-    %setval(debug_mode, debug),%override
-    setval('output_mode', Output_mode),         %'testcomp' or something else 
-    setval('data_model', Data_model),           %'-m32'|'m64'
-    setval('already_printed', []),              %list of already printed error messages : used in release mode only
+    setval('output_mode', Output_mode),         %'testcomp' or something else
+    setval(already_printed, []),              %list of already printed error messages : used in release mode only
     setval('EdgeCount', 0),
     setval('AllEdges', []),
     set_options(Options),                       %process the list of options

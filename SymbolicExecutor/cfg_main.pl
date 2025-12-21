@@ -67,9 +67,8 @@ cfg_main__build_cfg(Parsed_prolog_code) :-
     %mytrace,
     cfg_build__build_cfg(Parsed_prolog_code, elaboration), %parses the Prolog C code 
     cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls, Jumps), %collects all edges and nodes
-    se_globals__get_val('EdgeCount', EdgeCount),
-    super_util__quick_dev_info("Dev Info: CFG Number of Edges %d\n", [EdgeCount]),
-    (se_globals__get_val(debug_mode, debug) ->   %some overheads but only in debugging mode (implement your own if that is an issue)
+    (getval(debug_mode, debug) ->   %some overheads but only in debugging mode (implement your own if that is an issue)
+        super_util__quick_dev_info(se_globals__get_val('EdgeCount', EdgeCount), "Dev Info: CFG Number of Edges %d\n", [EdgeCount]),
         printf(output, "CFG list of Nodes: %w\n", [Nodes]),
         printf(output, "CFG list of Edges: %w\n", [Edges]),
         printf(output, "CFG list of function calls: %w\n", [FunctionCalls]),
@@ -99,14 +98,14 @@ cfg_main__build_cfg(Parsed_prolog_code) :-
     Time is End - Start,
     printf(output, "Original Successor Edges Mapping building time: %d ms\n", [Time]),
     flush(output),
-    (se_globals__get_val(debug_mode, debug) -> print_reachable_edges_mapping(Reachable_edges_mapping) ; true),
+    (getval(debug_mode, debug) -> print_reachable_edges_mapping(Reachable_edges_mapping) ; true),
     statistics(runtime, [Start2|_]),
     extend_mapping_with_function_calls_fast(Reachable_edges_mapping, FunctionCalls, Augmented_mapping),
     statistics(runtime, [End2|_]),
     Time2 is End2 - Start2,
     printf(output, "Augmented mapping building time: %d ms\n", [Time2]),
     flush(output),
-    (se_globals__get_val(debug_mode, debug) -> print_reachable_edges_mapping(Augmented_mapping) ; true),
+    (getval(debug_mode, debug) -> print_reachable_edges_mapping(Augmented_mapping) ; true),
     se_globals__set_val('reachable_edges_mapping', Reachable_edges_mapping).
 */
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

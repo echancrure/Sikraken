@@ -288,8 +288,8 @@ example_setup :-
 demo_flow :-
     example_setup,
     build_graph,
-    (se_globals__get_val(debug_mode, debug) -> getval(rev_map, Rev), printf("Edges: %w\n", [Rev]) ; true),
-    (se_globals__get_val(debug_mode, debug) -> getval(adj_assoc, Adj), assoc_to_list(Adj, AdjList), printf("Adjacency: %w\n", [AdjList]) ; true),
+    (getval(debug_mode, debug) -> getval(rev_map, Rev), printf("Edges: %w\n", [Rev]) ; true),
+    (getval(debug_mode, debug) -> getval(adj_assoc, Adj), assoc_to_list(Adj, AdjList), printf("Adjacency: %w\n", [AdjList]) ; true),
     cached_reach_ids(Cached0), writeln(cached_reach_ids=Cached0),
     ( Rev = [Id-edge(Src, Tar, Lab)|_] ->
         printf("Testing first edge id %d (%w)\n", [Id, edge(Src, Tar, Lab)]),

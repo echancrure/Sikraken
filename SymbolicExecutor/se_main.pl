@@ -11,17 +11,44 @@
 % defines module se_main
 % symbolic execution of parsed C code
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-:- set_flag('debug_compile', 'on').   %does not really help 
+:- use_module(library('lists')).
+mytrace.            %call this to start debugging
+:- (argv(all, Args),    %to be set after -- on the comand line for ECLiPse e.g. -- -m32 -release
+    (member("-m32", Args) -> 
+        setval(data_model, 32)  
+    ; 
+        setval(data_model, 64)
+    ),
+    (member("-debug", Args) -> 
+        setval(debug_mode, debug),
+        spy mytrace/0
+    ; 
+        set_flag(debug_compile, off),   %ECLiPSe compiler will not generate debuggable code
+        setval(debug_mode, release)
+    )
+).
+:- inline(super_util__quick_dev_info/2, tr_dev_info/2).
+:- inline(super_util__quick_dev_info/3, tr_dev_info/2).
+tr_dev_info(super_util__quick_dev_info(Goal, Msg, Args), Expanded) :-
+    (getval(debug_mode, debug) -> 
+        Expanded = (Goal, printf(output, "Dev Info: ", []), printf(output, Msg, Args), flush(output))
+    ; 
+        Expanded = true
+    ).
+tr_dev_info(super_util__quick_dev_info(Msg, Args), Expanded) :-
+    (getval(debug_mode, debug) -> 
+        Expanded = (printf(output, "Dev Info: ", []), printf(output, Msg, Args), flush(output))
+    ; 
+        Expanded = true
+    ).
+
 :- get_flag(version, '7.1').            %check for valid ECLiPSe version: issue warning only if not 
 %:- set_flag(after_event_timer, virtual). %causes out of range error when set to virtual (what you want) but ok for real: checked in tkeclipse and from CLI
 
-mytrace.            %call this to start debugging
-:- spy mytrace/0.
 %%%
 :- (is_predicate(prolog_c/2) -> abolish prolog_c/2 ; dynamic prolog_c/2).   %to ensure clean environment when using 'make' during development 
 
 :- use_module(library('ic')).
-:- use_module(library('lists')).
 :- use_module(library('timeout')).
 :- lib('ordset').   %for ordered list with no duplicates
 
@@ -59,17 +86,17 @@ se_main(ArgsL) :-
     get_flag('max_global_trail', Max_global_trail),
     GC_interval is Max_global_trail div 16,     %larger than default 1/32th to reduce gc time
     set_flag(gc_interval, GC_interval),
-    (ArgsL = [Install_dir, Source_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Debug_mode, Output_mode, Data_model, Search_algo|Options] ->
+    (ArgsL = [Install_dir, Source_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Output_mode, Search_algo|Options] ->
         true
     ;
         common_util__error(10, "Calling se_main/? with invalid argument list", "Review calling syntax of se_main/?", [], '10_240824_1', 'se_main', 'se_main', no_localisation, no_extra_info)
     ),
-    se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Debug_mode, Output_mode, Data_model, Options),    
+    se_globals__set_globals(Install_dir, Target_source_file_name_no_ext, Output_mode, Options),    
     (Search_algo = regression(Restarts, Tries) ->   %for more stable results during regression testing and to evaluate changes
         (setval('algo', 'regression'),
-         setval('nb_restarts', Restarts),
+         setval(nb_restarts, Restarts),
          setval('nb_tries', Tries),
-         (Debug_mode = 'debug' ->
+         (getval(debug_mode, debug) ->
             Budget = 1e99        %to work without timeouts at tkeclipse level during developement for example 
          ;   
             Budget = 65          %we put a limit for some regression tests which may not complete a full restart
@@ -79,7 +106,7 @@ se_main(ArgsL) :-
     ; 
      (Search_algo =.. [budget|Args]) ->
         (setval('algo', 'time_budget'),
-         setval('nb_restarts', 1e99),   %infinite restarts and tries allowed
+         setval(nb_restarts, 1e99),   %infinite restarts and tries allowed
          setval('nb_tries', 1e99),
          (Args = [_Budget] ->
             (First_time_out = 0.2, %can be much too sort for program involving loops which take longer than this: not a problem itself as the budget will increase (but only slowly if the Increase_duration_multiplier is small)
@@ -110,7 +137,7 @@ se_main(ArgsL) :-
             print_preamble_testcomp(Install_dir, Source_dir, Target_source_file_name_no_ext),
             initialise_ptc_solver,
             capitalize_first_letter(Target_raw_subprogram_name, Target_subprogram_name),
-            read_parsed_file(Install_dir, Target_source_file_name_no_ext, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, Target_subprogram_var),      %may fail if badly formed due to parsing errors
+            read_parsed_file(Install_dir, Target_source_file_name_no_ext, Target_subprogram_name, prolog_c(Parsed_prolog_code), Main, _Target_subprogram_var),      %may fail if badly formed due to parsing errors
             %%%pre-symbolic execution
             cfg_main__declare_functions(Parsed_prolog_code),
             setval('execution_mode', 'global'),   %i.e. C compile time (as opposed to runtime), tackling globals when implicit initialisation to 0 occurs 
@@ -126,8 +153,7 @@ se_main(ArgsL) :-
             (se_globals__get_val('EdgeCount', 0) -> 
                 print_test_inputs_testcomp([], 0)      %silly edge case: no branches at all; we still print a single empty test input vector to keep Testcov happy
             ;
-                %%% where it all happens
-                search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)
+                search_CFG(Main)%%% where it all happens
             ),
             print_test_run_log   %only run once
         ),
@@ -151,17 +177,17 @@ se_main(ArgsL) :-
             common_util__error(10, "Unknown exception caught", "Review, investigate and catch it better next time", [('Exception', Exception)], '10_260924_2', 'se_main', 'se_main', no_localisation, no_extra_info)
         ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
+search_CFG(Main) :-
     set_event_handler(single_test_time_out_event, handle_single_test_time_out_event/0),
-    getval('nb_restarts', Restarts),
-    (for(Restart_counter, 1, Restarts), loop_name('restart'), param(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)
+    getval(nb_restarts, Restarts),
+    (for(Restart_counter, 1, Restarts), loop_name('restart'), param(Main)
         do (
             super_util__quick_dev_info("\nDev Info: Restart number %w\n", [Restart_counter]),
-            search_CFG_inner(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)
+            search_CFG_inner(Main)
         )
     ).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    search_CFG_inner(_Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_code) :-
+    search_CFG_inner(Main) :-
         se_globals__get_val(single_test_time_out, Current_single_test_time_out),
         super_util__quick_dev_info("Dev Info: Time budget for a single test is %.2f seconds\n", [Current_single_test_time_out]),
         se_globals__get_val(path_nb, Initial_try_solution_number),
@@ -169,7 +195,7 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
         setval(shortcut_gen_triggered, false),
         setval(time_out_triggered, false),
         not(
-            (catch(try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)), 
+            (catch(try_nb_path_budget(Main), 
                    Any_exception, 
                    handle_try_nb_path_budget_exception(Any_exception)
                   ) -> 
@@ -194,8 +220,7 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
                  %we should retrieve se_globals__get_val('single_test_time_out', Current_single_test_time_out), because it may have changed within try_nb_path_budget
                  New_single_test_time_out is min(Current_single_test_time_out*Increase_duration_multiplier, Max_time_out), %but there is a maximum 
                  se_globals__set_val('single_test_time_out', New_single_test_time_out),   %todo should depend on global budget remaining
-                 statistics(event_time, Current_session_time),
-                 super_util__quick_dev_info("Dev Info: Restart single test budget changed to: %.2f seconds; overall elapsed time is %.2f seconds\n", [New_single_test_time_out, Current_session_time])
+                 super_util__quick_dev_info(statistics(event_time, Current_session_time), "Dev Info: Restart single test budget changed to: %.2f seconds; overall elapsed time is %.2f seconds\n", [New_single_test_time_out, Current_session_time])
                 )
             ;
                 true
@@ -238,7 +263,7 @@ search_CFG(Debug_mode, Output_mode, Main, Target_subprogram_var, Parsed_prolog_c
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %tries to generate at most nb_tries of test input vectors using backtracking
 %always fails by design
-try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code)):-
+try_nb_path_budget(Main):-
     getval('nb_tries', Nb_tries),
     setval(try_counter, 0),
     se_globals__get_val('path_nb', Initial_test_number),
@@ -248,7 +273,7 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
     statistics(event_time, Start_time),
     setval(start_time, Start_time),
     %%%where it all happens
-    find_one_path(Output_mode, Main, Target_subprogram_var, Parsed_prolog_code), 
+    find_one_path(Main), 
     (getval(algo, time_budget) ->
         fail        %will generate more solutions by backtracking
     ;
@@ -274,7 +299,7 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
             throw(single_test_time_out_exception)       %will trigger a restart
         ;
             (label_testcomp(_Labeled_inputs) ->
-                ((se_globals__get_val(debug_mode, debug) -> 
+                ((getval(debug_mode, debug) -> 
                     super_util__quick_dev_info("Dev Info: time out handler: This is an incomplete test vector\n", []),
                     %display_successful_test_stats(Last_test_duration, Current_session_time),
                     se_globals__get_ref(current_path_bran, Current_path_with_calls),
@@ -299,7 +324,7 @@ try_nb_path_budget(param(Output_mode, Main, Target_subprogram_var, Parsed_prolog
             )
         ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-find_one_path(_Output_mode, Main, _Target_subprogram_var, _Parsed_prolog_code) :-
+find_one_path(Main) :-
     %in the spirit of C we do not check Main: we accept any version (including argc/argv) 
     se_sub_atts__get(Main, 'body', Main_compound_statement),   
     se_globals__update_ref('current_path_bran', start('Main', true)),
@@ -398,17 +423,15 @@ find_one_path(_Output_mode, Main, _Target_subprogram_var, _Parsed_prolog_code) :
             Test_nb is Latest_test_nb + 1,
             se_globals__set_val('path_nb', Test_nb),
             cfg_main__bran_newly_covered(Overall_covered, Newly_covered),
-            (se_globals__get_val('debug_mode', 'debug') -> 
+            (getval(debug_mode, debug) -> 
                 super_util__quick_dev_info("Dev Info: New branches covered: ", []), 
                 print_branches_list(Newly_covered) 
             ; 
                 true
             ),
-            length(Newly_covered, Nb_new),
-            se_globals__set_val('covered_bran', Overall_covered),
             se_globals__get_val('EdgeCount', EdgeCount),
-            (EdgeCount == 0 -> Coverage_delta = 100.0 ; Coverage_delta is (Nb_new / EdgeCount) * 100),
-            super_util__quick_dev_info("Dev Info: Test %d covers %d new branches increasing coverage by %.2f%%\n", [Test_nb, Nb_new, Coverage_delta]),
+            super_util__quick_dev_info((length(Newly_covered, Nb_new), (EdgeCount == 0 -> Coverage_delta = 100.0 ; Coverage_delta is (Nb_new / EdgeCount) * 100)), "Dev Info: Test %d covers %d new branches increasing coverage by %.2f%%\n", [Test_nb, Nb_new, Coverage_delta]),
+            se_globals__set_val('covered_bran', Overall_covered),
             length(Overall_covered, Covered_nb),
             (EdgeCount == 0 -> 
                 Coverage is 100.0     %Some tests generated but EdgeCount is 0: a C file with no branches
@@ -420,7 +443,7 @@ find_one_path(_Output_mode, Main, _Target_subprogram_var, _Parsed_prolog_code) :
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 initialise_ptc_solver :-
     ptc_solver__clean_up,
-    se_globals__get_val('data_model', Data_model),
+    getval(data_model, Data_model),
     ptc_solver__default_declarations(Data_model, 'ignore').
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %returns CProlog the C code in Prolog format, Main the var of the main function, and Target_subprogram_var the var of the target function 

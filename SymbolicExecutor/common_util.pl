@@ -21,7 +21,7 @@
 %Localisation : optional, an atom or a compound term providing further localisation information
 %Extra_info : optional, a string of anything you want
 common_util__error(Error_severity, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info) :-
-       se_globals__get_val('already_printed', Already_printed),
+       se_globals__get_val(already_printed, Already_printed),
        (memberchk(error(Error_code, Previous_occurrences), Already_printed)  ->
               (Previous_occurrences == 9 ->
                      Occurences = 9
@@ -30,12 +30,12 @@ common_util__error(Error_severity, Error_message, Error_consequences, ArgumentsL
                       !,    
                       Occurences is Previous_occurrences + 1,
                       append(Start, [error(Error_code, Occurences)|Rest], New_already_printed),
-                      se_globals__set_val('already_printed', New_already_printed)
+                      se_globals__set_val(already_printed, New_already_printed)
                      )
               )
        ;
               (Occurences = 1,
-               se_globals__set_val('already_printed', [error(Error_code, Occurences)|Already_printed])
+               se_globals__set_val(already_printed, [error(Error_code, Occurences)|Already_printed])
               )
        ),
        (Occurences == 9 -> %only print the same warning message with the same code a fixed number of times to avoid overwhelming the logs
@@ -46,7 +46,7 @@ common_util__error(Error_severity, Error_message, Error_consequences, ArgumentsL
                %(ErrorNb1 == 34 -> mytrace ; true),
                printf(output, "Sikraken Error Nb: %w: ", [ErrorNb1]),
                se_globals__set_val('errorMessageNb', ErrorNb1),
-               se_globals__get_val(debug_mode, Debug_mode),
+               getval(debug_mode, Debug_mode),
                common_util__error2(Error_severity, Error_message, Error_consequences, ArgumentsL, Error_code, From_module, From_predicate, Localisation, Extra_info, Debug_mode)
               )
        ).
