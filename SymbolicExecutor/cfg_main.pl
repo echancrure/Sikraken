@@ -68,7 +68,7 @@ cfg_main__build_cfg(Parsed_prolog_code) :-
     cfg_build__build_cfg(Parsed_prolog_code, elaboration), %parses the Prolog C code 
     cfg_build__create_graph(graph(Nodes, Edges), FunctionCalls, Jumps), %collects all edges and nodes
     (getval(debug_mode, debug) ->   %some overheads but only in debugging mode (implement your own if that is an issue)
-        super_util__quick_dev_info(se_globals__get_val('EdgeCount', EdgeCount), "Dev Info: CFG Number of Edges %d\n", [EdgeCount]),
+        super_util__quick_dev_info(se_globals__get_val('EdgeCount', EdgeCount), "CFG Number of Edges %d\n", [EdgeCount]),
         printf(output, "CFG list of Nodes: %w\n", [Nodes]),
         printf(output, "CFG list of Edges: %w\n", [Edges]),
         printf(output, "CFG list of function calls: %w\n", [FunctionCalls]),

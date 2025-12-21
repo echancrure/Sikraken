@@ -26,7 +26,7 @@ print_test_run_log__preamble(ArgsL) :-
 print_test_run_log :-
     %flush(output),
     %statistics(event_time, Current_session_time),
-    %super_util__quick_dev_info("Dev Info: Session time is %.2f seconds\n", [Current_session_time]),
+    %super_util__quick_dev_info("Session time is %.2f seconds\n", [Current_session_time]),
     printf(output, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n", []),
     printf(output, "Sikraken Session Results:\n", []),
     se_globals__get_val('path_nb', Test_nb),

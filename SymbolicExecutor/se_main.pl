@@ -27,21 +27,33 @@ mytrace.            %call this to start debugging
         setval(debug_mode, release)
     )
 ).
-:- inline(super_util__quick_dev_info/2, tr_dev_info/2).
-:- inline(super_util__quick_dev_info/3, tr_dev_info/2).
-tr_dev_info(super_util__quick_dev_info(Goal, Msg, Args), Expanded) :-
+:- inline(super_util__quick_dev_info/2, tr_dev_info2/2).
+:- inline(super_util__quick_dev_info/3, tr_dev_info3/2).
+tr_dev_info3(super_util__quick_dev_info(Goal, Msg, Args), Expanded) :-
     (getval(debug_mode, debug) -> 
         Expanded = (Goal, printf(output, "Dev Info: ", []), printf(output, Msg, Args), flush(output))
     ; 
         Expanded = true
     ).
-tr_dev_info(super_util__quick_dev_info(Msg, Args), Expanded) :-
+tr_dev_info2(super_util__quick_dev_info(Msg, Args), Expanded) :-
     (getval(debug_mode, debug) -> 
         Expanded = (printf(output, "Dev Info: ", []), printf(output, Msg, Args), flush(output))
     ; 
         Expanded = true
     ).
+% Fallback definition for when inlining doesn't occur
+super_util__quick_dev_info(Msg, Args) :-
+    (getval(debug_mode, debug) -> 
+        printf(output, "Dev Info: ", []), 
+        printf(output, Msg, Args), 
+        flush(output)
+    ; 
+        true
+    ).
 
+super_util__quick_dev_info(Goal, Msg, Args) :-
+    Goal,
+    super_util__quick_dev_info(Msg, Args).
 :- get_flag(version, '7.1').            %check for valid ECLiPSe version: issue warning only if not 
 %:- set_flag(after_event_timer, virtual). %causes out of range error when set to virtual (what you want) but ok for real: checked in tkeclipse and from CLI
 
@@ -182,14 +194,14 @@ search_CFG(Main) :-
     getval(nb_restarts, Restarts),
     (for(Restart_counter, 1, Restarts), loop_name('restart'), param(Main)
         do (
-            super_util__quick_dev_info("\nDev Info: Restart number %w\n", [Restart_counter]),
+            super_util__quick_dev_info("\nRestart number %w\n", [Restart_counter]),
             search_CFG_inner(Main)
         )
     ).
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     search_CFG_inner(Main) :-
         se_globals__get_val(single_test_time_out, Current_single_test_time_out),
-        super_util__quick_dev_info("Dev Info: Time budget for a single test is %.2f seconds\n", [Current_single_test_time_out]),
+        super_util__quick_dev_info("Time budget for a single test is %.2f seconds\n", [Current_single_test_time_out]),
         se_globals__get_val(path_nb, Initial_try_solution_number),
         setval(nb_try_solution, Initial_try_solution_number),
         setval(shortcut_gen_triggered, false),
@@ -220,7 +232,7 @@ search_CFG(Main) :-
                  %we should retrieve se_globals__get_val('single_test_time_out', Current_single_test_time_out), because it may have changed within try_nb_path_budget
                  New_single_test_time_out is min(Current_single_test_time_out*Increase_duration_multiplier, Max_time_out), %but there is a maximum 
                  se_globals__set_val('single_test_time_out', New_single_test_time_out),   %todo should depend on global budget remaining
-                 super_util__quick_dev_info(statistics(event_time, Current_session_time), "Dev Info: Restart single test budget changed to: %.2f seconds; overall elapsed time is %.2f seconds\n", [New_single_test_time_out, Current_session_time])
+                 super_util__quick_dev_info(statistics(event_time, Current_session_time), "Restart single test budget changed to: %.2f seconds; overall elapsed time is %.2f seconds\n", [New_single_test_time_out, Current_session_time])
                 )
             ;
                 true
@@ -292,18 +304,18 @@ try_nb_path_budget(Main):-
     %this may be triggered at any time asynchronously during a "try" search
     handle_single_test_time_out_event :-       %single path exploration time is up
         %mytrace,
-        super_util__quick_dev_info("\nDev Info: Time out triggered.\n", []),
+        super_util__quick_dev_info("\nTime out triggered.\n", []),
         cfg_main__bran_newly_covered(_Overall_covered, Newly_covered),
         (Newly_covered == [] ->
-            super_util__quick_dev_info("Dev Info: time out handler: Nothing new in the current subpath.\n", []),
+            super_util__quick_dev_info("time out handler: Nothing new in the current subpath.\n", []),
             throw(single_test_time_out_exception)       %will trigger a restart
         ;
             (label_testcomp(_Labeled_inputs) ->
                 ((getval(debug_mode, debug) -> 
-                    super_util__quick_dev_info("Dev Info: time out handler: This is an incomplete test vector\n", []),
+                    super_util__quick_dev_info("time out handler: This is an incomplete test vector\n", []),
                     %display_successful_test_stats(Last_test_duration, Current_session_time),
                     se_globals__get_ref(current_path_bran, Current_path_with_calls),
-                    super_util__quick_dev_info("Dev Info: time out handler: current Path: ", []), 
+                    super_util__quick_dev_info("time out handler: current Path: ", []), 
                     print_branches_list(Current_path_with_calls)
                  ;
                     true
@@ -317,7 +329,7 @@ try_nb_path_budget(Main):-
                  %this may lead to may testvectors with the same prefix which should be filtered out to reduce the number of tests without reducing the amount of coverage achieved
                 )
              ;
-                super_util__quick_dev_info("Dev Info: time out handler: Labelling failed after time out.\n", []),  %no test input vector could be generated
+                super_util__quick_dev_info("time out handler: Labelling failed after time out.\n", []),  %no test input vector could be generated
                 %should fail where the timeout was triggered: we are following a subpath that is 'infeasible' (or at least we cannot generate tests for e.g. because of non-linearity) 
                 %perhaps, but for now just fail the entire try
                 throw(single_test_time_out_exception)
@@ -356,7 +368,7 @@ find_one_path(Main) :-
         ;
             (cfg_main__bran_newly_covered(_Overall_covered, Newly_covered),
              (Newly_covered == [] ->
-                super_util__quick_dev_info("Dev Info: Nothing new: backtrack, timer is still running.\n", []),
+                super_util__quick_dev_info("Nothing new: backtrack, timer is still running.\n", []),
                 true %will fail above in try_nb_path_budget/...
             ;
                 (cancel_after_event(single_test_time_out_event, _CancelledEvents),  %stop timer: reach the end and something new is in the path
@@ -398,7 +410,7 @@ find_one_path(Main) :-
                  (Current_single_test_time_out > Min_time_out, Current_single_test_time_out > Margin * Last_test_duration ->  %last test generation was faster by a wide margin: allocated budget is reduced
                     (New_single_test_time_out is max(Margin * Last_test_duration, Min_time_out), %but there is a minimum to reduce overheads
                      se_globals__set_val('single_test_time_out', New_single_test_time_out),
-                     super_util__quick_dev_info("Dev Info: Single test budget changed to: %.2f seconds; overall elapsed time is %.2f seconds\n", [New_single_test_time_out, Current_session_time])
+                     super_util__quick_dev_info("Single test budget changed to: %.2f seconds; overall elapsed time is %.2f seconds\n", [New_single_test_time_out, Current_session_time])
                     )
                  ;
                     New_single_test_time_out = Current_single_test_time_out
@@ -415,7 +427,7 @@ find_one_path(Main) :-
             statistics(event_time, Current_session_time),
             getval(start_time, Current_start_time),
             Last_test_duration is Current_session_time - Current_start_time,
-            super_util__quick_dev_info("Dev Info: Test generated in %.2f seconds; overall elapsed time is %.2f seconds\n", [Last_test_duration, Current_session_time]).
+            super_util__quick_dev_info("Test generated in %.2f seconds; overall elapsed time is %.2f seconds\n", [Last_test_duration, Current_session_time]).
         %%%
         record_path_coverage(Test_nb) :-
             %mytrace,
@@ -424,13 +436,13 @@ find_one_path(Main) :-
             se_globals__set_val('path_nb', Test_nb),
             cfg_main__bran_newly_covered(Overall_covered, Newly_covered),
             (getval(debug_mode, debug) -> 
-                super_util__quick_dev_info("Dev Info: New branches covered: ", []), 
+                super_util__quick_dev_info("New branches covered: ", []), 
                 print_branches_list(Newly_covered) 
             ; 
                 true
             ),
             se_globals__get_val('EdgeCount', EdgeCount),
-            super_util__quick_dev_info((length(Newly_covered, Nb_new), (EdgeCount == 0 -> Coverage_delta = 100.0 ; Coverage_delta is (Nb_new / EdgeCount) * 100)), "Dev Info: Test %d covers %d new branches increasing coverage by %.2f%%\n", [Test_nb, Nb_new, Coverage_delta]),
+            super_util__quick_dev_info((length(Newly_covered, Nb_new), (EdgeCount == 0 -> Coverage_delta = 100.0 ; Coverage_delta is (Nb_new / EdgeCount) * 100)), "Test %d covers %d new branches increasing coverage by %.2f%%\n", [Test_nb, Nb_new, Coverage_delta]),
             se_globals__set_val('covered_bran', Overall_covered),
             length(Overall_covered, Covered_nb),
             (EdgeCount == 0 -> 
@@ -537,7 +549,7 @@ label_testcomp(Labeled_inputs) :-
             !
         ),
         Labeling_timeout,
-        (super_util__quick_dev_info("Dev Info: Labelling timed out after %.2f seconds.\n", [Labeling_timeout]),
+        (super_util__quick_dev_info("Labelling timed out after %.2f seconds.\n", [Labeling_timeout]),
          fail
         )
     ).
