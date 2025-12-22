@@ -11,10 +11,10 @@
 % defines module se_main
 % symbolic execution of parsed C code
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-:- use_module(library('lists')).
 mytrace.            %call this to start debugging
-:- (argv(all, Args),    %to be set after -- on the comand line for ECLiPse e.g. -- -m32 -release
-    (member("-m32", Args) -> 
+:- use_module(library('lists')).
+:- (argv(all, Args),            %get strings back
+    (member("-m32", Args) ->    %pass on the command line after -- for ECLiPse e.g. -- -m32 -release
         setval(data_model, 32)  
     ; 
         setval(data_model, 64)
@@ -28,6 +28,14 @@ mytrace.            %call this to start debugging
     )
 ).
 :- inline(super_util__quick_dev_info/2, tr_dev_info2/2).
+tr_dev_info2(super_util__quick_dev_info(Msg, Args), Expanded) :-
+    (getval(debug_mode, debug) -> 
+        Expanded = (printf(output, "Dev Info: ", []), printf(output, Msg, Args), flush(output))
+    ; 
+        Expanded = true
+    ).
+super_util__quick_dev_info(_, _) :- throw(should_have_been_inlined(super_util__quick_dev_info/2)).
+
 :- inline(super_util__quick_dev_info/3, tr_dev_info3/2).
 tr_dev_info3(super_util__quick_dev_info(Goal, Msg, Args), Expanded) :-
     (getval(debug_mode, debug) -> 
@@ -35,25 +43,8 @@ tr_dev_info3(super_util__quick_dev_info(Goal, Msg, Args), Expanded) :-
     ; 
         Expanded = true
     ).
-tr_dev_info2(super_util__quick_dev_info(Msg, Args), Expanded) :-
-    (getval(debug_mode, debug) -> 
-        Expanded = (printf(output, "Dev Info: ", []), printf(output, Msg, Args), flush(output))
-    ; 
-        Expanded = true
-    ).
-% Fallback definition for when inlining doesn't occur
-super_util__quick_dev_info(Msg, Args) :-
-    (getval(debug_mode, debug) -> 
-        printf(output, "Dev Info: ", []), 
-        printf(output, Msg, Args), 
-        flush(output)
-    ; 
-        true
-    ).
+super_util__quick_dev_info(_, _, _) :- throw(should_have_been_inlined(super_util__quick_dev_info/3)).
 
-super_util__quick_dev_info(Goal, Msg, Args) :-
-    Goal,
-    super_util__quick_dev_info(Msg, Args).
 :- get_flag(version, '7.1').            %check for valid ECLiPSe version: issue warning only if not 
 %:- set_flag(after_event_timer, virtual). %causes out of range error when set to virtual (what you want) but ok for real: checked in tkeclipse and from CLI
 
@@ -455,8 +446,7 @@ find_one_path(Main) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 initialise_ptc_solver :-
     ptc_solver__clean_up,
-    getval(data_model, Data_model),
-    ptc_solver__default_declarations(Data_model, 'ignore').
+    ptc_solver__default_declarations('ignore').
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %returns CProlog the C code in Prolog format, Main the var of the main function, and Target_subprogram_var the var of the target function 
 read_parsed_file(Install_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, CProlog, Main, Target_subprogram_var) :-
@@ -527,7 +517,7 @@ label_testcomp(Labeled_inputs) :-
     se_globals__get_ref(verifier_inputs, Verifier_inputs),
     se_globals__get_val(single_test_time_out, Current_single_test_time_out),
     length(Verifier_inputs, Nb_inputs),
-    Labeling_timeout is Current_single_test_time_out + Nb_inputs * 0.005, % adding 5 thousandths of a second per input: will only make an impact if number of inputs is large e.g. 1000 inputs add 5 seconds
+    TimeLimit is Current_single_test_time_out + Nb_inputs * 0.005, % adding 5 thousandths of a second per input: will only make an impact if number of inputs is large e.g. 1000 inputs add 5 seconds
     %timeout added to labeling avoid very long / impossible labelling
     %this is done while the timer is cancelled: very wastful to interrupt labeling while it is running
     timeout(
@@ -548,8 +538,8 @@ label_testcomp(Labeled_inputs) :-
             ),
             !
         ),
-        Labeling_timeout,
-        (super_util__quick_dev_info("Labelling timed out after %.2f seconds.\n", [Labeling_timeout]),
+        TimeLimit,
+        ((getval(debug_mode, debug) -> printf(output, "Dev Info: Labelling timed out after %.2f seconds.\n", [TimeLimit]), flush(output) ; true),    %version of super_util__quick_dev_info/2 because compiler can not inline meta goals
          fail
         )
     ).

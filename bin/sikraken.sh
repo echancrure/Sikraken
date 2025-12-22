@@ -150,7 +150,7 @@ else
 fi
 
 # Call the symbolic executor via ECLiPSe
-eclipse_call="$SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e \"se_main(['$SIKRAKEN_INSTALL_DIR', '${SIKRAKEN_INSTALL_DIR}/${rel_path_c_file}', '$file_name_no_ext', main, $debug_mode, testcomp, '$data_model', $algo])\" -g $stack_size_value -l $local_control_stack_size"
+eclipse_call="$SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e \"se_main(['$SIKRAKEN_INSTALL_DIR', '${SIKRAKEN_INSTALL_DIR}/${rel_path_c_file}', '$file_name_no_ext', main, testcomp, $algo])\" -g $stack_size_value -l $local_control_stack_size -- -$debug_mode $data_model"
 echo -e "${BL}Calling Sikraken using: $eclipse_call${NC}"
 
 end_time=$(date +%s.%1N)
