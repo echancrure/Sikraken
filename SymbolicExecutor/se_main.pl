@@ -87,7 +87,7 @@ se_main(ArgsL) :-
     setval(main_engine, Engine),
     set_flag(gc_policy, fixed),                 %for better predictability
     get_flag('max_global_trail', Max_global_trail),
-    GC_interval is Max_global_trail div 16,     %larger than default 1/32th to reduce gc time
+    GC_interval is Max_global_trail div 8,     %larger than default 1/32th to reduce gc time
     set_flag(gc_interval, GC_interval),
     (ArgsL = [Install_dir, Source_dir, Target_source_file_name_no_ext, Target_raw_subprogram_name, Output_mode, Search_algo|Options] ->
         true
