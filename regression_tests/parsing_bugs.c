@@ -1,3 +1,23 @@
+char *s1 = "Hello, ECLiPSe Prolog!";
+char *s2 = "String with \"quotes\" inside";
+char *s3 = "This " "is " "all " "one " "string.";
+char *s4 = "Mixed"   " whitespace " 
+           "and newlines";
+char *s5 = "Line 1\nLine 2\tTabbed\rReturn";
+char *s6 = "Path\\to\\file";
+char *s7 = "Start\0End";
+char *s8 = "Multiple\0null\0bytes";
+char *s9 = "Hex code \x1F and more text";
+char *s10 = "Octal code \177 and more text";
+char *s11 = "\x1" "23"; // Tricky: Should be hex 1 followed by literal '23'
+char *s12 = "Alert/Bell \a";
+char *s13 = "Vertical Tab \v";
+char *w1 = L"Wide string literal";
+char *w2 = L"Wide " "concatenation";
+char *w3 = L"Wide with null \0 and hex \x0A";
+char *e1 = ""; // Empty string
+char *e2 = " "; // Space string
+char *e3 = "\"\"\""; // Escaped quotes
 typedef int MYINT;
 MYINT myint;
 struct table;

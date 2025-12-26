@@ -43,6 +43,8 @@ print_test_run_log :-
     ),
     printf(output, "\tCFG: \t\t\t%w edges\n", [EdgeCount]),
     printf(output, "\tCoverage: \t\t%.2f%%\n", [Coverage]),
+    getval(nb_restarts, Restarts),
+    printf(output, "\tRestarts: \t\t%w\n", [Restarts]),
     se_globals__get_val('AllEdges', All_pure_edges_sorted),
     printf(output, "\tAll: \t\t\t", []),
     print_branches_list(All_pure_edges_sorted),

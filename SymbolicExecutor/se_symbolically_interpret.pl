@@ -103,7 +103,7 @@ symbolically_interpret(cast(Decl_spec, Expression), symb(To_type, Casted)) :-
     ),
     symbolically_interpret(Expression, symb(From_type, Symbolic)),
     (To_type == 'void' ->    %casting to void: discard the expression, but evaluation above still has to happen
-        Casted = addr(0)     %just to return something but hopefully will not be used
+        Casted = 0     %just to return something but hopefully will not be used
     ;    
         ptc_solver__perform_cast(To_type, From_type, Symbolic, Casted)
     ).
@@ -116,7 +116,8 @@ symbolically_interpret(deref(Expression), Symbolic_expression) :-
     (Symbolic_expression_ptr = symb(_, addr(Inner_symbolic_expression)) ->   %todo: need testing with many levels of derefs
         symbolically_interpret(Inner_symbolic_expression, Symbolic_expression)
     ;
-        common_util__error(10, "Dereferencing something which is not a pointer", "Cannot perform symbolic interpretation", [('Symbolic_expression_ptr', Symbolic_expression_ptr)], '10_040924_2', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info)
+        common_util__error(9, "Dereferencing something which is not a pointer", "Cannot perform symbolic interpretation", [('Symbolic_expression_ptr', Symbolic_expression_ptr)], '9_040924_2', 'se_symbolically_interpret', 'symbolically_interpret', no_localisation, no_extra_info),
+        Symbolic_expression = symb(int, 0)
     ).
 symbolically_interpret(index(Array_exp, Index_exp), symb(Element_type, Element)) :-
     !,
@@ -632,8 +633,7 @@ is_verifier_input_function('UC___VERIFIER_nondet_pthread_t', pointer(thread_t)) 
 is_verifier_input_function('UC___VERIFIER_nondet_sector_t', sector_t) :-
     common_util__error(10, "Unhandled function name in is_verifier_input_function", "Cannot perform symbolic interpretation", [('Function name', 'UC___VERIFIER_nondet_sector_t')], '10_040924', 'se_symbolically_interpret', 'is_verifier_input_function', no_localisation, no_extra_info).
 is_verifier_input_function('UC___VERIFIER_nondet_short', short).
-is_verifier_input_function('UC___VERIFIER_nondet_size_t', size_t) :-
-    common_util__error(10, "Unhandled function name in is_verifier_input_function", "Cannot perform symbolic interpretation", [('Function name', 'UC___VERIFIER_nondet_size_t')], '10_040924', 'se_symbolically_interpret', 'is_verifier_input_function', no_localisation, no_extra_info).
+is_verifier_input_function('UC___VERIFIER_nondet_size_t', unsigned(int)). %unsigned(int)
 is_verifier_input_function('UC___VERIFIER_nondet_u32', unsigned(int)).      %u32 is to force 32 bits, on most machines that's the case, some embedded system may use 16 bits for unsigned ints
 is_verifier_input_function('UC___VERIFIER_nondet_uchar', unsigned(char)).
 is_verifier_input_function('UC___VERIFIER_nondet_uint', unsigned(int)).

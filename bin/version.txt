@@ -1,6 +1,6 @@
-1.3.3
+1.3.4
 **********
-22 December 2025
+24 December 2025
   Minor: Test-Comp 2026 version
 
 1.3.2

@@ -94,7 +94,7 @@ while [[ $# -gt 1 ]]; do
     esac
     shift
 done
-local_control_stack_size="476M"     #that's in MiB so about 0.5GB
+local_control_stack_size="953M"     #that's in MiB so about 1000MB
 
 # --- Last argument must be C source path ---
 rel_path_c_file="$1"
@@ -108,14 +108,14 @@ fi
 # --- SPECIAL CASE OVERRIDE LOGIC ---
 # -------------------------------------------------------------
 if [ "$testcomp_flag" -eq 1 ]; then
-    echo -e "${YL}Sikraken WARNING: --testcomp option detected. Overwriting settings for TestComp run.${NC}"
+    echo "Sikraken WARNING: --testcomp option detected. Overwriting settings for TestComp run."
     #debug_mode="debug"                 # for pre-runs to get all the debug messages
     #algo="budget(800)"                 # for pre-runs to get the full stats at the end of Sikraken run 
     #stack_size_value="$((2 * 953))M"   # for pre-runs so as not to hit the limit of 3 GB
     debug_mode="release"                # for Test-Comp final-run : less time wasted writing out messages
     algo="budget(900)"                  # for Test-Comp final-run : to use up all the time available
     #stack_size_value="2382M"
-    stack_size_value="14295M"           # in MiB 1 GB ==  953 MiB for Test-Comp final-run : high enough GB to be of benefit, but below competition threshold of 15 GB to ensure Sikraken does not get killed
+    stack_size_value="2859M"           # in MiB 1 GB ==  953 MiB for Test-Comp final-run : high enough GB to be of benefit, but below competition threshold of 15 GB to ensure Sikraken does not get killed
 fi
 # -------------------------------------------------------------
 
@@ -151,7 +151,7 @@ fi
 
 # Call the symbolic executor via ECLiPSe
 eclipse_call="$SIKRAKEN_INSTALL_DIR/eclipse/bin/x86_64_linux/eclipse -f $SIKRAKEN_INSTALL_DIR/SymbolicExecutor/se_main.pl -e \"se_main(['$SIKRAKEN_INSTALL_DIR', '${SIKRAKEN_INSTALL_DIR}/${rel_path_c_file}', '$file_name_no_ext', main, testcomp, $algo])\" -g $stack_size_value -l $local_control_stack_size -- -$debug_mode $data_model"
-echo -e "${BL}Calling Sikraken using: $eclipse_call${NC}"
+echo "Calling Sikraken using: $eclipse_call"
 
 end_time=$(date +%s.%1N)
 

@@ -18,6 +18,9 @@
 
 #include <stdio.h>
 #include <limits.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 
 #include "C_grammar.tab.h"
 
@@ -28,6 +31,7 @@ void wrap_integer_constants(char *, char *, char **);
 void wrap_floating_point_constants(int, char *, char **);
 void add_missing_zero_after_decimal_point(char *, char **);
 char *add_missing_zero_before_decimal_point(const char *, int);
+char *convert_to_prolog_string(const char*);
 
 int open_parens = 0;                // used for attributes handling
 
@@ -314,13 +318,15 @@ WS  [ \t\v\n\f]
                              return F_CONSTANT;
                             }
 
-({SP}?\"([^"\\\n]|{ES})*\"{WS}*)+	{FSM_start_statement();
+({SP}?\"([^"\\\n]|{ES})*\"{WS}*)+ {FSM_start_statement();
+                                     char* processed = convert_to_prolog_string(yytext);
                                      if (yytext[0] == 'L') { //a wide string constant
-                                            size_t const size = strlen("wide_string()") + strlen(yytext) - 1 + 1;
+                                            size_t const size = strlen("wide_string()") + strlen(processed) - 1 + 1;
                                             yylval.id = (char*)malloc(size);
-                                            sprintf_safe(yylval.id, size, "wide_string(%s)", &yytext[1]);      //copy from yytext[1] to remove 'L' prefix 
+                                            sprintf_safe(yylval.id, size, "wide_string(%s)", &processed[1]);
+                                            free(processed);
                                         } else {
-                                            yylval.id = strdup_safe(yytext);
+                                            yylval.id = processed;
                                         }  
                                      return STRING_LITERAL;
                                     }
@@ -663,4 +669,41 @@ char *add_missing_zero_before_decimal_point(const char *yytext, int yyleng) {
         strcpy(copy, yytext);
         return copy;
     }
+}
+
+char* convert_to_prolog_string(const char* str) {
+    size_t len = strlen(str);
+    char* result = (char*)malloc(len * 3 + 1); // worst case: \xNN becomes \NNN
+    char* dst = result;
+    const char* src = str;
+    
+    while (*src) {
+        if (*src == '\\' && *(src+1)) {
+            if (src[1] == '0' && (src[2] < '0' || src[2] > '7')) {
+                // \0 not followed by octal - convert to \000
+                strcpy(dst, "\\000");
+                dst += 4;
+                src += 2;
+            } else if (src[1] == 'x') {
+                // \xNN hex escape - convert to octal
+                src += 2; // skip \x
+                int value = 0;
+                while (isxdigit(*src)) {
+                    value = value * 16 + (isdigit(*src) ? *src - '0' : tolower(*src) - 'a' + 10);
+                    src++;
+                }
+                // Convert value to octal
+                sprintf(dst, "\\%03o", value);
+                dst += 4;
+            } else {
+                // Other escape sequence - copy both characters
+                *dst++ = *src++;
+                *dst++ = *src++;
+            }
+        } else {
+            *dst++ = *src++;
+        }
+    }
+    *dst = '\0';
+    return result;
 }
